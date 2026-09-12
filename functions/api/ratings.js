@@ -71,15 +71,27 @@ export async function onRequestGet({ request }) {
   }
 
   // ---- 17Lands から取得 ----
-  // 日付の指定方法によって返る範囲が変わるため、複数試して
-  // 最も試合数の多い結果を採用する。
-  const today = new Date().toISOString().slice(0, 10);
-  const base = "https://www.17lands.com/card_ratings/data"
-             + `?expansion=${set.toUpperCase()}&format=${event}`;
+  // 期間が長すぎると無言で0件相当の結果が返るため、
+  // 期間指定の方法と長さを変えて試し、最も試合数の多い結果を採用する。
+  const q = `expansion=${set.toUpperCase()}&format=${event}`;
+  const day = 86400000;
+  const iso = t => new Date(t).toISOString().slice(0, 10);
+  const now = Date.now();
+  const today = iso(now);
+  const rel = info.released_at;
+
+  const dated = (from, to) =>
+    `https://www.17lands.com/card_ratings/data?${q}&start_date=${from}&end_date=${to}`;
+
   const attempts = [
-    base + `&start_date=${info.released_at}&end_date=${today}`,
-    base + `&start_date=2019-01-01&end_date=${today}`,
-    base
+    `https://www.17lands.com/card_ratings/data?${q}&time_period=ALL_TIME`,
+    `https://www.17lands.com/card_data?${q}&time_period=ALL_TIME`,
+    dated(rel, today),                        // 発売日から今日まで
+    dated(iso(now - 365 * day), today),       // 直近1年
+    dated(iso(now - 180 * day), today),       // 直近半年
+    dated(iso(now - 90 * day), today),        // 直近3か月
+    dated(iso(now - 30 * day), today),        // 直近1か月
+    dated(rel, iso(Date.parse(rel + "T00:00:00Z") + 60 * day))  // 発売直後の2か月
   ];
 
   const totalGames = arr =>
@@ -92,13 +104,23 @@ export async function onRequestGet({ request }) {
     let got;
     try {
       const res = await fetch(src, {
-        headers: { "User-Agent": UA, Accept: "application/json" }
+        headers: {
+          "User-Agent": UA,
+          Accept: "application/json",
+          Referer: "https://www.17lands.com/card_data"
+        }
       });
       if (res.status === 429) {
         return json({ error: "17Lands へのアクセスが制限されています。しばらく待って再度お試しください。" }, 429);
       }
       if (!res.ok) { diag.push({ src, status: res.status }); continue; }
-      got = await res.json();
+      const text = await res.text();
+      try {
+        got = JSON.parse(text);
+      } catch (pe) {
+        diag.push({ src, note: "JSONでない応答", head: text.slice(0, 120) });
+        continue;
+      }
     } catch (e) {
       diag.push({ src, error: String(e) });
       continue;
@@ -111,7 +133,7 @@ export async function onRequestGet({ request }) {
     const g = totalGames(got);
     diag.push({ src, rows: got.length, total_games: g });
     if (g > best) { best = g; rows = got; used = src; }
-    if (g >= 20000) break;                  // 十分な量が取れたら打ち切る
+    if (!debug && g >= 20000) break;        // 十分な量が取れたら打ち切る
   }
 
   // ---- 診断モード：生データをそのまま返す ----
@@ -159,6 +181,13 @@ export async function onRequestGet({ request }) {
     picks:   r.pick_count ?? 0
   })).filter(c => c.name);
 
+  const period = (() => {
+    const m = used.match(/start_date=([\d-]+)&end_date=([\d-]+)/);
+    if (m) return `${m[1]} 〜 ${m[2]}`;
+    if (used.includes("ALL_TIME")) return "全期間";
+    return "不明";
+  })();
+
   const payload = {
     set: set.toUpperCase(),
     event,
@@ -167,7 +196,7 @@ export async function onRequestGet({ request }) {
     fetched_at: new Date().toISOString(),
     count: cards.length,
     total_games: best,
-    dated: used.includes("start_date"),
+    period,
     cards
   };
 
