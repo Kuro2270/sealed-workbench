@@ -1,0 +1,64 @@
+name: 月次メンテナンス
+
+on:
+  schedule:
+    - cron: "0 0 1 * *"      # 毎月1日 09:00（日本時間）
+  workflow_dispatch:          # 手動実行もできる
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 点検を実行
+        id: check
+        run: |
+          set +e
+          node maintenance/check-sets.mjs --report report.md
+          echo "status=$?" >> "$GITHUB_OUTPUT"
+
+      - name: 結果を表示
+        run: cat report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 対応が必要なら Issue を作る
+        if: steps.check.outputs.status != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('report.md', 'utf8');
+            const title = `月次メンテナンス ${new Date().toISOString().slice(0,7)}`;
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'maintenance'
+            });
+            const existing = issues.find(i => i.title === title);
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['maintenance']
+              });
+            }
