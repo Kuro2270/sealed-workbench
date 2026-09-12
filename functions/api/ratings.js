@@ -68,29 +68,54 @@ export async function onRequestGet({ request }) {
   }
 
   // ---- 17Lands から取得 ----
+  // 日付を指定すると取得できる範囲が極端に狭まる場合があるため、
+  // まず指定なしで試し、データが乏しいときだけ日付付きで再試行する。
   const today = new Date().toISOString().slice(0, 10);
-  const src = "https://www.17lands.com/card_ratings/data"
-            + `?expansion=${set.toUpperCase()}&format=${event}`
-            + `&start_date=${info.released_at}&end_date=${today}`;
+  const base = "https://www.17lands.com/card_ratings/data"
+             + `?expansion=${set.toUpperCase()}&format=${event}`;
+  const attempts = [
+    base,
+    base + `&start_date=${info.released_at}&end_date=${today}`,
+    base + `&start_date=2020-01-01&end_date=${today}`
+  ];
 
-  let rows;
-  try {
-    const res = await fetch(src, {
-      headers: { "User-Agent": UA, Accept: "application/json" }
-    });
-    if (res.status === 429) {
-      return json({ error: "17Lands へのアクセスが制限されています。しばらく待って再度お試しください。" }, 429);
+  const totalGames = arr =>
+    arr.reduce((n, r) => n + (r.ever_drawn_game_count || r.game_count || 0), 0);
+
+  let rows = null, used = "", best = -1;
+
+  for (const src of attempts) {
+    let got;
+    try {
+      const res = await fetch(src, {
+        headers: { "User-Agent": UA, Accept: "application/json" }
+      });
+      if (res.status === 429) {
+        return json({ error: "17Lands へのアクセスが制限されています。しばらく待って再度お試しください。" }, 429);
+      }
+      if (!res.ok) continue;
+      got = await res.json();
+    } catch (e) {
+      continue;
     }
-    if (!res.ok) {
-      return json({ error: `17Lands からデータを取得できませんでした（HTTP ${res.status}）。` }, 502);
-    }
-    rows = await res.json();
-  } catch (e) {
-    return json({ error: "17Lands への接続に失敗しました。" }, 502);
+    if (!Array.isArray(got) || !got.length) continue;
+
+    const g = totalGames(got);
+    if (g > best) { best = g; rows = got; used = src; }
+    if (g > 0) break;                       // データが取れたら以降は試さない
   }
 
-  if (!Array.isArray(rows) || !rows.length) {
-    return json({ error: "このセットとイベント種別の組み合わせでは、データがまだありません。" }, 404);
+  if (!rows) {
+    return json({ error: "17Lands からデータを取得できませんでした。" }, 502);
+  }
+
+  if (best === 0) {
+    return json({
+      error: "no_data",
+      message: "このセットとイベント種別の組み合わせには、まだ試合データがありません。別のイベント種別をお試しください。",
+      set: set.toUpperCase(),
+      event
+    }, 404);
   }
 
   // ---- 必要な項目だけに絞る ----
@@ -103,8 +128,8 @@ export async function onRequestGet({ request }) {
     iwd:     r.drawn_improvement_win_rate,   // 引いたときの勝率上昇
     alsa:    r.avg_seen,                     // 平均見かけ順目
     ata:     r.avg_pick,                     // 平均ピック順目
-    games:   r.ever_drawn_game_count,
-    picks:   r.pick_count
+    games:   r.ever_drawn_game_count ?? r.game_count ?? 0,
+    picks:   r.pick_count ?? 0
   })).filter(c => c.name);
 
   const payload = {
@@ -114,6 +139,8 @@ export async function onRequestGet({ request }) {
     set_name: info.name,
     fetched_at: new Date().toISOString(),
     count: cards.length,
+    total_games: best,
+    dated: used.includes("start_date"),
     cards
   };
 
