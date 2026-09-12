@@ -280,7 +280,7 @@ async function load(){
     render();
     const when = new Date(d.fetched_at).toLocaleString("ja-JP");
     const g = (d.total_games || 0).toLocaleString();
-    setStatus(`${d.set} ／ ${$("eventSelect").selectedOptions[0].textContent} ／ ${d.count}種 ／ 総試合数 ${g}（取得 ${when}）`,
+    setStatus(`${d.set} ／ ${$("eventSelect").selectedOptions[0].textContent} ／ ${d.count}種 ／ 総試合数 ${g} ／ 集計期間 ${d.period}（取得 ${when}）`,
               (d.total_games || 0) < 5000);
   }catch(e){
     setStatus("通信に失敗しました。しばらく待って再度お試しください。", true);
