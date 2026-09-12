@@ -170,15 +170,18 @@ export async function onRequestGet({ request }) {
   // ---- 必要な項目だけに絞る ----
   const cards = rows.map(r => ({
     name:    r.name,
+    id:      r.mtga_id,                      // アリーナ内部ID（日本語名の突き合わせに使う）
     color:   r.color || "",
     rarity:  r.rarity || "",
     gih:     r.ever_drawn_win_rate,          // 手札・戦場にあったときの勝率
-    oh:      r.opening_hand_win_rate,        // 初手にあったときの勝率
+    gp:      r.win_rate,                     // そのカードを使ったデッキの勝率
     iwd:     r.drawn_improvement_win_rate,   // 引いたときの勝率上昇
     alsa:    r.avg_seen,                     // 平均見かけ順目
     ata:     r.avg_pick,                     // 平均ピック順目
     games:   r.ever_drawn_game_count ?? r.game_count ?? 0,
-    picks:   r.pick_count ?? 0
+    picks:   r.pick_count ?? 0,
+    url:     r.url || "",                    // カード画像（英語版）
+    url_back: r.url_back || ""
   })).filter(c => c.name);
 
   const period = (() => {
