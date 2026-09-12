@@ -27,6 +27,7 @@ export async function onRequestGet({ request }) {
   const url = new URL(request.url);
   const set = (url.searchParams.get("set") || "").toLowerCase();
   const event = url.searchParams.get("event") || "PremierDraft";
+  const debug = url.searchParams.get("debug") === "1";
 
   if (!/^[a-z0-9]{3,6}$/.test(set)) {
     return json({ error: "セットコードが不正です。" }, 400);
@@ -38,8 +39,10 @@ export async function onRequestGet({ request }) {
   // ---- キャッシュ確認 ----
   const cache = caches.default;
   const cacheKey = new Request(`https://cache.sealed-workbench/ratings/${set}/${event}`);
-  const hit = await cache.match(cacheKey);
-  if (hit) return hit;
+  if (!debug) {
+    const hit = await cache.match(cacheKey);
+    if (hit) return hit;
+  }
 
   // ---- 発売日を確認して禁止期間を判定 ----
   let info;
@@ -68,21 +71,22 @@ export async function onRequestGet({ request }) {
   }
 
   // ---- 17Lands から取得 ----
-  // 日付を指定すると取得できる範囲が極端に狭まる場合があるため、
-  // まず指定なしで試し、データが乏しいときだけ日付付きで再試行する。
+  // 日付の指定方法によって返る範囲が変わるため、複数試して
+  // 最も試合数の多い結果を採用する。
   const today = new Date().toISOString().slice(0, 10);
   const base = "https://www.17lands.com/card_ratings/data"
              + `?expansion=${set.toUpperCase()}&format=${event}`;
   const attempts = [
-    base,
     base + `&start_date=${info.released_at}&end_date=${today}`,
-    base + `&start_date=2020-01-01&end_date=${today}`
+    base + `&start_date=2019-01-01&end_date=${today}`,
+    base
   ];
 
   const totalGames = arr =>
     arr.reduce((n, r) => n + (r.ever_drawn_game_count || r.game_count || 0), 0);
 
   let rows = null, used = "", best = -1;
+  const diag = [];
 
   for (const src of attempts) {
     let got;
@@ -93,23 +97,46 @@ export async function onRequestGet({ request }) {
       if (res.status === 429) {
         return json({ error: "17Lands へのアクセスが制限されています。しばらく待って再度お試しください。" }, 429);
       }
-      if (!res.ok) continue;
+      if (!res.ok) { diag.push({ src, status: res.status }); continue; }
       got = await res.json();
     } catch (e) {
+      diag.push({ src, error: String(e) });
       continue;
     }
-    if (!Array.isArray(got) || !got.length) continue;
+    if (!Array.isArray(got) || !got.length) {
+      diag.push({ src, note: "配列でない、または空", sample: JSON.stringify(got).slice(0, 300) });
+      continue;
+    }
 
     const g = totalGames(got);
+    diag.push({ src, rows: got.length, total_games: g });
     if (g > best) { best = g; rows = got; used = src; }
-    if (g > 0) break;                       // データが取れたら以降は試さない
+    if (g >= 20000) break;                  // 十分な量が取れたら打ち切る
+  }
+
+  // ---- 診断モード：生データをそのまま返す ----
+  if (debug) {
+    return json({
+      set: set.toUpperCase(),
+      event,
+      released_at: info.released_at,
+      attempts: diag,
+      chosen: used,
+      best_total_games: best,
+      field_names: rows ? Object.keys(rows[0]) : [],
+      first_row: rows ? rows[0] : null,
+      max_row: rows
+        ? rows.reduce((a, b) =>
+            ((b.ever_drawn_game_count || b.game_count || 0) > (a.ever_drawn_game_count || a.game_count || 0) ? b : a))
+        : null
+    });
   }
 
   if (!rows) {
     return json({ error: "17Lands からデータを取得できませんでした。" }, 502);
   }
 
-  if (best === 0) {
+  if (best <= 0) {
     return json({
       error: "no_data",
       message: "このセットとイベント種別の組み合わせには、まだ試合データがありません。別のイベント種別をお試しください。",
