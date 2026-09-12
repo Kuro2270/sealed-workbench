@@ -194,9 +194,68 @@ const SET_JA = {
   ecl:"ローウィンの昏明", tla:"アバター 伝説の少年アン"
 };
 
-let sets = [], cards = [], jaMap = {};
+let sets = [], cards = [], jaMap = {}, nameMap = {}, source = "";
 let sortKey = "gih", sortDesc = true;
 let colorFilter = new Set(), rarityFilter = new Set(), minGames = 0;
+
+const RAR_FROM_CSV = { C:"common", U:"uncommon", R:"rare", M:"mythic" };
+
+/* ---------- CSV ---------- */
+function parseCsvLine(line){
+  const out = [];
+  let cur = "", inQ = false;
+  for(let i = 0; i < line.length; i++){
+    const ch = line[i];
+    if(inQ){
+      if(ch === '"'){
+        if(line[i + 1] === '"'){ cur += '"'; i++; }
+        else inQ = false;
+      }else cur += ch;
+    }else{
+      if(ch === '"') inQ = true;
+      else if(ch === ","){ out.push(cur); cur = ""; }
+      else cur += ch;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+
+const numOrNull = s => {
+  if(s == null) return null;
+  const t = String(s).trim().replace(/[%]/g, "").replace(/pp$/, "");
+  if(t === "") return null;
+  const v = Number(t);
+  return isNaN(v) ? null : v;
+};
+
+function parseCsv(text){
+  const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/).filter(l => l.trim());
+  if(lines.length < 2) return [];
+  const head = parseCsvLine(lines[0]).map(h => h.trim());
+  const idx = {};
+  head.forEach((h, i) => { idx[h] = i; });
+  const get = (row, key) => (idx[key] != null ? row[idx[key]] : "");
+
+  return lines.slice(1).map(l => {
+    const r = parseCsvLine(l);
+    const pctv = k => { const v = numOrNull(get(r, k)); return v == null ? null : v / 100; };
+    return {
+      name:   (get(r, "Name") || "").trim(),
+      id:     null,
+      color:  (get(r, "Color") || "").trim(),
+      rarity: RAR_FROM_CSV[(get(r, "Rarity") || "").trim()] || "",
+      gih:    pctv("GIH WR"),
+      gp:     pctv("GP WR"),
+      iwd:    pctv("IIH"),
+      alsa:   numOrNull(get(r, "ALSA")),
+      ata:    numOrNull(get(r, "ATA")),
+      games:  numOrNull(get(r, "# GIH")) || 0,
+      picks:  numOrNull(get(r, "# Picked")) || 0,
+      url:    "", url_back: ""
+    };
+  }).filter(c => c.name);
+}
 
 const $ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -241,10 +300,10 @@ function renderSetOptions(){
    17Lands はアリーナ内部ID（mtga_id）を返すので、
    Scryfall の arena_id と収録番号を橋渡しして日本語版に結び付ける。 */
 async function loadCardMaps(code){
-  jaMap = {};
+  jaMap = {}; nameMap = {};
   try{
-    // 1) 英語版から arena_id → 収録番号 の対応を作る
-    const arenaToCn = {};
+    // 1) 英語版から arena_id・カード名 → 収録番号・画像 の対応を作る
+    const arenaToCn = {}, nameToCn = {}, enImgs = {};
     let url = SCRY + "/cards/search?q=" + encodeURIComponent("set:" + code) + "&unique=prints";
     while(url){
       const res = await fetch(url);
@@ -252,6 +311,12 @@ async function loadCardMaps(code){
       const d = await res.json();
       d.data.forEach(c => {
         if(c.arena_id && !arenaToCn[c.arena_id]) arenaToCn[c.arena_id] = c.collector_number;
+        if(!nameToCn[c.name]) nameToCn[c.name] = c.collector_number;
+        if(!enImgs[c.name]){
+          enImgs[c.name] = c.image_uris?.normal
+            ? [c.image_uris.normal]
+            : (Array.isArray(c.card_faces) ? c.card_faces.map(f => f.image_uris?.normal).filter(Boolean) : []);
+        }
       });
       url = d.has_more ? d.next_page : null;
       if(url) await sleep(120);
@@ -263,7 +328,6 @@ async function loadCardMaps(code){
         + "&unique=prints&include_multilingual=true";
     while(url){
       const res = await fetch(url);
-      if(res.status === 404) break;
       if(!res.ok) break;
       const d = await res.json();
       d.data.forEach(c => {
@@ -279,47 +343,79 @@ async function loadCardMaps(code){
       if(url) await sleep(120);
     }
 
-    // 3) arena_id をキーにまとめる
+    // 3) アリーナID／カード名のどちらでも引けるようにする
     Object.entries(arenaToCn).forEach(([aid, cn]) => {
       if(cnToJa[cn]) jaMap[aid] = cnToJa[cn];
     });
-  }catch(e){ jaMap = {}; }
+    Object.entries(nameToCn).forEach(([nm, cn]) => {
+      nameMap[nm] = { ...(cnToJa[cn] || {}), enImgs: enImgs[nm] || [] };
+    });
+  }catch(e){ jaMap = {}; nameMap = {}; }
 }
 
 /* ---------- 勝率データ ---------- */
 async function load(){
   const code = $("setSelect").value;
   const event = $("eventSelect").value;
+  const eventLabel = $("eventSelect").selectedOptions[0].textContent;
   $("loadBtn").disabled = true;
   $("tbl").hidden = true;
   $("filters").hidden = true;
-  setStatus("勝率データを取得しています…");
+  setStatus("データを読み込んでいます…");
+  let apiNote = "";
 
   try{
-    const res = await fetch(`/api/ratings?set=${encodeURIComponent(code)}&event=${encodeURIComponent(event)}`);
-    const d = await res.json();
+    let info = null;
+    source = "";
 
-    if(!res.ok){
-      if(d.error === "embargo" || d.error === "no_data"){
-        setStatus(d.message + (d.released_at ? `（発売日 ${d.released_at}／あと${d.days_remaining}日）` : ""), true);
-      }else{
-        setStatus(d.error || `データを取得できませんでした（HTTP ${res.status}）。`, true);
+    // 1) 17Lands から自動取得する
+    try{
+      const res = await fetch(`/api/ratings?set=${encodeURIComponent(code)}&event=${encodeURIComponent(event)}`);
+      const d = await res.json();
+      if(res.ok && d.cards && d.cards.length && (d.total_games || 0) > 0){
+        cards = d.cards;
+        source = "api";
+        info = { count: d.count, total: d.total_games, period: d.period };
+      }else if(!res.ok && (d.error === "embargo" || d.error === "no_data")){
+        info = null;
+        apiNote = d.message + (d.days_remaining ? `（発売日 ${d.released_at}／あと${d.days_remaining}日）` : "");
       }
+    }catch(e){ /* 取れなければCSVへ */ }
+
+    // 2) 取れない場合は手動で置いたCSVを使う
+    if(!source){
+      try{
+        const res = await fetch(`./data/${code.toUpperCase()}_${event}.csv`, {cache:"no-cache"});
+        if(res.ok){
+          const parsed = parseCsv(await res.text());
+          if(parsed.length){
+            cards = parsed;
+            source = "csv";
+            info = { count: parsed.length, total: parsed.reduce((n, c) => n + (c.games || 0), 0) };
+          }
+        }
+      }catch(e){ /* どちらも無い */ }
+    }
+
+    if(!source){
+      setStatus(apiNote || "このセットとイベント種別のデータが見つかりませんでした。別の組み合わせをお試しください。", true);
       return;
     }
 
-    cards = d.cards;
     setStatus("日本語のカード情報を取得しています…");
     await loadCardMaps(code);
 
     buildFilters();
     render();
-    const when = new Date(d.fetched_at).toLocaleString("ja-JP");
-    const g = (d.total_games || 0).toLocaleString();
-    setStatus(`${d.set} ／ ${$("eventSelect").selectedOptions[0].textContent} ／ ${d.count}種 ／ 総試合数 ${g} ／ 集計期間 ${d.period}（取得 ${when}）`,
-              (d.total_games || 0) < 5000);
+
+    const g = (info.total || 0).toLocaleString();
+    const src = source === "csv"
+      ? "17Lands書き出しCSV"
+      : `17Lands（自動取得／${info.period || "全期間"}）`;
+    setStatus(`${code.toUpperCase()} ／ ${eventLabel} ／ ${info.count}種 ／ 総試合数 ${g} ／ 出典 ${src}`,
+              (info.total || 0) < 5000);
   }catch(e){
-    setStatus("通信に失敗しました。しばらく待って再度お試しください。", true);
+    setStatus("読み込みに失敗しました。しばらく待って再度お試しください。", true);
   }finally{
     $("loadBtn").disabled = false;
   }
@@ -432,7 +528,8 @@ function render(){
 }
 
 function jaEntry(c){
-  return ($("jaToggle").checked && jaMap[c.id]) || null;
+  if(!$("jaToggle").checked) return null;
+  return (c.id && jaMap[c.id]) || nameMap[c.name] || null;
 }
 
 function displayName(c){
@@ -443,6 +540,8 @@ function displayName(c){
 function imageUrls(c){
   const j = jaEntry(c);
   if(j && j.imgs && j.imgs.length) return j.imgs;
+  const n = nameMap[c.name];
+  if(n && n.enImgs && n.enImgs.length) return n.enImgs;
   return [c.url, c.url_back].filter(Boolean);
 }
 
