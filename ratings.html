@@ -264,8 +264,8 @@ async function load(){
     const d = await res.json();
 
     if(!res.ok){
-      if(d.error === "embargo"){
-        setStatus(`${d.message}（発売日 ${d.released_at}／あと${d.days_remaining}日）`, true);
+      if(d.error === "embargo" || d.error === "no_data"){
+        setStatus(d.message + (d.released_at ? `（発売日 ${d.released_at}／あと${d.days_remaining}日）` : ""), true);
       }else{
         setStatus(d.error || `データを取得できませんでした（HTTP ${res.status}）。`, true);
       }
@@ -279,7 +279,9 @@ async function load(){
     buildFilters();
     render();
     const when = new Date(d.fetched_at).toLocaleString("ja-JP");
-    setStatus(`${d.set} ／ ${$("eventSelect").selectedOptions[0].textContent} ／ ${d.count}種（取得 ${when}）`);
+    const g = (d.total_games || 0).toLocaleString();
+    setStatus(`${d.set} ／ ${$("eventSelect").selectedOptions[0].textContent} ／ ${d.count}種 ／ 総試合数 ${g}（取得 ${when}）`,
+              (d.total_games || 0) < 5000);
   }catch(e){
     setStatus("通信に失敗しました。しばらく待って再度お試しください。", true);
   }finally{
