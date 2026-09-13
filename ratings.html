@@ -309,21 +309,31 @@ async function loadCardMaps(code, needed){
   const enMeta = {}, enImgs = {}, jaByKey = {}, keyOfName = {};
   const key = (set, cn) => set.toLowerCase() + "/" + cn;
 
+  /* そのカードを指せる名前をすべて返す（両面・出来事は表面の名前でも引けるように） */
+  function namesOf(c){
+    const out = [c.name];
+    if(c.name.includes(" // ")) out.push(c.name.split(" // ")[0].trim());
+    if(Array.isArray(c.card_faces)) c.card_faces.forEach(f => { if(f.name) out.push(f.name); });
+    return [...new Set(out.filter(Boolean))];
+  }
+
   /* 英語版のカードを取り込む */
   function takeEn(c){
-    if(!enMeta[c.name]){
-      const ci = (c.color_identity || []).join("");
-      enMeta[c.name] = {
-        color: (c.type_line || "").includes("Land") && !ci ? "" : ci,
-        rarity: c.rarity || ""
-      };
-    }
-    if(!enImgs[c.name]){
-      enImgs[c.name] = c.image_uris?.normal
-        ? [c.image_uris.normal]
-        : (Array.isArray(c.card_faces) ? c.card_faces.map(f => f.image_uris?.normal).filter(Boolean) : []);
-    }
-    if(!keyOfName[c.name]) keyOfName[c.name] = key(c.set, c.collector_number);
+    const meta = {
+      color: (() => {
+        const ci = (c.color_identity || []).join("");
+        return (c.type_line || "").includes("Land") && !ci ? "" : ci;
+      })(),
+      rarity: c.rarity || ""
+    };
+    const imgs = c.image_uris?.normal
+      ? [c.image_uris.normal]
+      : (Array.isArray(c.card_faces) ? c.card_faces.map(f => f.image_uris?.normal).filter(Boolean) : []);
+    namesOf(c).forEach(n => {
+      if(!enMeta[n]) enMeta[n] = meta;
+      if(!enImgs[n]) enImgs[n] = imgs;
+      if(!keyOfName[n]) keyOfName[n] = key(c.set, c.collector_number);
+    });
     if(c.arena_id && !jaMap["a" + c.arena_id]) jaMap["a" + c.arena_id] = key(c.set, c.collector_number);
   }
 
@@ -339,9 +349,10 @@ async function loadCardMaps(code, needed){
         if(c.lang !== "ja") return;
         const k = key(c.set, c.collector_number);
         if(jaByKey[k]) return;
+        const faces = Array.isArray(c.card_faces) ? c.card_faces.map(f => f.printed_name).filter(Boolean) : [];
         jaByKey[k] = {
-          name: c.printed_name
-            || (Array.isArray(c.card_faces) ? c.card_faces.map(f => f.printed_name).filter(Boolean).join(" // ") : ""),
+          name: c.printed_name || faces.join(" // "),
+          front: faces[0] || c.printed_name || "",
           imgs: c.image_uris?.normal
             ? [c.image_uris.normal]
             : (Array.isArray(c.card_faces) ? c.card_faces.map(f => f.image_uris?.normal).filter(Boolean) : [])
@@ -561,7 +572,10 @@ function jaEntry(c){
 
 function displayName(c){
   const j = jaEntry(c);
-  return (j && j.name) ? j.name : c.name;
+  if(!j || !j.name) return c.name;
+  // 17Lands が表面の名前しか持たない場合は、日本語も表面だけを出す
+  if(j.front && !c.name.includes(" // ")) return j.front;
+  return j.name;
 }
 
 function imageUrls(c){
