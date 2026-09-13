@@ -26,7 +26,7 @@ const OUT_DIR = "data/ratings";
 const MONTHS_BACK = 30;        // 直近何か月のセットまで見るか
 const MIN_CARDS   = 100;       // リミテッドに使えるセットの目安
 const EMBARGO_DAYS = 12;       // 17Lands 規約：発売後12日間は対象外
-const FORMATS = ["PremierDraft", "TradDraft", "Sealed"];
+const FORMATS = ["PremierDraft", "TradDraft", "QuickDraft", "Sealed", "TradSealed", "PickTwoDraft"];
 
 /* ---------- 対象セットを Scryfall から決める ---------- */
 async function listTargets(){
@@ -213,6 +213,7 @@ async function main(){
   }
 
   process.stderr.write(`\n集計: ${done.length}件 ／ 見送り: ${skipped.length}件\n`);
+  if(skipped.length) process.stderr.write(`  見送り: ${skipped.join(", ")}\n`);
 
   if(!done.length){
     process.stderr.write("集計できた組み合わせがありませんでした。\n");
