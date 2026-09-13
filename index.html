@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-title="page.index.title">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>シールド・ワークベンチ｜MTGアリーナ用リミテッド構築ツール</title>
+<title>Sealed Workbench</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="./i18n.js"></script>
 <style>
   :root{
     --pine:#23342E;
@@ -175,50 +176,51 @@
 <header>
   <div class="head-wrap">
     <div>
-      <h1>シールド・ワークベンチ</h1>
-      <p>6パック分のカードプールを生成して40枚デッキを組み、MTGアリーナにそのまま貼り付けられるテキストを書き出します。</p>
+      <h1 data-i18n="index.h1"></h1>
+      <p data-i18n="index.lead"></p>
     </div>
     <div class="controls">
-      <select id="setSelect" aria-label="セットを選ぶ"><option>セットを読み込み中…</option></select>
-      <button id="openBtn" disabled>6パック開封</button>
-      <button id="clearBtn" class="ghost">デッキを空にする</button>
-      <select id="sortSelect" aria-label="プールの並び順" style="min-width:150px">
-        <option value="cmc">マナ総量順</option>
-        <option value="wr">勝率順</option>
+      <select id="setSelect" data-i18n-label="sel.set"><option>…</option></select>
+      <button id="openBtn" disabled data-i18n="index.open"></button>
+      <button id="clearBtn" class="ghost" data-i18n="index.clear"></button>
+      <select id="sortSelect" data-i18n-label="sel.sort" style="min-width:150px">
+        <option value="cmc" data-i18n="index.sortCmc"></option>
+        <option value="wr" data-i18n="index.sortWr"></option>
       </select>
-      <label class="toggle"><input type="checkbox" id="jaToggle" checked>日本語表示</label>
-      <label class="toggle"><input type="checkbox" id="imgToggle" checked>カード画像を表示</label>
-      <label class="toggle"><input type="checkbox" id="textToggle">テキストで一覧表示</label>
-      <label class="toggle"><input type="checkbox" id="wrToggle" checked>勝率を表示</label>
+      <select id="langSelect" data-i18n-label="lang.label" style="min-width:120px"><option value="ja">日本語</option><option value="en">English</option></select>
+      <label class="toggle"><input type="checkbox" id="imgToggle" checked><span data-i18n="opt.img"></span></label>
+      <label class="toggle"><input type="checkbox" id="textToggle"><span data-i18n="opt.text"></span></label>
+      <label class="toggle"><input type="checkbox" id="wrToggle" checked><span data-i18n="opt.wr"></span></label>
     </div>
   </div>
   <div class="head-wrap">
     <nav>
-      <a href="./" class="on">シールド構築</a>
-      <a href="./ratings.html">カード勝率一覧</a>
+      <a href="./" class="on" data-i18n="nav.sealed"></a>
+      <a href="./draft.html" data-i18n="nav.draft"></a>
+      <a href="./ratings.html" data-i18n="nav.ratings"></a>
     </nav>
   </div>
 </header>
 
 <main>
   <section>
-    <div id="status" class="status">セットを選んで「6パック開封」を押してください。</div>
+    <div id="status" class="status" data-i18n="index.ready"></div>
     <div id="pool"></div>
   </section>
 
   <aside class="deck">
     <div class="deck-head">
-      <h2>デッキ</h2>
+      <h2 data-i18n="deck.title"></h2>
       <div class="count" id="deckCount">0<span style="font-size:14px;color:var(--muted)"> / 40</span></div>
     </div>
-    <div class="deck-body" id="deckBody"><div class="empty">プールのカードを押すと加わります</div></div>
+    <div class="deck-body" id="deckBody"><div class="empty" data-i18n="deck.empty"></div></div>
     <div class="lands" id="lands"></div>
     <div class="curve" id="curve"></div>
     <div class="wc" id="wc"></div>
     <div class="export">
-      <textarea id="exportBox" readonly placeholder="デッキを組むとここにアリーナ用テキストが出ます"></textarea>
-      <div style="font-size:11.5px;color:var(--muted);margin-top:6px">インポート用のカード名は、表示設定にかかわらず英語名で出力します。</div>
-      <button id="copyBtn" style="width:100%;margin-top:8px">アリーナ用テキストをコピー</button>
+      <textarea id="exportBox" readonly data-i18n-ph="deck.exportPh"></textarea>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:6px" data-i18n="deck.exportNote"></div>
+      <button id="copyBtn" style="width:100%;margin-top:8px" data-i18n="deck.copy"></button>
     </div>
   </aside>
 </main>
@@ -226,61 +228,21 @@
 <div id="preview" aria-hidden="true"></div>
 
 <footer>
-  カードデータ・カード画像は <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a> より取得しています。画像は加工せず、そのままの形で表示しています。<br>
-  カード勝率は <a href="https://www.17lands.com/public_datasets" target="_blank" rel="noopener">17Lands Public Data</a>（<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>）を集計したものです。<br>
-  シールド・ワークベンチは、ファンコンテンツ・ポリシーに基づく非公式のファンコンテンツです。ウィザーズ社の認可・許可を受けていません。題材の一部にウィザーズ・オブ・ザ・コースト社の財産を含みます。©Wizards of the Coast LLC.
+  <span data-i18n-html="foot.scryfall"></span><br>
+  <span data-i18n-html="foot.17lands"></span><br>
+  <span data-i18n-html="foot.wotc"></span>
 </footer>
 
 <script>
 const API = "https://api.scryfall.com";
 const COLORS = [
-  {key:"W", label:"白",   var:"--w"},
-  {key:"U", label:"青",   var:"--u"},
-  {key:"B", label:"黒",   var:"--b"},
-  {key:"R", label:"赤",   var:"--r"},
-  {key:"G", label:"緑",   var:"--g"},
-  {key:"M", label:"多色", var:"--m"},
-  {key:"C", label:"無色・土地", var:"--c"}
+  {key:"W", var:"--w"}, {key:"U", var:"--u"}, {key:"B", var:"--b"},
+  {key:"R", var:"--r"}, {key:"G", var:"--g"}, {key:"M", var:"--m"}, {key:"C", var:"--c"}
 ];
-const BASICS = [["平地","Plains"],["島","Island"],["沼","Swamp"],["山","Mountain"],["森","Forest"]];
+const colorLabel = k => t("color." + k);
+const BASICS = ["Plains","Island","Swamp","Mountain","Forest"];
+const landLabel = en => t("land." + en);
 
-/* セット名の日本語表記。Scryfall は英語名しか持たないため、ここで対応表を持つ。
-   未登録のセットは英語名のまま表示する。 */
-const SET_JA = {
-  msh:"マジック：ザ・ギャザリング｜マーベル スーパー・ヒーローズ",
-  spm:"マジック：ザ・ギャザリング｜マーベル スパイダーマン",
-  om1:"領界路の彼方",
-  eoe:"エッジ・オブ・エタニティーズ",
-  fin:"ファイナルファンタジー",
-  tdm:"タルキール：龍嵐録",
-  dft:"霊気走破",
-  fdn:"基本セット：ファウンデーションズ",
-  dsk:"ダスクモーン：戦慄の館",
-  blb:"ブルームバロウ",
-  mh3:"モダンホライゾン3",
-  otj:"サンダー・ジャンクションの無法者",
-  mkm:"カルロフ邸殺人事件",
-  lci:"イクサラン：失われし洞窟",
-  woe:"エルドレインの森",
-  ltr:"指輪物語：中つ国の伝承",
-  mom:"機械兵団の進軍",
-  one:"ファイレクシア：完全なる統一",
-  bro:"兄弟戦争",
-  dmu:"団結のドミナリア",
-  snc:"ニューカペナの街角",
-  neo:"神河：輝ける世界",
-  vow:"イニストラード：真紅の契り",
-  mid:"イニストラード：真夜中の狩り",
-  afr:"フォーゴトン・レルム探訪",
-  stx:"ストリクスヘイヴン：魔法学院",
-  khm:"カルドハイム",
-  znr:"ゼンディカーの夜明け",
-  hob:"ホビット",
-  sos:"ストリクスヘイヴンの秘密",
-  tmt:"ミュータント タートルズ",
-  ecl:"ローウィンの昏明",
-  tla:"アバター 伝説の少年アン"
-};
 
 let setCode = "", boosterCards = [], basicCards = {}, pool = [], deck = [], landCount = {}, jaMap = {}, availableSets = [];
 let wrMap = {}, wrSource = "", wrAvg = null;
@@ -288,13 +250,12 @@ let wrMap = {}, wrSource = "", wrAvg = null;
 function renderSetOptions(){
   const sel = $("setSelect");
   const keep = sel.value;
-  const useJa = $("jaToggle").checked;
+  const useJa = I18N.isJa();
   sel.innerHTML = "";
   availableSets.forEach(s => {
     const o = document.createElement("option");
     o.value = s.code;
-    const ja = SET_JA[s.code.toLowerCase()];
-    o.textContent = ((useJa && ja) ? ja : s.name) + "（" + s.code.toUpperCase() + "）";
+    o.textContent = I18N.setName(s.code, s.name) + "（" + s.code.toUpperCase() + "）";
     sel.appendChild(o);
   });
   if(keep) sel.value = keep;
@@ -323,9 +284,9 @@ async function loadSets(){
     availableSets = sets;
     renderSetOptions();
     $("openBtn").disabled = false;
-    setStatus("セットを選んで「6パック開封」を押してください。");
+    setStatus(t("index.ready"));
   }catch(e){
-    setStatus("セット一覧を取得できませんでした。ネット接続を確認して再読み込みしてください。（" + e.message + "）", true);
+    setStatus(t("err.sets", {e: e.message}), true);
   }
 }
 
@@ -338,7 +299,7 @@ async function searchAll(query){
   while(url){
     const res = await fetch(url);
     if(res.status === 404) return [];               // 該当なし
-    if(!res.ok) throw new Error("Scryfall への接続に失敗しました（HTTP " + res.status + "）");
+    if(!res.ok) throw new Error(t("err.scryfall", {s: res.status}));
     const d = await res.json();
     all.push(...d.data);
     url = d.has_more ? d.next_page : null;
@@ -361,7 +322,7 @@ async function loadCards(code){
     if(all.length) break;
     await sleep(120);
   }
-  if(!all.length) throw new Error("このセットのカードが見つかりませんでした。別のセットを選んでください。");
+  if(!all.length) throw new Error(t("err.cards"));
 
   all = all.filter(c => !SKIP_LAYOUTS.includes(c.layout));
 
@@ -372,7 +333,7 @@ async function loadCards(code){
   boosterCards = all.filter(c => !(c.type_line || "").startsWith("Basic Land"));
 
   const rarities = new Set(boosterCards.map(c => c.rarity));
-  if(!rarities.has("common")) throw new Error("コモンが取得できませんでした。別のセットを選んでください。");
+  if(!rarities.has("common")) throw new Error(t("err.commons"));
 }
 
 /* ---------- 日本語版カード ---------- */
@@ -424,24 +385,26 @@ function buildPack(){
 async function openPacks(){
   const code = $("setSelect").value;
   $("openBtn").disabled = true;
-  setStatus("カードデータを取得しています…");
+  setStatus(t("index.loading"));
   try{
     if(code !== setCode){
       await loadCards(code);
-      setStatus("日本語版のカードを取得しています…");
+      setStatus(t("index.loadingJa"));
       await loadJapanese(code);
-      setStatus("勝率データを読み込んでいます…");
+      setStatus(t("index.loadingWr"));
       await loadWinRates(code);
       setCode = code;
     }
-    if(!boosterCards.length) throw new Error("このセットにはブースター用のカードが見つかりませんでした");
+    if(!boosterCards.length) throw new Error(t("err.booster"));
     pool = []; deck = []; landCount = {};
     for(let i = 0; i < 6; i++) pool.push(...buildPack());
     const jaN = Object.keys(jaMap).length;
     const wrN = Object.keys(wrMap).length;
-    setStatus("プール " + pool.length + "枚を生成しました（" + code.toUpperCase() + " の対象カード " + boosterCards.length + "種"
-              + (jaN ? "／日本語版 " + jaN + "件" : "／日本語版なし")
-              + (wrN ? "／勝率 " + wrSource : "／勝率データなし") + "）。カードを押すとデッキに入ります。");
+    setStatus(t("index.made", {
+      n: pool.length, set: code.toUpperCase(), k: boosterCards.length,
+      ja: I18N.isJa() ? (jaN ? t("index.jaCount", {n: jaN}) : t("index.jaNone")) : "",
+      wr: wrN ? t("index.wrFrom", {src: wrSource}) : t("index.wrNone")
+    }));
     render();
   }catch(e){
     setStatus(e.message, true);
@@ -461,11 +424,8 @@ function colorKey(c){
 const cmcOf = c => Math.floor(c.cmc ?? 0);
 
 /* ---------- デッキの分類 ---------- */
-const DECK_SECTIONS = [
-  {key:"creature", label:"クリーチャー"},
-  {key:"spell",    label:"呪文"},
-  {key:"land",     label:"土地"}
-];
+const DECK_SECTIONS = [{key:"creature"}, {key:"spell"}, {key:"land"}];
+const secLabel = k => t("sec." + k);
 
 function cardSection(c){
   const front = (c.type_line || "").split("//")[0];
@@ -488,10 +448,7 @@ async function loadWinRates(code){
   wrMap = {}; wrSource = ""; wrAvg = null;
   // シールド戦のツールなので Sealed を優先し、無ければドラフトのデータを使う
   const order = ["Sealed", "TradSealed", "PremierDraft", "TradDraft", "QuickDraft"];
-  const LABEL = {
-    Sealed:"シールド", TradSealed:"トラディショナルシールド",
-    PremierDraft:"プレミアドラフト", TradDraft:"トラディショナルドラフト", QuickDraft:"クイックドラフト"
-  };
+
   for(const ev of order){
     try{
       const res = await fetch(`./data/ratings/${code.toUpperCase()}_${ev}.json`, {cache:"no-cache"});
@@ -500,7 +457,7 @@ async function loadWinRates(code){
       d.cards.forEach(c => { if(c.gih != null) wrMap[c.name] = { gih: c.gih, games: c.games }; });
       const vals = Object.values(wrMap).map(v => v.gih);
       wrAvg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
-      wrSource = LABEL[ev] || ev;
+      wrSource = t("ev." + ev);
       return;
     }catch(e){ /* 次の候補へ */ }
   }
@@ -541,7 +498,7 @@ function cardRow(entry, inDeck){
     '<span class="wr' + (w ? wrClass(w.gih) : "") + '">' + (w ? (w.gih * 100).toFixed(1) + "%" : "") + '</span>' +
     '<span class="cost">' + esc(c.mana_cost || "") + '</span>' +
     '<span class="qty">' + (entry.n > 1 ? "×" + entry.n : "") + '</span>';
-  li.title = (c.type_line || "") + (w ? `\nGIH勝率 ${(w.gih * 100).toFixed(1)}%（${w.games.toLocaleString()}試合）` : "");
+  li.title = (c.type_line || "") + (w ? "\n" + t("tip.gih", {p: (w.gih*100).toFixed(1), n: w.games.toLocaleString()}) : "");
   if(imageUrls(c).length) li.classList.add("has-img");
   li.tabIndex = 0;
   li.onmouseenter = ev => showPreview(c, ev.clientX, ev.clientY);
@@ -588,7 +545,7 @@ function showPreview(c, x, y){
   urls.forEach(u => {
     const img = document.createElement("img");
     img.src = u;
-    img.alt = displayName(c) + " のカード画像";
+    img.alt = displayName(c);
     img.loading = "lazy";
     box.appendChild(img);
   });
@@ -667,8 +624,7 @@ function cardTile(entry, inDeck){
 
 /* ---------- 日本語表示 ---------- */
 function jaCard(c){
-  const t = $("jaToggle");
-  return (t && t.checked && jaMap[c.collector_number]) || null;
+  return (I18N.isJa() && jaMap[c.collector_number]) || null;
 }
 
 function displayName(c){
@@ -698,14 +654,14 @@ function render(){
     const sec = document.createElement("div");
     sec.className = "group";
     sec.innerHTML = '<div class="group-head"><span class="swatch" style="background:var(' + col.var + ')"></span>' +
-                    '<h3>' + col.label + '</h3><span>' + list.length + '枚</span></div>';
+                    '<h3>' + colorLabel(col.key) + '</h3><span>' + t("unit.cards", {n: list.length}) + '</span></div>';
 
     DECK_SECTIONS.forEach(part => {
       const sub = list.filter(c => cardSection(c) === part.key);
       if(!sub.length) return;
       const h = document.createElement("div");
       h.className = "sub-sec";
-      h.innerHTML = '<b>' + part.label + '</b><span>' + sub.length + '枚</span>';
+      h.innerHTML = '<b>' + secLabel(part.key) + '</b><span>' + t("unit.cards", {n: sub.length}) + '</span>';
       sec.appendChild(h);
 
       const ul = document.createElement("ul");
@@ -732,14 +688,14 @@ function renderDeck(){
   const body = $("deckBody");
   body.innerHTML = "";
   if(!deck.length){
-    body.innerHTML = '<div class="empty">プールのカードを押すと加わります</div>';
+    body.innerHTML = '<div class="empty">' + t("deck.empty") + '</div>';
   }else{
     DECK_SECTIONS.forEach(sec => {
       const list = deck.filter(c => cardSection(c) === sec.key);
       if(!list.length) return;
       const head = document.createElement("div");
       head.className = "deck-sec";
-      head.innerHTML = '<h4>' + sec.label + '</h4><span>' + list.length + '枚</span>';
+      head.innerHTML = '<h4>' + secLabel(sec.key) + '</h4><span>' + t("unit.cards", {n: list.length}) + '</span>';
       body.appendChild(head);
 
       const ul = document.createElement("ul");
@@ -753,8 +709,9 @@ function renderDeck(){
 
   // 基本土地
   const lw = $("lands");
-  lw.innerHTML = '<div class="lands-head"><h4>基本土地</h4><span>計 ' + lands + '枚</span></div>';
-  BASICS.forEach(([ja, en]) => {
+  lw.innerHTML = '<div class="lands-head"><h4>' + t("deck.lands") + '</h4><span>' + t("unit.total", {n: lands}) + '</span></div>';
+  BASICS.forEach(en => {
+    const ja = landLabel(en);
     const n = landCount[en] || 0;
     const row = document.createElement("div");
     row.className = "land-item";
@@ -763,13 +720,13 @@ function renderDeck(){
     minus.className = "step";
     minus.textContent = "−";
     minus.disabled = n === 0;
-    minus.setAttribute("aria-label", ja + "を1枚減らす");
+    minus.setAttribute("aria-label", t("deck.minus", {c: ja}));
     minus.onclick = () => { landCount[en] = Math.max(0, n - 1); renderDeck(); };
 
     const plus = document.createElement("button");
     plus.className = "step";
     plus.textContent = "＋";
-    plus.setAttribute("aria-label", ja + "を1枚増やす");
+    plus.setAttribute("aria-label", t("deck.plus", {c: ja}));
     plus.onclick = () => { landCount[en] = n + 1; renderDeck(); };
 
     const name = document.createElement("span");
@@ -794,20 +751,20 @@ function renderDeck(){
     const d = document.createElement("div");
     d.className = "bar";
     d.innerHTML = '<i style="height:' + (n / max * 100) + '%"></i><span>' + (i === 7 ? "7+" : i) + '</span>';
-    d.title = (i === 7 ? "7マナ以上" : i + "マナ") + "：" + n + "枚";
+    d.title = t("tip.curve", {c: (i === 7 ? "7+" : i), n: n});
     curve.appendChild(d);
   });
 
   // ワイルドカード必要数
   const need = {common:0, uncommon:0, rare:0, mythic:0};
   deck.forEach(c => { if(need[c.rarity] !== undefined) need[c.rarity]++; });
-  $("wc").innerHTML = "作成に必要なワイルドカード： " +
-    "コモン <b>" + need.common + "</b>　アンコモン <b>" + need.uncommon + "</b>　レア <b>" + need.rare + "</b>　神話レア <b>" + need.mythic + "</b>";
+  $("wc").innerHTML = t("deck.wildcards") + " " +
+    ["common","uncommon","rare","mythic"].map(r => t("rarity." + r) + " <b>" + need[r] + "</b>").join("　");
 
   // アリーナ用テキスト
   const lines = ["Deck"];
   tally(deck).forEach(e => lines.push(e.n + " " + e.card.name + " (" + e.card.set.toUpperCase() + ") " + e.card.collector_number));
-  BASICS.forEach(([, en]) => {
+  BASICS.forEach(en => {
     const n = landCount[en] || 0;
     if(!n) return;
     const bc = basicCards[en];
@@ -831,17 +788,19 @@ $("copyBtn").onclick = async () => {
   if(!t) return;
   try{
     await navigator.clipboard.writeText(t);
-    $("copyBtn").textContent = "コピーしました";
+    $("copyBtn").textContent = t("deck.copied");
   }catch(e){
     $("exportBox").select();
-    $("copyBtn").textContent = "テキストを選択しました。Ctrl+C でコピーしてください";
+    $("copyBtn").textContent = t("deck.copyManual");
   }
-  setTimeout(() => { $("copyBtn").textContent = "アリーナ用テキストをコピー"; }, 2200);
+  setTimeout(() => { $("copyBtn").textContent = t("deck.copy"); }, 2200);
 };
 
 $("sortSelect").onchange = () => { hidePreview(); render(); };
 $("wrToggle").onchange = () => { hidePreview(); render(); };
-$("jaToggle").onchange = () => { hidePreview(); renderSetOptions(); render(); };
+$("langSelect").value = I18N.lang;
+$("langSelect").onchange = e => I18N.set(e.target.value);
+I18N.onChange(() => { hidePreview(); renderSetOptions(); render(); });
 $("imgToggle").onchange = () => {
   hidePreview();
   const t = $("textToggle");
