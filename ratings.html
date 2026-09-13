@@ -108,6 +108,7 @@
     </div>
     <nav>
       <a href="./">シールド構築</a>
+      <a href="./draft.html">ドラフト</a>
       <a href="./ratings.html" class="on">カード勝率一覧</a>
     </nav>
   </div>
@@ -194,8 +195,7 @@ const SET_JA = {
   hob:"ホビット", sos:"ストリクスヘイヴンの秘密", tmt:"ミュータント タートルズ",
   ecl:"ローウィンの昏明", tla:"アバター 伝説の少年アン"
 };
-
-let sets = [], cards = [], jaMap = {}, nameMap = {}, source = "";
+let sets = [], cards = [], jaMap = {}, nameMap = {}, source = "", available = null;
 let sortKey = "gih", sortDesc = true;
 let colorFilter = new Set(), rarityFilter = new Set(), minGames = 0;
 
@@ -270,18 +270,45 @@ function setStatus(msg, isErr){
 /* ---------- セット一覧 ---------- */
 async function loadSets(){
   try{
+    // どの組み合わせの集計があるかを先に知る
+    try{
+      const r = await fetch("./data/ratings/index.json", {cache:"no-cache"});
+      if(r.ok) available = (await r.json()).datasets || [];
+    }catch(e){ available = null; }
+
     const res = await fetch(SCRY + "/sets");
     if(!res.ok) throw new Error("HTTP " + res.status);
     const d = await res.json();
     const today = new Date().toISOString().slice(0,10);
     sets = d.data
-      .filter(s => ["expansion","core"].includes(s.set_type) && s.released_at && s.released_at <= today && s.card_count > 100)
-      .slice(0, 30);
+      .filter(s => ["expansion","core"].includes(s.set_type) && s.released_at && s.released_at <= today && s.card_count > 100);
+
+    if(available && available.length){
+      const have = new Set(available.map(a => a.set.toUpperCase()));
+      sets = sets.filter(s => have.has(s.code.toUpperCase()));
+    }
+    sets = sets.slice(0, 30);
+
     renderSetOptions();
+    updateEventOptions();
     $("loadBtn").disabled = false;
+    setStatus("セットとイベント種別を選んで「読み込む」を押してください。");
   }catch(e){
     setStatus("セット一覧を取得できませんでした。再読み込みしてください。（" + e.message + "）", true);
   }
+}
+
+/* 選んだセットで用意のあるイベント種別だけを有効にする */
+function updateEventOptions(){
+  if(!available) return;
+  const code = ($("setSelect").value || "").toUpperCase();
+  const have = new Set(available.filter(a => a.set.toUpperCase() === code).map(a => a.event));
+  let first = null;
+  [...$("eventSelect").options].forEach(o => {
+    o.disabled = have.size > 0 && !have.has(o.value);
+    if(!o.disabled && first === null) first = o.value;
+  });
+  if(first && $("eventSelect").selectedOptions[0]?.disabled) $("eventSelect").value = first;
 }
 
 function renderSetOptions(){
@@ -609,6 +636,7 @@ document.querySelectorAll('#filters .chip[data-min]').forEach(b => {
 });
 
 $("loadBtn").onclick = load;
+$("setSelect").onchange = updateEventOptions;
 $("jaToggle").onchange = () => { hidePreview(); renderSetOptions(); if(cards.length) render(); };
 window.addEventListener("scroll", hidePreview, {passive:true});
 
