@@ -426,7 +426,7 @@ function buildFilters(){
     const b = document.createElement("button");
     b.className = "chip";
     b.setAttribute("aria-pressed", "false");
-    b.innerHTML = `<span class="dot" style="background:var(${c.var})"></span>${c.label}`;
+    b.innerHTML = `<span class="dot" style="background:var(${c.var})"></span>${colorLabel(c.key)}`;
     b.onclick = () => {
       const on = b.getAttribute("aria-pressed") === "true";
       b.setAttribute("aria-pressed", String(!on));
