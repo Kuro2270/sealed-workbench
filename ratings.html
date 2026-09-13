@@ -119,10 +119,10 @@
   <div class="note">
     <b>GIH勝率</b>：そのカードが手札か戦場にあった試合の勝率。カードの強さを見る基本の指標です。　
     <b>GP勝率</b>：そのカードをデッキに入れた試合の勝率。　
-    <b>IWD</b>：そのカードを引いた試合と引かなかった試合の勝率差。　
-    <b>ALSA</b>：平均して何手目まで残っていたか（小さいほど早く取られる）。　
-    <b>ATA</b>：平均して何手目で取られたか。　
-    試合数の少ないカードは17Lands側が勝率を出さないため、空欄になります。
+    <b>IWD</b>：引いた試合と引かなかった試合の勝率差（GIH勝率 − GNS勝率）。　
+    <b>GNS勝率</b>：デッキには入れたが引かなかった試合の勝率。　
+    <b>採用数</b>：デッキに入れられた試合数。　
+    <b>試合数</b>：GIH勝率の母数。少ないカードは数値が揺れやすいので併せて見てください。
   </div>
 
   <div class="filters" id="filters" hidden>
@@ -143,8 +143,8 @@
         <th data-key="gih" aria-sort="descending">GIH勝率<span class="arw">▼</span></th>
         <th data-key="gp">GP勝率</th>
         <th data-key="iwd">IWD</th>
-        <th data-key="alsa">ALSA</th>
-        <th data-key="ata">ATA</th>
+        <th data-key="gns">GNS勝率</th>
+        <th data-key="gp_games">採用数</th>
         <th data-key="games">試合数</th>
       </tr>
     </thead>
@@ -155,7 +155,8 @@
 <div id="preview" aria-hidden="true"></div>
 
 <footer>
-  カード勝率データの出典：<a href="https://www.17lands.com" target="_blank" rel="noopener">17Lands</a>（(c) 17Lands LLC）。<br>
+  カード勝率は <a href="https://www.17lands.com/public_datasets" target="_blank" rel="noopener">17Lands Public Data</a> を集計したものです。
+  同データは <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> のもとで提供されています。<br>
   カード名・セット情報は <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a> より取得しています。<br>
   シールド・ワークベンチは、ファンコンテンツ・ポリシーに基づく非公式のファンコンテンツです。ウィザーズ社の認可・許可を受けていません。題材の一部にウィザーズ・オブ・ザ・コースト社の財産を含みます。©Wizards of the Coast LLC.
 </footer>
@@ -303,7 +304,7 @@ async function loadCardMaps(code){
   jaMap = {}; nameMap = {};
   try{
     // 1) 英語版から arena_id・カード名 → 収録番号・画像 の対応を作る
-    const arenaToCn = {}, nameToCn = {}, enImgs = {};
+    const arenaToCn = {}, nameToCn = {}, enImgs = {}, enMeta = {};
     let url = SCRY + "/cards/search?q=" + encodeURIComponent("set:" + code) + "&unique=prints";
     while(url){
       const res = await fetch(url);
@@ -312,6 +313,13 @@ async function loadCardMaps(code){
       d.data.forEach(c => {
         if(c.arena_id && !arenaToCn[c.arena_id]) arenaToCn[c.arena_id] = c.collector_number;
         if(!nameToCn[c.name]) nameToCn[c.name] = c.collector_number;
+        if(!enMeta[c.name]){
+          const ci = (c.color_identity || []).join("");
+          enMeta[c.name] = {
+            color: (c.type_line || "").includes("Land") && !ci ? "" : ci,
+            rarity: c.rarity || ""
+          };
+        }
         if(!enImgs[c.name]){
           enImgs[c.name] = c.image_uris?.normal
             ? [c.image_uris.normal]
@@ -348,7 +356,7 @@ async function loadCardMaps(code){
       if(cnToJa[cn]) jaMap[aid] = cnToJa[cn];
     });
     Object.entries(nameToCn).forEach(([nm, cn]) => {
-      nameMap[nm] = { ...(cnToJa[cn] || {}), enImgs: enImgs[nm] || [] };
+      nameMap[nm] = { ...(cnToJa[cn] || {}), enImgs: enImgs[nm] || [], ...(enMeta[nm] || {}) };
     });
   }catch(e){ jaMap = {}; nameMap = {}; }
 }
@@ -368,51 +376,33 @@ async function load(){
     let info = null;
     source = "";
 
-    // 1) 17Lands から自動取得する
-    try{
-      const res = await fetch(`/api/ratings?set=${encodeURIComponent(code)}&event=${encodeURIComponent(event)}`);
-      const d = await res.json();
-      if(res.ok && d.cards && d.cards.length && (d.total_games || 0) > 0){
-        cards = d.cards;
-        source = "api";
-        info = { count: d.count, total: d.total_games, period: d.period };
-      }else if(!res.ok && (d.error === "embargo" || d.error === "no_data")){
-        info = null;
-        apiNote = d.message + (d.days_remaining ? `（発売日 ${d.released_at}／あと${d.days_remaining}日）` : "");
-      }
-    }catch(e){ /* 取れなければCSVへ */ }
-
-    // 2) 取れない場合は手動で置いたCSVを使う
-    if(!source){
-      try{
-        const res = await fetch(`./data/${code.toUpperCase()}_${event}.csv`, {cache:"no-cache"});
-        if(res.ok){
-          const parsed = parseCsv(await res.text());
-          if(parsed.length){
-            cards = parsed;
-            source = "csv";
-            info = { count: parsed.length, total: parsed.reduce((n, c) => n + (c.games || 0), 0) };
-          }
-        }
-      }catch(e){ /* どちらも無い */ }
-    }
-
-    if(!source){
-      setStatus(apiNote || "このセットとイベント種別のデータが見つかりませんでした。別の組み合わせをお試しください。", true);
+    // 集計済みの公開データセット（CC BY 4.0）を読み込む
+    const res = await fetch(`./data/ratings/${code.toUpperCase()}_${event}.json`, {cache:"no-cache"});
+    if(!res.ok){
+      setStatus("このセットとイベント種別の集計データはまだありません。用意のある組み合わせをお試しください。", true);
       return;
     }
+    const d = await res.json();
+    cards = d.cards.map(c => ({ ...c, id: null, color: "", rarity: "", url: "", url_back: "" }));
+    source = "dataset";
+    info = { count: d.count, total: d.total_games, generated: d.generated_at, wr: d.overall_win_rate };
 
-    setStatus("日本語のカード情報を取得しています…");
+    setStatus("カード情報を取得しています…");
     await loadCardMaps(code);
+
+    // 公開データセットには色とレアリティが無いので Scryfall から補う
+    cards.forEach(c => {
+      const n = nameMap[c.name];
+      if(n){ c.color = n.color || ""; c.rarity = n.rarity || ""; }
+    });
 
     buildFilters();
     render();
 
     const g = (info.total || 0).toLocaleString();
-    const src = source === "csv"
-      ? "17Lands書き出しCSV"
-      : `17Lands（自動取得／${info.period || "全期間"}）`;
-    setStatus(`${code.toUpperCase()} ／ ${eventLabel} ／ ${info.count}種 ／ 総試合数 ${g} ／ 出典 ${src}`,
+    const when = new Date(info.generated).toLocaleDateString("ja-JP");
+    const wr = info.wr != null ? `／全体勝率 ${(info.wr * 100).toFixed(1)}%` : "";
+    setStatus(`${code.toUpperCase()} ／ ${eventLabel} ／ ${info.count}種 ／ 総試合数 ${g}${wr}（集計 ${when}）`,
               (info.total || 0) < 5000);
   }catch(e){
     setStatus("読み込みに失敗しました。しばらく待って再度お試しください。", true);
@@ -512,8 +502,8 @@ function render(){
       `<td class="num${cls}${thin}">${pct(c.gih)}</td>` +
       `<td class="num${thin}">${pct(c.gp)}</td>` +
       `<td class="num${thin}">${sgn(c.iwd)}</td>` +
-      `<td class="num">${ord(c.alsa)}</td>` +
-      `<td class="num">${ord(c.ata)}</td>` +
+      `<td class="num${thin}">${pct(c.gns)}</td>` +
+      `<td class="num thin">${(c.gp_games || 0).toLocaleString()}</td>` +
       `<td class="num thin">${(c.games || 0).toLocaleString()}</td>`;
 
     const nm = tr.querySelector(".nm");
