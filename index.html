@@ -1,12 +1,16 @@
 <!DOCTYPE html>
-<html lang="ja" data-title="page.index.title">
+<html lang="ja" data-title="page.index.title" data-desc="desc.index">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sealed Workbench</title>
+<title>Sealed Workbench — MTG Arena sealed practice</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sealed Workbench">
+<meta name="twitter:card" content="summary">
 <script src="./i18n.js"></script>
 <style>
   :root{
@@ -22,6 +26,7 @@
     --radius:3px;
   }
   *{box-sizing:border-box}
+  [hidden]{display:none !important}
   html,body{margin:0;padding:0}
   body{
     background:var(--paper);
