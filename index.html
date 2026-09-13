@@ -255,7 +255,6 @@ let wrMap = {}, wrSource = "", wrAvg = null;
 function renderSetOptions(){
   const sel = $("setSelect");
   const keep = sel.value;
-  const useJa = I18N.isJa();
   sel.innerHTML = "";
   availableSets.forEach(s => {
     const o = document.createElement("option");
