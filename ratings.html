@@ -304,66 +304,99 @@ function renderSetOptions(){
 /* ---------- 日本語名・日本語版画像 ----------
    17Lands はアリーナ内部ID（mtga_id）を返すので、
    Scryfall の arena_id と収録番号を橋渡しして日本語版に結び付ける。 */
-async function loadCardMaps(code){
+async function loadCardMaps(code, needed){
   jaMap = {}; nameMap = {};
+  const enMeta = {}, enImgs = {}, jaByKey = {}, keyOfName = {};
+  const key = (set, cn) => set.toLowerCase() + "/" + cn;
+
+  /* 英語版のカードを取り込む */
+  function takeEn(c){
+    if(!enMeta[c.name]){
+      const ci = (c.color_identity || []).join("");
+      enMeta[c.name] = {
+        color: (c.type_line || "").includes("Land") && !ci ? "" : ci,
+        rarity: c.rarity || ""
+      };
+    }
+    if(!enImgs[c.name]){
+      enImgs[c.name] = c.image_uris?.normal
+        ? [c.image_uris.normal]
+        : (Array.isArray(c.card_faces) ? c.card_faces.map(f => f.image_uris?.normal).filter(Boolean) : []);
+    }
+    if(!keyOfName[c.name]) keyOfName[c.name] = key(c.set, c.collector_number);
+    if(c.arena_id && !jaMap["a" + c.arena_id]) jaMap["a" + c.arena_id] = key(c.set, c.collector_number);
+  }
+
+  /* セット単位で日本語版を取り込む */
+  async function takeJa(setCode){
+    let url = SCRY + "/cards/search?q=" + encodeURIComponent("set:" + setCode + " lang:ja")
+            + "&unique=prints&include_multilingual=true";
+    while(url){
+      const res = await fetch(url);
+      if(!res.ok) return;
+      const d = await res.json();
+      d.data.forEach(c => {
+        if(c.lang !== "ja") return;
+        const k = key(c.set, c.collector_number);
+        if(jaByKey[k]) return;
+        jaByKey[k] = {
+          name: c.printed_name
+            || (Array.isArray(c.card_faces) ? c.card_faces.map(f => f.printed_name).filter(Boolean).join(" // ") : ""),
+          imgs: c.image_uris?.normal
+            ? [c.image_uris.normal]
+            : (Array.isArray(c.card_faces) ? c.card_faces.map(f => f.image_uris?.normal).filter(Boolean) : [])
+        };
+      });
+      url = d.has_more ? d.next_page : null;
+      if(url) await sleep(120);
+    }
+  }
+
   try{
-    // 1) 英語版から arena_id・カード名 → 収録番号・画像 の対応を作る
-    const arenaToCn = {}, nameToCn = {}, enImgs = {}, enMeta = {};
+    // 1) 指定セットの英語版
     let url = SCRY + "/cards/search?q=" + encodeURIComponent("set:" + code) + "&unique=prints";
     while(url){
       const res = await fetch(url);
       if(!res.ok) break;
       const d = await res.json();
-      d.data.forEach(c => {
-        if(c.arena_id && !arenaToCn[c.arena_id]) arenaToCn[c.arena_id] = c.collector_number;
-        if(!nameToCn[c.name]) nameToCn[c.name] = c.collector_number;
-        if(!enMeta[c.name]){
-          const ci = (c.color_identity || []).join("");
-          enMeta[c.name] = {
-            color: (c.type_line || "").includes("Land") && !ci ? "" : ci,
-            rarity: c.rarity || ""
-          };
-        }
-        if(!enImgs[c.name]){
-          enImgs[c.name] = c.image_uris?.normal
-            ? [c.image_uris.normal]
-            : (Array.isArray(c.card_faces) ? c.card_faces.map(f => f.image_uris?.normal).filter(Boolean) : []);
-        }
-      });
+      d.data.forEach(takeEn);
       url = d.has_more ? d.next_page : null;
       if(url) await sleep(120);
     }
 
-    // 2) 日本語版から 収録番号 → 名前・画像 の対応を作る
-    const cnToJa = {};
-    url = SCRY + "/cards/search?q=" + encodeURIComponent("set:" + code + " lang:ja")
-        + "&unique=prints&include_multilingual=true";
-    while(url){
-      const res = await fetch(url);
-      if(!res.ok) break;
-      const d = await res.json();
-      d.data.forEach(c => {
-        if(c.lang !== "ja" || cnToJa[c.collector_number]) return;
-        const name = c.printed_name
-          || (Array.isArray(c.card_faces) ? c.card_faces.map(f => f.printed_name).filter(Boolean).join(" // ") : "");
-        const imgs = c.image_uris?.normal
-          ? [c.image_uris.normal]
-          : (Array.isArray(c.card_faces) ? c.card_faces.map(f => f.image_uris?.normal).filter(Boolean) : []);
-        cnToJa[c.collector_number] = { name, imgs };
-      });
-      url = d.has_more ? d.next_page : null;
-      if(url) await sleep(120);
+    // 2) このセットに無いカード（特別枠など）をまとめて照会する
+    const extraSets = new Set();
+    const missing = (needed || []).filter(n => !enMeta[n]);
+    for(let i = 0; i < missing.length; i += 75){
+      const ids = missing.slice(i, i + 75).map(n => ({name: n}));
+      try{
+        const res = await fetch(SCRY + "/cards/collection", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({identifiers: ids})
+        });
+        if(!res.ok) continue;
+        const d = await res.json();
+        (d.data || []).forEach(c => { takeEn(c); extraSets.add(c.set.toLowerCase()); });
+      }catch(e){ /* 取れなくても続行 */ }
+      await sleep(120);
     }
 
-    // 3) アリーナID／カード名のどちらでも引けるようにする
-    Object.entries(arenaToCn).forEach(([aid, cn]) => {
-      if(cnToJa[cn]) jaMap[aid] = cnToJa[cn];
+    // 3) 日本語版（指定セット＋特別枠のセット）
+    await takeJa(code);
+    for(const ex of [...extraSets].slice(0, 5)){
+      if(ex !== code.toLowerCase()) await takeJa(ex);
+    }
+
+    // 4) カード名をキーにまとめる
+    Object.keys(enMeta).forEach(nm => {
+      const ja = jaByKey[keyOfName[nm]] || {};
+      nameMap[nm] = { ...ja, enImgs: enImgs[nm] || [], ...enMeta[nm] };
     });
-    Object.entries(nameToCn).forEach(([nm, cn]) => {
-      nameMap[nm] = { ...(cnToJa[cn] || {}), enImgs: enImgs[nm] || [], ...(enMeta[nm] || {}) };
-    });
+    Object.keys(jaMap).forEach(k => { jaMap[k] = jaByKey[jaMap[k]] || null; });
   }catch(e){ jaMap = {}; nameMap = {}; }
 }
+
 
 /* ---------- 勝率データ ---------- */
 async function load(){
@@ -392,7 +425,7 @@ async function load(){
     info = { count: d.count, total: d.total_games, generated: d.generated_at, wr: d.overall_win_rate };
 
     setStatus(t("ratings.loadingJa"));
-    await loadCardMaps(code);
+    await loadCardMaps(code, cards.map(c => c.name));
 
     // 公開データセットには色とレアリティが無いので Scryfall から補う
     cards.forEach(c => {
@@ -523,7 +556,7 @@ function render(){
 
 function jaEntry(c){
   if(!I18N.isJa()) return null;
-  return (c.id && jaMap[c.id]) || nameMap[c.name] || null;
+  return (c.id && jaMap["a" + c.id]) || nameMap[c.name] || null;
 }
 
 function displayName(c){
