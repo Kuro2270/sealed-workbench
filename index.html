@@ -76,9 +76,19 @@
 
   ul{list-style:none;margin:0;padding:0}
   .card-row{
-    display:grid;grid-template-columns:22px 1fr auto auto;gap:9px;align-items:center;
+    display:grid;grid-template-columns:22px 1fr auto auto auto;gap:9px;align-items:center;
     padding:5px 7px;border-radius:var(--radius);cursor:pointer;
   }
+  .wr{font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);min-width:42px;text-align:right}
+  .wr.hot{color:#2F6B47;font-weight:700}
+  .wr.warm{color:#4A7A5C}
+  .wr.cold{color:#A24B32}
+  .tile .wrbadge{
+    position:absolute;left:5px;top:5px;background:rgba(24,36,31,.92);color:#F3F5F1;
+    font-size:11px;font-weight:700;line-height:1;padding:3px 6px;border-radius:9px;
+  }
+  .tile .wrbadge.hot{background:#2F6B47}
+  .tile .wrbadge.cold{background:#A24B32}
   .card-row:hover{background:var(--paper-2)}
   .card-row .qty{font-size:12px;color:var(--muted);text-align:right}
   .card-row .cost{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -165,9 +175,14 @@
       <select id="setSelect" aria-label="セットを選ぶ"><option>セットを読み込み中…</option></select>
       <button id="openBtn" disabled>6パック開封</button>
       <button id="clearBtn" class="ghost">デッキを空にする</button>
+      <select id="sortSelect" aria-label="プールの並び順" style="min-width:150px">
+        <option value="cmc">マナ総量順</option>
+        <option value="wr">勝率順</option>
+      </select>
       <label class="toggle"><input type="checkbox" id="jaToggle" checked>日本語表示</label>
       <label class="toggle"><input type="checkbox" id="imgToggle" checked>カード画像を表示</label>
       <label class="toggle"><input type="checkbox" id="gridToggle">画像で一覧表示</label>
+      <label class="toggle"><input type="checkbox" id="wrToggle" checked>勝率を表示</label>
     </div>
   </div>
 </header>
@@ -199,6 +214,7 @@
 
 <footer>
   カードデータ・カード画像は <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a> より取得しています。画像は加工せず、そのままの形で表示しています。<br>
+  カード勝率は <a href="https://www.17lands.com/public_datasets" target="_blank" rel="noopener">17Lands Public Data</a>（<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>）を集計したものです。<br>
   シールド・ワークベンチは、ファンコンテンツ・ポリシーに基づく非公式のファンコンテンツです。ウィザーズ社の認可・許可を受けていません。題材の一部にウィザーズ・オブ・ザ・コースト社の財産を含みます。©Wizards of the Coast LLC.
 </footer>
 
@@ -245,15 +261,11 @@ const SET_JA = {
   afr:"フォーゴトン・レルム探訪",
   stx:"ストリクスヘイヴン：魔法学院",
   khm:"カルドハイム",
-  znr:"ゼンディカーの夜明け",
-  hob:"ホビット",
-  sos:"ストリクスヘイヴンの秘密",
-  tmt:"ミュータント タートルズ",
-  ecl:"ローウィンの昏明",
-  tla:"アバター 伝説の少年アン"
+  znr:"ゼンディカーの夜明け"
 };
 
 let setCode = "", boosterCards = [], basicCards = {}, pool = [], deck = [], landCount = {}, jaMap = {}, availableSets = [];
+let wrMap = {}, wrSource = "", wrAvg = null;
 
 function renderSetOptions(){
   const sel = $("setSelect");
@@ -400,14 +412,18 @@ async function openPacks(){
       await loadCards(code);
       setStatus("日本語版のカードを取得しています…");
       await loadJapanese(code);
+      setStatus("勝率データを読み込んでいます…");
+      await loadWinRates(code);
       setCode = code;
     }
     if(!boosterCards.length) throw new Error("このセットにはブースター用のカードが見つかりませんでした");
     pool = []; deck = []; landCount = {};
     for(let i = 0; i < 6; i++) pool.push(...buildPack());
     const jaN = Object.keys(jaMap).length;
+    const wrN = Object.keys(wrMap).length;
     setStatus("プール " + pool.length + "枚を生成しました（" + code.toUpperCase() + " の対象カード " + boosterCards.length + "種"
-              + (jaN ? "／日本語版 " + jaN + "件" : "／日本語版なし") + "）。カードを押すとデッキに入ります。");
+              + (jaN ? "／日本語版 " + jaN + "件" : "／日本語版なし")
+              + (wrN ? "／勝率 " + wrSource : "／勝率データなし") + "）。カードを押すとデッキに入ります。");
     render();
   }catch(e){
     setStatus(e.message, true);
@@ -449,16 +465,65 @@ function tally(list){
   return [...m.values()];
 }
 
+/* ---------- 勝率データ ---------- */
+async function loadWinRates(code){
+  wrMap = {}; wrSource = ""; wrAvg = null;
+  // シールド戦のツールなので Sealed を優先し、無ければドラフトのデータを使う
+  const order = ["Sealed", "TradSealed", "PremierDraft", "TradDraft", "QuickDraft"];
+  const LABEL = {
+    Sealed:"シールド", TradSealed:"トラディショナルシールド",
+    PremierDraft:"プレミアドラフト", TradDraft:"トラディショナルドラフト", QuickDraft:"クイックドラフト"
+  };
+  for(const ev of order){
+    try{
+      const res = await fetch(`./data/ratings/${code.toUpperCase()}_${ev}.json`, {cache:"no-cache"});
+      if(!res.ok) continue;
+      const d = await res.json();
+      d.cards.forEach(c => { if(c.gih != null) wrMap[c.name] = { gih: c.gih, games: c.games }; });
+      const vals = Object.values(wrMap).map(v => v.gih);
+      wrAvg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+      wrSource = LABEL[ev] || ev;
+      return;
+    }catch(e){ /* 次の候補へ */ }
+  }
+}
+
+function wrOf(c){
+  if(!$("wrToggle").checked) return null;
+  const e = wrMap[c.name];
+  return (e && e.games >= 200) ? e : null;
+}
+
+function wrClass(v){
+  if(wrAvg == null || v == null) return "";
+  if(v >= wrAvg + 0.03) return " hot";
+  if(v >= wrAvg + 0.01) return " warm";
+  if(v <= wrAvg - 0.03) return " cold";
+  return "";
+}
+
+function poolSorter(a, b){
+  if($("sortSelect").value === "wr"){
+    const x = wrMap[a.card.name]?.gih ?? -1;
+    const y = wrMap[b.card.name]?.gih ?? -1;
+    if(x !== y) return y - x;
+  }
+  return cmcOf(a.card) - cmcOf(b.card)
+      || displayName(a.card).localeCompare(displayName(b.card), "ja");
+}
+
 function cardRow(entry, inDeck){
   const c = entry.card;
+  const w = wrOf(c);
   const li = document.createElement("li");
   li.className = "card-row";
   li.innerHTML =
     '<span class="rar ' + c.rarity + '"></span>' +
     '<span class="name">' + esc(displayName(c)) + '</span>' +
+    '<span class="wr' + (w ? wrClass(w.gih) : "") + '">' + (w ? (w.gih * 100).toFixed(1) + "%" : "") + '</span>' +
     '<span class="cost">' + esc(c.mana_cost || "") + '</span>' +
     '<span class="qty">' + (entry.n > 1 ? "×" + entry.n : "") + '</span>';
-  li.title = c.type_line || "";
+  li.title = (c.type_line || "") + (w ? `\nGIH勝率 ${(w.gih * 100).toFixed(1)}%（${w.games.toLocaleString()}試合）` : "");
   if(imageUrls(c).length) li.classList.add("has-img");
   li.tabIndex = 0;
   li.onmouseenter = ev => showPreview(c, ev.clientX, ev.clientY);
@@ -567,6 +632,13 @@ function cardTile(entry, inDeck){
     b.textContent = "×" + entry.n;
     li.appendChild(b);
   }
+  const w = wrOf(c);
+  if(w){
+    const b = document.createElement("span");
+    b.className = "wrbadge" + wrClass(w.gih);
+    b.textContent = (w.gih * 100).toFixed(1) + "%";
+    li.appendChild(b);
+  }
 
   const act = () => { inDeck ? removeCard(c) : addCard(c); };
   li.onclick = act;
@@ -620,8 +692,7 @@ function render(){
       const ul = document.createElement("ul");
       if(gridMode()) ul.className = "grid";
       tally(sub)
-        .sort((a,b) => cmcOf(a.card) - cmcOf(b.card)
-                    || displayName(a.card).localeCompare(displayName(b.card), "ja"))
+        .sort(poolSorter)
         .forEach(e => ul.appendChild(cardNode(e, false)));
       sec.appendChild(ul);
     });
@@ -655,8 +726,7 @@ function renderDeck(){
       const ul = document.createElement("ul");
       if(gridMode()) ul.className = "grid";
       tally(list)
-        .sort((a,b) => cmcOf(a.card) - cmcOf(b.card)
-                    || displayName(a.card).localeCompare(displayName(b.card), "ja"))
+        .sort(poolSorter)
         .forEach(e => ul.appendChild(cardNode(e, true)));
       body.appendChild(ul);
     });
@@ -750,6 +820,8 @@ $("copyBtn").onclick = async () => {
   setTimeout(() => { $("copyBtn").textContent = "アリーナ用テキストをコピー"; }, 2200);
 };
 
+$("sortSelect").onchange = () => { hidePreview(); render(); };
+$("wrToggle").onchange = () => { hidePreview(); render(); };
 $("jaToggle").onchange = () => { hidePreview(); renderSetOptions(); render(); };
 $("imgToggle").onchange = () => {
   hidePreview();
