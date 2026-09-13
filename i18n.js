@@ -77,11 +77,13 @@
     "err.scryfall":     { ja:"Scryfall への接続に失敗しました（HTTP {s}）", en:"Could not reach Scryfall (HTTP {s})" },
 
     /* ---- シールド構築 ---- */
-    "page.index.title": { ja:"シールド・ワークベンチ｜MTGアリーナ用リミテッド構築ツール",
-                          en:"Sealed Workbench — Limited deck builder for MTG Arena" },
+    "page.index.title": { ja:"シールド・ワークベンチ｜MTGアリーナのシールド戦を練習できる無料ツール",
+                          en:"Sealed Workbench — Free MTG Arena sealed practice tool" },
+    "desc.index":       { ja:"MTGアリーナのリミテッド（シールド戦）を無料で練習。6パックを開封して40枚デッキを組み、そのままアリーナにインポートできるテキストを書き出します。17Landsの実戦データによるカード勝率つき。日本語対応。",
+                          en:"Free sealed practice for MTG Arena Limited. Open six packs, build a 40-card deck, and export text you can import straight into Arena. Includes real card win rates from 17Lands data." },
     "index.h1":         { ja:"シールド・ワークベンチ", en:"Sealed Workbench" },
-    "index.lead":       { ja:"6パック分のカードプールを生成して40枚デッキを組み、MTGアリーナにそのまま貼り付けられるテキストを書き出します。",
-                          en:"Open six packs, build a 40-card deck, and export text you can paste straight into MTG Arena." },
+    "index.lead":       { ja:"MTGアリーナのシールド戦を練習するツールです。6パック分のカードプールを生成して40枚デッキを組み、アリーナにそのまま貼り付けられるテキストを書き出します。",
+                          en:"Practice MTG Arena sealed. Open six packs, build a 40-card deck, and export text you can paste straight into Arena." },
     "index.open":       { ja:"6パック開封",       en:"Open 6 packs" },
     "index.clear":      { ja:"デッキを空にする",   en:"Clear deck" },
     "index.sortCmc":    { ja:"マナ総量順",         en:"By mana value" },
@@ -99,8 +101,10 @@
     "index.wrNone":     { ja:"／勝率データなし", en:" / no win-rate data" },
 
     /* ---- ドラフト ---- */
-    "page.draft.title": { ja:"ドラフト・ワークベンチ｜MTGアリーナ用リミテッド練習ツール",
-                          en:"Draft Workbench — Limited practice tool for MTG Arena" },
+    "page.draft.title": { ja:"ドラフト・ワークベンチ｜MTGアリーナの8人卓ドラフトを1人で練習",
+                          en:"Draft Workbench — Practice 8-player MTG Arena drafts solo" },
+    "desc.draft":       { ja:"MTGアリーナのドラフトを1人で練習できる無料ツール。8人卓を再現し、他の7人は17Landsの勝率データをもとにピックします。3パック42手を終えたらデッキを組み、アリーナにインポートできます。",
+                          en:"Free solo draft practice for MTG Arena. Simulates an eight-seat pod where the other drafters pick using 17Lands win-rate data. Finish 42 picks, build your deck, and import it into Arena." },
     "draft.h1":         { ja:"ドラフト・ワークベンチ", en:"Draft Workbench" },
     "draft.lead":       { ja:"8人卓のドラフトを1人で練習できます。他の7人は17Landsの勝率データをもとにピックします。",
                           en:"Practice an eight-seat draft on your own. The other seven drafters pick using 17Lands win-rate data." },
@@ -122,10 +126,13 @@
                           en:"Draft complete. Build a 40-card deck from your {n}-card pool." },
 
     /* ---- 勝率一覧 ---- */
-    "page.ratings.title":{ ja:"カード勝率一覧｜シールド・ワークベンチ", en:"Card win rates — Sealed Workbench" },
+    "page.ratings.title":{ ja:"カード勝率一覧｜MTGアリーナのリミテッド実戦データ",
+                          en:"Card win rates — MTG Arena Limited game data" },
+    "desc.ratings":     { ja:"MTGアリーナのリミテッドにおけるカードごとの実戦勝率を、色別・数値順に並べ替えて確認できます。17Landsの公開データを独自に集計。日本語カード名・カード画像に対応。",
+                          en:"Card-by-card win rates for MTG Arena Limited, sortable by color and by any metric. Aggregated from the 17Lands public datasets, with card images and localized names." },
     "ratings.h1":       { ja:"カード勝率一覧", en:"Card win rates" },
-    "ratings.lead":     { ja:"17Lands が集計した実戦データを、色別・数値順に並べ替えて確認できます。主観的な点数ではなく、実際の勝率です。",
-                          en:"Real game results from 17Lands, sortable by color and by any metric. These are measured win rates, not subjective grades." },
+    "ratings.lead":     { ja:"MTGアリーナのリミテッドにおけるカードごとの実戦勝率です。17Landsの公開データを集計したもので、主観的な点数ではありません。色別・数値順に並べ替えられます。",
+                          en:"Measured win rates for MTG Arena Limited, aggregated from the 17Lands public datasets — not subjective grades. Sort by color or by any metric." },
     "ratings.load":     { ja:"読み込む", en:"Load" },
     "ratings.ready":    { ja:"セットとイベント種別を選んで「読み込む」を押してください。",
                           en:"Choose a set and event type, then press “Load”." },
@@ -230,8 +237,27 @@
       el.setAttribute("aria-label", t(el.dataset.i18nLabel));
     });
     const tk = document.documentElement.dataset.title;
-    if(tk) document.title = t(tk);
+    if(tk){
+      document.title = t(tk);
+      setMeta("property", "og:title", t(tk));
+    }
+    const dk = document.documentElement.dataset.desc;
+    if(dk){
+      setMeta("name", "description", t(dk));
+      setMeta("property", "og:description", t(dk));
+    }
+    setMeta("property", "og:locale", lang === "ja" ? "ja_JP" : "en_US");
     document.documentElement.lang = lang;
+  }
+
+  function setMeta(attr, key, value){
+    let el = document.head.querySelector(`meta[${attr}="${key}"]`);
+    if(!el){
+      el = document.createElement("meta");
+      el.setAttribute(attr, key);
+      document.head.appendChild(el);
+    }
+    el.setAttribute("content", value);
   }
 
   function set(next){
