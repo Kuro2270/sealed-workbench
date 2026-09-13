@@ -2,13 +2,14 @@
 /*
  * 17Lands 公開データセット（CC BY 4.0）からカードごとの勝率を集計する。
  *
- *   node maintenance/build-ratings.mjs HOB PremierDraft
- *   node maintenance/build-ratings.mjs            （既定の組み合わせをまとめて処理）
+ *   node maintenance/build-ratings.mjs              直近セットを自動で対象にする
+ *   node maintenance/build-ratings.mjs HOB Sealed   組み合わせを指定して集計する
  *
- * 出力: data/ratings/<SET>_<FORMAT>.json
+ * 出力: data/ratings/<SET>_<FORMAT>.json と index.json
  *
- * ファイルは数百MB〜になるため、gzip を展開しながら1行ずつ読んで集計する。
- * メモリに載せるのはカードごとのカウンタだけ。
+ * 対象セットは Scryfall から自動取得するので、新セットが出れば
+ * 次回の実行で勝手に加わる。公開データセットに無い組み合わせは飛ばす。
+ * ファイルは数百MBになるため、gzip を展開しながら1行ずつ読んで集計する。
  */
 
 import { createGunzip } from "node:zlib";
@@ -18,13 +19,43 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const BASE = "https://17lands-public.s3.amazonaws.com/analysis_data/game_data";
+const SCRY = "https://api.scryfall.com";
 const OUT_DIR = "data/ratings";
 
-// 既定で処理する組み合わせ（引数なしで実行したとき）
-const DEFAULT_TARGETS = [
-  ["HOB", "PremierDraft"],
-  ["MSH", "PremierDraft"]
-];
+// 自動で対象にする範囲
+const MONTHS_BACK = 30;        // 直近何か月のセットまで見るか
+const MIN_CARDS   = 100;       // リミテッドに使えるセットの目安
+const EMBARGO_DAYS = 12;       // 17Lands 規約：発売後12日間は対象外
+const FORMATS = ["PremierDraft", "TradDraft", "Sealed"];
+
+/* ---------- 対象セットを Scryfall から決める ---------- */
+async function listTargets(){
+  const res = await fetch(SCRY + "/sets", {
+    headers: { "User-Agent": "SealedWorkbench/1.0", Accept: "application/json" }
+  });
+  if(!res.ok) throw new Error(`Scryfall からセット一覧を取得できませんでした（HTTP ${res.status}）`);
+  const d = await res.json();
+
+  const now = Date.now();
+  const iso = t => new Date(t).toISOString().slice(0, 10);
+  const from = iso(now - MONTHS_BACK * 30 * 86400000);
+  const until = iso(now - EMBARGO_DAYS * 86400000);   // 発売から12日経ったものだけ
+
+  const sets = d.data
+    .filter(s => ["expansion", "core"].includes(s.set_type)
+              && s.released_at
+              && s.released_at <= until
+              && s.released_at >= from
+              && s.card_count > MIN_CARDS)
+    .sort((a, b) => b.released_at.localeCompare(a.released_at));
+
+  const targets = [];
+  for(const s of sets){
+    for(const f of FORMATS) targets.push([s.code.toUpperCase(), f]);
+  }
+  process.stderr.write(`対象候補: ${sets.length}セット × ${FORMATS.length}形式 = ${targets.length}件\n`);
+  return targets;
+}
 
 /* ---------- CSVヘッダー用の簡易パーサー（カード名にカンマが入るため） ---------- */
 function parseCsvLine(line){
@@ -54,6 +85,10 @@ async function build(set, format){
   process.stderr.write(`取得中: ${url}\n`);
 
   const res = await fetch(url);
+  if(res.status === 403 || res.status === 404){
+    if(res.body) await res.body.cancel();
+    return null;                                  // 公開データセットに無い組み合わせ
+  }
   if(!res.ok) throw new Error(`ダウンロードに失敗しました（HTTP ${res.status}）: ${url}`);
 
   const rl = createInterface({
@@ -163,16 +198,21 @@ async function build(set, format){
 
 async function main(){
   const args = process.argv.slice(2);
-  const targets = args.length >= 2 ? [[args[0].toUpperCase(), args[1]]] : DEFAULT_TARGETS;
+  const targets = args.length >= 2
+    ? [[args[0].toUpperCase(), args[1]]]
+    : await listTargets();
 
-  const done = [];
+  const done = [], skipped = [];
   for(const [set, format] of targets){
     try{
-      done.push(await build(set, format));
+      const r = await build(set, format);
+      if(r) done.push(r); else skipped.push(`${set} ${format}`);
     }catch(e){
       process.stderr.write(`失敗: ${set} ${format} — ${e.message}\n`);
     }
   }
+
+  process.stderr.write(`\n集計: ${done.length}件 ／ 見送り: ${skipped.length}件\n`);
 
   if(!done.length){
     process.stderr.write("集計できた組み合わせがありませんでした。\n");
