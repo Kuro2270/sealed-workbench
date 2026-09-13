@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ドラフト・ワークベンチ｜MTGアリーナ用リミテッド練習ツール</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pine:#23342E; --pine-deep:#18241F;
+    --paper:#F3F5F1; --paper-2:#E6EAE3;
+    --ink:#0F1C17; --muted:#63736C;
+    --gold:#B8912F; --line:#CBD3CA;
+    --w:#E7CF86; --u:#7FB4D8; --b:#7A7480; --r:#DB8068; --g:#79A87F; --m:#C3A03B; --c:#9AA3A0;
+    --hot:#2F6B47; --cold:#A24B32;
+    --radius:3px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3,h4{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.15}
+
+  header{background:var(--pine);color:var(--paper);padding:24px 24px 18px;border-bottom:4px solid var(--gold)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .head-top{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;max-width:60ch}
+  nav{margin-top:14px;display:flex;gap:16px;font-size:13px}
+  nav a{color:#B9C7C0;text-decoration:none;padding-bottom:3px;border-bottom:2px solid transparent}
+  nav a:hover{color:var(--paper)}
+  nav a.on{color:var(--paper);border-bottom-color:var(--gold)}
+
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  select,button{font-family:inherit;font-size:14px}
+  select{background:var(--pine-deep);color:var(--paper);border:1px solid #3D544B;padding:9px 12px;border-radius:var(--radius);min-width:210px}
+  button{border:none;border-radius:var(--radius);padding:10px 18px;cursor:pointer;background:var(--gold);color:#1A1405;font-weight:700}
+  button:hover:not(:disabled){background:#CBA33B}
+  button:disabled{background:#6E7772;color:#C6CCC9;cursor:not-allowed}
+  button.ghost{background:transparent;color:var(--paper);border:1px solid #4A6157;font-weight:500}
+  button.ghost:hover{background:#2E4239}
+  label.toggle{display:flex;align-items:center;gap:7px;color:var(--paper);font-size:13px;cursor:pointer;user-select:none}
+  label.toggle input{width:15px;height:15px;accent-color:var(--gold)}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  main{max-width:1180px;margin:0 auto;padding:20px 24px 70px;display:grid;grid-template-columns:1fr 340px;gap:26px;align-items:start}
+  @media (max-width:980px){main{grid-template-columns:1fr}}
+
+  .status{padding:14px 16px;background:var(--paper-2);border-left:3px solid var(--muted);font-size:14px;color:var(--muted);margin-bottom:16px}
+  .status.err{border-left-color:#B4432E;color:#8A3422;background:#F6E9E5}
+
+  .phase{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+  .phase h2{font-size:19px;margin:0}
+  .phase .sub{font-size:13px;color:var(--muted)}
+  .bar{height:4px;background:var(--paper-2);border-radius:2px;overflow:hidden;margin-bottom:16px}
+  .bar i{display:block;height:100%;background:var(--gold);transition:width .25s}
+
+  ul{list-style:none;margin:0;padding:0}
+  ul.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;padding:4px 0 2px}
+  .side ul.grid{grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:7px}
+  .tile{position:relative;cursor:pointer;border-radius:8px;line-height:0}
+  .tile img{width:100%;height:auto;border-radius:7px;display:block}
+  .tile:hover img,.tile:focus-visible img{outline:2px solid var(--gold);outline-offset:2px}
+  .tile .wrbadge{
+    position:absolute;left:50%;transform:translateX(-50%);bottom:6px;
+    background:rgba(24,36,31,.92);color:#F3F5F1;font-size:12px;font-weight:700;line-height:1;
+    padding:4px 9px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.3);
+  }
+  .tile .wrbadge.hot{background:#2F6B47}
+  .tile .wrbadge.cold{background:#A24B32}
+  .tile .noimg{
+    display:flex;align-items:center;justify-content:center;text-align:center;aspect-ratio:5/7;
+    background:var(--paper-2);border:1px solid var(--line);border-radius:7px;
+    font-size:12px;line-height:1.5;padding:8px;color:var(--muted);
+  }
+
+  .side{position:sticky;top:16px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+  .side-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+  .side-head h3{font-size:16px;margin:0}
+  .count{font-size:24px;font-variant-numeric:tabular-nums}
+  .count.ok{color:var(--hot)}
+  .side-body{padding:12px 16px;max-height:52vh;overflow:auto}
+  .empty{color:var(--muted);font-size:13px;padding:18px 0;text-align:center}
+
+  .colors{padding:12px 16px;border-top:1px solid var(--line)}
+  .colors h4{font-size:13px;margin:0 0 7px}
+  .crow{display:grid;grid-template-columns:20px 1fr 34px;gap:7px;align-items:center;padding:1px 0;font-size:13px}
+  .crow .track{height:7px;background:var(--paper-2);border-radius:4px;overflow:hidden}
+  .crow .track i{display:block;height:100%;border-radius:4px}
+  .crow .n{text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+  .sec{display:flex;align-items:baseline;justify-content:space-between;margin:10px 0 3px;padding-bottom:3px;border-bottom:1px solid var(--line)}
+  .sec:first-child{margin-top:0}
+  .sec h4{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:13px;margin:0}
+  .sec span{font-size:11.5px;color:var(--muted)}
+
+  .card-row{display:grid;grid-template-columns:22px 1fr auto auto;gap:9px;align-items:center;padding:5px 7px;border-radius:var(--radius);cursor:pointer}
+  .card-row:hover{background:var(--paper-2)}
+  .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+  .wr{font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);text-align:right}
+  .wr.hot{color:var(--hot);font-weight:700}
+  .wr.cold{color:var(--cold)}
+  .rar{width:6px;height:14px;border-radius:1px;background:var(--c)}
+  .rar.uncommon{background:#9BA7AD}.rar.rare{background:var(--gold)}.rar.mythic{background:#C4552C}
+
+  .lands{padding:10px 16px;border-top:1px solid var(--line)}
+  .lands-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .lands-head h4{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:13px;margin:0}
+  .lands-head span{font-size:11.5px;color:var(--muted)}
+  .land-item{display:grid;grid-template-columns:1fr 28px 30px 28px;align-items:center;gap:4px;padding:1px 0}
+  .land-item .l-num{text-align:center;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+  .step{width:28px;height:28px;padding:0;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:17px;font-weight:700;line-height:1;border-radius:var(--radius)}
+  .step:hover:not(:disabled){background:var(--paper-2)}
+  .step:disabled{color:#C3CAC6;background:#fff;cursor:not-allowed}
+
+  .export{padding:12px 16px;border-top:1px solid var(--line)}
+  textarea{width:100%;height:100px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:12px;border:1px solid var(--line);border-radius:var(--radius);padding:8px;resize:vertical;background:var(--paper)}
+
+  #preview{position:fixed;z-index:50;pointer-events:none;display:none;filter:drop-shadow(0 10px 24px rgba(15,28,23,.35))}
+  #preview img{display:block;width:244px;height:auto;border-radius:11px}
+
+  footer{max-width:1180px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+  .note{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;font-size:12.5px;color:var(--muted);margin-bottom:16px}
+  .note b{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="head-top">
+      <div>
+        <h1>ドラフト・ワークベンチ</h1>
+        <p>8人卓のドラフトを1人で練習できます。他の7人は17Landsの勝率データをもとにピックします。</p>
+      </div>
+      <div class="controls">
+        <select id="setSelect" aria-label="セットを選ぶ"><option>読み込み中…</option></select>
+        <button id="startBtn" disabled>ドラフト開始</button>
+        <label class="toggle"><input type="checkbox" id="jaToggle" checked>日本語表示</label>
+        <label class="toggle"><input type="checkbox" id="wrToggle" checked>勝率を表示</label>
+      </div>
+    </div>
+    <nav>
+      <a href="./">シールド構築</a>
+      <a href="./draft.html" class="on">ドラフト</a>
+      <a href="./ratings.html">カード勝率一覧</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div id="status" class="status">セットを選んで「ドラフト開始」を押してください。</div>
+
+    <div class="note" id="intro">
+      <b>進め方</b>：14枚のパックから1枚選ぶと、残りは隣に流れます。同時に他の7人もピックします。
+      3パック（42手）を終えると構築画面に切り替わります。　
+      <b>他プレイヤー</b>：カードの勝率を基本にしつつ、ピックが進むほど自分の色を優先するようにしてあります。
+    </div>
+
+    <div id="phase" class="phase" hidden>
+      <h2 id="phaseTitle">パック1 ／ ピック1</h2>
+      <span class="sub" id="phaseSub"></span>
+    </div>
+    <div class="bar" id="bar" hidden><i style="width:0"></i></div>
+
+    <div id="board"></div>
+  </section>
+
+  <aside class="side">
+    <div class="side-head">
+      <h3 id="sideTitle">ピック済み</h3>
+      <div class="count" id="sideCount">0</div>
+    </div>
+    <div class="side-body" id="sideBody"><div class="empty">まだ何も取っていません</div></div>
+
+    <div class="colors" id="colors" hidden>
+      <h4>色の内訳</h4>
+      <div id="colorRows"></div>
+    </div>
+
+    <div class="lands" id="lands" hidden></div>
+    <div class="export" id="exportWrap" hidden>
+      <textarea id="exportBox" readonly placeholder="デッキを組むとここにアリーナ用テキストが出ます"></textarea>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:6px">インポート用のカード名は英語名で出力します。</div>
+      <button id="copyBtn" style="width:100%;margin-top:8px">アリーナ用テキストをコピー</button>
+    </div>
+  </aside>
+</main>
+
+<div id="preview" aria-hidden="true"></div>
+
+<footer>
+  カードデータ・カード画像は <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a> より取得しています。画像は加工せず、そのままの形で表示しています。<br>
+  カード勝率は <a href="https://www.17lands.com/public_datasets" target="_blank" rel="noopener">17Lands Public Data</a>（<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>）を集計したものです。<br>
+  ドラフト・ワークベンチは、ファンコンテンツ・ポリシーに基づく非公式のファンコンテンツです。ウィザーズ社の認可・許可を受けていません。題材の一部にウィザーズ・オブ・ザ・コースト社の財産を含みます。©Wizards of the Coast LLC.
+</footer>
+
+<script>
+const SCRY = "https://api.scryfall.com";
+const PLAYERS = 8, PACKS = 3, PACK_SIZE = 14;
+const COLORS = [
+  {key:"W", label:"白",   var:"--w"},
+  {key:"U", label:"青",   var:"--u"},
+  {key:"B", label:"黒",   var:"--b"},
+  {key:"R", label:"赤",   var:"--r"},
+  {key:"G", label:"緑",   var:"--g"},
+  {key:"M", label:"多色", var:"--m"},
+  {key:"C", label:"無色・土地", var:"--c"}
+];
+const BASICS = [["平地","Plains"],["島","Island"],["沼","Swamp"],["山","Mountain"],["森","Forest"]];
+const SET_JA = {
+  msh:"マジック：ザ・ギャザリング｜マーベル スーパー・ヒーローズ",
+  spm:"マジック：ザ・ギャザリング｜マーベル スパイダーマン",
+  om1:"領界路の彼方", eoe:"エッジ・オブ・エタニティーズ", fin:"ファイナルファンタジー",
+  tdm:"タルキール：龍嵐録", dft:"霊気走破", fdn:"基本セット：ファウンデーションズ",
+  dsk:"ダスクモーン：戦慄の館", blb:"ブルームバロウ", mh3:"モダンホライゾン3",
+  otj:"サンダー・ジャンクションの無法者", mkm:"カルロフ邸殺人事件",
+  lci:"イクサラン：失われし洞窟", woe:"エルドレインの森", ltr:"指輪物語：中つ国の伝承",
+  mom:"機械兵団の進軍", one:"ファイレクシア：完全なる統一", bro:"兄弟戦争",
+  dmu:"団結のドミナリア", snc:"ニューカペナの街角", neo:"神河：輝ける世界",
+  vow:"イニストラード：真紅の契り", mid:"イニストラード：真夜中の狩り",
+  afr:"フォーゴトン・レルム探訪", stx:"ストリクスヘイヴン：魔法学院",
+  khm:"カルドハイム", znr:"ゼンディカーの夜明け",
+  hob:"ホビット", sos:"ストリクスヘイヴンの秘密", tmt:"ミュータント タートルズ",
+  ecl:"ローウィンの昏明", tla:"アバター 伝説の少年アン"
+};
+const SKIP_LAYOUTS = ["token","double_faced_token","art_series","emblem","scheme","planar","vanguard"];
+const RAR_BASE = { common:52.0, uncommon:53.5, rare:55.0, mythic:56.0 };
+
+let sets = [], setCode = "";
+let boosterCards = [], basicCards = {}, jaMap = {}, wrMap = {}, wrAvg = null, wrSource = "";
+let packsAll = [], seats = [], phase = "idle";
+let packNo = 0, pickNo = 0, current = [];
+let pool = [], deck = [], landCount = {};
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const esc = s => (s || "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+
+function setStatus(msg, isErr){
+  const el = $("status");
+  el.textContent = msg;
+  el.className = "status" + (isErr ? " err" : "");
+}
+
+/* ---------- セット一覧 ---------- */
+async function loadSets(){
+  try{
+    const res = await fetch(SCRY + "/sets");
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const d = await res.json();
+    const today = new Date().toISOString().slice(0,10);
+    sets = d.data.filter(s => ["expansion","core"].includes(s.set_type) && s.released_at
+                           && s.released_at <= today && s.card_count > 100).slice(0, 30);
+    renderSetOptions();
+    $("startBtn").disabled = false;
+  }catch(e){
+    setStatus("セット一覧を取得できませんでした。再読み込みしてください。（" + e.message + "）", true);
+  }
+}
+
+function renderSetOptions(){
+  const sel = $("setSelect"), keep = sel.value, useJa = $("jaToggle").checked;
+  sel.innerHTML = "";
+  sets.forEach(s => {
+    const o = document.createElement("option");
+    o.value = s.code;
+    const ja = SET_JA[s.code.toLowerCase()];
+    o.textContent = ((useJa && ja) ? ja : s.name) + "（" + s.code.toUpperCase() + "）";
+    sel.appendChild(o);
+  });
+  if(keep) sel.value = keep;
+}
+
+/* ---------- カード取得 ---------- */
+async function searchAll(query){
+  let url = SCRY + "/cards/search?q=" + encodeURIComponent(query) + "&unique=cards&order=set";
+  const all = [];
+  while(url){
+    const res = await fetch(url);
+    if(res.status === 404) return [];
+    if(!res.ok) throw new Error("Scryfall への接続に失敗しました（HTTP " + res.status + "）");
+    const d = await res.json();
+    all.push(...d.data);
+    url = d.has_more ? d.next_page : null;
+    if(url) await sleep(120);
+  }
+  return all;
+}
+
+async function loadCards(code){
+  const queries = [
+    "set:" + code + " is:booster -is:extra",
+    "set:" + code + " is:booster",
+    "set:" + code + " -is:extra",
+    "set:" + code
+  ];
+  let all = [];
+  for(const q of queries){
+    all = await searchAll(q);
+    if(all.length) break;
+    await sleep(120);
+  }
+  if(!all.length) throw new Error("このセットのカードが見つかりませんでした。");
+  all = all.filter(c => !SKIP_LAYOUTS.includes(c.layout));
+
+  basicCards = {};
+  all.filter(c => (c.type_line || "").startsWith("Basic Land"))
+     .forEach(c => { if(!basicCards[c.name]) basicCards[c.name] = c; });
+  boosterCards = all.filter(c => !(c.type_line || "").startsWith("Basic Land"));
+
+  if(!new Set(boosterCards.map(c => c.rarity)).has("common"))
+    throw new Error("コモンが取得できませんでした。別のセットを選んでください。");
+}
+
+async function loadJapanese(code){
+  jaMap = {};
+  try{
+    let url = SCRY + "/cards/search?q=" + encodeURIComponent("set:" + code + " lang:ja")
+            + "&unique=prints&include_multilingual=true&order=set";
+    while(url){
+      const res = await fetch(url);
+      if(!res.ok) return;
+      const d = await res.json();
+      d.data.forEach(c => {
+        if(c.lang === "ja" && !jaMap[c.collector_number]) jaMap[c.collector_number] = c;
+      });
+      url = d.has_more ? d.next_page : null;
+      if(url) await sleep(120);
+    }
+  }catch(e){ jaMap = {}; }
+}
+
+async function loadWinRates(code){
+  wrMap = {}; wrSource = ""; wrAvg = null;
+  const order = ["PremierDraft", "TradDraft", "Sealed", "TradSealed"];
+  const LABEL = {PremierDraft:"プレミアドラフト", TradDraft:"トラディショナルドラフト",
+                 Sealed:"シールド", TradSealed:"トラディショナルシールド"};
+  for(const ev of order){
+    try{
+      const res = await fetch(`./data/ratings/${code.toUpperCase()}_${ev}.json`, {cache:"no-cache"});
+      if(!res.ok) continue;
+      const d = await res.json();
+      d.cards.forEach(c => { if(c.gih != null && c.games >= 200) wrMap[c.name] = {gih:c.gih, games:c.games}; });
+      const vals = Object.values(wrMap).map(v => v.gih);
+      if(!vals.length) continue;
+      wrAvg = vals.reduce((a,b) => a+b, 0) / vals.length;
+      wrSource = LABEL[ev] || ev;
+      return;
+    }catch(e){ /* 次へ */ }
+  }
+}
+
+/* ---------- パック生成 ---------- */
+function buildPack(){
+  const by = r => boosterCards.filter(c => c.rarity === r);
+  const commons = by("common"), uncommons = by("uncommon"), rares = by("rare"), mythics = by("mythic");
+  const out = [];
+  const rareSlot = (mythics.length && Math.random() < 1/7) ? mythics : (rares.length ? rares : commons);
+  out.push(pick(rareSlot));
+  const used = new Set();
+  const take = (arr, n) => {
+    for(let i = 0; i < n && arr.length; i++){
+      let c, g = 0;
+      do { c = pick(arr); g++; } while(used.has(c.id) && g < 30);
+      used.add(c.id); out.push(c);
+    }
+  };
+  take(uncommons, 3);
+  take(commons, PACK_SIZE - 4);
+  return out.filter(Boolean);
+}
+
+/* ---------- 評価 ---------- */
+function ratingOf(c){
+  const e = wrMap[c.name];
+  if(e) return e.gih * 100;
+  return RAR_BASE[c.rarity] ?? 52;
+}
+
+function cardColors(c){
+  const front = (c.type_line || "").split("//")[0];
+  if(front.includes("Land")) return [];
+  return (c.color_identity || []).filter(x => "WUBRG".includes(x));
+}
+
+/* 自分が集めている色の順位から、色ごとの重みを出す */
+function colorBonus(seat){
+  const ranked = Object.entries(seat.colorScore).sort((a,b) => b[1] - a[1]);
+  const W = [1, 0.9, 0.3, 0, 0];            // 1色目・2色目を強く、3色目は控えめに
+  const b = {W:0,U:0,B:0,R:0,G:0};
+  ranked.forEach(([k, v], i) => { b[k] = v > 0 ? W[i] : 0; });
+  return b;
+}
+
+/* ボットのピック。カードの強さに、自分の色への寄りを加えて決める。 */
+function botPick(seat, pack, pickIndex){
+  const commit = Math.min(1, pickIndex / 6);   // 進むほど色を優先する
+  const bonus = colorBonus(seat);
+  let best = null, bestScore = -Infinity;
+
+  for(const c of pack){
+    const base = ratingOf(c);
+    const cols = cardColors(c);
+    let fit;
+    if(!cols.length) fit = 0.5;                        // 無色・土地は中立
+    else fit = cols.reduce((n, k) => n + bonus[k], 0) / cols.length;
+    if(cols.length > 1) fit *= 0.9;                    // 多色はやや重い
+
+    const score = base + commit * 4 * (fit - 0.4) + (Math.random() - 0.5) * 1.2;
+    if(score > bestScore){ bestScore = score; best = c; }
+  }
+
+  const idx = pack.indexOf(best);
+  pack.splice(idx, 1);
+  seat.picked.push(best);
+  const w = Math.max(0, ratingOf(best) - 50);
+  cardColors(best).forEach(k => { seat.colorScore[k] += w; });
+  return best;
+}
+
+/* ---------- ドラフト進行 ---------- */
+async function start(){
+  const code = $("setSelect").value;
+  $("startBtn").disabled = true;
+  $("intro").hidden = true;
+  setStatus("カードデータを取得しています…");
+  try{
+    if(code !== setCode){
+      await loadCards(code);
+      setStatus("日本語版のカードを取得しています…");
+      await loadJapanese(code);
+      setStatus("勝率データを読み込んでいます…");
+      await loadWinRates(code);
+      setCode = code;
+    }
+
+    seats = Array.from({length: PLAYERS}, (_, i) => ({
+      id: i, picked: [], colorScore: {W:0,U:0,B:0,R:0,G:0}
+    }));
+    packsAll = [];
+    for(let p = 0; p < PACKS; p++){
+      packsAll.push(Array.from({length: PLAYERS}, () => buildPack()));
+    }
+    pool = []; deck = []; landCount = {};
+    packNo = 0; pickNo = 0;
+    phase = "draft";
+
+    $("phase").hidden = false;
+    $("bar").hidden = false;
+    $("colors").hidden = false;
+    $("sideTitle").textContent = "ピック済み";
+
+    const wrN = Object.keys(wrMap).length;
+    setStatus(`${code.toUpperCase()} のドラフトを開始しました`
+      + (wrN ? `（勝率 ${wrSource} ／ ${wrN}種）` : "（勝率データなし・レアリティで代用）")
+      + "。カードを押して1枚選んでください。");
+
+    startPack();
+  }catch(e){
+    setStatus(e.message, true);
+    $("startBtn").disabled = false;
+  }
+}
+
+function startPack(){
+  pickNo = 0;
+  current = packsAll[packNo];
+  render();
+}
+
+function humanPick(card){
+  if(phase !== "draft") return;
+
+  // 自分のピック
+  const myPack = current[0];
+  const i = myPack.indexOf(card);
+  if(i < 0) return;
+  myPack.splice(i, 1);
+  pool.push(card);
+  const w = Math.max(0, ratingOf(card) - 50);
+  cardColors(card).forEach(k => { seats[0].colorScore[k] += w; });
+
+  // 他の7人も同時にピック
+  for(let s = 1; s < PLAYERS; s++) botPick(seats[s], current[s], pickNo);
+
+  pickNo++;
+
+  // パックを回す（1・3パック目は左へ、2パック目は右へ）
+  const dir = (packNo % 2 === 0) ? 1 : -1;
+  const rotated = new Array(PLAYERS);
+  for(let s = 0; s < PLAYERS; s++){
+    rotated[(s + dir + PLAYERS) % PLAYERS] = current[s];
+  }
+  current = rotated;
+  packsAll[packNo] = current;
+
+  if(!current[0].length){
+    packNo++;
+    if(packNo >= PACKS){ finishDraft(); return; }
+    startPack();
+    return;
+  }
+  render();
+}
+
+function finishDraft(){
+  phase = "build";
+  $("phase").hidden = true;
+  $("bar").hidden = true;
+  $("lands").hidden = false;
+  $("exportWrap").hidden = false;
+  $("sideTitle").textContent = "デッキ";
+  setStatus(`ドラフト終了。${pool.length}枚のプールから40枚のデッキを組んでください。`);
+  render();
+}
+
+/* ---------- 表示 ---------- */
+function jaCard(c){
+  const t = $("jaToggle");
+  return (t && t.checked && jaMap[c.collector_number]) || null;
+}
+
+function displayName(c){
+  const src = jaCard(c) || c;
+  if(src.printed_name) return src.printed_name;
+  if(Array.isArray(src.card_faces)){
+    const n = src.card_faces.map(f => f.printed_name).filter(Boolean);
+    if(n.length) return n.join(" // ");
+  }
+  return c.name;
+}
+
+function imageUrls(c){
+  const src = jaCard(c) || c;
+  if(src.image_uris?.normal) return [src.image_uris.normal];
+  if(Array.isArray(src.card_faces)){
+    const u = src.card_faces.map(f => f.image_uris?.normal).filter(Boolean);
+    if(u.length) return u;
+  }
+  if(src !== c){
+    if(c.image_uris?.normal) return [c.image_uris.normal];
+    if(Array.isArray(c.card_faces)) return c.card_faces.map(f => f.image_uris?.normal).filter(Boolean);
+  }
+  return [];
+}
+
+function wrOf(c){
+  if(!$("wrToggle").checked) return null;
+  return wrMap[c.name] || null;
+}
+
+function wrClass(v){
+  if(wrAvg == null || v == null) return "";
+  if(v >= wrAvg + 0.03) return " hot";
+  if(v >= wrAvg + 0.01) return "";
+  if(v <= wrAvg - 0.03) return " cold";
+  return "";
+}
+
+function tile(c, onClick){
+  const li = document.createElement("li");
+  li.className = "tile";
+  li.tabIndex = 0;
+  const name = displayName(c);
+  li.title = name + (c.type_line ? "\n" + c.type_line : "");
+  const urls = imageUrls(c);
+  if(urls.length){
+    const img = document.createElement("img");
+    img.src = urls[0]; img.alt = name; img.loading = "lazy";
+    li.appendChild(img);
+  }else{
+    const d = document.createElement("div");
+    d.className = "noimg"; d.textContent = name;
+    li.appendChild(d);
+  }
+  const w = wrOf(c);
+  if(w){
+    const b = document.createElement("span");
+    b.className = "wrbadge" + wrClass(w.gih);
+    b.textContent = (w.gih * 100).toFixed(1) + "%";
+    li.appendChild(b);
+  }
+  li.onclick = onClick;
+  li.onkeydown = ev => { if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); onClick(); } };
+  return li;
+}
+
+function render(){
+  const board = $("board");
+  board.innerHTML = "";
+
+  if(phase === "draft"){
+    const total = PACKS * PACK_SIZE;
+    const done = packNo * PACK_SIZE + pickNo;
+    $("phaseTitle").textContent = `パック${packNo + 1} ／ ピック${pickNo + 1}`;
+    $("phaseSub").textContent = `残り${current[0].length}枚　（全${total}手中 ${done + 1}手目）`;
+    $("bar").firstElementChild.style.width = (done / total * 100) + "%";
+
+    const ul = document.createElement("ul");
+    ul.className = "grid";
+    current[0].slice()
+      .sort((a,b) => ratingOf(b) - ratingOf(a))
+      .forEach(c => ul.appendChild(tile(c, () => humanPick(c))));
+    board.appendChild(ul);
+  }else if(phase === "build"){
+    const remaining = pool.slice();
+    deck.forEach(d => {
+      const i = remaining.findIndex(c => c.id === d.id);
+      if(i >= 0) remaining.splice(i, 1);
+    });
+    COLORS.forEach(col => {
+      const list = remaining.filter(c => colorKey(c) === col.key);
+      if(!list.length) return;
+      const h = document.createElement("div");
+      h.className = "sec";
+      h.innerHTML = `<h4><span class="dot" style="background:var(${col.var})"></span> ${col.label}</h4><span>${list.length}枚</span>`;
+      board.appendChild(h);
+      const ul = document.createElement("ul");
+      ul.className = "grid";
+      list.sort((a,b) => ratingOf(b) - ratingOf(a))
+          .forEach(c => ul.appendChild(tile(c, () => { deck.push(c); render(); })));
+      board.appendChild(ul);
+    });
+  }
+
+  renderSide();
+}
+
+function colorKey(c){
+  if((c.type_line || "").includes("Land")) return "C";
+  const ci = (c.color_identity || []).filter(x => "WUBRG".includes(x));
+  if(!ci.length) return "C";
+  if(ci.length > 1) return "M";
+  return ci[0];
+}
+
+const SECTIONS = [
+  {key:"creature", label:"クリーチャー"},
+  {key:"spell",    label:"呪文"},
+  {key:"land",     label:"土地"}
+];
+
+function cardSection(c){
+  const front = (c.type_line || "").split("//")[0];
+  if(front.includes("Creature")) return "creature";
+  if(front.includes("Land")) return "land";
+  return "spell";
+}
+
+function renderSide(){
+  const list = phase === "build" ? deck : pool;
+  const lands = Object.values(landCount).reduce((a,b) => a+b, 0);
+  const cnt = $("sideCount");
+  if(phase === "build"){
+    const total = deck.length + lands;
+    cnt.innerHTML = total + '<span style="font-size:13px;color:var(--muted)"> / 40</span>';
+    cnt.className = "count" + (total === 40 ? " ok" : "");
+  }else{
+    cnt.textContent = pool.length;
+    cnt.className = "count";
+  }
+
+  const body = $("sideBody");
+  body.innerHTML = "";
+  if(!list.length){
+    body.innerHTML = '<div class="empty">' + (phase === "build" ? "プールのカードを押すと加わります" : "まだ何も取っていません") + '</div>';
+  }else{
+    SECTIONS.forEach(sec => {
+      const sub = list.filter(c => cardSection(c) === sec.key);
+      if(!sub.length) return;
+      const h = document.createElement("div");
+      h.className = "sec";
+      h.innerHTML = `<h4>${sec.label}</h4><span>${sub.length}枚</span>`;
+      body.appendChild(h);
+      const ul = document.createElement("ul");
+      sub.slice().sort((a,b) => (a.cmc ?? 0) - (b.cmc ?? 0)
+                             || displayName(a).localeCompare(displayName(b), "ja"))
+        .forEach(c => {
+          const li = document.createElement("li");
+          li.className = "card-row";
+          const w = wrOf(c);
+          li.innerHTML =
+            `<span class="rar ${c.rarity}"></span>` +
+            `<span class="name">${esc(displayName(c))}</span>` +
+            `<span class="wr${w ? wrClass(w.gih) : ""}">${w ? (w.gih*100).toFixed(1) + "%" : ""}</span>` +
+            `<span style="font-size:12px;color:var(--muted)">${esc(c.mana_cost || "")}</span>`;
+          li.onmouseenter = ev => showPreview(c, ev.clientX, ev.clientY);
+          li.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
+          li.onmouseleave = hidePreview;
+          if(phase === "build"){
+            li.onclick = () => {
+              const i = deck.findIndex(x => x.id === c.id);
+              if(i >= 0) deck.splice(i, 1);
+              hidePreview(); render();
+            };
+          }
+          ul.appendChild(li);
+        });
+      body.appendChild(ul);
+    });
+  }
+
+  renderColors();
+  if(phase === "build") renderLands();
+}
+
+function renderColors(){
+  const rows = $("colorRows");
+  rows.innerHTML = "";
+  const src = phase === "build" ? deck : pool;
+  const counts = {W:0,U:0,B:0,R:0,G:0};
+  src.forEach(c => cardColors(c).forEach(k => counts[k]++));
+  const max = Math.max(1, ...Object.values(counts));
+  COLORS.filter(c => "WUBRG".includes(c.key)).forEach(col => {
+    const n = counts[col.key];
+    const d = document.createElement("div");
+    d.className = "crow";
+    d.innerHTML =
+      `<span><span class="dot" style="background:var(${col.var})"></span></span>` +
+      `<span class="track"><i style="width:${n/max*100}%;background:var(${col.var})"></i></span>` +
+      `<span class="n">${n}</span>`;
+    rows.appendChild(d);
+  });
+}
+
+function renderLands(){
+  const lands = Object.values(landCount).reduce((a,b) => a+b, 0);
+  const lw = $("lands");
+  lw.innerHTML = `<div class="lands-head"><h4>基本土地</h4><span>計 ${lands}枚</span></div>`;
+  BASICS.forEach(([ja, en]) => {
+    const n = landCount[en] || 0;
+    const row = document.createElement("div");
+    row.className = "land-item";
+    const minus = document.createElement("button");
+    minus.className = "step"; minus.textContent = "−"; minus.disabled = n === 0;
+    minus.setAttribute("aria-label", ja + "を1枚減らす");
+    minus.onclick = () => { landCount[en] = Math.max(0, n-1); renderSide(); };
+    const plus = document.createElement("button");
+    plus.className = "step"; plus.textContent = "＋";
+    plus.setAttribute("aria-label", ja + "を1枚増やす");
+    plus.onclick = () => { landCount[en] = n+1; renderSide(); };
+    const name = document.createElement("span"); name.textContent = ja;
+    const num = document.createElement("span"); num.className = "l-num"; num.textContent = n;
+    row.append(name, minus, num, plus);
+    lw.appendChild(row);
+  });
+  renderExport();
+}
+
+function renderExport(){
+  const m = new Map();
+  deck.forEach(c => m.set(c.id, {card:c, n:(m.get(c.id)?.n || 0) + 1}));
+  const lines = ["Deck"];
+  m.forEach(e => lines.push(`${e.n} ${e.card.name} (${e.card.set.toUpperCase()}) ${e.card.collector_number}`));
+  BASICS.forEach(([, en]) => {
+    const n = landCount[en] || 0;
+    if(!n) return;
+    const bc = basicCards[en];
+    lines.push(bc ? `${n} ${en} (${bc.set.toUpperCase()}) ${bc.collector_number}` : `${n} ${en}`);
+  });
+  const lands = Object.values(landCount).reduce((a,b) => a+b, 0);
+  $("exportBox").value = (deck.length || lands) ? lines.join("\n") : "";
+}
+
+/* ---------- プレビュー ---------- */
+function showPreview(c, x, y){
+  const urls = imageUrls(c);
+  if(!urls.length) return;
+  const box = $("preview");
+  box.innerHTML = "";
+  urls.forEach(u => {
+    const img = document.createElement("img");
+    img.src = u; img.alt = displayName(c); img.loading = "lazy";
+    box.appendChild(img);
+  });
+  box.style.display = "block";
+  movePreview(x, y);
+}
+
+function movePreview(x, y){
+  const box = $("preview");
+  if(box.style.display !== "block") return;
+  const w = 252, h = box.offsetHeight || 350;
+  let left = x + 18, top = y - h/2;
+  if(left + w > window.innerWidth - 8) left = x - w - 18;
+  if(left < 8) left = 8;
+  top = Math.min(Math.max(8, top), window.innerHeight - h - 8);
+  box.style.left = left + "px";
+  box.style.top = top + "px";
+}
+
+function hidePreview(){
+  const box = $("preview");
+  box.style.display = "none";
+  box.innerHTML = "";
+}
+
+/* ---------- イベント ---------- */
+$("startBtn").onclick = start;
+$("jaToggle").onchange = () => { hidePreview(); renderSetOptions(); if(phase !== "idle") render(); };
+$("wrToggle").onchange = () => { hidePreview(); if(phase !== "idle") render(); };
+window.addEventListener("scroll", hidePreview, {passive:true});
+$("copyBtn").onclick = async () => {
+  const t = $("exportBox").value;
+  if(!t) return;
+  try{
+    await navigator.clipboard.writeText(t);
+    $("copyBtn").textContent = "コピーしました";
+  }catch(e){
+    $("exportBox").select();
+    $("copyBtn").textContent = "Ctrl+C でコピーしてください";
+  }
+  setTimeout(() => { $("copyBtn").textContent = "アリーナ用テキストをコピー"; }, 2200);
+};
+
+loadSets();
+</script>
+</body>
+</html>
