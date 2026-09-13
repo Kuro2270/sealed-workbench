@@ -167,6 +167,7 @@
     "ev.QuickDraft":    { ja:"クイックドラフト",             en:"Quick Draft" },
     "ev.Sealed":        { ja:"シールド",                     en:"Sealed" },
     "ev.TradSealed":    { ja:"トラディショナルシールド",     en:"Traditional Sealed" },
+    "ev.PickTwoDraft":  { ja:"2枚ピックドラフト",           en:"Pick Two Draft" },
 
     /* ---- フッター ---- */
     "foot.scryfall":    { ja:"カードデータ・カード画像は <a href=\"https://scryfall.com\" target=\"_blank\" rel=\"noopener\">Scryfall</a> より取得しています。画像は加工せず、そのままの形で表示しています。",
