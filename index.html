@@ -451,7 +451,7 @@ function tally(list){
 async function loadWinRates(code){
   wrMap = {}; wrSource = ""; wrAvg = null;
   // シールド戦のツールなので Sealed を優先し、無ければドラフトのデータを使う
-  const order = ["Sealed", "TradSealed", "PremierDraft", "TradDraft", "QuickDraft"];
+  const order = ["Sealed", "TradSealed", "PremierDraft", "TradDraft", "QuickDraft", "PickTwoDraft"];
 
   for(const ev of order){
     try{
