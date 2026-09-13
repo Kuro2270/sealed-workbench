@@ -248,7 +248,7 @@ async function loadSets(){
 }
 
 function renderSetOptions(){
-  const sel = $("setSelect"), keep = sel.value, useJa = $("jaToggle").checked;
+  const sel = $("setSelect"), keep = sel.value;
   sel.innerHTML = "";
   sets.forEach(s => {
     const o = document.createElement("option");
