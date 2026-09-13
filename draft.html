@@ -1,12 +1,17 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-title="page.draft.title" data-desc="desc.draft">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ドラフト・ワークベンチ｜MTGアリーナ用リミテッド練習ツール</title>
+<title>Draft Workbench — MTG Arena draft practice</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sealed Workbench">
+<meta name="twitter:card" content="summary">
+<script src="./i18n.js"></script>
 <style>
   :root{
     --pine:#23342E; --pine-deep:#18241F;
@@ -18,6 +23,7 @@
     --radius:3px;
   }
   *{box-sizing:border-box}
+  [hidden]{display:none !important}
   html,body{margin:0;padding:0}
   body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
   h1,h2,h3,h4{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.15}
@@ -133,36 +139,32 @@
   <div class="wrap">
     <div class="head-top">
       <div>
-        <h1>ドラフト・ワークベンチ</h1>
-        <p>8人卓のドラフトを1人で練習できます。他の7人は17Landsの勝率データをもとにピックします。</p>
+        <h1 data-i18n="draft.h1"></h1>
+        <p data-i18n="draft.lead"></p>
       </div>
       <div class="controls">
-        <select id="setSelect" aria-label="セットを選ぶ"><option>読み込み中…</option></select>
-        <button id="startBtn" disabled>ドラフト開始</button>
-        <label class="toggle"><input type="checkbox" id="jaToggle" checked>日本語表示</label>
-        <label class="toggle"><input type="checkbox" id="wrToggle" checked>勝率を表示</label>
+        <select id="setSelect" data-i18n-label="sel.set"><option>…</option></select>
+        <button id="startBtn" disabled data-i18n="draft.start"></button>
+        <select id="langSelect" data-i18n-label="lang.label" style="min-width:120px"><option value="ja">日本語</option><option value="en">English</option></select>
+        <label class="toggle"><input type="checkbox" id="wrToggle" checked><span data-i18n="opt.wr"></span></label>
       </div>
     </div>
     <nav>
-      <a href="./">シールド構築</a>
-      <a href="./draft.html" class="on">ドラフト</a>
-      <a href="./ratings.html">カード勝率一覧</a>
+      <a href="./" data-i18n="nav.sealed"></a>
+      <a href="./draft.html" class="on" data-i18n="nav.draft"></a>
+      <a href="./ratings.html" data-i18n="nav.ratings"></a>
     </nav>
   </div>
 </header>
 
 <main>
   <section>
-    <div id="status" class="status">セットを選んで「ドラフト開始」を押してください。</div>
+    <div id="status" class="status" data-i18n="draft.ready"></div>
 
-    <div class="note" id="intro">
-      <b>進め方</b>：14枚のパックから1枚選ぶと、残りは隣に流れます。同時に他の7人もピックします。
-      3パック（42手）を終えると構築画面に切り替わります。　
-      <b>他プレイヤー</b>：カードの勝率を基本にしつつ、ピックが進むほど自分の色を優先するようにしてあります。
-    </div>
+    <div class="note" id="intro" data-i18n-html="draft.howto"></div>
 
     <div id="phase" class="phase" hidden>
-      <h2 id="phaseTitle">パック1 ／ ピック1</h2>
+      <h2 id="phaseTitle"></h2>
       <span class="sub" id="phaseSub"></span>
     </div>
     <div class="bar" id="bar" hidden><i style="width:0"></i></div>
@@ -172,21 +174,21 @@
 
   <aside class="side">
     <div class="side-head">
-      <h3 id="sideTitle">ピック済み</h3>
+      <h3 id="sideTitle" data-i18n="draft.picked"></h3>
       <div class="count" id="sideCount">0</div>
     </div>
-    <div class="side-body" id="sideBody"><div class="empty">まだ何も取っていません</div></div>
+    <div class="side-body" id="sideBody"><div class="empty" data-i18n="draft.pickedEmpty"></div></div>
 
     <div class="colors" id="colors" hidden>
-      <h4>色の内訳</h4>
+      <h4 data-i18n="draft.colors"></h4>
       <div id="colorRows"></div>
     </div>
 
     <div class="lands" id="lands" hidden></div>
     <div class="export" id="exportWrap" hidden>
-      <textarea id="exportBox" readonly placeholder="デッキを組むとここにアリーナ用テキストが出ます"></textarea>
-      <div style="font-size:11.5px;color:var(--muted);margin-top:6px">インポート用のカード名は英語名で出力します。</div>
-      <button id="copyBtn" style="width:100%;margin-top:8px">アリーナ用テキストをコピー</button>
+      <textarea id="exportBox" readonly data-i18n-ph="deck.exportPh"></textarea>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:6px" data-i18n="deck.exportNote"></div>
+      <button id="copyBtn" style="width:100%;margin-top:8px" data-i18n="deck.copy"></button>
     </div>
   </aside>
 </main>
@@ -194,40 +196,21 @@
 <div id="preview" aria-hidden="true"></div>
 
 <footer>
-  カードデータ・カード画像は <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a> より取得しています。画像は加工せず、そのままの形で表示しています。<br>
-  カード勝率は <a href="https://www.17lands.com/public_datasets" target="_blank" rel="noopener">17Lands Public Data</a>（<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>）を集計したものです。<br>
-  ドラフト・ワークベンチは、ファンコンテンツ・ポリシーに基づく非公式のファンコンテンツです。ウィザーズ社の認可・許可を受けていません。題材の一部にウィザーズ・オブ・ザ・コースト社の財産を含みます。©Wizards of the Coast LLC.
+  <span data-i18n-html="foot.scryfall"></span><br>
+  <span data-i18n-html="foot.17lands"></span><br>
+  <span data-i18n-html="foot.wotc"></span>
 </footer>
 
 <script>
 const SCRY = "https://api.scryfall.com";
 const PLAYERS = 8, PACKS = 3, PACK_SIZE = 14;
 const COLORS = [
-  {key:"W", label:"白",   var:"--w"},
-  {key:"U", label:"青",   var:"--u"},
-  {key:"B", label:"黒",   var:"--b"},
-  {key:"R", label:"赤",   var:"--r"},
-  {key:"G", label:"緑",   var:"--g"},
-  {key:"M", label:"多色", var:"--m"},
-  {key:"C", label:"無色・土地", var:"--c"}
+  {key:"W", var:"--w"}, {key:"U", var:"--u"}, {key:"B", var:"--b"},
+  {key:"R", var:"--r"}, {key:"G", var:"--g"}, {key:"M", var:"--m"}, {key:"C", var:"--c"}
 ];
-const BASICS = [["平地","Plains"],["島","Island"],["沼","Swamp"],["山","Mountain"],["森","Forest"]];
-const SET_JA = {
-  msh:"マジック：ザ・ギャザリング｜マーベル スーパー・ヒーローズ",
-  spm:"マジック：ザ・ギャザリング｜マーベル スパイダーマン",
-  om1:"領界路の彼方", eoe:"エッジ・オブ・エタニティーズ", fin:"ファイナルファンタジー",
-  tdm:"タルキール：龍嵐録", dft:"霊気走破", fdn:"基本セット：ファウンデーションズ",
-  dsk:"ダスクモーン：戦慄の館", blb:"ブルームバロウ", mh3:"モダンホライゾン3",
-  otj:"サンダー・ジャンクションの無法者", mkm:"カルロフ邸殺人事件",
-  lci:"イクサラン：失われし洞窟", woe:"エルドレインの森", ltr:"指輪物語：中つ国の伝承",
-  mom:"機械兵団の進軍", one:"ファイレクシア：完全なる統一", bro:"兄弟戦争",
-  dmu:"団結のドミナリア", snc:"ニューカペナの街角", neo:"神河：輝ける世界",
-  vow:"イニストラード：真紅の契り", mid:"イニストラード：真夜中の狩り",
-  afr:"フォーゴトン・レルム探訪", stx:"ストリクスヘイヴン：魔法学院",
-  khm:"カルドハイム", znr:"ゼンディカーの夜明け",
-  hob:"ホビット", sos:"ストリクスヘイヴンの秘密", tmt:"ミュータント タートルズ",
-  ecl:"ローウィンの昏明", tla:"アバター 伝説の少年アン"
-};
+const colorLabel = k => t("color." + k);
+const BASICS = ["Plains","Island","Swamp","Mountain","Forest"];
+const landLabel = en => t("land." + en);
 const SKIP_LAYOUTS = ["token","double_faced_token","art_series","emblem","scheme","planar","vanguard"];
 const RAR_BASE = { common:52.0, uncommon:53.5, rare:55.0, mythic:56.0 };
 
@@ -260,7 +243,7 @@ async function loadSets(){
     renderSetOptions();
     $("startBtn").disabled = false;
   }catch(e){
-    setStatus("セット一覧を取得できませんでした。再読み込みしてください。（" + e.message + "）", true);
+    setStatus(t("err.sets", {e: e.message}), true);
   }
 }
 
@@ -270,8 +253,7 @@ function renderSetOptions(){
   sets.forEach(s => {
     const o = document.createElement("option");
     o.value = s.code;
-    const ja = SET_JA[s.code.toLowerCase()];
-    o.textContent = ((useJa && ja) ? ja : s.name) + "（" + s.code.toUpperCase() + "）";
+    o.textContent = I18N.setName(s.code, s.name) + "（" + s.code.toUpperCase() + "）";
     sel.appendChild(o);
   });
   if(keep) sel.value = keep;
@@ -284,7 +266,7 @@ async function searchAll(query){
   while(url){
     const res = await fetch(url);
     if(res.status === 404) return [];
-    if(!res.ok) throw new Error("Scryfall への接続に失敗しました（HTTP " + res.status + "）");
+    if(!res.ok) throw new Error(t("err.scryfall", {s: res.status}));
     const d = await res.json();
     all.push(...d.data);
     url = d.has_more ? d.next_page : null;
@@ -306,7 +288,7 @@ async function loadCards(code){
     if(all.length) break;
     await sleep(120);
   }
-  if(!all.length) throw new Error("このセットのカードが見つかりませんでした。");
+  if(!all.length) throw new Error(t("err.cards"));
   all = all.filter(c => !SKIP_LAYOUTS.includes(c.layout));
 
   basicCards = {};
@@ -315,7 +297,7 @@ async function loadCards(code){
   boosterCards = all.filter(c => !(c.type_line || "").startsWith("Basic Land"));
 
   if(!new Set(boosterCards.map(c => c.rarity)).has("common"))
-    throw new Error("コモンが取得できませんでした。別のセットを選んでください。");
+    throw new Error(t("err.commons"));
 }
 
 async function loadJapanese(code){
@@ -339,8 +321,7 @@ async function loadJapanese(code){
 async function loadWinRates(code){
   wrMap = {}; wrSource = ""; wrAvg = null;
   const order = ["PremierDraft", "TradDraft", "Sealed", "TradSealed"];
-  const LABEL = {PremierDraft:"プレミアドラフト", TradDraft:"トラディショナルドラフト",
-                 Sealed:"シールド", TradSealed:"トラディショナルシールド"};
+
   for(const ev of order){
     try{
       const res = await fetch(`./data/ratings/${code.toUpperCase()}_${ev}.json`, {cache:"no-cache"});
@@ -350,7 +331,7 @@ async function loadWinRates(code){
       const vals = Object.values(wrMap).map(v => v.gih);
       if(!vals.length) continue;
       wrAvg = vals.reduce((a,b) => a+b, 0) / vals.length;
-      wrSource = LABEL[ev] || ev;
+      wrSource = t("ev." + ev);
       return;
     }catch(e){ /* 次へ */ }
   }
@@ -429,13 +410,13 @@ async function start(){
   const code = $("setSelect").value;
   $("startBtn").disabled = true;
   $("intro").hidden = true;
-  setStatus("カードデータを取得しています…");
+  setStatus(t("index.loading"));
   try{
     if(code !== setCode){
       await loadCards(code);
-      setStatus("日本語版のカードを取得しています…");
+      setStatus(t("index.loadingJa"));
       await loadJapanese(code);
-      setStatus("勝率データを読み込んでいます…");
+      setStatus(t("index.loadingWr"));
       await loadWinRates(code);
       setCode = code;
     }
@@ -454,12 +435,13 @@ async function start(){
     $("phase").hidden = false;
     $("bar").hidden = false;
     $("colors").hidden = false;
-    $("sideTitle").textContent = "ピック済み";
+    $("sideTitle").textContent = t("draft.picked");
 
     const wrN = Object.keys(wrMap).length;
-    setStatus(`${code.toUpperCase()} のドラフトを開始しました`
-      + (wrN ? `（勝率 ${wrSource} ／ ${wrN}種）` : "（勝率データなし・レアリティで代用）")
-      + "。カードを押して1枚選んでください。");
+    setStatus(t("draft.started", {
+      set: code.toUpperCase(),
+      wr: wrN ? t("draft.wrFrom", {src: wrSource, n: wrN}) : t("draft.wrNone")
+    }));
 
     startPack();
   }catch(e){
@@ -515,15 +497,14 @@ function finishDraft(){
   $("bar").hidden = true;
   $("lands").hidden = false;
   $("exportWrap").hidden = false;
-  $("sideTitle").textContent = "デッキ";
-  setStatus(`ドラフト終了。${pool.length}枚のプールから40枚のデッキを組んでください。`);
+  $("sideTitle").textContent = t("deck.title");
+  setStatus(t("draft.done", {n: pool.length}));
   render();
 }
 
 /* ---------- 表示 ---------- */
 function jaCard(c){
-  const t = $("jaToggle");
-  return (t && t.checked && jaMap[c.collector_number]) || null;
+  return (I18N.isJa() && jaMap[c.collector_number]) || null;
 }
 
 function displayName(c){
@@ -598,8 +579,8 @@ function render(){
   if(phase === "draft"){
     const total = PACKS * PACK_SIZE;
     const done = packNo * PACK_SIZE + pickNo;
-    $("phaseTitle").textContent = `パック${packNo + 1} ／ ピック${pickNo + 1}`;
-    $("phaseSub").textContent = `残り${current[0].length}枚　（全${total}手中 ${done + 1}手目）`;
+    $("phaseTitle").textContent = t("draft.phase", {p: packNo + 1, i: pickNo + 1});
+    $("phaseSub").textContent = t("draft.phaseSub", {n: current[0].length, t: total, d: done + 1});
     $("bar").firstElementChild.style.width = (done / total * 100) + "%";
 
     const ul = document.createElement("ul");
@@ -619,7 +600,7 @@ function render(){
       if(!list.length) return;
       const h = document.createElement("div");
       h.className = "sec";
-      h.innerHTML = `<h4><span class="dot" style="background:var(${col.var})"></span> ${col.label}</h4><span>${list.length}枚</span>`;
+      h.innerHTML = `<h4><span class="dot" style="background:var(${col.var})"></span> ${colorLabel(col.key)}</h4><span>${t("unit.cards", {n: list.length})}</span>`;
       board.appendChild(h);
       const ul = document.createElement("ul");
       ul.className = "grid";
@@ -640,11 +621,8 @@ function colorKey(c){
   return ci[0];
 }
 
-const SECTIONS = [
-  {key:"creature", label:"クリーチャー"},
-  {key:"spell",    label:"呪文"},
-  {key:"land",     label:"土地"}
-];
+const SECTIONS = [{key:"creature"}, {key:"spell"}, {key:"land"}];
+const secLabel = k => t("sec." + k);
 
 function cardSection(c){
   const front = (c.type_line || "").split("//")[0];
@@ -669,14 +647,14 @@ function renderSide(){
   const body = $("sideBody");
   body.innerHTML = "";
   if(!list.length){
-    body.innerHTML = '<div class="empty">' + (phase === "build" ? "プールのカードを押すと加わります" : "まだ何も取っていません") + '</div>';
+    body.innerHTML = '<div class="empty">' + t(phase === "build" ? "deck.empty" : "draft.pickedEmpty") + '</div>';
   }else{
     SECTIONS.forEach(sec => {
       const sub = list.filter(c => cardSection(c) === sec.key);
       if(!sub.length) return;
       const h = document.createElement("div");
       h.className = "sec";
-      h.innerHTML = `<h4>${sec.label}</h4><span>${sub.length}枚</span>`;
+      h.innerHTML = `<h4>${secLabel(sec.key)}</h4><span>${t("unit.cards", {n: sub.length})}</span>`;
       body.appendChild(h);
       const ul = document.createElement("ul");
       sub.slice().sort((a,b) => (a.cmc ?? 0) - (b.cmc ?? 0)
@@ -732,18 +710,19 @@ function renderColors(){
 function renderLands(){
   const lands = Object.values(landCount).reduce((a,b) => a+b, 0);
   const lw = $("lands");
-  lw.innerHTML = `<div class="lands-head"><h4>基本土地</h4><span>計 ${lands}枚</span></div>`;
-  BASICS.forEach(([ja, en]) => {
+  lw.innerHTML = `<div class="lands-head"><h4>${t("deck.lands")}</h4><span>${t("unit.total", {n: lands})}</span></div>`;
+  BASICS.forEach(en => {
+    const ja = landLabel(en);
     const n = landCount[en] || 0;
     const row = document.createElement("div");
     row.className = "land-item";
     const minus = document.createElement("button");
     minus.className = "step"; minus.textContent = "−"; minus.disabled = n === 0;
-    minus.setAttribute("aria-label", ja + "を1枚減らす");
+    minus.setAttribute("aria-label", t("deck.minus", {c: ja}));
     minus.onclick = () => { landCount[en] = Math.max(0, n-1); renderSide(); };
     const plus = document.createElement("button");
     plus.className = "step"; plus.textContent = "＋";
-    plus.setAttribute("aria-label", ja + "を1枚増やす");
+    plus.setAttribute("aria-label", t("deck.plus", {c: ja}));
     plus.onclick = () => { landCount[en] = n+1; renderSide(); };
     const name = document.createElement("span"); name.textContent = ja;
     const num = document.createElement("span"); num.className = "l-num"; num.textContent = n;
@@ -758,7 +737,7 @@ function renderExport(){
   deck.forEach(c => m.set(c.id, {card:c, n:(m.get(c.id)?.n || 0) + 1}));
   const lines = ["Deck"];
   m.forEach(e => lines.push(`${e.n} ${e.card.name} (${e.card.set.toUpperCase()}) ${e.card.collector_number}`));
-  BASICS.forEach(([, en]) => {
+  BASICS.forEach(en => {
     const n = landCount[en] || 0;
     if(!n) return;
     const bc = basicCards[en];
@@ -803,7 +782,9 @@ function hidePreview(){
 
 /* ---------- イベント ---------- */
 $("startBtn").onclick = start;
-$("jaToggle").onchange = () => { hidePreview(); renderSetOptions(); if(phase !== "idle") render(); };
+$("langSelect").value = I18N.lang;
+$("langSelect").onchange = e => I18N.set(e.target.value);
+I18N.onChange(() => { hidePreview(); renderSetOptions(); if(phase !== "idle") render(); });
 $("wrToggle").onchange = () => { hidePreview(); if(phase !== "idle") render(); };
 window.addEventListener("scroll", hidePreview, {passive:true});
 $("copyBtn").onclick = async () => {
@@ -811,12 +792,12 @@ $("copyBtn").onclick = async () => {
   if(!t) return;
   try{
     await navigator.clipboard.writeText(t);
-    $("copyBtn").textContent = "コピーしました";
+    $("copyBtn").textContent = t("deck.copied");
   }catch(e){
     $("exportBox").select();
-    $("copyBtn").textContent = "Ctrl+C でコピーしてください";
+    $("copyBtn").textContent = t("deck.copyManual");
   }
-  setTimeout(() => { $("copyBtn").textContent = "アリーナ用テキストをコピー"; }, 2200);
+  setTimeout(() => { $("copyBtn").textContent = t("deck.copy"); }, 2200);
 };
 
 loadSets();
