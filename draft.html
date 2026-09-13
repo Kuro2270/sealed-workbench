@@ -320,7 +320,7 @@ async function loadJapanese(code){
 
 async function loadWinRates(code){
   wrMap = {}; wrSource = ""; wrAvg = null;
-  const order = ["PremierDraft", "TradDraft", "QuickDraft", "PickTwoDraft", "Sealed", "TradSealed"];
+  const order = ["PremierDraft", "TradDraft", "PickTwoDraft", "Sealed", "TradSealed"];
 
   for(const ev of order){
     try{
