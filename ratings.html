@@ -104,7 +104,6 @@
         <select id="eventSelect" data-i18n-label="sel.event">
           <option value="PremierDraft" data-i18n="ev.PremierDraft"></option>
           <option value="TradDraft" data-i18n="ev.TradDraft"></option>
-          <option value="QuickDraft" data-i18n="ev.QuickDraft"></option>
           <option value="Sealed" data-i18n="ev.Sealed"></option>
           <option value="TradSealed" data-i18n="ev.TradSealed"></option>
           <option value="PickTwoDraft" data-i18n="ev.PickTwoDraft"></option>
@@ -130,8 +129,8 @@
     <div class="chips" id="colorChips"><span class="lbl" data-i18n="ratings.f.color"></span></div>
     <div class="chips" id="rarityChips"><span class="lbl" data-i18n="ratings.f.rarity"></span></div>
     <div class="chips"><span class="lbl" data-i18n="ratings.f.games"></span>
-      <button class="chip" data-min="0" aria-pressed="true" data-i18n="ratings.f.all"></button>
-      <button class="chip" data-min="500" aria-pressed="false" data-i18n="ratings.f.500"></button>
+      <button class="chip" data-min="0" aria-pressed="false" data-i18n="ratings.f.all"></button>
+      <button class="chip" data-min="500" aria-pressed="true" data-i18n="ratings.f.500"></button>
       <button class="chip" data-min="2000" aria-pressed="false" data-i18n="ratings.f.2000"></button>
     </div>
   </div>
@@ -176,7 +175,7 @@ const RARITIES = [
 ];
 let sets = [], cards = [], jaMap = {}, nameMap = {}, source = "", available = null;
 let sortKey = "gih", sortDesc = true;
-let colorFilter = new Set(), rarityFilter = new Set(), minGames = 0;
+let colorFilter = new Set(), rarityFilter = new Set(), minGames = 500;
 
 const RAR_FROM_CSV = { C:"common", U:"uncommon", R:"rare", M:"mythic" };
 
