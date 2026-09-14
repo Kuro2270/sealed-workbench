@@ -39,12 +39,38 @@ jobs:
           fi
           echo "status=$?" >> "$GITHUB_OUTPUT"
 
+      - name: 日本語フォントを入れる
+        if: steps.build.outputs.status == '0'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk librsvg2-bin
+
+      - name: SEOファイルとOGP画像を作る
+        if: steps.build.outputs.status == '0'
+        env:
+          SITE_URL: https://sealed-workbench.com
+        run: |
+          node maintenance/build-seo.mjs
+          node maintenance/build-ogp.mjs
+          for l in ja en; do
+            if [ -f "ogp-$l.svg" ]; then
+              rsvg-convert -w 1200 -h 630 -o "ogp-$l.png" "ogp-$l.svg" && rm -f "ogp-$l.svg"
+            fi
+          done
+
+      - name: 告知文案を作る
+        id: announce
+        if: steps.build.outputs.status == '0'
+        env:
+          SITE_URL: https://sealed-workbench.com
+        run: |
+          node maintenance/build-announce.mjs
+          if [ -f announce.md ]; then echo "has=1" >> "$GITHUB_OUTPUT"; fi
+
       - name: 変更をコミット
         if: steps.build.outputs.status == '0'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/ratings
+          git add data/ratings sitemap.xml robots.txt ogp-ja.png ogp-en.png data/announced.json || true
           if git diff --staged --quiet; then
             echo "変更はありませんでした。"
             exit 0
@@ -58,6 +84,21 @@ jobs:
           done
           echo "プッシュに失敗しました。"
           exit 1
+
+      - name: 告知文案を Issue にする
+        if: steps.announce.outputs.has == '1'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('announce.md', 'utf8');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `告知文案 ${new Date().toISOString().slice(0,10)}`,
+              body,
+              labels: ['announce']
+            });
 
       - name: 失敗したら Issue を作る
         if: steps.build.outputs.status != '0'
