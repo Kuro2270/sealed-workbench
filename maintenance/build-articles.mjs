@@ -4,10 +4,11 @@
  *
  *   node maintenance/build-articles.mjs
  *
- * 出力: data/articles/<SET>_<FORMAT>.json
+ * 出力: data/articles/<SET>_<MODE>.json（記事用）
+ *       data/ratings/<SET>_<MODE>.json（カード全件・勝率一覧用）
  *
  * 数値の部分だけを自動で作る。考察は data/notes/<SET>_<FORMAT>.json に
- * 書いておけば取り込まれる（無ければ空欄のまま）。
+ * 書いておけば取り込まれる（無ければ空欄のまま）。<MODE> は sealed / draft。
  *
  * 考察ファイルの書き方（日本語と英語を両方書く）
  * {
@@ -185,6 +186,7 @@ async function main(){
   for(const f of files){
     const d = await readJson(path.join(RATINGS, f));
     if(!d || !Array.isArray(d.cards)) continue;
+    if(d.mode) continue;                     // 自分が書いた統合ファイルは入力にしない
     if(!bySet.has(d.set)) bySet.set(d.set, []);
     bySet.get(d.set).push(d);
   }
@@ -236,6 +238,21 @@ async function main(){
       };
 
       await writeFile(path.join(OUT_DIR, `${set}_${mode}.json`), JSON.stringify(article), "utf8");
+
+      // カード全件（勝率一覧が読む）。記事側と分けて、記事ファイルの肥大化を避ける。
+      await writeFile(path.join(RATINGS, `${set}_${mode}.json`), JSON.stringify({
+        set, mode,
+        events: m.events,
+        generated_at: article.generated_at,
+        data_generated_at: m.generated_at,
+        total_games: m.total_games,
+        overall_win_rate: m.overall_win_rate,
+        count: cards.length,
+        cards,
+        source: "17Lands Public Data (CC BY 4.0)",
+        source_url: "https://www.17lands.com/public_datasets"
+      }), "utf8");
+
       made.push({
         set, mode,
         released_at: list.map(d => d.released_at).find(Boolean) || null,
