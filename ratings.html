@@ -471,15 +471,19 @@ async function load(){
     source = "";
 
     // 集計済みの公開データセット（CC BY 4.0）を読み込む
-    const res = await fetch(`./data/articles/${code.toUpperCase()}_${event}.json`, {cache:"no-cache"});
+    const res = await fetch(`./data/ratings/${code.toUpperCase()}_${event}.json`, {cache:"no-cache"});
     if(!res.ok){
       setStatus(t("ratings.none"), true);
       return;
     }
     const d = await res.json();
+    if(!Array.isArray(d.cards) || !d.cards.length){
+      setStatus(t("ratings.none"), true);
+      return;
+    }
     cards = d.cards.map(c => ({ ...c, id: null, color: "", rarity: "", url: "", url_back: "" }));
     source = "dataset";
-    info = { count: d.count, total: d.total_games, generated: d.generated_at, wr: d.overall_win_rate };
+    info = { count: d.count ?? cards.length, total: d.total_games, generated: d.generated_at, wr: d.overall_win_rate };
 
     setStatus(t("ratings.loadingJa"));
     await loadCardMaps(code, cards.map(c => c.name));
