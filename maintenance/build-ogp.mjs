@@ -19,13 +19,13 @@ const MANA = ["#E7CF86", "#7FB4D8", "#7A7480", "#DB8068", "#79A87F"];
 
 const TEXT = {
   ja: {
-    title: "シールド・ワークベンチ",
+    title: "リミテッド・ワークベンチ",
     sub: "MTGアリーナのリミテッドを無料で練習",
-    bullets: ["シールド／ドラフトを何度でも", "17Landsの実戦データで勝率表示", "アリーナにそのままインポート"],
+    bullets: ["シールド戦・ドラフトを何度でも", "17Landsの実戦データで勝率表示", "アリーナにそのままインポート"],
     domain: "sealed-workbench.com"
   },
   en: {
-    title: "Sealed Workbench",
+    title: "Limited Workbench",
     sub: "Free MTG Arena Limited practice",
     bullets: ["Sealed and draft, unlimited runs", "Real win rates from 17Lands data", "Export straight into Arena"],
     domain: "sealed-workbench.com"
@@ -40,7 +40,7 @@ function svgFor(lang){
   const fontJa = "'Noto Sans CJK JP','Noto Sans JP','IPAGothic','Hiragino Sans','Yu Gothic',sans-serif";
   const fontEn = "'DejaVu Sans','Noto Sans','Helvetica Neue',Arial,sans-serif";
   const font = lang === "ja" ? fontJa : fontEn;
-  const titleSize = lang === "ja" ? 58 : 68;
+  const titleSize = lang === "ja" ? 52 : 68;
   const subSize   = lang === "ja" ? 27 : 32;
   const bulletSize= lang === "ja" ? 23 : 26;
 

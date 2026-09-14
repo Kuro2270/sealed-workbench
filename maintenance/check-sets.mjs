@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * シールド・ワークベンチ 月次メンテナンス
+ * リミテッド・ワークベンチ 月次メンテナンス
  *
  *   node maintenance/check-sets.mjs                  点検して結果を表示する
  *   node maintenance/check-sets.mjs --report out.md  結果を Markdown に書き出す
@@ -14,7 +14,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const API = "https://api.scryfall.com";
-const HTML = process.env.TOOL_HTML || "index.html";
+const HTML = process.env.TOOL_HTML || "mtg-sealed-tool.html";
 const UA = "SealedWorkbench-Maintenance/1.0";
 const MONTHS_BACK = 24;      // 何か月前までのセットを対象にするか
 const MIN_CARDS = 100;       // リミテッドに使えるセットの目安
@@ -124,7 +124,7 @@ async function main(){
     return;
   }
 
-  say(`# シールド・ワークベンチ 点検結果（${new Date().toISOString().slice(0, 10)}）`);
+  say(`# リミテッド・ワークベンチ 点検結果（${new Date().toISOString().slice(0, 10)}）`);
   say("");
 
   const { codes } = await readSetJa(file);

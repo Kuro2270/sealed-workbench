@@ -59,7 +59,7 @@ function draftJa(set, games, cards){
 function draftEn(set, games, cards){
   const list = cards.map(c => `${c.name} (${c.pct}%)`).join(", ");
   return [
-    `${set} data is now up on Sealed Workbench.`,
+    `${set} data is now up on Limited Workbench.`,
     "",
     `Free MTG Arena Limited practice — sealed, draft, and per-card win rates`,
     `aggregated from ${games.toLocaleString()} games of 17Lands public data.`,
