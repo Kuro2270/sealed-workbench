@@ -282,7 +282,42 @@
       setMeta("property", "og:description", t(dk));
     }
     setMeta("property", "og:locale", lang === "ja" ? "ja_JP" : "en_US");
+    setMeta("property", "og:url", location.origin + location.pathname);
+    setMeta("property", "og:image", location.origin + "/ogp-" + lang + ".png");
+    setMeta("name", "twitter:image", location.origin + "/ogp-" + lang + ".png");
     document.documentElement.lang = lang;
+    setJsonLd();
+  }
+
+  /* 検索エンジン向けの構造化データ。言語を切り替えたら中身も入れ替える。 */
+  function setJsonLd(){
+    const site = location.origin;
+    const tk = document.documentElement.dataset.title;
+    const dk = document.documentElement.dataset.desc;
+    if(!tk || !dk) return;
+
+    const data = {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": t(tk).split(/[｜—]/)[0].trim(),
+      "url": location.origin + location.pathname,
+      "description": t(dk),
+      "inLanguage": lang,
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Web",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "publisher": { "@type": "Organization", "name": "Sealed Workbench", "url": site }
+    };
+
+    let el = document.getElementById("ld-json");
+    if(!el){
+      el = document.createElement("script");
+      el.type = "application/ld+json";
+      el.id = "ld-json";
+      document.head.appendChild(el);
+    }
+    el.textContent = JSON.stringify(data);
   }
 
   function setMeta(attr, key, value){
