@@ -20,6 +20,7 @@ const PRIORITY = {
   "index.html": "1.0",
   "guide.html": "0.9",
   "ratings.html": "0.8",
+  "reports.html": "0.9",
   "draft.html": "0.8",
   "privacy.html": "0.3"
 };
