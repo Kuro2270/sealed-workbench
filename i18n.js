@@ -205,6 +205,45 @@
     "guide.s6.body":    { ja:"<p><b>無料ですか</b><br>はい。アカウント登録も不要です。</p><p><b>データはいつ更新されますか</b><br>毎月1回、自動で最新の集計に入れ替わります。新しいセットも、発売から12日後以降に自動で追加されます（17Landsの規約に従っています）。</p><p><b>クイックドラフトのデータがないのはなぜですか</b><br>17Landsが公開しているデータにクイックドラフトが含まれていないためです。公開されれば自動で追加されます。</p><p><b>パックの中身は本物と同じですか</b><br>厳密には違います。レア1枚・アンコモン3枚・コモン10枚という簡易な構成で、実際のプレイ・ブースターの特殊枠などは再現していません。</p><p><b>日本語と英語を切り替えられますか</b><br>画面右上の言語選択で切り替わります。カード名や画像も連動します。</p>",
                           en:"<p><b>Is it free?</b><br>Yes, and no account is needed.</p><p><b>How often is the data updated?</b><br>Once a month, automatically. New sets are added automatically once they are twelve days old, in line with the 17Lands guidelines.</p><p><b>Why is there no Quick Draft data?</b><br>17Lands does not publish it. If that changes, it will appear automatically.</p><p><b>Are the packs identical to real ones?</b><br>Not exactly. They use a simplified 1 rare / 3 uncommon / 10 common structure and do not reproduce every Play Booster slot.</p><p><b>Can I switch languages?</b><br>Yes — use the selector at the top of any page. Card names and images follow.</p>" },
 
+    "nav.privacy":      { ja:"プライバシー", en:"Privacy" },
+
+    "page.privacy.title":{ ja:"プライバシーポリシー｜リミテッド・ワークベンチ",
+                          en:"Privacy Policy — Limited Workbench" },
+    "desc.privacy":     { ja:"リミテッド・ワークベンチにおけるアクセス解析、広告、外部サービスの利用と、取得する情報の取り扱いについて説明します。",
+                          en:"How Limited Workbench handles analytics, advertising, third-party services and the information they involve." },
+    "privacy.h1":       { ja:"プライバシーポリシー", en:"Privacy Policy" },
+    "privacy.lead":     { ja:"このサイトで取得する情報と、その使い道についてまとめます。",
+                          en:"What information this site collects and what it is used for." },
+    "privacy.updated":  { ja:"最終更新：2026年9月14日", en:"Last updated: 14 September 2026" },
+
+    "privacy.s1.h":     { ja:"はじめに", en:"Overview" },
+    "privacy.s1.body":  { ja:"<p>リミテッド・ワークベンチ（以下「当サイト」）は、個人を特定する情報の登録を求めません。アカウント登録もログインも不要で、氏名やメールアドレスを入力する場面はありません。</p><p>一方で、アクセス状況の把握や外部サービスの利用にともない、いくつかの情報が自動的に扱われます。以下でその内容を説明します。</p>",
+                          en:"<p>Limited Workbench (“this site”) does not ask you to register or identify yourself. There is no account, no login, and no form asking for your name or email address.</p><p>Some information is nonetheless handled automatically, through analytics and the third-party services the site relies on. The sections below explain what and why.</p>" },
+
+    "privacy.s2.h":     { ja:"アクセス解析", en:"Analytics" },
+    "privacy.s2.body":  { ja:"<p>当サイトは、閲覧状況を把握するために <b>Cloudflare Web Analytics</b> を利用しています。これはCookieを使わず、個人を追跡しない仕組みです。訪問数、閲覧されたページ、参照元、おおまかな地域、ブラウザの種類といった集計情報のみを扱います。</p><p>取得した情報は、どのページが役に立っているかを判断し、当サイトを改善する目的にのみ使用します。</p>",
+                          en:"<p>This site uses <b>Cloudflare Web Analytics</b> to understand how it is being used. It does not use cookies and does not track individuals. It records aggregate figures only: visits, pages viewed, referrers, approximate region and browser type.</p><p>That information is used solely to work out which pages are useful and to improve the site.</p>" },
+
+    "privacy.s3.h":     { ja:"ブラウザに保存される情報", en:"Information stored in your browser" },
+    "privacy.s3.body":  { ja:"<p>選択した言語（日本語／英語）を、お使いのブラウザの<b>ローカルストレージ</b>に保存します。次回訪問時に同じ言語で表示するためのもので、当サイトの運営者を含む誰かに送信されることはありません。ブラウザの設定から削除できます。</p>",
+                          en:"<p>Your language choice (Japanese or English) is kept in your browser's <b>local storage</b> so the site opens in the same language next time. It is never transmitted anywhere, including to the site operator, and you can clear it from your browser settings.</p>" },
+
+    "privacy.s4.h":     { ja:"広告について", en:"Advertising" },
+    "privacy.s4.body":  { ja:"<p>当サイトでは、将来的に第三者配信の広告サービス（Google AdSense など）の利用を予定しています。導入した場合、広告配信事業者がCookieを使用して、利用者の過去のアクセス情報に基づく広告を表示することがあります。</p><p>Googleが広告Cookieを使用することにより、利用者が当サイトや他のサイトにアクセスした際の情報に基づいて広告を配信します。利用者は <a href=\"https://myadcenter.google.com/\" target=\"_blank\" rel=\"noopener\">広告設定</a> でパーソナライズ広告を無効にできます。また <a href=\"https://www.aboutads.info/choices/\" target=\"_blank\" rel=\"noopener\">aboutads.info</a> で第三者配信事業者のCookieを無効にすることもできます。</p><p>広告を導入した時点で、本ページに明記します。</p>",
+                          en:"<p>This site expects to carry third-party advertising (such as Google AdSense) in future. Where it does, advertising vendors may use cookies to serve ads based on your prior visits to this and other sites.</p><p>Google's use of advertising cookies enables it and its partners to serve ads based on your visits to this site and others. You can opt out of personalised advertising via <a href=\"https://myadcenter.google.com/\" target=\"_blank\" rel=\"noopener\">Google Ads Settings</a>, or opt out of third-party vendor cookies at <a href=\"https://www.aboutads.info/choices/\" target=\"_blank\" rel=\"noopener\">aboutads.info</a>.</p><p>This page will be updated at the point advertising is actually introduced.</p>" },
+
+    "privacy.s5.h":     { ja:"外部サービス", en:"Third-party services" },
+    "privacy.s5.body":  { ja:"<p>当サイトは次の外部サービスを利用しています。これらのサービスを読み込む際、利用者のIPアドレスなどの通信情報が各事業者に送信されます。</p><ul><li><b>Scryfall</b>：カードの情報と画像の取得</li><li><b>17Lands</b>：公開データセットの取得（月1回、当サイトの自動処理が行うもので、利用者のブラウザからは接続しません）</li><li><b>Cloudflare</b>：サイトの配信とアクセス解析</li><li><b>Google Fonts</b>：書体の読み込み</li></ul><p>各サービスにおける情報の取り扱いは、それぞれの事業者の方針に従います。</p>",
+                          en:"<p>This site relies on the services below. When your browser loads them, connection information such as your IP address is sent to the relevant provider.</p><ul><li><b>Scryfall</b> — card data and images</li><li><b>17Lands</b> — public datasets (fetched once a month by this site's own automation, not from your browser)</li><li><b>Cloudflare</b> — hosting and analytics</li><li><b>Google Fonts</b> — typefaces</li></ul><p>Information handled by those services is governed by their own policies.</p>" },
+
+    "privacy.s6.h":     { ja:"免責事項", en:"Disclaimer" },
+    "privacy.s6.body":  { ja:"<p>当サイトが表示するカード勝率は、17Landsが公開しているデータを当サイトが独自に集計したものです。正確性を期していますが、内容を保証するものではありません。</p><p>当サイトの利用によって生じた損害について、運営者は責任を負いかねます。</p><p>当サイトは非公式のファンコンテンツであり、ウィザーズ・オブ・ザ・コースト社および17Landsとは関係ありません。</p>",
+                          en:"<p>The win rates shown here are aggregated by this site from data published by 17Lands. Every effort is made to get them right, but no guarantee is given.</p><p>The operator accepts no liability for any loss arising from use of this site.</p><p>This is unofficial fan content and is not affiliated with Wizards of the Coast or with 17Lands.</p>" },
+
+    "privacy.s7.h":     { ja:"お問い合わせと改定", en:"Contact and changes" },
+    "privacy.s7.body":  { ja:"<p>本ポリシーに関するお問い合わせは、<a href=\"https://github.com/Kuro2270/sealed-workbench/issues\" target=\"_blank\" rel=\"noopener\">GitHubのIssue</a> よりご連絡ください。</p><p>本ポリシーは、必要に応じて予告なく改定することがあります。改定した場合は、本ページの最終更新日を変更します。</p>",
+                          en:"<p>For questions about this policy, please open an issue on <a href=\"https://github.com/Kuro2270/sealed-workbench/issues\" target=\"_blank\" rel=\"noopener\">GitHub</a>.</p><p>This policy may be revised as needed without prior notice. The date at the top of this page will be updated when it is.</p>" },
+
     "foot.scryfall":    { ja:"カードデータ・カード画像は <a href=\"https://scryfall.com\" target=\"_blank\" rel=\"noopener\">Scryfall</a> より取得しています。画像は加工せず、そのままの形で表示しています。",
                           en:"Card data and images come from <a href=\"https://scryfall.com\" target=\"_blank\" rel=\"noopener\">Scryfall</a> and are shown unmodified." },
     "foot.17lands":     { ja:"カード勝率は <a href=\"https://www.17lands.com/public_datasets\" target=\"_blank\" rel=\"noopener\">17Lands Public Data</a>（<a href=\"https://creativecommons.org/licenses/by/4.0/\" target=\"_blank\" rel=\"noopener\">CC BY 4.0</a>）を集計したものです。",
