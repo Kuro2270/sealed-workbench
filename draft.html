@@ -131,6 +131,44 @@
   footer a{color:var(--muted)}
   .note{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;font-size:12.5px;color:var(--muted);margin-bottom:16px}
   .note b{color:var(--ink)}
+
+  /* ---------- スマートフォン ---------- */
+  @media (max-width:720px){
+    html,body{overflow-x:hidden}
+    body{font-size:14px}
+    header{padding:16px 14px 12px}
+    header h1{font-size:20px}
+    header p{font-size:12px;max-width:none}
+    main{padding:14px 14px 50px;gap:16px}
+    footer{padding:0 14px 40px}
+
+    /* 操作部分を縦積みにして、はみ出しをなくす */
+    .head-top{flex-direction:column;align-items:stretch;gap:12px}
+    .controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center}
+    .controls select{min-width:0;width:100%}
+    .controls button{width:100%;padding:11px 10px}
+    .controls > select:first-of-type{grid-column:1 / -1}
+    .controls label.toggle{grid-column:auto;font-size:12px;gap:6px}
+
+    nav{margin-top:10px;gap:12px;font-size:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    nav a{white-space:nowrap}
+
+    /* カード画像を小さめに並べる */
+    ul.grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:7px}
+    .deck-body ul.grid,.side ul.grid{grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
+    .tile .wrbadge{font-size:10px;padding:3px 6px;bottom:4px}
+
+    /* 右のパネルは固定せず、下に流す */
+    .deck,.side{position:static;max-width:100%}
+    .deck-body,.side-body{max-height:none}
+
+    /* 表は表だけ横スクロールさせる */
+    .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    table{min-width:640px}
+
+    /* 画像プレビューは指で隠れるので出さない */
+    #preview{display:none !important}
+  }
 </style>
 </head>
 <body>
