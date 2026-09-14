@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja" data-title="page.guide.title" data-desc="desc.guide">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guide — MTG Arena Limited practice</title>
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sealed Workbench">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="./i18n.js"></script>
+<style>
+  :root{
+    --pine:#23342E; --pine-deep:#18241F;
+    --paper:#F3F5F1; --paper-2:#E6EAE3;
+    --ink:#0F1C17; --muted:#63736C;
+    --gold:#B8912F; --line:#CBD3CA;
+    --radius:3px;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.85}
+  h1,h2{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+
+  header{background:var(--pine);color:var(--paper);padding:24px 24px 18px;border-bottom:4px solid var(--gold)}
+  .wrap{max-width:760px;margin:0 auto}
+  .head-top{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;max-width:60ch}
+  nav{margin-top:14px;display:flex;gap:16px;font-size:13px}
+  nav a{color:#B9C7C0;text-decoration:none;padding-bottom:3px;border-bottom:2px solid transparent}
+  nav a:hover{color:var(--paper)}
+  nav a.on{color:var(--paper);border-bottom-color:var(--gold)}
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  select{background:var(--pine-deep);color:var(--paper);border:1px solid #3D544B;padding:9px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px;min-width:120px}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  main{max-width:760px;margin:0 auto;padding:26px 24px 70px}
+  section{margin-bottom:34px}
+  h2{font-size:19px;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  p{margin:0 0 14px}
+  ol{margin:0 0 14px;padding-left:1.4em}
+  ol li{margin-bottom:5px}
+  a{color:#2F6B47}
+
+  .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .cta a{
+    display:inline-block;background:var(--gold);color:#1A1405;font-weight:700;
+    text-decoration:none;padding:10px 18px;border-radius:var(--radius);font-size:14px;
+  }
+  .cta a:hover{background:#CBA33B}
+
+  footer{max-width:760px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+
+  /* ---------- スマートフォン ---------- */
+  @media (max-width:720px){
+    html,body{overflow-x:hidden}
+    body{font-size:14px}
+    header{padding:16px 14px 12px}
+    header h1{font-size:20px}
+    header p{font-size:12px;max-width:none}
+    main{padding:18px 14px 50px}
+    footer{padding:0 14px 40px}
+    .head-top{flex-direction:column;align-items:stretch;gap:12px}
+    .controls select{width:100%}
+    nav{margin-top:10px;gap:12px;font-size:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    nav a{white-space:nowrap}
+    .cta a{flex:1 1 100%;text-align:center}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="head-top">
+      <div>
+        <h1 data-i18n="guide.h1"></h1>
+        <p data-i18n="guide.lead"></p>
+      </div>
+      <div class="controls">
+        <select id="langSelect" data-i18n-label="lang.label">
+          <option value="ja">日本語</option><option value="en">English</option>
+        </select>
+      </div>
+    </div>
+    <nav>
+      <a href="./" data-i18n="nav.sealed"></a>
+      <a href="./draft.html" data-i18n="nav.draft"></a>
+      <a href="./ratings.html" data-i18n="nav.ratings"></a>
+      <a href="./guide.html" class="on" data-i18n="nav.guide"></a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section>
+    <h2 data-i18n="guide.s1.h"></h2>
+    <div data-i18n-html="guide.s1.body"></div>
+    <div class="cta">
+      <a href="./" data-i18n="nav.sealed"></a>
+      <a href="./draft.html" data-i18n="nav.draft"></a>
+      <a href="./ratings.html" data-i18n="nav.ratings"></a>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-i18n="guide.s2.h"></h2>
+    <div data-i18n-html="guide.s2.body"></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="guide.s3.h"></h2>
+    <div data-i18n-html="guide.s3.body"></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="guide.s4.h"></h2>
+    <div data-i18n-html="guide.s4.body"></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="guide.s5.h"></h2>
+    <div data-i18n-html="guide.s5.body"></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="guide.s6.h"></h2>
+    <div data-i18n-html="guide.s6.body"></div>
+  </section>
+</main>
+
+<footer>
+  <span data-i18n-html="foot.scryfall"></span><br>
+  <span data-i18n-html="foot.17lands"></span><br>
+  <span data-i18n-html="foot.wotc"></span>
+</footer>
+
+<script>
+const sel = document.getElementById("langSelect");
+sel.value = I18N.lang;
+sel.onchange = e => I18N.set(e.target.value);
+</script>
+</body>
+</html>
