@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ja" data-title="page.reports.title" data-desc="desc.reports">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Set reports — MTG Arena Limited</title>
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Limited Workbench">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="./i18n.js"></script>
+<style>
+  :root{
+    --pine:#23342E; --pine-deep:#18241F;
+    --paper:#F3F5F1; --paper-2:#E6EAE3;
+    --ink:#0F1C17; --muted:#63736C;
+    --gold:#B8912F; --line:#CBD3CA;
+    --w:#E7CF86; --u:#7FB4D8; --b:#7A7480; --r:#DB8068; --g:#79A87F; --m:#C3A03B; --c:#9AA3A0;
+    --hot:#2F6B47; --cold:#A24B32;
+    --radius:3px;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.8}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+
+  header{background:var(--pine);color:var(--paper);padding:24px 24px 18px;border-bottom:4px solid var(--gold)}
+  .wrap{max-width:900px;margin:0 auto}
+  .head-top{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--gold);margin-bottom:4px}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;max-width:60ch}
+  nav{margin-top:14px;display:flex;gap:16px;font-size:13px}
+  nav a{color:#B9C7C0;text-decoration:none;padding-bottom:3px;border-bottom:2px solid transparent}
+  nav a:hover{color:var(--paper)}
+  nav a.on{color:var(--paper);border-bottom-color:var(--gold)}
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  select{background:var(--pine-deep);color:var(--paper);border:1px solid #3D544B;padding:9px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px;min-width:190px}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
+  .status{padding:14px 16px;background:var(--paper-2);border-left:3px solid var(--muted);font-size:14px;color:var(--muted);margin-bottom:8px}
+  .status.err{border-left-color:#B4432E;color:#8A3422;background:#F6E9E5}
+  .built{font-size:12px;color:var(--muted);margin:0 0 22px}
+
+  section{margin-bottom:36px}
+  h2{font-size:19px;margin:0 0 6px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  .lead{font-size:13.5px;color:var(--muted);margin:0 0 14px}
+  .verdict{background:#fff;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:var(--radius);padding:13px 16px;margin-bottom:14px;font-size:14.5px}
+  .verdict .gap{display:block;font-size:12.5px;color:var(--muted);margin-top:5px}
+
+  /* 横棒グラフ */
+  .bars{display:grid;gap:7px}
+  .bar{display:grid;grid-template-columns:150px 1fr 62px 78px;gap:10px;align-items:center;font-size:13.5px}
+  .bar .track{height:20px;background:var(--paper-2);border-radius:3px;overflow:hidden}
+  .bar .track i{display:block;height:100%;background:var(--pine);border-radius:3px}
+  .bar .track i.hot{background:var(--hot)}
+  .bar .track i.cold{background:var(--cold)}
+  .bar .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+  .bar .n{text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .bar .lbl{display:flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  @media (max-width:620px){ .bar{grid-template-columns:96px 1fr 54px} .bar .n{display:none} }
+
+  /* カード表 */
+  .rar-group{margin-bottom:22px}
+  .rar-group h3{font-size:15px;margin:0 0 6px}
+  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+  th{text-align:right;font-size:12px;font-weight:700;color:var(--muted);padding:6px 8px;border-bottom:2px solid var(--line);white-space:nowrap}
+  th:first-child{text-align:left}
+  td{padding:5px 8px;border-bottom:1px solid var(--paper-2);text-align:right;font-size:13.5px}
+  td:first-child{text-align:left}
+  tbody tr:hover{background:var(--paper-2)}
+  .cname{display:flex;align-items:center;gap:7px}
+  .cname .nm{border-bottom:1px dotted var(--line);cursor:default}
+  .wr.hot{color:var(--hot);font-weight:700}
+  .wr.cold{color:var(--cold)}
+  .thin{color:var(--muted);font-size:12px}
+
+  .notes{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px}
+  .notes p{margin:0 0 10px}
+  .notes p:last-child{margin:0}
+
+  #preview{position:fixed;z-index:50;pointer-events:none;display:none;filter:drop-shadow(0 10px 24px rgba(15,28,23,.35))}
+  #preview img{display:block;width:244px;height:auto;border-radius:11px}
+
+  footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+
+  /* ---------- スマートフォン ---------- */
+  @media (max-width:720px){
+    html,body{overflow-x:hidden}
+    body{font-size:14px}
+    header{padding:16px 14px 12px}
+    header h1{font-size:20px}
+    header p{font-size:12px;max-width:none}
+    main{padding:16px 14px 50px}
+    footer{padding:0 14px 40px}
+    .head-top{flex-direction:column;align-items:stretch;gap:12px}
+    .controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .controls select{min-width:0;width:100%}
+    .controls > select:first-of-type{grid-column:1 / -1}
+    nav{margin-top:10px;gap:12px;font-size:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    nav a{white-space:nowrap}
+    #preview{display:none !important}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="head-top">
+      <div>
+        <div class="brand" data-i18n="site.name"></div>
+        <h1 data-i18n="reports.h1"></h1>
+        <p data-i18n="reports.lead"></p>
+      </div>
+      <div class="controls">
+        <select id="setSelect" data-i18n-label="sel.set"><option>…</option></select>
+        <select id="eventSelect" data-i18n-label="sel.event"></select>
+        <select id="langSelect" data-i18n-label="lang.label" style="min-width:110px">
+          <option value="ja">日本語</option><option value="en">English</option>
+        </select>
+      </div>
+    </div>
+    <nav>
+      <a href="./" data-i18n="nav.sealed"></a>
+      <a href="./draft.html" data-i18n="nav.draft"></a>
+      <a href="./ratings.html" data-i18n="nav.ratings"></a>
+      <a href="./reports.html" class="on" data-i18n="nav.reports"></a>
+      <a href="./guide.html" data-i18n="nav.guide"></a>
+      <a href="./privacy.html" data-i18n="nav.privacy"></a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div id="status" class="status" data-i18n="reports.ready"></div>
+  <p class="built" id="built"></p>
+  <div id="body" hidden></div>
+</main>
+
+<div id="preview" aria-hidden="true"></div>
+
+<footer>
+  <span data-i18n-html="foot.scryfall"></span><br>
+  <span data-i18n-html="foot.17lands"></span><br>
+  <span data-i18n-html="foot.wotc"></span>
+</footer>
+
+<script>
+const SCRY = "https://api.scryfall.com";
+const COLORS = [
+  {key:"W", var:"--w"}, {key:"U", var:"--u"}, {key:"B", var:"--b"},
+  {key:"R", var:"--r"}, {key:"G", var:"--g"}
+];
+const RARITIES = ["mythic", "rare", "uncommon", "common"];
+const MIN_GAMES = 500;
+
+let index = [], report = null, jaMap = {}, nameMap = {};
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const esc = s => (s || "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const pct = v => v == null ? "—" : (v * 100).toFixed(1) + "%";
+
+function setStatus(msg, isErr){
+  const el = $("status");
+  el.textContent = msg;
+  el.className = "status" + (isErr ? " err" : "");
+}
+
+/* ---------- 一覧の読み込み ---------- */
+async function loadIndex(){
+  try{
+    const res = await fetch("./data/articles/index.json", {cache:"no-cache"});
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    index = (await res.json()).articles || [];
+    renderSetOptions();
+    updateEventOptions();
+    if(index.length) load();
+  }catch(e){
+    setStatus(t("reports.none"), true);
+  }
+}
+
+function renderSetOptions(){
+  const sel = $("setSelect"), keep = sel.value;
+  const sets = [...new Set(index.map(a => a.set))];
+  sel.innerHTML = "";
+  sets.forEach(code => {
+    const o = document.createElement("option");
+    o.value = code;
+    o.textContent = I18N.setName(code, code) + "（" + code + "）";
+    sel.appendChild(o);
+  });
+  if(keep && sets.includes(keep)) sel.value = keep;
+}
+
+function updateEventOptions(){
+  const code = $("setSelect").value;
+  const evs = index.filter(a => a.set === code).map(a => a.event);
+  const sel = $("eventSelect"), keep = sel.value;
+  sel.innerHTML = "";
+  evs.forEach(ev => {
+    const o = document.createElement("option");
+    o.value = ev;
+    o.textContent = t("ev." + ev);
+    sel.appendChild(o);
+  });
+  if(keep && evs.includes(keep)) sel.value = keep;
+}
+
+/* ---------- 日本語カード名・画像 ---------- */
+async function loadCardMaps(code){
+  jaMap = {}; nameMap = {};
+  if(!I18N.isJa()){
+    // 英語表示でも画像は出したいので、英語版だけ取る
+    try{
+      let url = SCRY + "/cards/search?q=" + encodeURIComponent("set:" + code) + "&unique=prints";
+      while(url){
+        const res = await fetch(url);
+        if(!res.ok) break;
+        const d = await res.json();
+        d.data.forEach(c => namesOf(c).forEach(n => {
+          if(!nameMap[n]) nameMap[n] = { imgs: imgsOf(c) };
+        }));
+        url = d.has_more ? d.next_page : null;
+        if(url) await sleep(120);
+      }
+    }catch(e){ nameMap = {}; }
+    return;
+  }
+
+  try{
+    const keyOf = {};
+    let url = SCRY + "/cards/search?q=" + encodeURIComponent("set:" + code) + "&unique=prints";
+    while(url){
+      const res = await fetch(url);
+      if(!res.ok) break;
+      const d = await res.json();
+      d.data.forEach(c => {
+        const k = c.set + "/" + c.collector_number;
+        namesOf(c).forEach(n => {
+          if(!nameMap[n]) nameMap[n] = { imgs: imgsOf(c) };
+          if(!keyOf[n]) keyOf[n] = k;
+        });
+      });
+      url = d.has_more ? d.next_page : null;
+      if(url) await sleep(120);
+    }
+
+    const byKey = {};
+    url = SCRY + "/cards/search?q=" + encodeURIComponent("set:" + code + " lang:ja")
+        + "&unique=prints&include_multilingual=true";
+    while(url){
+      const res = await fetch(url);
+      if(!res.ok) break;
+      const d = await res.json();
+      d.data.forEach(c => {
+        if(c.lang !== "ja") return;
+        const k = c.set + "/" + c.collector_number;
+        if(byKey[k]) return;
+        const faces = Array.isArray(c.card_faces) ? c.card_faces.map(f => f.printed_name).filter(Boolean) : [];
+        byKey[k] = { name: c.printed_name || faces.join(" // "), front: faces[0] || c.printed_name || "", imgs: imgsOf(c) };
+      });
+      url = d.has_more ? d.next_page : null;
+      if(url) await sleep(120);
+    }
+
+    Object.entries(keyOf).forEach(([n, k]) => { if(byKey[k]) jaMap[n] = byKey[k]; });
+  }catch(e){ jaMap = {}; }
+}
+
+function namesOf(c){
+  const out = [c.name];
+  if(c.name.includes(" // ")) out.push(c.name.split(" // ")[0].trim());
+  if(Array.isArray(c.card_faces)) c.card_faces.forEach(f => { if(f.name) out.push(f.name); });
+  return [...new Set(out.filter(Boolean))];
+}
+
+function imgsOf(c){
+  if(c.image_uris?.normal) return [c.image_uris.normal];
+  if(Array.isArray(c.card_faces)) return c.card_faces.map(f => f.image_uris?.normal).filter(Boolean);
+  return [];
+}
+
+function displayName(name){
+  const j = I18N.isJa() && jaMap[name];
+  if(!j) return name;
+  return (j.front && !name.includes(" // ")) ? j.front : (j.name || name);
+}
+
+function imageUrls(name){
+  const j = I18N.isJa() && jaMap[name];
+  if(j && j.imgs && j.imgs.length) return j.imgs;
+  return (nameMap[name] && nameMap[name].imgs) || [];
+}
+
+/* ---------- 本体の読み込み ---------- */
+async function load(){
+  const code = $("setSelect").value, ev = $("eventSelect").value;
+  if(!code || !ev) return;
+  $("body").hidden = true;
+  setStatus(t("reports.loading"));
+
+  try{
+    const res = await fetch(`./data/articles/${code}_${ev}.json`, {cache:"no-cache"});
+    if(!res.ok){ setStatus(t("reports.none"), true); return; }
+    report = await res.json();
+    await loadCardMaps(code);
+    render();
+  }catch(e){
+    setStatus(t("reports.none"), true);
+  }
+}
+
+/* ---------- 描画 ---------- */
+function barRow(label, wr, games, cls, dotVar){
+  const w = wr == null ? 0 : Math.max(2, ((wr - 0.45) / 0.20) * 100);   // 45%〜65%を横幅に割り当てる
+  return `<div class="bar">
+    <span class="lbl">${dotVar ? `<span class="dot" style="background:var(${dotVar})"></span>` : ""}${esc(label)}</span>
+    <span class="track"><i class="${cls || ""}" style="width:${Math.min(100, w)}%"></i></span>
+    <span class="val">${pct(wr)}</span>
+    <span class="n">${games != null ? games.toLocaleString() : ""}</span>
+  </div>`;
+}
+
+function wrClass(wr, avg){
+  if(wr == null || avg == null) return "";
+  if(wr >= avg + 0.015) return "hot";
+  if(wr <= avg - 0.015) return "cold";
+  return "";
+}
+
+function render(){
+  const d = report, avg = d.overall_win_rate;
+  const ev = t("ev." + d.event);
+
+  setStatus(t("reports.summary", {
+    set: d.set, ev,
+    g: (d.total_games || 0).toLocaleString(),
+    wr: (avg * 100).toFixed(1),
+    t: d.avg_turns ? d.avg_turns.toFixed(1) : "—"
+  }));
+  $("built").textContent = t("reports.built", { d: new Date(d.data_generated_at).toLocaleDateString("ja-JP") });
+
+  const out = [];
+
+  // 環境の速さ
+  if(d.speed && d.speed.length){
+    const gap = d.verdict?.gap;
+    out.push(`<section>
+      <h2>${t("reports.speed.h")}</h2>
+      <p class="lead">${t("reports.speed.lead")}</p>
+      <div class="verdict">${t("verdict." + (d.verdict?.key || "even"))}
+        ${gap != null ? `<span class="gap">${t("reports.gap", {n: (gap * 100).toFixed(1)})}</span>` : ""}</div>
+      <div class="bars">${d.speed.map(s =>
+        barRow(t("reports.speed." + s.key), s.wr, s.games, wrClass(s.wr, avg))).join("")}</div>
+      ${d.notes?.speed ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.speed[I18N.lang] || "")}</p></div>` : ""}
+    </section>`);
+  }
+
+  // 色の強さ
+  if(d.colors && d.colors.length){
+    out.push(`<section>
+      <h2>${t("reports.colors.h")}</h2>
+      <p class="lead">${t("reports.colors.lead")}</p>
+      <div class="bars">${d.colors.map(c => {
+        const def = COLORS.find(x => x.key === c.color);
+        return barRow(t("color." + c.color), c.wr, c.games, wrClass(c.wr, avg), def && def.var);
+      }).join("")}</div>
+    </section>`);
+  }
+
+  // 色の組み合わせ
+  if(d.archetypes && d.archetypes.length){
+    out.push(`<section>
+      <h2>${t("reports.arche.h")}</h2>
+      <p class="lead">${t("reports.arche.lead")}</p>
+      <div class="bars">${d.archetypes.map(a =>
+        barRow([...a.colors].map(k => t("color." + k)).join(I18N.isJa() ? "／" : " / "), a.wr, a.games, wrClass(a.wr, avg))).join("")}</div>
+      ${d.notes?.archetypes ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.archetypes[I18N.lang] || "")}</p></div>` : ""}
+    </section>`);
+  }
+
+  // マナ総量
+  if(d.curve && d.curve.length){
+    out.push(`<section>
+      <h2>${t("reports.curve.h")}</h2>
+      <p class="lead">${t("reports.curve.lead")}</p>
+      <div class="bars">${d.curve.map(c =>
+        barRow(c.cmc + (I18N.isJa() ? "マナ" : " MV"), c.wr, c.games, wrClass(c.wr, avg))).join("")}</div>
+    </section>`);
+  }
+
+  // レアリティ別のカード
+  const hasCards = RARITIES.some(r => (d.top?.[r] || []).length);
+  if(hasCards){
+    const groups = RARITIES.map(r => {
+      const list = d.top[r] || [];
+      if(!list.length) return "";
+      return `<div class="rar-group">
+        <h3>${t("rarity." + r)}</h3>
+        <table><thead><tr>
+          <th>${t("reports.col.card")}</th><th>${t("reports.col.cmc")}</th>
+          <th>${t("reports.col.wr")}</th><th>IWD</th><th>${t("reports.col.games")}</th>
+        </tr></thead><tbody>
+        ${list.map(c => {
+          const col = (c.color || "").length === 1 ? c.color : ((c.color || "").length > 1 ? "M" : "C");
+          const def = COLORS.find(x => x.key === col);
+          return `<tr data-card="${esc(c.name)}">
+            <td><span class="cname"><span class="dot" style="background:var(${def ? def.var : "--c"})"></span>
+              <span class="nm">${esc(displayName(c.name))}</span></span></td>
+            <td>${c.cmc ?? "—"}</td>
+            <td class="wr ${wrClass(c.gih, avg)}">${pct(c.gih)}</td>
+            <td>${c.iwd == null ? "—" : (c.iwd >= 0 ? "+" : "") + (c.iwd * 100).toFixed(1)}</td>
+            <td class="thin">${(c.games || 0).toLocaleString()}</td>
+          </tr>`;
+        }).join("")}
+        </tbody></table>
+      </div>`;
+    }).join("");
+
+    out.push(`<section>
+      <h2>${t("reports.cards.h")}</h2>
+      <p class="lead">${t("reports.cards.lead", {n: MIN_GAMES.toLocaleString()})}</p>
+      ${groups}
+      ${d.notes?.cards ? `<div class="notes"><p>${esc(d.notes.cards[I18N.lang] || "")}</p></div>` : ""}
+    </section>`);
+  }
+
+  // 全体の考察
+  if(d.notes?.summary){
+    out.push(`<section>
+      <h2>${t("reports.notes.h")}</h2>
+      <div class="notes"><p>${esc(d.notes.summary[I18N.lang] || "")}</p></div>
+    </section>`);
+  }
+
+  $("body").innerHTML = out.join("");
+  $("body").hidden = false;
+
+  // カード名にカーソルを合わせたら画像を出す
+  $("body").querySelectorAll("tr[data-card]").forEach(tr => {
+    const name = tr.dataset.card;
+    tr.onmouseenter = ev => showPreview(name, ev.clientX, ev.clientY);
+    tr.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
+    tr.onmouseleave = hidePreview;
+  });
+}
+
+/* ---------- 画像プレビュー ---------- */
+function showPreview(name, x, y){
+  const urls = imageUrls(name);
+  if(!urls.length) return;
+  const box = $("preview");
+  box.innerHTML = "";
+  urls.forEach(u => {
+    const img = document.createElement("img");
+    img.src = u; img.alt = displayName(name); img.loading = "lazy";
+    box.appendChild(img);
+  });
+  box.style.display = "block";
+  movePreview(x, y);
+}
+
+function movePreview(x, y){
+  const box = $("preview");
+  if(box.style.display !== "block") return;
+  const w = 252, h = box.offsetHeight || 350;
+  let left = x + 18, top = y - h / 2;
+  if(left + w > window.innerWidth - 8) left = x - w - 18;
+  if(left < 8) left = 8;
+  top = Math.min(Math.max(8, top), window.innerHeight - h - 8);
+  box.style.left = left + "px";
+  box.style.top = top + "px";
+}
+
+function hidePreview(){
+  const box = $("preview");
+  box.style.display = "none";
+  box.innerHTML = "";
+}
+
+/* ---------- イベント ---------- */
+$("setSelect").onchange = () => { updateEventOptions(); load(); };
+$("eventSelect").onchange = load;
+$("langSelect").value = I18N.lang;
+$("langSelect").onchange = e => I18N.set(e.target.value);
+I18N.onChange(() => {
+  hidePreview(); renderSetOptions(); updateEventOptions();
+  if(report) load();
+});
+window.addEventListener("scroll", hidePreview, {passive:true});
+
+loadIndex();
+</script>
+</body>
+</html>
