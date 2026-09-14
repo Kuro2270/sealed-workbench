@@ -25,6 +25,9 @@ const UA = "LimitedWorkbench/1.0 (https://sealed-workbench.com)";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// セットコード → 発売日
+const RELEASED = new Map();
+
 // デッキの平均マナ総量をこの区切りで分けて、環境の速さを読む
 const SPEED_BUCKETS = [
   { key: "fast",   max: 2.90 },
@@ -84,6 +87,8 @@ async function listTargets(){
               && s.card_count > MIN_CARDS)
     .sort((a, b) => b.released_at.localeCompare(a.released_at));
 
+  sets.forEach(x => RELEASED.set(x.code.toUpperCase(), x.released_at));
+
   const targets = [];
   for(const s of sets){
     for(const f of FORMATS) targets.push([s.code.toUpperCase(), f]);
@@ -125,6 +130,13 @@ async function build(set, format, metaCache){
     return null;                                  // 公開データセットに無い組み合わせ
   }
   if(!res.ok) throw new Error(`ダウンロードに失敗しました（HTTP ${res.status}）: ${url}`);
+
+  if(!RELEASED.has(set)){
+    try{
+      const r = await fetch(SCRY + "/sets/" + set.toLowerCase(), { headers: { "User-Agent": UA, Accept: "application/json" } });
+      if(r.ok){ const j = await r.json(); if(j.released_at) RELEASED.set(set, j.released_at); }
+    }catch(e){ /* 取れなくても続行 */ }
+  }
 
   if(!metaCache.has(set)) metaCache.set(set, await cardMeta(set));
   const meta = metaCache.get(set);
@@ -281,6 +293,7 @@ async function build(set, format, metaCache){
   const payload = {
     set,
     event: format,
+    released_at: RELEASED.get(set) || null,
     generated_at: new Date().toISOString(),
     total_games: rows,
     overall_win_rate: rate(wins, rows),
