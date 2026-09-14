@@ -367,18 +367,18 @@ async function loadJapanese(code){
 
 async function loadWinRates(code){
   wrMap = {}; wrSource = ""; wrAvg = null;
-  const order = ["PremierDraft", "TradDraft", "PickTwoDraft", "Sealed", "TradSealed"];
+  const order = ["draft", "sealed"];
 
   for(const ev of order){
     try{
-      const res = await fetch(`./data/ratings/${code.toUpperCase()}_${ev}.json`, {cache:"no-cache"});
+      const res = await fetch(`./data/articles/${code.toUpperCase()}_${ev}.json`, {cache:"no-cache"});
       if(!res.ok) continue;
       const d = await res.json();
       d.cards.forEach(c => { if(c.gih != null && c.games >= 200) wrMap[c.name] = {gih:c.gih, games:c.games}; });
       const vals = Object.values(wrMap).map(v => v.gih);
       if(!vals.length) continue;
       wrAvg = vals.reduce((a,b) => a+b, 0) / vals.length;
-      wrSource = t("ev." + ev);
+      wrSource = t("mode." + ev);
       return;
     }catch(e){ /* 次へ */ }
   }

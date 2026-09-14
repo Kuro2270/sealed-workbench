@@ -244,6 +244,19 @@
     "privacy.s7.body":  { ja:"<p>本ポリシーに関するお問い合わせは、<a href=\"https://github.com/Kuro2270/sealed-workbench/issues\" target=\"_blank\" rel=\"noopener\">GitHubのIssue</a> よりご連絡ください。</p><p>本ポリシーは、必要に応じて予告なく改定することがあります。改定した場合は、本ページの最終更新日を変更します。</p>",
                           en:"<p>For questions about this policy, please open an issue on <a href=\"https://github.com/Kuro2270/sealed-workbench/issues\" target=\"_blank\" rel=\"noopener\">GitHub</a>.</p><p>This policy may be revised as needed without prior notice. The date at the top of this page will be updated when it is.</p>" },
 
+    "mode.sealed":      { ja:"シールド", en:"Sealed" },
+    "mode.draft":       { ja:"ドラフト", en:"Draft" },
+    "reports.sources":  { ja:"内訳：{list}", en:"Includes: {list}" },
+    "reports.compare.h":{ ja:"他のセットとの比較", en:"Compared with other sets" },
+    "reports.compare.lead":{ ja:"1試合あたりの平均ターン数です。短いほど速い環境です。同じ形式の、直近{n}セットと比べています。",
+                          en:"Average turns per game — fewer means a faster format. Compared with the {n} most recent sets in the same mode." },
+    "reports.compare.avg":{ ja:"直近{c}セットの平均 {n}ターン", en:"Average of the last {c} sets: {n} turns" },
+    "reports.compare.this":{ ja:"このセット", en:"This set" },
+    "reports.turns":    { ja:"{n}ターン", en:"{n} turns" },
+    "reports.faster":   { ja:"平均より {n}ターン速い", en:"{n} turns faster than average" },
+    "reports.slower":   { ja:"平均より {n}ターン遅い", en:"{n} turns slower than average" },
+    "reports.same":     { ja:"平均とほぼ同じ", en:"About average" },
+
     "nav.reports":      { ja:"環境レポート", en:"Set reports" },
 
     "page.reports.title":{ ja:"環境レポート｜MTGアリーナのリミテッド環境をデータで読む",
@@ -256,8 +269,8 @@
     "reports.ready":    { ja:"セットとイベント種別を選んでください。", en:"Choose a set and event type." },
     "reports.loading":  { ja:"レポートを読み込んでいます…", en:"Loading the report…" },
     "reports.none":     { ja:"この組み合わせのレポートはまだありません。", en:"No report for this combination yet." },
-    "reports.summary":  { ja:"{set} ／ {ev} ／ {g}試合 ／ 全体勝率 {wr}% ／ 平均 {t}ターン",
-                          en:"{set} · {ev} · {g} games · {wr}% overall win rate · {t} turns on average" },
+    "reports.summary":  { ja:"{set} ／ {ev} ／ {g}試合 ／ 全体勝率 {wr}%",
+                          en:"{set} · {ev} · {g} games · {wr}% overall win rate" },
     "reports.built":    { ja:"集計 {d}", en:"Built {d}" },
 
     "reports.speed.h":  { ja:"環境の速さ", en:"Format speed" },

@@ -66,6 +66,19 @@
   .dot{width:10px;height:10px;border-radius:50%;flex:none}
   @media (max-width:620px){ .bar{grid-template-columns:96px 1fr 54px} .bar .n{display:none} }
 
+  /* 環境の速さ比較 */
+  .cmp{display:grid;gap:6px;position:relative}
+  .cmp .row{display:grid;grid-template-columns:110px 1fr 66px;gap:10px;align-items:center;font-size:13px}
+  .cmp .row.me{font-weight:700}
+  .cmp .track{height:18px;background:var(--paper-2);border-radius:3px;position:relative;overflow:hidden}
+  .cmp .track i{position:absolute;top:0;bottom:0;background:var(--c);border-radius:3px}
+  .cmp .row.me .track i{background:var(--gold)}
+  .cmp .val{text-align:right;font-variant-numeric:tabular-nums}
+  .cmp .avgline{position:absolute;top:0;bottom:0;width:2px;background:var(--pine);opacity:.45}
+  .cmp-note{font-size:12.5px;color:var(--muted);margin-top:8px}
+  .cmp-verdict{font-size:14.5px;margin:0 0 12px;background:#fff;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:var(--radius);padding:12px 16px}
+  @media (max-width:620px){ .cmp .row{grid-template-columns:74px 1fr 58px} }
+
   /* カード表 */
   .rar-group{margin-bottom:22px}
   .rar-group h3{font-size:15px;margin:0 0 6px}
@@ -162,7 +175,7 @@ const COLORS = [
 const RARITIES = ["mythic", "rare", "uncommon", "common"];
 const MIN_GAMES = 500;
 
-let index = [], report = null, jaMap = {}, nameMap = {};
+let index = [], speedIndex = null, report = null, jaMap = {}, nameMap = {};
 
 const $ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -180,7 +193,9 @@ async function loadIndex(){
   try{
     const res = await fetch("./data/articles/index.json", {cache:"no-cache"});
     if(!res.ok) throw new Error("HTTP " + res.status);
-    index = (await res.json()).articles || [];
+    const j = await res.json();
+    index = j.articles || [];
+    speedIndex = j.speed || null;
     renderSetOptions();
     updateEventOptions();
     if(index.length) load();
@@ -204,16 +219,16 @@ function renderSetOptions(){
 
 function updateEventOptions(){
   const code = $("setSelect").value;
-  const evs = index.filter(a => a.set === code).map(a => a.event);
+  const modes = index.filter(a => a.set === code).map(a => a.mode);
   const sel = $("eventSelect"), keep = sel.value;
   sel.innerHTML = "";
-  evs.forEach(ev => {
+  ["sealed", "draft"].filter(m => modes.includes(m)).forEach(m => {
     const o = document.createElement("option");
-    o.value = ev;
-    o.textContent = t("ev." + ev);
+    o.value = m;
+    o.textContent = t("mode." + m);
     sel.appendChild(o);
   });
-  if(keep && evs.includes(keep)) sel.value = keep;
+  if(keep && modes.includes(keep)) sel.value = keep;
 }
 
 /* ---------- 日本語カード名・画像 ---------- */
@@ -304,13 +319,13 @@ function imageUrls(name){
 
 /* ---------- 本体の読み込み ---------- */
 async function load(){
-  const code = $("setSelect").value, ev = $("eventSelect").value;
-  if(!code || !ev) return;
+  const code = $("setSelect").value, mode = $("eventSelect").value;
+  if(!code || !mode) return;
   $("body").hidden = true;
   setStatus(t("reports.loading"));
 
   try{
-    const res = await fetch(`./data/articles/${code}_${ev}.json`, {cache:"no-cache"});
+    const res = await fetch(`./data/articles/${code}_${mode}.json`, {cache:"no-cache"});
     if(!res.ok){ setStatus(t("reports.none"), true); return; }
     report = await res.json();
     await loadCardMaps(code);
@@ -338,17 +353,60 @@ function wrClass(wr, avg){
   return "";
 }
 
+function compareSection(){
+  if(!speedIndex || !report) return "";
+  const mode = report.mode;
+  const grp = speedIndex[mode];
+  if(!grp || !grp.sets || grp.sets.length < 2) return "";
+
+  const mine = grp.sets.find(x => x.set === report.set);
+  const vals = grp.sets.map(x => x.avg_turns);
+  const lo = Math.min(...vals, grp.average) - 0.25;
+  const hi = Math.max(...vals, grp.average) + 0.25;
+  const pos = v => ((v - lo) / (hi - lo)) * 100;
+
+  let verdict = "";
+  if(mine && grp.average != null){
+    const diff = mine.avg_turns - grp.average;
+    verdict = Math.abs(diff) < 0.15 ? t("reports.same")
+      : (diff < 0 ? t("reports.faster", {n: Math.abs(diff).toFixed(1)})
+                  : t("reports.slower", {n: Math.abs(diff).toFixed(1)}));
+  }
+
+  const rows = grp.sets.map(x => {
+    const me = x.set === report.set;
+    const w = pos(x.avg_turns);
+    return `<div class="row${me ? " me" : ""}">
+      <span>${esc(I18N.setName(x.set, x.set))}</span>
+      <span class="track"><i style="left:0;width:${Math.max(2, w)}%"></i></span>
+      <span class="val">${x.avg_turns.toFixed(1)}</span>
+    </div>`;
+  }).join("");
+
+  return `<section>
+    <h2>${t("reports.compare.h")}</h2>
+    <p class="lead">${t("reports.compare.lead", {n: grp.count || grp.sets.length})}</p>
+    ${verdict ? `<p class="cmp-verdict">${verdict}</p>` : ""}
+    <div class="cmp">
+      <div class="avgline" style="left:calc(110px + 10px + (100% - 110px - 66px - 20px) * ${pos(grp.average) / 100})"></div>
+      ${rows}
+    </div>
+    <p class="cmp-note">${t("reports.compare.avg", {c: grp.count || grp.sets.length, n: grp.average.toFixed(1)})}</p>
+  </section>`;
+}
+
 function render(){
   const d = report, avg = d.overall_win_rate;
-  const ev = t("ev." + d.event);
+  const ev = t("mode." + d.mode);
 
   setStatus(t("reports.summary", {
     set: d.set, ev,
     g: (d.total_games || 0).toLocaleString(),
-    wr: (avg * 100).toFixed(1),
-    t: d.avg_turns ? d.avg_turns.toFixed(1) : "—"
+    wr: (avg * 100).toFixed(1)
   }));
-  $("built").textContent = t("reports.built", { d: new Date(d.data_generated_at).toLocaleDateString("ja-JP") });
+  const srcList = (d.events || []).map(e => t("ev." + e.event) + " " + e.games.toLocaleString()).join("、");
+  $("built").textContent = t("reports.built", { d: new Date(d.data_generated_at).toLocaleDateString("ja-JP") })
+    + (srcList ? "　" + t("reports.sources", { list: srcList }) : "");
 
   const out = [];
 
@@ -365,6 +423,9 @@ function render(){
       ${d.notes?.speed ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.speed[I18N.lang] || "")}</p></div>` : ""}
     </section>`);
   }
+
+  // 他のセットとの比較
+  out.push(compareSection());
 
   // 色の強さ
   if(d.colors && d.colors.length){

@@ -498,17 +498,17 @@ function tally(list){
 async function loadWinRates(code){
   wrMap = {}; wrSource = ""; wrAvg = null;
   // シールド戦のツールなので Sealed を優先し、無ければドラフトのデータを使う
-  const order = ["Sealed", "TradSealed", "PremierDraft", "TradDraft", "PickTwoDraft"];
+  const order = ["sealed", "draft"];
 
   for(const ev of order){
     try{
-      const res = await fetch(`./data/ratings/${code.toUpperCase()}_${ev}.json`, {cache:"no-cache"});
+      const res = await fetch(`./data/articles/${code.toUpperCase()}_${ev}.json`, {cache:"no-cache"});
       if(!res.ok) continue;
       const d = await res.json();
       d.cards.forEach(c => { if(c.gih != null) wrMap[c.name] = { gih: c.gih, games: c.games }; });
       const vals = Object.values(wrMap).map(v => v.gih);
       wrAvg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
-      wrSource = t("ev." + ev);
+      wrSource = t("mode." + ev);
       return;
     }catch(e){ /* 次の候補へ */ }
   }
