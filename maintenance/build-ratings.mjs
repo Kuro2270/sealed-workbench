@@ -23,6 +23,8 @@ const SCRY = "https://api.scryfall.com";
 const OUT_DIR = "data/ratings";
 const UA = "LimitedWorkbench/1.0 (https://sealed-workbench.com)";
 
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 // デッキの平均マナ総量をこの区切りで分けて、環境の速さを読む
 const SPEED_BUCKETS = [
   { key: "fast",   max: 2.90 },
