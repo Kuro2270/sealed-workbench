@@ -13,6 +13,7 @@
 (function(){
   const STRINGS = {
     /* ---- 共通 ---- */
+    "site.name":        { ja:"リミテッド・ワークベンチ", en:"Limited Workbench" },
     "nav.sealed":       { ja:"シールド構築",       en:"Sealed" },
     "nav.draft":        { ja:"ドラフト",           en:"Draft" },
     "nav.ratings":      { ja:"カード勝率一覧",     en:"Card win rates" },
@@ -77,13 +78,13 @@
     "err.scryfall":     { ja:"Scryfall への接続に失敗しました（HTTP {s}）", en:"Could not reach Scryfall (HTTP {s})" },
 
     /* ---- シールド構築 ---- */
-    "page.index.title": { ja:"シールド・ワークベンチ｜MTGアリーナのシールド戦を練習できる無料ツール",
-                          en:"Sealed Workbench — Free MTG Arena sealed practice tool" },
+    "page.index.title": { ja:"シールド構築｜MTGアリーナのシールド戦を練習できる無料ツール",
+                          en:"Sealed builder — Free MTG Arena sealed practice" },
     "desc.index":       { ja:"MTGアリーナのリミテッド（シールド戦）を無料で練習。6パックを開封して40枚デッキを組み、そのままアリーナにインポートできるテキストを書き出します。17Landsの実戦データによるカード勝率つき。日本語対応。",
                           en:"Free sealed practice for MTG Arena Limited. Open six packs, build a 40-card deck, and export text you can import straight into Arena. Includes real card win rates from 17Lands data." },
-    "index.h1":         { ja:"シールド・ワークベンチ", en:"Sealed Workbench" },
-    "index.lead":       { ja:"MTGアリーナのシールド戦を練習するツールです。6パック分のカードプールを生成して40枚デッキを組み、アリーナにそのまま貼り付けられるテキストを書き出します。",
-                          en:"Practice MTG Arena sealed. Open six packs, build a 40-card deck, and export text you can paste straight into Arena." },
+    "index.h1":         { ja:"シールド構築", en:"Sealed builder" },
+    "index.lead":       { ja:"6パック分のカードプールを生成して40枚デッキを組み、MTGアリーナにそのまま貼り付けられるテキストを書き出します。ドラフトの練習は上のタブから。",
+                          en:"Open six packs, build a 40-card deck, and export text you can paste straight into MTG Arena. For draft practice, use the tab above." },
     "index.open":       { ja:"6パック開封",       en:"Open 6 packs" },
     "index.clear":      { ja:"デッキを空にする",   en:"Clear deck" },
     "index.sortCmc":    { ja:"マナ総量順",         en:"By mana value" },
@@ -101,11 +102,11 @@
     "index.wrNone":     { ja:"／勝率データなし", en:" / no win-rate data" },
 
     /* ---- ドラフト ---- */
-    "page.draft.title": { ja:"ドラフト・ワークベンチ｜MTGアリーナの8人卓ドラフトを1人で練習",
-                          en:"Draft Workbench — Practice 8-player MTG Arena drafts solo" },
+    "page.draft.title": { ja:"ドラフト｜MTGアリーナの8人卓ドラフトを1人で練習",
+                          en:"Draft — Practice 8-player MTG Arena drafts solo" },
     "desc.draft":       { ja:"MTGアリーナのドラフトを1人で練習できる無料ツール。8人卓を再現し、他の7人は17Landsの勝率データをもとにピックします。3パック42手を終えたらデッキを組み、アリーナにインポートできます。",
                           en:"Free solo draft practice for MTG Arena. Simulates an eight-seat pod where the other drafters pick using 17Lands win-rate data. Finish 42 picks, build your deck, and import it into Arena." },
-    "draft.h1":         { ja:"ドラフト・ワークベンチ", en:"Draft Workbench" },
+    "draft.h1":         { ja:"ドラフト", en:"Draft" },
     "draft.lead":       { ja:"8人卓のドラフトを1人で練習できます。他の7人は17Landsの勝率データをもとにピックします。",
                           en:"Practice an eight-seat draft on your own. The other seven drafters pick using 17Lands win-rate data." },
     "draft.start":      { ja:"ドラフト開始", en:"Start draft" },
@@ -174,8 +175,8 @@
 
     "page.guide.title": { ja:"使い方｜MTGアリーナのリミテッドを無料で練習する",
                           en:"Guide — Free MTG Arena Limited practice" },
-    "desc.guide":       { ja:"シールド・ワークベンチの使い方と、向いている人。MTGアリーナでワイルドカードが余っている方、カードが揃っている方が、リミテッドのデッキを組んでフレンド戦で遊ぶための手引きです。カード勝率の読み方も解説します。",
-                          en:"How to use Sealed Workbench and who it is for. A guide for MTG Arena players with spare wildcards or a deep collection who want to build Limited decks and play them in Direct Challenge. Includes how to read card win rates." },
+    "desc.guide":       { ja:"リミテッド・ワークベンチの使い方と、向いている人。MTGアリーナでワイルドカードが余っている方、カードが揃っている方が、リミテッドのデッキを組んでフレンド戦で遊ぶための手引きです。カード勝率の読み方も解説します。",
+                          en:"How to use Limited Workbench and who it is for. A guide for MTG Arena players with spare wildcards or a deep collection who want to build Limited decks and play them in Direct Challenge. Includes how to read card win rates." },
     "guide.h1":         { ja:"使い方", en:"Guide" },
     "guide.lead":       { ja:"このサイトで何ができるのか、誰に向いているのか、そして実際にアリーナで遊ぶまでの流れをまとめます。",
                           en:"What this site does, who it is for, and how to take a deck from here into Arena." },
@@ -307,7 +308,7 @@
       "operatingSystem": "Web",
       "isAccessibleForFree": true,
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "publisher": { "@type": "Organization", "name": "Sealed Workbench", "url": site }
+      "publisher": { "@type": "Organization", "name": "Limited Workbench", "url": site }
     };
 
     let el = document.getElementById("ld-json");
