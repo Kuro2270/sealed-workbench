@@ -18,7 +18,7 @@
     --paper:#F3F5F1; --paper-2:#E6EAE3;
     --ink:#0F1C17; --muted:#63736C;
     --gold:#B8912F; --line:#CBD3CA;
-    --w:#E7CF86; --u:#7FB4D8; --b:#7A7480; --r:#DB8068; --g:#79A87F; --m:#C3A03B; --c:#9AA3A0;
+    --w:#FAF4E2; --u:#7FB4D8; --b:#7A7480; --r:#DB8068; --g:#79A87F; --m:#C3A03B; --c:#9AA3A0;
     --hot:#2F6B47; --cold:#A24B32;
     --radius:3px;
   }
@@ -40,6 +40,9 @@
   nav a.on{color:var(--paper);border-bottom-color:var(--gold)}
   .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   select{background:var(--pine-deep);color:var(--paper);border:1px solid #3D544B;padding:9px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px;min-width:190px}
+  /* セット名が入る前後で幅が動かないよう固定する */
+  #setSelect{width:300px}
+
   :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
   main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
@@ -63,21 +66,23 @@
   .bar .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
   .bar .n{text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
   .bar .lbl{display:flex;align-items:center;gap:6px}
-  .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22)}
   @media (max-width:620px){ .bar{grid-template-columns:96px 1fr 54px} .bar .n{display:none} }
 
   /* 環境の速さ比較 */
   .cmp{display:grid;gap:6px;position:relative}
-  .cmp .row{display:grid;grid-template-columns:110px 1fr 66px;gap:10px;align-items:center;font-size:13px}
+  .cmp .row{display:grid;grid-template-columns:150px 1fr 66px;gap:10px;align-items:center;font-size:13px}
   .cmp .row.me{font-weight:700}
   .cmp .track{height:18px;background:var(--paper-2);border-radius:3px;position:relative;overflow:hidden}
   .cmp .track i{position:absolute;top:0;bottom:0;background:var(--c);border-radius:3px}
   .cmp .row.me .track i{background:var(--gold)}
+  .cmp .row.avg{color:var(--muted)}
+  .cmp .row.avg .track i{background:transparent;border-right:2px solid var(--pine);opacity:.55}
   .cmp .val{text-align:right;font-variant-numeric:tabular-nums}
   .cmp .avgline{position:absolute;top:0;bottom:0;width:2px;background:var(--pine);opacity:.45}
   .cmp-note{font-size:12.5px;color:var(--muted);margin-top:8px}
   .cmp-verdict{font-size:14.5px;margin:0 0 12px;background:#fff;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:var(--radius);padding:12px 16px}
-  @media (max-width:620px){ .cmp .row{grid-template-columns:74px 1fr 58px} }
+  @media (max-width:620px){ .cmp .row{grid-template-columns:104px 1fr 58px;font-size:12.5px} }
 
   /* カード表 */
   .rar-group{margin-bottom:22px}
@@ -116,6 +121,7 @@
     .head-top{flex-direction:column;align-items:stretch;gap:12px}
     .controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .controls select{min-width:0;width:100%}
+    #setSelect{width:100%}
     .controls > select:first-of-type{grid-column:1 / -1}
     nav{margin-top:10px;gap:12px;font-size:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
     nav a{white-space:nowrap}
@@ -129,9 +135,9 @@
   <div class="wrap">
     <div class="head-top">
       <div>
-        <div class="brand" data-i18n="site.name"></div>
-        <h1 data-i18n="reports.h1"></h1>
-        <p data-i18n="reports.lead"></p>
+        <div class="brand" data-i18n="site.name">リミテッド・ワークベンチ</div>
+        <h1 data-i18n="reports.h1">環境レポート</h1>
+        <p data-i18n="reports.lead">17Landsの実戦データから、そのセットの環境を読み解きます。</p>
       </div>
       <div class="controls">
         <select id="setSelect" data-i18n-label="sel.set"><option>…</option></select>
@@ -142,18 +148,18 @@
       </div>
     </div>
     <nav>
-      <a href="./" data-i18n="nav.sealed"></a>
-      <a href="./draft.html" data-i18n="nav.draft"></a>
-      <a href="./ratings.html" data-i18n="nav.ratings"></a>
-      <a href="./reports.html" class="on" data-i18n="nav.reports"></a>
-      <a href="./guide.html" data-i18n="nav.guide"></a>
-      <a href="./privacy.html" data-i18n="nav.privacy"></a>
+      <a href="./" data-i18n="nav.sealed">シールド構築</a>
+      <a href="./draft.html" data-i18n="nav.draft">ドラフト</a>
+      <a href="./ratings.html" data-i18n="nav.ratings">カード勝率一覧</a>
+      <a href="./reports.html" class="on" data-i18n="nav.reports">環境レポート</a>
+      <a href="./guide.html" data-i18n="nav.guide">使い方</a>
+      <a href="./privacy.html" data-i18n="nav.privacy">プライバシー</a>
     </nav>
   </div>
 </header>
 
 <main>
-  <div id="status" class="status" data-i18n="reports.ready"></div>
+  <div id="status" class="status" data-i18n="reports.ready">セットとイベント種別を選んでください。</div>
   <p class="built" id="built"></p>
   <div id="body" hidden></div>
 </main>
@@ -161,9 +167,9 @@
 <div id="preview" aria-hidden="true"></div>
 
 <footer>
-  <span data-i18n-html="foot.scryfall"></span><br>
-  <span data-i18n-html="foot.17lands"></span><br>
-  <span data-i18n-html="foot.wotc"></span>
+  <span data-i18n-html="foot.scryfall">カードデータ・カード画像は <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a> より取得しています。画像は加工せず、そのままの形で表示しています。</span><br>
+  <span data-i18n-html="foot.17lands">カード勝率は <a href="https://www.17lands.com/public_datasets" target="_blank" rel="noopener">17Lands Public Data</a>（<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>）を集計したものです。</span><br>
+  <span data-i18n-html="foot.wotc">本サイトは、ファンコンテンツ・ポリシーに基づく非公式のファンコンテンツです。ウィザーズ社の認可・許可を受けていません。題材の一部にウィザーズ・オブ・ザ・コースト社の財産を含みます。©Wizards of the Coast LLC.</span>
 </footer>
 
 <script>
@@ -206,7 +212,13 @@ async function loadIndex(){
 
 function renderSetOptions(){
   const sel = $("setSelect"), keep = sel.value;
-  const sets = [...new Set(index.map(a => a.set))];
+
+  // 発売日の新しい順（他のページと同じ並び）。発売日が無いものは後ろに回す。
+  const rel = {};
+  index.forEach(a => { if(a.released_at && !rel[a.set]) rel[a.set] = a.released_at; });
+  const sets = [...new Set(index.map(a => a.set))]
+    .sort((x, y) => (rel[y] || "").localeCompare(rel[x] || "") || x.localeCompare(y));
+
   sel.innerHTML = "";
   sets.forEach(code => {
     const o = document.createElement("option");
@@ -355,14 +367,36 @@ function wrClass(wr, avg){
 
 function compareSection(){
   if(!speedIndex || !report) return "";
-  const mode = report.mode;
-  const grp = speedIndex[mode];
+  const grp = speedIndex[report.mode];
   if(!grp || !grp.sets || grp.sets.length < 2) return "";
 
-  const mine = grp.sets.find(x => x.set === report.set);
-  const vals = grp.sets.map(x => x.avg_turns);
-  const lo = Math.min(...vals, grp.average) - 0.25;
-  const hi = Math.max(...vals, grp.average) + 0.25;
+  const sorted  = [...grp.sets].sort((a, b) => a.avg_turns - b.avg_turns);
+  // 直近8セットに入っていない古いセットでも、自分の値は出す
+  const mine    = grp.sets.find(x => x.set === report.set)
+               || (report.avg_turns != null ? { set: report.set, avg_turns: report.avg_turns } : null);
+  const fastest = sorted[0];
+  const slowest = sorted[sorted.length - 1];
+
+  // 並べるのは4点だけ。このセット・直近セットの平均・最速・最遅。
+  const rows = [];
+  if(mine) rows.push({ key: "me",  label: t("reports.compare.this"), turns: mine.avg_turns, me: true });
+  if(grp.average != null) rows.push({
+    key: "avg", label: t("reports.compare.avgRow", {c: grp.count || grp.sets.length}),
+    turns: grp.average, avg: true
+  });
+  if(fastest && (!mine || fastest.set !== mine.set)) rows.push({
+    key: "fast", label: t("reports.compare.fastest", {s: I18N.setName(fastest.set, fastest.set)}),
+    turns: fastest.avg_turns
+  });
+  if(slowest && (!mine || slowest.set !== mine.set)) rows.push({
+    key: "slow", label: t("reports.compare.slowest", {s: I18N.setName(slowest.set, slowest.set)}),
+    turns: slowest.avg_turns
+  });
+  if(rows.length < 2) return "";
+
+  const vals = rows.map(r => r.turns);
+  const lo = Math.min(...vals) - 0.25;
+  const hi = Math.max(...vals) + 0.25;
   const pos = v => ((v - lo) / (hi - lo)) * 100;
 
   let verdict = "";
@@ -373,25 +407,18 @@ function compareSection(){
                   : t("reports.slower", {n: Math.abs(diff).toFixed(1)}));
   }
 
-  const rows = grp.sets.map(x => {
-    const me = x.set === report.set;
-    const w = pos(x.avg_turns);
-    return `<div class="row${me ? " me" : ""}">
-      <span>${esc(I18N.setName(x.set, x.set))}</span>
-      <span class="track"><i style="left:0;width:${Math.max(2, w)}%"></i></span>
-      <span class="val">${x.avg_turns.toFixed(1)}</span>
-    </div>`;
-  }).join("");
+  const html = rows.sort((a, b) => a.turns - b.turns).map(r => `
+    <div class="row${r.me ? " me" : ""}${r.avg ? " avg" : ""}">
+      <span>${esc(r.label)}</span>
+      <span class="track"><i style="left:0;width:${Math.max(2, pos(r.turns))}%"></i></span>
+      <span class="val">${r.turns.toFixed(1)}</span>
+    </div>`).join("");
 
   return `<section>
     <h2>${t("reports.compare.h")}</h2>
     <p class="lead">${t("reports.compare.lead", {n: grp.count || grp.sets.length})}</p>
     ${verdict ? `<p class="cmp-verdict">${verdict}</p>` : ""}
-    <div class="cmp">
-      <div class="avgline" style="left:calc(110px + 10px + (100% - 110px - 66px - 20px) * ${pos(grp.average) / 100})"></div>
-      ${rows}
-    </div>
-    <p class="cmp-note">${t("reports.compare.avg", {c: grp.count || grp.sets.length, n: grp.average.toFixed(1)})}</p>
+    <div class="cmp">${html}</div>
   </section>`;
 }
 
@@ -410,18 +437,21 @@ function render(){
 
   const out = [];
 
-  // 環境の速さ
+  // 環境の速さ（最も勝率の高い区分だけを書く）
   if(d.speed && d.speed.length){
-    const gap = d.verdict?.gap;
-    out.push(`<section>
-      <h2>${t("reports.speed.h")}</h2>
-      <p class="lead">${t("reports.speed.lead")}</p>
-      <div class="verdict">${t("verdict." + (d.verdict?.key || "even"))}
-        ${gap != null ? `<span class="gap">${t("reports.gap", {n: (gap * 100).toFixed(1)})}</span>` : ""}</div>
-      <div class="bars">${d.speed.map(s =>
-        barRow(t("reports.speed." + s.key), s.wr, s.games, wrClass(s.wr, avg))).join("")}</div>
-      ${d.notes?.speed ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.speed[I18N.lang] || "")}</p></div>` : ""}
-    </section>`);
+    const best = d.speed.filter(s => s.wr != null).sort((a, b) => b.wr - a.wr)[0];
+    if(best){
+      out.push(`<section>
+        <h2>${t("reports.speed.h")}</h2>
+        <div class="verdict">${t("reports.speed.best", {
+            label: t("reports.speedn." + best.key), p: (best.wr * 100).toFixed(1)
+          })}
+          <span class="gap">${t("reports.speed.bestnote", {
+            a: (avg * 100).toFixed(1), g: (best.games || 0).toLocaleString()
+          })}</span></div>
+        ${d.notes?.speed ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.speed[I18N.lang] || "")}</p></div>` : ""}
+      </section>`);
+    }
   }
 
   // 他のセットとの比較
