@@ -31,10 +31,10 @@
   header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
   .wrap{max-width:1180px;margin:0 auto}
   .head-top{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
-  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--gold);margin-bottom:4px}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--gold);line-height:16px;margin:0 0 10px}
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;max-width:60ch}
-  nav{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
   nav a{
     display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;
     font-size:13px;font-weight:500;line-height:1;white-space:nowrap;
@@ -51,6 +51,11 @@
   :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
   main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
+  /* 記事内の形式切り替え */
+  .modebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+  .modebar .lbl{font-size:13px;color:var(--muted)}
+  .modebar select{background:#fff;color:var(--ink);border:1px solid var(--line);min-width:150px;padding:8px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px}
+
   .status{padding:14px 16px;background:var(--paper-2);border-left:3px solid var(--muted);font-size:14px;color:var(--muted);margin-bottom:8px}
   .status.err{border-left-color:#B4432E;color:#8A3422;background:#F6E9E5}
   .built{font-size:12px;color:var(--muted);margin:0 0 22px}
@@ -74,18 +79,6 @@
   .dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22)}
   @media (max-width:620px){ .bar{grid-template-columns:96px 1fr 54px} .bar .n{display:none} }
 
-  /* 環境の速さ比較 */
-  .cmp{display:grid;gap:6px;position:relative}
-  .cmp .row{display:grid;grid-template-columns:150px 1fr 66px;gap:10px;align-items:center;font-size:13px}
-  .cmp .row.me{font-weight:700}
-  .cmp .track{height:18px;background:var(--paper-2);border-radius:3px;position:relative;overflow:hidden}
-  .cmp .track i{position:absolute;top:0;bottom:0;background:var(--c);border-radius:3px}
-  .cmp .row.me .track i{background:var(--gold)}
-  .cmp .val{text-align:right;font-variant-numeric:tabular-nums}
-  .cmp .avgline{position:absolute;top:0;bottom:0;width:2px;background:var(--pine);opacity:.5;z-index:1}
-  .cmp-note{font-size:12.5px;color:var(--muted);margin-top:8px}
-  .cmp-verdict{font-size:14.5px;margin:0 0 12px;background:#fff;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:var(--radius);padding:12px 16px}
-  @media (max-width:620px){ .cmp .row{grid-template-columns:104px 1fr 58px;font-size:12.5px} }
 
   /* カード表 */
   .rar-group{margin-bottom:22px}
@@ -126,7 +119,7 @@
     .controls select{min-width:0;width:100%}
     #setSelect{width:100%}
     .controls > select:first-of-type{grid-column:1 / -1}
-    nav{margin-top:10px;gap:12px;font-size:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    nav{margin:0 0 14px;gap:6px;font-size:12px}
     nav a{white-space:nowrap}
     #preview{display:none !important}
   }
@@ -136,20 +129,7 @@
 
 <header>
   <div class="wrap">
-    <div class="head-top">
-      <div>
-        <div class="brand" data-i18n="site.name">リミテッド・ワークベンチ</div>
-        <h1 data-i18n="reports.h1">環境レポート</h1>
-        <p data-i18n="reports.lead">17Landsの実戦データから、そのセットの環境を読み解きます。</p>
-      </div>
-      <div class="controls">
-        <select id="setSelect" data-i18n-label="sel.set"><option value="">…</option></select>
-        <select id="eventSelect" data-i18n-label="sel.event"></select>
-        <select id="langSelect" data-i18n-label="lang.label" style="min-width:110px">
-          <option value="ja">日本語</option><option value="en">English</option>
-        </select>
-      </div>
-    </div>
+    <div class="brand" data-i18n="site.name">リミテッド・ワークベンチ</div>
     <nav>
       <a href="./guide.html" data-i18n="nav.guide">使い方</a>
       <a href="./" data-i18n="nav.sealed">シールド構築</a>
@@ -158,11 +138,28 @@
       <a href="./reports.html" class="on" data-i18n="nav.reports">環境レポート</a>
       <a href="./privacy.html" data-i18n="nav.privacy">プライバシー</a>
     </nav>
+    <div class="head-top">
+      <div>
+        <h1 data-i18n="reports.h1">環境レポート</h1>
+        <p data-i18n="reports.lead">17Landsの実戦データから、そのセットの環境を読み解きます。</p>
+      </div>
+      <div class="controls">
+        <select id="setSelect" data-i18n-label="sel.set"><option value="">…</option></select>
+        <select id="langSelect" data-i18n-label="lang.label" style="min-width:110px">
+          <option value="ja">日本語</option><option value="en">English</option>
+        </select>
+      </div>
+    </div>
   </div>
 </header>
 
 <main>
-  <div id="status" class="status" data-i18n="reports.ready">セットとイベント種別を選んでください。</div>
+  <div class="modebar">
+    <span class="lbl" data-i18n="sel.event">形式</span>
+    <select id="eventSelect" data-i18n-label="sel.event"></select>
+  </div>
+
+  <div id="status" class="status" data-i18n="reports.ready">セットと形式を選んでください。</div>
   <p class="built" id="built"></p>
   <div id="body" hidden></div>
 </main>
@@ -366,43 +363,6 @@ function wrClass(wr, avg){
   return "";
 }
 
-function compareSection(){
-  if(!speedIndex || !report) return "";
-  const grp = speedIndex[report.mode];
-  if(!grp || !grp.sets || grp.sets.length < 2 || grp.average == null) return "";
-
-  // 直近8セットに入っていない古いセットでも、自分の値は出す
-  const mine = grp.sets.find(x => x.set === report.set)
-            || (report.avg_turns != null ? { set: report.set, avg_turns: report.avg_turns } : null);
-  if(!mine) return "";
-
-  // 目盛りは直近セットの幅に合わせ、このセットの棒と平均の縦線だけを描く
-  const vals = grp.sets.map(x => x.avg_turns).concat([grp.average, mine.avg_turns]);
-  const lo = Math.min(...vals) - 0.25;
-  const hi = Math.max(...vals) + 0.25;
-  const pos = v => ((v - lo) / (hi - lo)) * 100;
-
-  const diff = mine.avg_turns - grp.average;
-  const verdict = Math.abs(diff) < 0.15 ? t("reports.same")
-    : (diff < 0 ? t("reports.faster", {n: Math.abs(diff).toFixed(1)})
-                : t("reports.slower", {n: Math.abs(diff).toFixed(1)}));
-
-  return `<section>
-    <h2>${t("reports.compare.h")}</h2>
-    <p class="lead">${t("reports.compare.lead", {n: grp.count || grp.sets.length})}</p>
-    <p class="cmp-verdict">${verdict}</p>
-    <div class="cmp">
-      <div class="avgline" style="left:calc(150px + 10px + (100% - 150px - 66px - 20px) * ${pos(grp.average) / 100})"></div>
-      <div class="row me">
-        <span>${t("reports.compare.this")}</span>
-        <span class="track"><i style="left:0;width:${Math.max(2, pos(mine.avg_turns))}%"></i></span>
-        <span class="val">${mine.avg_turns.toFixed(1)}</span>
-      </div>
-    </div>
-    <p class="cmp-note">${t("reports.compare.avg", {c: grp.count || grp.sets.length, n: grp.average.toFixed(1)})}</p>
-  </section>`;
-}
-
 function render(){
   const d = report, avg = d.overall_win_rate;
   const ev = t("mode." + d.mode);
@@ -426,17 +386,11 @@ function render(){
         <h2>${t("reports.speed.h")}</h2>
         <div class="verdict">${t("reports.speed.best", {
             label: t("reports.speedn." + best.key), p: (best.wr * 100).toFixed(1)
-          })}
-          <span class="gap">${t("reports.speed.bestnote", {
-            a: (avg * 100).toFixed(1), g: (best.games || 0).toLocaleString()
-          })}</span></div>
+          })}</div>
         ${d.notes?.speed ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.speed[I18N.lang] || "")}</p></div>` : ""}
       </section>`);
     }
   }
-
-  // 他のセットとの比較
-  out.push(compareSection());
 
   // 色の強さ
   if(d.colors && d.colors.length){

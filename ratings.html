@@ -31,14 +31,10 @@
   header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
   .wrap{max-width:1180px;margin:0 auto}
   .head-top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
-  .brand{
-    font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;
-    font-size:12px;font-weight:600;letter-spacing:.08em;
-    color:var(--gold);margin-bottom:4px;text-transform:none;
-  }
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--gold);line-height:16px;margin:0 0 10px}
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;max-width:60ch}
-  nav{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
   nav a{
     display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;
     font-size:13px;font-weight:500;line-height:1;white-space:nowrap;
@@ -62,6 +58,11 @@
   :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
   main{max-width:1180px;margin:0 auto;padding:20px 24px 70px}
+  /* 記事内の形式切り替え */
+  .modebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+  .modebar .lbl{font-size:13px;color:var(--muted)}
+  .modebar select{background:#fff;color:var(--ink);border:1px solid var(--line);min-width:150px;padding:8px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px}
+
   .status{padding:14px 16px;background:var(--paper-2);border-left:3px solid var(--muted);font-size:14px;color:var(--muted);margin-bottom:16px}
   .status.err{border-left-color:#B4432E;color:#8A3422;background:#F6E9E5}
 
@@ -124,7 +125,7 @@
     .controls > select:first-of-type{grid-column:1 / -1}
     .controls label.toggle{grid-column:auto;font-size:12px;gap:6px}
 
-    nav{margin-top:10px;gap:12px;font-size:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    nav{margin:0 0 14px;gap:6px;font-size:12px}
     nav a{white-space:nowrap}
 
     /* カード画像を小さめに並べる */
@@ -149,22 +150,7 @@
 
 <header>
   <div class="wrap">
-    <div class="head-top">
-      <div>
-        <div class="brand" data-i18n="site.name">リミテッド・ワークベンチ</div>
-        <h1 data-i18n="ratings.h1">カード勝率一覧</h1>
-        <p data-i18n="ratings.lead">MTGアリーナのリミテッドにおけるカードごとの実戦勝率です。17Landsの公開データを集計したもので、主観的な点数ではありません。色別・数値順に並べ替えられます。</p>
-      </div>
-      <div class="controls">
-        <select id="setSelect" data-i18n-label="sel.set"><option value="">…</option></select>
-        <select id="eventSelect" data-i18n-label="sel.event">
-          <option value="draft" data-i18n="mode.draft">ドラフト</option>
-          <option value="sealed" data-i18n="mode.sealed">シールド</option>
-        </select>
-        <button id="loadBtn" disabled data-i18n="ratings.load">読み込む</button>
-        <select id="langSelect" data-i18n-label="lang.label" style="min-width:120px"><option value="ja">日本語</option><option value="en">English</option></select>
-      </div>
-    </div>
+    <div class="brand" data-i18n="site.name">リミテッド・ワークベンチ</div>
     <nav>
       <a href="./guide.html" data-i18n="nav.guide">使い方</a>
       <a href="./" data-i18n="nav.sealed">シールド構築</a>
@@ -173,11 +159,30 @@
       <a href="./reports.html" data-i18n="nav.reports">環境レポート</a>
       <a href="./privacy.html" data-i18n="nav.privacy">プライバシー</a>
     </nav>
+    <div class="head-top">
+      <div>
+        <h1 data-i18n="ratings.h1">カード勝率一覧</h1>
+        <p data-i18n="ratings.lead">MTGアリーナのリミテッドにおけるカードごとの実戦勝率です。17Landsの公開データを集計したもので、主観的な点数ではありません。色別・数値順に並べ替えられます。</p>
+      </div>
+      <div class="controls">
+        <select id="setSelect" data-i18n-label="sel.set"><option value="">…</option></select>
+        <select id="langSelect" data-i18n-label="lang.label" style="min-width:120px"><option value="ja">日本語</option><option value="en">English</option></select>
+      </div>
+    </div>
   </div>
 </header>
 
 <main>
-  <div id="status" class="status" data-i18n="ratings.ready">セットとイベント種別を選んで「読み込む」を押してください。</div>
+  <div class="modebar">
+    <span class="lbl" data-i18n="sel.event">形式</span>
+    <select id="eventSelect" data-i18n-label="sel.event">
+      <option value="draft" data-i18n="mode.draft">ドラフト</option>
+      <option value="sealed" data-i18n="mode.sealed">シールド</option>
+    </select>
+    <button id="loadBtn" disabled data-i18n="ratings.load">読み込む</button>
+  </div>
+
+  <div id="status" class="status" data-i18n="ratings.ready">セットと形式を選んで「読み込む」を押してください。</div>
 
   <div class="note" data-i18n-html="ratings.note"><b>GIH勝率</b>：そのカードが手札か戦場にあった試合の勝率。カードの強さを見る基本の指標です。　<b>GP勝率</b>：そのカードをデッキに入れた試合の勝率。　<b>IWD</b>：引いた試合と引かなかった試合の勝率差（GIH勝率 − GNS勝率）。　<b>GNS勝率</b>：デッキには入れたが引かなかった試合の勝率。　<b>採用数</b>：デッキに入れられた試合数。　<b>試合数</b>：GIH勝率の母数。少ないカードは数値が揺れやすいので併せて見てください。</div>
 
@@ -325,7 +330,7 @@ async function loadSets(){
 
     renderSetOptions();
     updateEventOptions();
-    $("loadBtn").disabled = false;
+    $("loadBtn").disabled = !$("setSelect").value;
     setStatus(t("ratings.ready"));
   }catch(e){
     setStatus(t("err.sets", {e: e.message}), true);

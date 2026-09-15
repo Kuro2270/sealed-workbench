@@ -29,14 +29,10 @@
   header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
   .wrap{max-width:1180px;margin:0 auto}
   .head-top{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
-  .brand{
-    font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;
-    font-size:12px;font-weight:600;letter-spacing:.08em;
-    color:var(--gold);margin-bottom:4px;text-transform:none;
-  }
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--gold);line-height:16px;margin:0 0 10px}
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;max-width:60ch}
-  nav{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
   nav a{
     display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;
     font-size:13px;font-weight:500;line-height:1;white-space:nowrap;
@@ -78,7 +74,7 @@
     footer{padding:0 14px 40px}
     .head-top{flex-direction:column;align-items:stretch;gap:12px}
     .controls select{width:100%}
-    nav{margin-top:10px;gap:12px;font-size:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    nav{margin:0 0 14px;gap:6px;font-size:12px}
     nav a{white-space:nowrap}
     .cta a{flex:1 1 100%;text-align:center}
   }
@@ -88,9 +84,17 @@
 
 <header>
   <div class="wrap">
+    <div class="brand" data-i18n="site.name">リミテッド・ワークベンチ</div>
+    <nav>
+      <a href="./guide.html" class="on" data-i18n="nav.guide">使い方</a>
+      <a href="./" data-i18n="nav.sealed">シールド構築</a>
+      <a href="./draft.html" data-i18n="nav.draft">ドラフト</a>
+      <a href="./ratings.html" data-i18n="nav.ratings">カード勝率一覧</a>
+      <a href="./reports.html" data-i18n="nav.reports">環境レポート</a>
+      <a href="./privacy.html" data-i18n="nav.privacy">プライバシー</a>
+    </nav>
     <div class="head-top">
       <div>
-        <div class="brand" data-i18n="site.name">リミテッド・ワークベンチ</div>
         <h1 data-i18n="guide.h1">使い方</h1>
         <p data-i18n="guide.lead">このサイトで何ができるのか、誰に向いているのか、そして実際にアリーナで遊ぶまでの流れをまとめます。</p>
       </div>
@@ -100,14 +104,6 @@
         </select>
       </div>
     </div>
-    <nav>
-      <a href="./guide.html" class="on" data-i18n="nav.guide">使い方</a>
-      <a href="./" data-i18n="nav.sealed">シールド構築</a>
-      <a href="./draft.html" data-i18n="nav.draft">ドラフト</a>
-      <a href="./ratings.html" data-i18n="nav.ratings">カード勝率一覧</a>
-      <a href="./reports.html" data-i18n="nav.reports">環境レポート</a>
-      <a href="./privacy.html" data-i18n="nav.privacy">プライバシー</a>
-    </nav>
   </div>
 </header>
 
