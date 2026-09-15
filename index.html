@@ -42,11 +42,11 @@
   /* ---------- header ---------- */
   header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
   .wrap{max-width:1180px;margin:0 auto}
-  .head-top{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
+  .head-top{display:block}
   .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
   header h1{font-size:24px;margin:0}
-  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;max-width:60ch}
-  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  .controls{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   select,button{font-family:inherit;font-size:14px}
   select{
     background:var(--pine-deep);color:var(--paper);border:1px solid #3D544B;
@@ -58,8 +58,8 @@
   }
   button:hover{background:#CBA33B}
   button:disabled{background:#6E7772;color:#C6CCC9;cursor:not-allowed}
-  button.ghost{background:transparent;color:var(--paper);border:1px solid #4A6157;font-weight:500}
-  button.ghost:hover{background:#2E4239}
+  button.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);font-weight:600}
+  button.ghost:hover{background:var(--paper-2);border-color:var(--muted)}
   /* セット名が入る前後で幅が動かないよう固定する */
   #setSelect{width:300px}
 
@@ -193,6 +193,7 @@
 
   /* ---------- スマートフォン ---------- */
   @media (max-width:720px){
+    header p{min-height:0}
     html,body{overflow-x:hidden}
     body{font-size:14px}
     header{padding:16px 14px 12px}

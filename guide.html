@@ -30,10 +30,10 @@
 
   header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
   .wrap{max-width:1180px;margin:0 auto}
-  .head-top{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
+  .head-top{display:block}
   .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
   header h1{font-size:24px;margin:0}
-  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;max-width:60ch}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
   nav a{
     display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;
@@ -43,7 +43,7 @@
   }
   nav a:hover{background:#31473E;color:var(--paper);border-color:#547064}
   nav a.on{background:var(--gold);border-color:var(--gold);color:#1A1405;font-weight:700}
-  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .controls{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   select{background:var(--pine-deep);color:var(--paper);border:1px solid #3D544B;padding:9px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px;min-width:120px}
   :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
@@ -67,6 +67,7 @@
 
   /* ---------- スマートフォン ---------- */
   @media (max-width:720px){
+    header p{min-height:0}
     html,body{overflow-x:hidden}
     body{font-size:14px}
     header{padding:16px 14px 12px}
@@ -110,6 +111,11 @@
 </header>
 
 <main>
+  <section>
+    <h2 data-i18n="guide.s0.h">このサイトの目的</h2>
+    <div data-i18n-html="guide.s0.body"><p>マジック：ザ・ギャザリング アリーナのリミテッドを、もっと楽しんでもらうためのサイトです。目指していることは2つあります。</p><p><b>客観的なデータで強いデッキを組めるようにすること。</b>カードの強弱は感覚で語られがちですが、実際には何万試合もの結果が公開されています。それを日本語で、並べ替えて読める形にしました。感覚に頼らず、数字を見てデッキを組めます。</p><p><b>アリーナに接続しなくても、練習や友人との対戦ができるようにすること。</b>有料イベントに入らなくても、シールドとドラフトを何度でも試せます。組んだデッキはアリーナにそのまま取り込めるので、そのまま友人との対戦にも使えます。</p></div>
+  </section>
+
   <section>
     <h2 data-i18n="guide.s1.h">このサイトでできること</h2>
     <div data-i18n-html="guide.s1.body"><p>マジック：ザ・ギャザリング アリーナのリミテッド（シールド戦・ドラフト）を、<b>課金せずに何度でも練習できる</b>ツールです。パックの開封からデッキ構築までをブラウザ上で行い、組んだデッキはアリーナにそのままインポートできるテキストとして書き出せます。</p><p>できることは4つです。<b>シールド構築</b>と<b>ドラフト構築</b>でアリーナに接続せず練習し、<b>カード勝率一覧</b>でカード1枚ごとの実戦勝率を調べ、<b>環境レポート</b>でそのセットの環境全体を読み解けます。</p><p>カードの強さは主観的な点数ではなく、17Landsの公開データを集計した<b>実際の勝率</b>です。日本語のカード名・カード画像に対応しています。</p></div>
