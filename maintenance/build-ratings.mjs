@@ -179,10 +179,26 @@ async function build(set, format, metaCache){
         else e.gih.push(i);
       });
 
-      // deck 列があるカードだけを対象にする
+      // deck 列があるカードを候補にする
+      const cand = [];
       for(const [name, e] of byName){
         if(e.deck < 0) continue;
-        const m = meta.get(name);
+        cand.push([name, e, meta.get(name)]);
+      }
+
+      /* そのセットに収録されていないカードの扱い。
+         Special Guests やボーナスシートのように、特別枠から少しだけ出るカードは
+         母数が小さく環境の分析に向かないので除く。
+         一方 OM1 のように、そもそも他セットのカードで環境が構成されているセットもある。
+         そこで「セット外が全体の半分未満なら除く」とし、半分以上なら環境そのものとみなして残す。
+         Scryfall が取れなかったときに全部消えるのも、この条件で防げる。 */
+      const outside = cand.filter(x => !x[2]).length;
+      const dropOutside = outside > 0 && outside < cand.length * 0.5;
+      if(outside) process.stderr.write(
+        `  セット外のカード: ${outside}種（全${cand.length}種）→ ${dropOutside ? "除外する" : "環境の一部として残す"}\n`);
+
+      for(const [name, e, m] of cand){
+        if(dropOutside && !m) continue;
         names.push(name);
         deckCol.push(e.deck);
         gihCols.push(e.gih);
