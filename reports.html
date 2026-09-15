@@ -25,6 +25,8 @@
   *{box-sizing:border-box}
   [hidden]{display:none !important}
   html,body{margin:0;padding:0}
+  /* 内容の長さでスクロールバーが出たり消えたりしても、位置が動かないようにする */
+  html{overflow-y:scroll;scrollbar-gutter:stable}
   body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.8}
   h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
 
@@ -391,6 +393,18 @@ async function load(){
 }
 
 /* ---------- 描画 ---------- */
+/* 直近セットと比べた速さを、数字なしで1文にする */
+function paceLine(){
+  if(!speedIndex || !report) return "";
+  const grp = speedIndex[report.mode];
+  if(!grp || grp.average == null) return "";
+  const mine = (grp.sets || []).find(x => x.set === report.set)?.avg_turns ?? report.avg_turns;
+  if(mine == null) return "";
+  const diff = mine - grp.average;
+  const key = Math.abs(diff) < 0.15 ? "same" : (diff < 0 ? "fast" : "slow");
+  return ` ${t("reports.pace." + key, {c: grp.count || (grp.sets || []).length})}`;
+}
+
 function barRow(label, wr, games, cls, dotVar){
   const w = wr == null ? 0 : Math.max(2, ((wr - 0.45) / 0.20) * 100);   // 45%〜65%を横幅に割り当てる
   return `<div class="bar">
@@ -431,7 +445,7 @@ function render(){
         <h2>${t("reports.speed.h")}</h2>
         <div class="verdict">${t("reports.speed.best", {
             label: t("reports.speedn." + best.key), p: (best.wr * 100).toFixed(1)
-          })}</div>
+          })}${paceLine()}</div>
         ${d.notes?.speed ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.speed[I18N.lang] || "")}</p></div>` : ""}
       </section>`);
     }

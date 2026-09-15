@@ -28,6 +28,8 @@
   *{box-sizing:border-box}
   [hidden]{display:none !important}
   html,body{margin:0;padding:0}
+  /* 内容の長さでスクロールバーが出たり消えたりしても、位置が動かないようにする */
+  html{overflow-y:scroll;scrollbar-gutter:stable}
   body{
     background:var(--paper);
     color:var(--ink);
@@ -38,17 +40,12 @@
   h1,h2,h3,.num{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.15}
 
   /* ---------- header ---------- */
-  header{
-    background:var(--pine);
-    color:var(--paper);
-    padding:24px 24px 16px;
-    border-bottom:4px solid var(--gold);
-  }
+  header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
   .wrap{max-width:1180px;margin:0 auto}
   .head-top{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
   .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
   header h1{font-size:24px;margin:0}
-  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;max-width:56ch}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;max-width:60ch}
   .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   select,button{font-family:inherit;font-size:14px}
   select{
@@ -250,20 +247,20 @@
     <div class="head-top">
       <div>
         <h1 data-i18n="index.h1">シールド構築</h1>
-      <p data-i18n="index.lead">6パック分のカードプールを生成して40枚デッキを組み、マジック：ザ・ギャザリング アリーナにそのまま貼り付けられるテキストを書き出します。</p>
-    </div>
-    <div class="controls">
-      <select id="setSelect" data-i18n-label="sel.set"><option value="">…</option></select>
-      <button id="openBtn" disabled data-i18n="index.open">6パック開封</button>
-      <select id="sortSelect" data-i18n-label="sel.sort" style="min-width:150px">
-        <option value="cmc" data-i18n="index.sortCmc">マナ総量順</option>
-        <option value="wr" data-i18n="index.sortWr">勝率順</option>
-      </select>
-      <select id="langSelect" data-i18n-label="lang.label" style="min-width:120px"><option value="ja">日本語</option><option value="en">English</option></select>
-      <label class="toggle"><input type="checkbox" id="imgToggle" checked><span data-i18n="opt.img">カード画像を表示</span></label>
-      <label class="toggle"><input type="checkbox" id="textToggle"><span data-i18n="opt.text">テキストで一覧表示</span></label>
-      <label class="toggle"><input type="checkbox" id="wrToggle" checked><span data-i18n="opt.wr" data-i18n-title="wr.gih.tip">勝率を表示</span></label>
-    </div>
+        <p data-i18n="index.lead">6パック分のカードプールを生成して40枚デッキを組み、マジック：ザ・ギャザリング アリーナにそのまま貼り付けられるテキストを書き出します。</p>
+      </div>
+      <div class="controls">
+        <select id="setSelect" data-i18n-label="sel.set"><option value="">…</option></select>
+        <button id="openBtn" disabled data-i18n="index.open">6パック開封</button>
+        <select id="sortSelect" data-i18n-label="sel.sort" style="min-width:150px">
+          <option value="cmc" data-i18n="index.sortCmc">マナ総量順</option>
+          <option value="wr" data-i18n="index.sortWr">勝率順</option>
+        </select>
+        <select id="langSelect" data-i18n-label="lang.label" style="min-width:120px"><option value="ja">日本語</option><option value="en">English</option></select>
+        <label class="toggle"><input type="checkbox" id="imgToggle" checked><span data-i18n="opt.img">カード画像を表示</span></label>
+        <label class="toggle"><input type="checkbox" id="textToggle"><span data-i18n="opt.text">テキストで一覧表示</span></label>
+        <label class="toggle"><input type="checkbox" id="wrToggle" checked><span data-i18n="opt.wr" data-i18n-title="wr.gih.tip">勝率を表示</span></label>
+      </div>
     </div>
   </div>
 </header>
