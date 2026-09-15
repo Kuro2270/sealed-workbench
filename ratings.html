@@ -414,7 +414,8 @@ async function loadCardMaps(code, needed){
         const ci = (c.color_identity || []).join("");
         return (c.type_line || "").includes("Land") && !ci ? "" : ci;
       })(),
-      rarity: c.rarity || ""
+      rarity: c.rarity || "",
+      setCode: (c.set || "").toUpperCase()          // どのセットの印刷か
     };
     const imgs = c.image_uris?.normal
       ? [c.image_uris.normal]
@@ -552,8 +553,20 @@ async function load(){
     // 公開データセットには色とレアリティが無いので Scryfall から補う
     cards.forEach(c => {
       const n = nameMap[c.name];
+      c.inSet = !!(n && n.setCode === code.toUpperCase());
       if(n){ c.color = n.color || ""; c.rarity = n.rarity || ""; }
     });
+
+    /* 特別枠（Special Guests やボーナスシート）から出る他セットのカードは、
+       母数が小さく環境の分析に向かないため除く。
+       ただし OM1 のように、他セットのカードで環境そのものが組まれているセットもある。
+       セット外が半分以上を占める場合は環境の一部とみなして残す。
+       Scryfall が取れなかったときに全部消えるのも、この条件で防げる。 */
+    const inSet = cards.filter(c => c.inSet);
+    if(inSet.length && inSet.length >= cards.length * 0.5){
+      cards = inSet;
+      info.count = cards.length;
+    }
 
     dataCache[key] = { cards, info };
     loadedSet = code;
