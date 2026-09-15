@@ -52,6 +52,12 @@
 
   main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
   /* 記事内の形式切り替え */
+  /* 形式の切り替えタブ */
+  .tabs{display:inline-flex;gap:3px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .tab{background:transparent;border:none;border-radius:999px;padding:8px 22px;font-family:inherit;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;line-height:1.4}
+  .tab:hover:not(:disabled):not(.on){color:var(--ink);background:#fff}
+  .tab.on{background:var(--pine);color:var(--paper)}
+  .tab:disabled{opacity:.38;cursor:not-allowed}
   .modebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
   .modebar .lbl{font-size:13px;color:var(--muted)}
   .modebar select{background:#fff;color:var(--ink);border:1px solid var(--line);min-width:150px;padding:8px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px}
@@ -155,8 +161,10 @@
 
 <main>
   <div class="modebar">
-    <span class="lbl" data-i18n="sel.event">形式</span>
-    <select id="eventSelect" data-i18n-label="sel.event"></select>
+    <div class="tabs" id="modeTabs" role="tablist">
+      <button type="button" class="tab on" role="tab" aria-selected="true"  data-mode="draft"  data-i18n="mode.draft">ドラフト</button>
+      <button type="button" class="tab"    role="tab" aria-selected="false" data-mode="sealed" data-i18n="mode.sealed">シールド</button>
+    </div>
   </div>
 
   <div id="status" class="status" data-i18n="reports.ready">セットと形式を選んでください。</div>
@@ -180,6 +188,9 @@ const RARITIES = ["mythic", "rare", "uncommon", "common"];
 const MIN_GAMES = 500;
 
 let index = [], speedIndex = null, report = null, jaMap = {}, nameMap = {};
+let mode = "draft";         // 表示中の形式（ドラフト／シールド）
+const repCache = {};         // セット×形式ごとの記事。タブの切り替えを即時にする
+let mapsFor = null;          // 日本語名・画像の取得済みセット（言語つき）
 
 const $ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -201,7 +212,7 @@ async function loadIndex(){
     index = j.articles || [];
     speedIndex = j.speed || null;
     renderSetOptions();
-    updateEventOptions();
+    updateModeTabs();
     if(index.length) load();
   }catch(e){
     setStatus(t("reports.none"), true);
@@ -227,18 +238,26 @@ function renderSetOptions(){
   if(keep && sets.includes(keep)) sel.value = keep;
 }
 
-function updateEventOptions(){
+/* 選んだセットで用意のある形式だけを押せるようにする */
+function updateModeTabs(){
   const code = $("setSelect").value;
   const modes = index.filter(a => a.set === code).map(a => a.mode);
-  const sel = $("eventSelect"), keep = sel.value;
-  sel.innerHTML = "";
-  ["sealed", "draft"].filter(m => modes.includes(m)).forEach(m => {
-    const o = document.createElement("option");
-    o.value = m;
-    o.textContent = t("mode." + m);
-    sel.appendChild(o);
+  let first = null;
+  document.querySelectorAll("#modeTabs .tab").forEach(b => {
+    b.disabled = modes.length > 0 && !modes.includes(b.dataset.mode);
+    if(!b.disabled && first === null) first = b.dataset.mode;
   });
-  if(keep && modes.includes(keep)) sel.value = keep;
+  if(first && !modes.includes(mode)) mode = first;
+  syncModeTabs();
+}
+
+/* タブの見た目を今の形式に合わせる */
+function syncModeTabs(){
+  document.querySelectorAll("#modeTabs .tab").forEach(b => {
+    const on = b.dataset.mode === mode;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-selected", String(on));
+  });
 }
 
 /* ---------- 日本語カード名・画像 ---------- */
@@ -329,16 +348,33 @@ function imageUrls(name){
 
 /* ---------- 本体の読み込み ---------- */
 async function load(){
-  const code = $("setSelect").value, mode = $("eventSelect").value;
+  const code = $("setSelect").value;
   if(!code || !mode) return;
+  const key = code + "_" + mode;
+
+  // 一度読んだ組み合わせは覚えておき、タブの切り替えで待たせない
+  if(repCache[key] && mapsFor === code + ":" + I18N.lang){
+    report = repCache[key];
+    render();
+    return;
+  }
+
   $("body").hidden = true;
   setStatus(t("reports.loading"));
 
   try{
-    const res = await fetch(`./data/articles/${code}_${mode}.json`, {cache:"no-cache"});
-    if(!res.ok){ setStatus(t("reports.none"), true); return; }
-    report = await res.json();
-    await loadCardMaps(code);
+    let r = repCache[key];
+    if(!r){
+      const res = await fetch(`./data/articles/${key}.json`, {cache:"no-cache"});
+      if(!res.ok){ setStatus(t("reports.none"), true); return; }
+      r = await res.json();
+      repCache[key] = r;
+    }
+    report = r;
+    if(mapsFor !== code + ":" + I18N.lang){
+      await loadCardMaps(code);
+      mapsFor = code + ":" + I18N.lang;
+    }
     render();
   }catch(e){
     setStatus(t("reports.none"), true);
@@ -515,12 +551,19 @@ function hidePreview(){
 }
 
 /* ---------- イベント ---------- */
-$("setSelect").onchange = () => { updateEventOptions(); load(); };
-$("eventSelect").onchange = load;
+$("setSelect").onchange = () => { updateModeTabs(); load(); };
+document.querySelectorAll("#modeTabs .tab").forEach(b => {
+  b.onclick = () => {
+    if(b.disabled || b.dataset.mode === mode) return;
+    mode = b.dataset.mode;
+    syncModeTabs();
+    load();
+  };
+});
 $("langSelect").value = I18N.lang;
 $("langSelect").onchange = e => I18N.set(e.target.value);
 I18N.onChange(() => {
-  hidePreview(); renderSetOptions(); updateEventOptions();
+  hidePreview(); renderSetOptions(); updateModeTabs();
   if(report) load();
 });
 window.addEventListener("scroll", hidePreview, {passive:true});

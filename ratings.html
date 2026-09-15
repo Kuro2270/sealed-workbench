@@ -59,6 +59,12 @@
 
   main{max-width:1180px;margin:0 auto;padding:20px 24px 70px}
   /* 記事内の形式切り替え */
+  /* 形式の切り替えタブ */
+  .tabs{display:inline-flex;gap:3px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .tab{background:transparent;border:none;border-radius:999px;padding:8px 22px;font-family:inherit;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;line-height:1.4}
+  .tab:hover:not(:disabled):not(.on){color:var(--ink);background:#fff}
+  .tab.on{background:var(--pine);color:var(--paper)}
+  .tab:disabled{opacity:.38;cursor:not-allowed}
   .modebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
   .modebar .lbl{font-size:13px;color:var(--muted)}
   .modebar select{background:#fff;color:var(--ink);border:1px solid var(--line);min-width:150px;padding:8px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px}
@@ -174,11 +180,10 @@
 
 <main>
   <div class="modebar">
-    <span class="lbl" data-i18n="sel.event">形式</span>
-    <select id="eventSelect" data-i18n-label="sel.event">
-      <option value="draft" data-i18n="mode.draft">ドラフト</option>
-      <option value="sealed" data-i18n="mode.sealed">シールド</option>
-    </select>
+    <div class="tabs" id="modeTabs" role="tablist">
+      <button type="button" class="tab on" role="tab" aria-selected="true"  data-mode="draft"  data-i18n="mode.draft">ドラフト</button>
+      <button type="button" class="tab"    role="tab" aria-selected="false" data-mode="sealed" data-i18n="mode.sealed">シールド</button>
+    </div>
     <button id="loadBtn" disabled data-i18n="ratings.load">読み込む</button>
   </div>
 
@@ -235,6 +240,10 @@ const RARITIES = [
   {key:"mythic",   label:"M"}
 ];
 let sets = [], cards = [], jaMap = {}, nameMap = {}, source = "", available = null;
+let mode = "draft";              // 表示中の形式（ドラフト／シールド）
+let loadedSet = null;            // 読み込み済みのセット
+const dataCache = {};            // セット×形式ごとの結果。タブの切り替えを即時にする
+let mapsFor = null;              // 日本語名・画像の取得済みセット
 let sortKey = "gih", sortDesc = true;
 let colorFilter = new Set(), rarityFilter = new Set(), minGames = 500;
 
@@ -329,7 +338,7 @@ async function loadSets(){
     sets = sets.slice(0, 30);
 
     renderSetOptions();
-    updateEventOptions();
+    updateModeTabs();
     $("loadBtn").disabled = !$("setSelect").value;
     setStatus(t("ratings.ready"));
   }catch(e){
@@ -337,17 +346,26 @@ async function loadSets(){
   }
 }
 
-/* 選んだセットで用意のあるイベント種別だけを有効にする */
-function updateEventOptions(){
-  if(!available) return;
+/* 選んだセットで用意のある形式だけを押せるようにする */
+function updateModeTabs(){
   const code = ($("setSelect").value || "").toUpperCase();
-  const have = new Set(available.filter(a => a.set.toUpperCase() === code).map(a => a.mode));
+  const have = available ? new Set(available.filter(a => a.set.toUpperCase() === code).map(a => a.mode)) : new Set();
   let first = null;
-  [...$("eventSelect").options].forEach(o => {
-    o.disabled = have.size > 0 && !have.has(o.value);
-    if(!o.disabled && first === null) first = o.value;
+  document.querySelectorAll("#modeTabs .tab").forEach(b => {
+    b.disabled = have.size > 0 && !have.has(b.dataset.mode);
+    if(!b.disabled && first === null) first = b.dataset.mode;
   });
-  if(first && $("eventSelect").selectedOptions[0]?.disabled) $("eventSelect").value = first;
+  if(first && !have.has(mode) && have.size > 0) mode = first;
+  syncModeTabs();
+}
+
+/* タブの見た目を今の形式に合わせる */
+function syncModeTabs(){
+  document.querySelectorAll("#modeTabs .tab").forEach(b => {
+    const on = b.dataset.mode === mode;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-selected", String(on));
+  });
 }
 
 function renderSetOptions(){
@@ -473,8 +491,9 @@ async function loadCardMaps(code, needed){
 /* ---------- 勝率データ ---------- */
 async function load(){
   const code = $("setSelect").value;
-  const event = $("eventSelect").value;
-  const eventLabel = $("eventSelect").selectedOptions[0].textContent;
+  const event = mode;
+  const eventLabel = t("mode." + mode);
+  if(!code) return;
   $("loadBtn").disabled = true;
   $("tblwrap").hidden = true;
   $("filters").hidden = true;
@@ -484,6 +503,19 @@ async function load(){
   try{
     let info = null;
     source = "";
+
+    // 一度読んだ組み合わせは覚えておき、タブの切り替えで待たせない
+    const key = code.toUpperCase() + "_" + event;
+    if(dataCache[key]){
+      cards = dataCache[key].cards;
+      info  = dataCache[key].info;
+      source = "dataset";
+      buildFilters();
+      render();
+      showSummary(code, eventLabel, info);
+      loadedSet = code;
+      return;
+    }
 
     // 集計済みの公開データセット（CC BY 4.0）を読み込む
     const res = await fetch(`./data/ratings/${code.toUpperCase()}_${event}.json`, {cache:"no-cache"});
@@ -500,8 +532,11 @@ async function load(){
     source = "dataset";
     info = { count: d.count ?? cards.length, total: d.total_games, generated: d.generated_at, wr: d.overall_win_rate };
 
-    setStatus(t("ratings.loadingJa"));
-    await loadCardMaps(code, cards.map(c => c.name));
+    if(mapsFor !== code){
+      setStatus(t("ratings.loadingJa"));
+      await loadCardMaps(code, cards.map(c => c.name));
+      mapsFor = code;
+    }
 
     // 公開データセットには色とレアリティが無いので Scryfall から補う
     cards.forEach(c => {
@@ -509,19 +544,25 @@ async function load(){
       if(n){ c.color = n.color || ""; c.rarity = n.rarity || ""; }
     });
 
+    dataCache[key] = { cards, info };
+    loadedSet = code;
+
     buildFilters();
     render();
-
-    const g = (info.total || 0).toLocaleString();
-    const when = new Date(info.generated).toLocaleDateString("ja-JP");
-    const wr = info.wr != null ? t("ratings.overall", {p: (info.wr * 100).toFixed(1)}) : "";
-    setStatus(t("ratings.summary", {set: code.toUpperCase(), ev: eventLabel, n: info.count, g, wr, d: when}),
-              (info.total || 0) < 5000);
+    showSummary(code, eventLabel, info);
   }catch(e){
     setStatus(t("ratings.fail"), true);
   }finally{
     $("loadBtn").disabled = false;
   }
+}
+
+function showSummary(code, eventLabel, info){
+  const g = (info.total || 0).toLocaleString();
+  const when = new Date(info.generated).toLocaleDateString("ja-JP");
+  const wr = info.wr != null ? t("ratings.overall", {p: (info.wr * 100).toFixed(1)}) : "";
+  setStatus(t("ratings.summary", {set: code.toUpperCase(), ev: eventLabel, n: info.count, g, wr, d: when}),
+            (info.total || 0) < 5000);
 }
 
 /* ---------- 絞り込み ---------- */
@@ -725,7 +766,16 @@ document.querySelectorAll('#filters .chip[data-min]').forEach(b => {
 });
 
 $("loadBtn").onclick = load;
-$("setSelect").onchange = updateEventOptions;
+$("setSelect").onchange = () => { updateModeTabs(); };
+document.querySelectorAll("#modeTabs .tab").forEach(b => {
+  b.onclick = () => {
+    if(b.disabled || b.dataset.mode === mode) return;
+    mode = b.dataset.mode;
+    syncModeTabs();
+    // すでに表示中のセットなら、そのまま同じセットの反対側に切り替える
+    if(loadedSet === $("setSelect").value) load();
+  };
+});
 $("langSelect").value = I18N.lang;
 $("langSelect").onchange = e => I18N.set(e.target.value);
 I18N.onChange(() => { hidePreview(); renderSetOptions(); if(cards.length) render(); });
