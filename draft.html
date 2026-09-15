@@ -400,22 +400,50 @@ async function loadWinRates(code){
 }
 
 /* ---------- パック生成 ---------- */
+/* プレイ・ブースターの構成に寄せています（14枚）。
+   コモン7枚／アンコモン3枚／レアまたは神話レア1枚／土地1枚／特殊枠2枚。
+   特殊枠はどのレアリティも出る枠で、ここがあるため1パックに複数のレアが入ります。
+   WILD の確率は、ウィザーズ社が公表している「レア以上が1枚58%・2枚37%・3枚4%」に
+   合うよう、特殊枠1つあたりレア以上を約24%として逆算した値です。
+   コモンとアンコモンの内訳は非公表のため推定値で、ここを触れば調整できます。 */
+const MYTHIC_RATE = 1 / 7;
+const WILD_ODDS = [
+  {rarity:"mythic",   p:0.035},
+  {rarity:"rare",     p:0.205},
+  {rarity:"uncommon", p:0.270},
+  {rarity:"common",   p:0.490}
+];
+
+function rollWild(){
+  let x = Math.random();
+  for(const w of WILD_ODDS){ if((x -= w.p) < 0) return w.rarity; }
+  return "common";
+}
+
 function buildPack(){
   const by = r => boosterCards.filter(c => c.rarity === r);
-  const commons = by("common"), uncommons = by("uncommon"), rares = by("rare"), mythics = by("mythic");
-  const out = [];
-  const rareSlot = (mythics.length && Math.random() < 1/7) ? mythics : (rares.length ? rares : commons);
-  out.push(pick(rareSlot));
-  const used = new Set();
-  const take = (arr, n) => {
-    for(let i = 0; i < n && arr.length; i++){
-      let c, g = 0;
-      do { c = pick(arr); g++; } while(used.has(c.id) && g < 30);
-      used.add(c.id); out.push(c);
-    }
+  const pools = {common: by("common"), uncommon: by("uncommon"), rare: by("rare"), mythic: by("mythic")};
+  // 土地枠は、そのセットのコモン・アンコモンの土地から
+  const landPool = boosterCards.filter(c => (c.type_line || "").includes("Land")
+                                         && (c.rarity === "common" || c.rarity === "uncommon"));
+  const out = [], used = new Set();
+
+  /* 同じパックに同じカードが入らないように引く */
+  const takeFrom = list => {
+    if(!list || !list.length) return null;
+    let c, guard = 0;
+    do { c = pick(list); guard++; } while(used.has(c.id) && guard < 30);
+    used.add(c.id);
+    return c;
   };
-  take(uncommons, 3);
-  take(commons, PACK_SIZE - 4);
+  const take = rarity => takeFrom(pools[rarity] && pools[rarity].length ? pools[rarity] : pools.common);
+
+  for(let i = 0; i < 7; i++) out.push(take("common"));          // コモン7枚
+  for(let i = 0; i < 3; i++) out.push(take("uncommon"));        // アンコモン3枚
+  out.push(take(Math.random() < MYTHIC_RATE ? "mythic" : "rare"));   // レア枠
+  out.push(landPool.length ? takeFrom(landPool) : take("common"));   // 土地枠
+  for(let i = 0; i < 2; i++) out.push(take(rollWild()));        // 特殊枠2枚
+
   return out.filter(Boolean);
 }
 
