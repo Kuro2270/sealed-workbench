@@ -286,7 +286,7 @@ async function main(){
 
   await writeFile(path.join(OUT_DIR, "index.json"), JSON.stringify({
     generated_at: new Date().toISOString(),
-    articles: made.map(m => ({ set: m.set, mode: m.mode, total_games: m.total_games })),
+    articles: made.map(m => ({ set: m.set, mode: m.mode, total_games: m.total_games, released_at: m.released_at || null })),
     speed: speedIndex
   }), "utf8");
 
