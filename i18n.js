@@ -4,6 +4,7 @@
  * 使い方
  *   HTML: <span data-i18n="nav.sealed"></span>
  *         <input data-i18n-ph="deck.exportPh">      （placeholder）
+ *         <span data-i18n-title="wr.gih.tip">        （title属性＝カーソルを乗せたときの説明）
  *         <html data-title="page.index.title">       （ページタイトル）
  *   JS  : t("status.ready")  /  t("pool.made", {n: 84})
  *
@@ -18,6 +19,12 @@
     "nav.draft":        { ja:"ドラフト",           en:"Draft" },
     "nav.ratings":      { ja:"カード勝率一覧",     en:"Card win rates" },
     "lang.label":       { ja:"言語",               en:"Language" },
+    "foot.short":       { ja:"データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href=\"./privacy.html\">プライバシーポリシー</a>にまとめています。",
+                          en:"Data sources, legal notices and how to credit this site are all on the <a href=\"./privacy.html\">privacy page</a>." },
+    "err.noSet":        { ja:"セットを選んでから始めてください。", en:"Choose a set first." },
+    "wr.gih.tip":       { ja:"GIH勝率（Games In Hand）：そのカードが手札にあった試合の勝率です。17Landsの公開データを集計しています。",
+                          en:"GIH win rate (Games In Hand): the win rate of games where this card was in hand. Aggregated from 17Lands public data." },
+
 
     "opt.img":          { ja:"カード画像を表示",   en:"Show card images" },
     "opt.text":         { ja:"テキストで一覧表示", en:"Text list view" },
@@ -236,6 +243,14 @@
     "privacy.s5.body":  { ja:"<p>当サイトは次の外部サービスを利用しています。これらのサービスを読み込む際、利用者のIPアドレスなどの通信情報が各事業者に送信されます。</p><ul><li><b>Scryfall</b>：カードの情報と画像の取得</li><li><b>17Lands</b>：公開データセットの取得（月1回、当サイトの自動処理が行うもので、利用者のブラウザからは接続しません）</li><li><b>Cloudflare</b>：サイトの配信とアクセス解析</li><li><b>Google Fonts</b>：書体の読み込み</li></ul><p>各サービスにおける情報の取り扱いは、それぞれの事業者の方針に従います。</p>",
                           en:"<p>This site relies on the services below. When your browser loads them, connection information such as your IP address is sent to the relevant provider.</p><ul><li><b>Scryfall</b> — card data and images</li><li><b>17Lands</b> — public datasets (fetched once a month by this site's own automation, not from your browser)</li><li><b>Cloudflare</b> — hosting and analytics</li><li><b>Google Fonts</b> — typefaces</li></ul><p>Information handled by those services is governed by their own policies.</p>" },
 
+    "privacy.s8.h":     { ja:"出典と権利表示", en:"Credits and legal notices" },
+    "privacy.s8.body":  { ja:"<p>カードの情報と画像は <a href=\"https://scryfall.com\" target=\"_blank\" rel=\"noopener\">Scryfall</a> から取得しています。画像は加工せず、そのままの形で表示しています。</p><p>カード勝率は <a href=\"https://www.17lands.com/public_datasets\" target=\"_blank\" rel=\"noopener\">17Lands Public Data</a>（<a href=\"https://creativecommons.org/licenses/by/4.0/\" target=\"_blank\" rel=\"noopener\">CC BY 4.0</a>）を当サイトが集計したものです。</p><p>当サイトは、ファンコンテンツ・ポリシーに基づく非公式のファンコンテンツです。ウィザーズ・オブ・ザ・コースト社の認可・許可を受けていません。題材の一部に同社の財産を含みます。&copy;Wizards of the Coast LLC.</p>",
+                          en:"<p>Card data and images come from <a href=\"https://scryfall.com\" target=\"_blank\" rel=\"noopener\">Scryfall</a>, shown unmodified.</p><p>Card win rates are aggregated by this site from <a href=\"https://www.17lands.com/public_datasets\" target=\"_blank\" rel=\"noopener\">17Lands Public Data</a> (<a href=\"https://creativecommons.org/licenses/by/4.0/\" target=\"_blank\" rel=\"noopener\">CC BY 4.0</a>).</p><p>This site is unofficial Fan Content permitted under the Fan Content Policy. Not approved or endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. &copy;Wizards of the Coast LLC.</p>" },
+
+    "privacy.s9.h":     { ja:"当サイトの内容の引用について", en:"Citing this site" },
+    "privacy.s9.body":  { ja:"<p>当サイトが集計した勝率データや環境レポートの内容は、個人・法人を問わず自由に引用していただけます。</p><p>引用される際は、出典として <a href=\"https://sealed-workbench.com\">https://sealed-workbench.com</a> へのリンクを記載してください。</p><p>なお、元データである17Landsの公開データセットはCC BY 4.0で提供されています。数値をそのまま転載する場合は、あわせて17Landsへの出典表示もお願いします。</p>",
+                          en:"<p>You are welcome to quote the win-rate figures and set reports compiled here.</p><p>When you do, please credit this site with a link to <a href=\"https://sealed-workbench.com\">https://sealed-workbench.com</a>.</p><p>The underlying 17Lands public datasets are provided under CC BY 4.0, so please also credit 17Lands when reproducing the raw figures.</p>" },
+
     "privacy.s6.h":     { ja:"免責事項", en:"Disclaimer" },
     "privacy.s6.body":  { ja:"<p>当サイトが表示するカード勝率は、17Landsが公開しているデータを当サイトが独自に集計したものです。正確性を期していますが、内容を保証するものではありません。</p><p>当サイトの利用によって生じた損害について、運営者は責任を負いかねます。</p><p>当サイトは非公式のファンコンテンツであり、ウィザーズ・オブ・ザ・コースト社および17Landsとは関係ありません。</p>",
                           en:"<p>The win rates shown here are aggregated by this site from data published by 17Lands. Every effort is made to get them right, but no guarantee is given.</p><p>The operator accepts no liability for any loss arising from use of this site.</p><p>This is unofficial fan content and is not affiliated with Wizards of the Coast or with 17Lands.</p>" },
@@ -248,8 +263,8 @@
     "mode.draft":       { ja:"ドラフト", en:"Draft" },
     "reports.sources":  { ja:"内訳：{list}", en:"Includes: {list}" },
     "reports.compare.h":{ ja:"他のセットとの比較", en:"Compared with other sets" },
-    "reports.compare.lead":{ ja:"1試合あたりの平均ターン数です。短いほど速い環境です。同じ形式の直近{n}セットのうち、平均と両端だけを並べています。",
-                          en:"Average turns per game — fewer means a faster format. Shown against the average and the two extremes of the {n} most recent sets in the same mode." },
+    "reports.compare.lead":{ ja:"1試合あたりの平均ターン数です。短いほど速い環境です。縦線は同じ形式の直近{n}セットの平均を表します。",
+                          en:"Average turns per game — fewer means a faster format. The vertical line marks the average of the {n} most recent sets in the same mode." },
     "reports.compare.avg":{ ja:"直近{c}セットの平均 {n}ターン", en:"Average of the last {c} sets: {n} turns" },
     "reports.compare.this":{ ja:"このセット", en:"This set" },
     "reports.turns":    { ja:"{n}ターン", en:"{n} turns" },
@@ -388,6 +403,9 @@
     });
     scope.querySelectorAll("[data-i18n-label]").forEach(el => {
       el.setAttribute("aria-label", t(el.dataset.i18nLabel));
+    });
+    scope.querySelectorAll("[data-i18n-title]").forEach(el => {
+      el.setAttribute("title", t(el.dataset.i18nTitle));
     });
     const tk = document.documentElement.dataset.title;
     if(tk){
