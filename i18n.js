@@ -14,16 +14,16 @@
 (function(){
   const STRINGS = {
     /* ---- 共通 ---- */
-    "site.name":        { ja:"リミテッド・ワークベンチ", en:"Limited Workbench" },
+    "site.name":        { ja:"MTGアリーナ リミテッド・ワークベンチ", en:"MTG Arena Limited Workbench" },
     "nav.sealed":       { ja:"シールド構築",       en:"Sealed" },
-    "nav.draft":        { ja:"ドラフト",           en:"Draft" },
+    "nav.draft":        { ja:"ドラフト構築",       en:"Draft" },
     "nav.ratings":      { ja:"カード勝率一覧",     en:"Card win rates" },
     "lang.label":       { ja:"言語",               en:"Language" },
     "foot.short":       { ja:"データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href=\"./privacy.html\">プライバシーポリシー</a>にまとめています。",
                           en:"Data sources, legal notices and how to credit this site are all on the <a href=\"./privacy.html\">privacy page</a>." },
     "err.noSet":        { ja:"セットを選んでから始めてください。", en:"Choose a set first." },
-    "wr.gih.tip":       { ja:"GIH勝率（Games In Hand）：そのカードが手札にあった試合の勝率です。17Landsの公開データを集計しています。",
-                          en:"GIH win rate (Games In Hand): the win rate of games where this card was in hand. Aggregated from 17Lands public data." },
+    "wr.gih.tip":       { ja:"GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。",
+                          en:"GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." },
 
 
     "opt.img":          { ja:"カード画像を表示",   en:"Show card images" },
@@ -90,7 +90,7 @@
     "desc.index":       { ja:"MTGアリーナのリミテッド（シールド戦）を無料で練習。6パックを開封して40枚デッキを組み、そのままアリーナにインポートできるテキストを書き出します。17Landsの実戦データによるカード勝率つき。日本語対応。",
                           en:"Free sealed practice for MTG Arena Limited. Open six packs, build a 40-card deck, and export text you can import straight into Arena. Includes real card win rates from 17Lands data." },
     "index.h1":         { ja:"シールド構築", en:"Sealed builder" },
-    "index.lead":       { ja:"6パック分のカードプールを生成して40枚デッキを組み、MTGアリーナにそのまま貼り付けられるテキストを書き出します。ドラフトの練習は上のタブから。",
+    "index.lead":       { ja:"6パック分のカードプールを生成して40枚デッキを組み、MTGアリーナにそのまま貼り付けられるテキストを書き出します。ドラフト構築の練習は上のタブから。",
                           en:"Open six packs, build a 40-card deck, and export text you can paste straight into MTG Arena. For draft practice, use the tab above." },
     "index.open":       { ja:"6パック開封",       en:"Open 6 packs" },
     "index.clear":      { ja:"デッキを空にする",   en:"Clear deck" },
@@ -109,11 +109,11 @@
     "index.wrNone":     { ja:"／勝率データなし", en:" / no win-rate data" },
 
     /* ---- ドラフト ---- */
-    "page.draft.title": { ja:"ドラフト｜MTGアリーナの8人卓ドラフトを1人で練習",
+    "page.draft.title": { ja:"ドラフト構築｜MTGアリーナの8人卓ドラフトを1人で練習",
                           en:"Draft — Practice 8-player MTG Arena drafts solo" },
     "desc.draft":       { ja:"MTGアリーナのドラフトを1人で練習できる無料ツール。8人卓を再現し、他の7人は17Landsの勝率データをもとにピックします。3パック42手を終えたらデッキを組み、アリーナにインポートできます。",
                           en:"Free solo draft practice for MTG Arena. Simulates an eight-seat pod where the other drafters pick using 17Lands win-rate data. Finish 42 picks, build your deck, and import it into Arena." },
-    "draft.h1":         { ja:"ドラフト", en:"Draft" },
+    "draft.h1":         { ja:"ドラフト構築", en:"Draft builder" },
     "draft.lead":       { ja:"8人卓のドラフトを1人で練習できます。他の7人は17Landsの勝率データをもとにピックします。",
                           en:"Practice an eight-seat draft on your own. The other seven drafters pick using 17Lands win-rate data." },
     "draft.start":      { ja:"ドラフト開始", en:"Start draft" },
@@ -189,8 +189,8 @@
                           en:"What this site does, who it is for, and how to take a deck from here into Arena." },
 
     "guide.s1.h":       { ja:"このサイトでできること", en:"What this site does" },
-    "guide.s1.body":    { ja:"<p>MTGアリーナのリミテッド（シールド戦・ドラフト）を、<b>課金せずに何度でも練習できる</b>ツールです。パックの開封からデッキ構築までをブラウザ上で行い、組んだデッキはアリーナにそのままインポートできるテキストとして書き出せます。</p><p>カードの強さは主観的な点数ではなく、<a href=\"https://www.17lands.com/public_datasets\" target=\"_blank\" rel=\"noopener\">17Landsの公開データ</a>を独自に集計した<b>実際の勝率</b>で表示します。日本語のカード名・カード画像に対応しています。</p>",
-                          en:"<p>A free tool for practising MTG Arena Limited — sealed and draft — as many times as you like. Open packs and build a deck in your browser, then export text you can import straight into Arena.</p><p>Card strength is shown as a <b>measured win rate</b> aggregated from the <a href=\"https://www.17lands.com/public_datasets\" target=\"_blank\" rel=\"noopener\">17Lands public datasets</a>, not a subjective grade.</p>" },
+    "guide.s1.body":    { ja:"<p>MTGアリーナのリミテッド（シールド戦・ドラフト）を、<b>課金せずに何度でも練習できる</b>ツールです。パックの開封からデッキ構築までをブラウザ上で行い、組んだデッキはアリーナにそのままインポートできるテキストとして書き出せます。</p><p>できることは4つです。<b>シールド構築</b>と<b>ドラフト構築</b>でアリーナに接続せず練習し、<b>カード勝率一覧</b>でカード1枚ごとの実戦勝率を調べ、<b>環境レポート</b>でそのセットの環境全体を読み解けます。</p><p>カードの強さは主観的な点数ではなく、<a href=\"https://www.17lands.com/public_datasets\" target=\"_blank\" rel=\"noopener\">17Landsの公開データ</a>を独自に集計した<b>実際の勝率</b>で表示します。日本語のカード名・カード画像に対応しています。</p>",
+                          en:"<p>Practise MTG Arena Limited (Sealed and Draft) <b>free, as many times as you like</b>. Open packs and build a deck in the browser, then export it as text you can import straight into Arena.</p><p>There are four tools. <b>Sealed builder</b> and <b>Draft builder</b> let you practise without connecting to Arena, <b>Card win rates</b> shows how each card actually performs, and <b>Set reports</b> summarise the format as a whole.</p><p>Card strength comes from <b>real win rates</b> aggregated from <a href=\"https://www.17lands.com/public_datasets\" target=\"_blank\" rel=\"noopener\">17Lands public data</a>, not subjective grades. Japanese card names and images are supported.</p>" },
 
     "guide.s2.h":       { ja:"こんな人に向いています", en:"Who this is for" },
     "guide.s2.body":    { ja:"<p><b>1. ワイルドカードが余っている人</b><br>リミテッドを中心に遊んでいると、ワイルドカードは使い道がないまま貯まっていきます。リミテッド用の40枚デッキを作って、フレンド戦で遊ぶという使い道があります。</p><p><b>2. カードがほとんど揃っている人</b><br>すでに該当セットのカードを持っているなら、ワイルドカードを使わずに組めます。開封の運に左右されない、公平なリミテッド対戦ができます。</p><p><b>3. 本番前に練習したい人</b><br>有料イベントに入る前に、そのセットのシールドやドラフトの感触を掴めます。何度でも無料です。</p><p><b>4. カードの強さを知りたい人</b><br>ツールを使わず、カード勝率一覧だけを見に来るのも歓迎です。日本語で実戦勝率を並べ替えられるサイトは多くありません。</p>",
@@ -200,9 +200,9 @@
     "guide.s3.body":    { ja:"<ol><li>このサイトでプールを生成し、40枚のデッキを組む</li><li>「アリーナ用テキストをコピー」を押す</li><li>MTGアリーナのデッキ画面で「インポート」を選ぶ</li><li>対戦相手とダイレクトチャレンジ（フレンド対戦）で対戦する</li></ol><p><b>大切な注意点</b>：40枚のデッキは、イベント外では<b>ダイレクトチャレンジでしか使えません</b>。通常のマッチングでは60枚以上が必要です。友人と遊ぶ前提のツールだとお考えください。</p><p><b>ワイルドカードについて</b>：持っていないカードは作成が必要です。40枚のデッキなら、土地を除いて20枚強のカードを作ることになります。構築画面に「作成に必要なワイルドカード」を表示しているので、組む前に確認できます。</p>",
                           en:"<ol><li>Generate a pool here and build your 40 cards</li><li>Press “Copy Arena import text”</li><li>In Arena, open the deck screen and choose Import</li><li>Play your opponent via Direct Challenge</li></ol><p><b>Important</b>: outside of events, a 40-card deck can <b>only</b> be used in Direct Challenge. Normal matchmaking requires 60 or more cards. Treat this as a tool for playing with friends.</p><p><b>About wildcards</b>: you have to craft any card you do not own — roughly twenty-odd cards for a 40-card deck once lands are excluded. The builder shows how many wildcards of each rarity a deck needs, so you can check before committing.</p>" },
 
-    "guide.s4.h":       { ja:"3つのツール", en:"The three tools" },
-    "guide.s4.body":    { ja:"<p><b>シールド構築</b>：6パック分のプールを生成して40枚デッキを組みます。カードを押すとデッキに入り、もう一度押すと戻ります。基本土地は＋−で増減します。</p><p><b>ドラフト</b>：8人卓を再現します。14枚のパックから1枚選ぶと残りが隣に流れ、同時に他の7人もピックします。他の7人はカードの勝率を基本に、ピックが進むほど自分の色を優先するように動きます。3パック42手を終えると構築画面に移ります。</p><p><b>カード勝率一覧</b>：セットとイベント種別を選ぶと、カードごとの実戦勝率が並びます。色・レアリティ・試合数で絞り込み、どの列でも並べ替えられます。</p>",
-                          en:"<p><b>Sealed</b>: generate a six-pack pool and build 40 cards. Click a card to add it, click it again in the deck to remove it. Use + and − for basic lands.</p><p><b>Draft</b>: an eight-seat pod. Pick one card from a 14-card pack and the rest passes on while the other seven seats pick too. They weigh win rates first and increasingly favour their own colors as the draft goes on. After three packs you move to deck building.</p><p><b>Card win rates</b>: choose a set and event type to see per-card results. Filter by color, rarity and sample size, and sort by any column.</p>" },
+    "guide.s4.h":       { ja:"4つのツール", en:"The four tools" },
+    "guide.s4.body":    { ja:"<p><b>シールド構築</b>：6パック分のプールを生成して40枚デッキを組みます。カードを押すとデッキに入り、もう一度押すと戻ります。基本土地は＋−で増減します。</p><p><b>ドラフト構築</b>：8人卓を再現します。14枚のパックから1枚選ぶと残りが隣に流れ、同時に他の7人もピックします。他の7人はカードの勝率を基本に、ピックが進むほど自分の色を優先するように動きます。3パック42手を終えると構築画面に移ります。</p><p><b>カード勝率一覧</b>：セットを選び、シールドとドラフトをタブで切り替えると、カードごとの実戦勝率が並びます。色・レアリティ・試合数で絞り込み、どの列でも並べ替えられます。</p><p><b>環境レポート</b>：そのセットがどんな環境かを文章と図でまとめます。環境の速さ、色ごとの勝率、強いアーキタイプ（色の組み合わせ）、マナカーブ、レアリティ別の上位カードを一度に見渡せます。シールドとドラフトで環境は変わるので、こちらもタブで切り替えられます。</p>",
+                          en:"<p><b>Sealed builder</b>: generate a six-pack pool and build 40 cards. Click a card to add it, click again to take it out. Basic lands use the +/- buttons.</p><p><b>Draft builder</b>: an eight-player pod. Pick one card from a 14-card pack and the rest passes on, while the other seven seats pick too. They follow card win rates and increasingly favour their own colours as the draft goes on. After three packs and 42 picks you move to the deck builder.</p><p><b>Card win rates</b>: choose a set, switch between Sealed and Draft with the tabs, and see how every card performs. Filter by colour, rarity and sample size, and sort on any column.</p><p><b>Set reports</b>: a written summary of the format — how fast it is, win rates by colour, the strongest archetypes, the mana curve, and the best cards at each rarity. Sealed and Draft play differently, so those switch with tabs too.</p>" },
 
     "guide.s5.h":       { ja:"数値の読み方", en:"Reading the numbers" },
     "guide.s5.body":    { ja:"<p><b>GIH勝率</b>が最も重要な指標です。そのカードが手札か戦場にあった試合の勝率で、「引いたときに勝てるカードか」を表します。同じセット内で比べるのが基本で、平均より3ポイント高ければ強いカード、低ければ弱いカードと考えられます。</p><p><b>IWD</b>は、引いた試合と引かなかった試合の勝率差です。GIH勝率が高くても、そもそも強いデッキにしか入らないカードは数値が膨らみます。IWDを併せて見ると、そのカード自体の貢献度がわかります。</p><p><b>試合数</b>は必ず確認してください。数十試合しかないカードの勝率は偶然で大きく動きます。初期状態では500試合以上に絞っていますが、レアや神話レアを見るときは特に注意が必要です。</p><p><b>注意</b>：17Landsのデータは、自分の成績を記録したい熱心なプレイヤーが中心です。全体の平均より勝率がやや高めに出る傾向があります。絶対値より、カード同士の比較に使ってください。</p>",

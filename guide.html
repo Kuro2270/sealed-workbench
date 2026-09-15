@@ -29,7 +29,7 @@
   header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
   .wrap{max-width:1180px;margin:0 auto}
   .head-top{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
-  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--gold);line-height:16px;margin:0 0 10px}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;max-width:60ch}
   nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
@@ -84,11 +84,11 @@
 
 <header>
   <div class="wrap">
-    <div class="brand" data-i18n="site.name">リミテッド・ワークベンチ</div>
+    <div class="brand" data-i18n="site.name">MTGアリーナ リミテッド・ワークベンチ</div>
     <nav>
       <a href="./guide.html" class="on" data-i18n="nav.guide">使い方</a>
       <a href="./" data-i18n="nav.sealed">シールド構築</a>
-      <a href="./draft.html" data-i18n="nav.draft">ドラフト</a>
+      <a href="./draft.html" data-i18n="nav.draft">ドラフト構築</a>
       <a href="./ratings.html" data-i18n="nav.ratings">カード勝率一覧</a>
       <a href="./reports.html" data-i18n="nav.reports">環境レポート</a>
       <a href="./privacy.html" data-i18n="nav.privacy">プライバシー</a>
@@ -110,11 +110,12 @@
 <main>
   <section>
     <h2 data-i18n="guide.s1.h">このサイトでできること</h2>
-    <div data-i18n-html="guide.s1.body"><p>MTGアリーナのリミテッド（シールド戦・ドラフト）を、<b>課金せずに何度でも練習できる</b>ツールです。パックの開封からデッキ構築までをブラウザ上で行い、組んだデッキはアリーナにそのままインポートできるテキストとして書き出せます。</p><p>カードの強さは主観的な点数ではなく、<a href="https://www.17lands.com/public_datasets" target="_blank" rel="noopener">17Landsの公開データ</a>を独自に集計した<b>実際の勝率</b>で表示します。日本語のカード名・カード画像に対応しています。</p></div>
+    <div data-i18n-html="guide.s1.body"><p>MTGアリーナのリミテッド（シールド戦・ドラフト）を、<b>課金せずに何度でも練習できる</b>ツールです。パックの開封からデッキ構築までをブラウザ上で行い、組んだデッキはアリーナにそのままインポートできるテキストとして書き出せます。</p><p>できることは4つです。<b>シールド構築</b>と<b>ドラフト構築</b>でアリーナに接続せず練習し、<b>カード勝率一覧</b>でカード1枚ごとの実戦勝率を調べ、<b>環境レポート</b>でそのセットの環境全体を読み解けます。</p><p>カードの強さは主観的な点数ではなく、<a href="https://www.17lands.com/public_datasets" target="_blank" rel="noopener">17Landsの公開データ</a>を独自に集計した<b>実際の勝率</b>で表示します。日本語のカード名・カード画像に対応しています。</p></div>
     <div class="cta">
       <a href="./" data-i18n="nav.sealed">シールド構築</a>
-      <a href="./draft.html" data-i18n="nav.draft">ドラフト</a>
+      <a href="./draft.html" data-i18n="nav.draft">ドラフト構築</a>
       <a href="./ratings.html" data-i18n="nav.ratings">カード勝率一覧</a>
+      <a href="./reports.html" data-i18n="nav.reports">環境レポート</a>
     </div>
   </section>
 
@@ -129,8 +130,8 @@
   </section>
 
   <section>
-    <h2 data-i18n="guide.s4.h">3つのツール</h2>
-    <div data-i18n-html="guide.s4.body"><p><b>シールド構築</b>：6パック分のプールを生成して40枚デッキを組みます。カードを押すとデッキに入り、もう一度押すと戻ります。基本土地は＋−で増減します。</p><p><b>ドラフト</b>：8人卓を再現します。14枚のパックから1枚選ぶと残りが隣に流れ、同時に他の7人もピックします。他の7人はカードの勝率を基本に、ピックが進むほど自分の色を優先するように動きます。3パック42手を終えると構築画面に移ります。</p><p><b>カード勝率一覧</b>：セットとイベント種別を選ぶと、カードごとの実戦勝率が並びます。色・レアリティ・試合数で絞り込み、どの列でも並べ替えられます。</p></div>
+    <h2 data-i18n="guide.s4.h">4つのツール</h2>
+    <div data-i18n-html="guide.s4.body"><p><b>シールド構築</b>：6パック分のプールを生成して40枚デッキを組みます。カードを押すとデッキに入り、もう一度押すと戻ります。基本土地は＋−で増減します。</p><p><b>ドラフト構築</b>：8人卓を再現します。14枚のパックから1枚選ぶと残りが隣に流れ、同時に他の7人もピックします。他の7人はカードの勝率を基本に、ピックが進むほど自分の色を優先するように動きます。3パック42手を終えると構築画面に移ります。</p><p><b>カード勝率一覧</b>：セットを選び、シールドとドラフトをタブで切り替えると、カードごとの実戦勝率が並びます。色・レアリティ・試合数で絞り込み、どの列でも並べ替えられます。</p><p><b>環境レポート</b>：そのセットがどんな環境かを文章と図でまとめます。環境の速さ、色ごとの勝率、強いアーキタイプ（色の組み合わせ）、マナカーブ、レアリティ別の上位カードを一度に見渡せます。シールドとドラフトで環境は変わるので、こちらもタブで切り替えられます。</p></div>
   </section>
 
   <section>

@@ -31,7 +31,7 @@
   header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
   .wrap{max-width:1180px;margin:0 auto}
   .head-top{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
-  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--gold);line-height:16px;margin:0 0 10px}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;max-width:60ch}
   nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
@@ -185,18 +185,18 @@
 
 <header>
   <div class="wrap">
-    <div class="brand" data-i18n="site.name">リミテッド・ワークベンチ</div>
+    <div class="brand" data-i18n="site.name">MTGアリーナ リミテッド・ワークベンチ</div>
     <nav>
       <a href="./guide.html" data-i18n="nav.guide">使い方</a>
       <a href="./" data-i18n="nav.sealed">シールド構築</a>
-      <a href="./draft.html" class="on" data-i18n="nav.draft">ドラフト</a>
+      <a href="./draft.html" class="on" data-i18n="nav.draft">ドラフト構築</a>
       <a href="./ratings.html" data-i18n="nav.ratings">カード勝率一覧</a>
       <a href="./reports.html" data-i18n="nav.reports">環境レポート</a>
       <a href="./privacy.html" data-i18n="nav.privacy">プライバシー</a>
     </nav>
     <div class="head-top">
       <div>
-        <h1 data-i18n="draft.h1">ドラフト</h1>
+        <h1 data-i18n="draft.h1">ドラフト構築</h1>
         <p data-i18n="draft.lead">8人卓のドラフトを1人で練習できます。他の7人は17Landsの勝率データをもとにピックします。</p>
       </div>
       <div class="controls">
@@ -412,7 +412,7 @@ function buildPack(){
 
 /* ---------- 評価 ---------- */
 function ratingOf(c){
-  const e = wrMap[c.name];
+  const e = wrEntry(c);
   if(e) return e.gih * 100;
   return RAR_BASE[c.rarity] ?? 52;
 }
@@ -585,9 +585,20 @@ function imageUrls(c){
   return [];
 }
 
+/* 出来事・両面・分割カードは、集計データ側が表面の名前だけを持っている。
+   「A // B」のままでは引けないので、表面の名前でも探す。 */
+function wrEntry(c){
+  if(!c) return null;
+  const cands = [c.name];
+  if(c.name && c.name.includes(" // ")) cands.push(c.name.split(" // ")[0].trim());
+  if(Array.isArray(c.card_faces)) c.card_faces.forEach(f => { if(f.name) cands.push(f.name); });
+  for(const n of cands){ if(wrMap[n]) return wrMap[n]; }
+  return null;
+}
+
 function wrOf(c){
   if(!$("wrToggle").checked) return null;
-  return wrMap[c.name] || null;
+  return wrEntry(c);
 }
 
 function wrClass(v){
@@ -619,6 +630,7 @@ function tile(c, onClick){
     const b = document.createElement("span");
     b.className = "wrbadge" + wrClass(w.gih);
     b.textContent = (w.gih * 100).toFixed(1) + "%";
+    b.title = t("tip.gih", {p: (w.gih * 100).toFixed(1), n: w.games.toLocaleString()}) + "\n" + t("wr.gih.tip");
     li.appendChild(b);
   }
   li.onclick = onClick;
