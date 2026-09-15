@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Limited Workbench">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
 <meta name="twitter:card" content="summary">
 <script src="./i18n.js"></script>
 <style>
@@ -83,6 +83,15 @@
   @media (max-width:900px){main{grid-template-columns:1fr}}
 
   .status{padding:14px 16px;background:var(--paper-2);border-left:3px solid var(--muted);font-size:14px;color:var(--muted)}
+  /* 読み込み中を示す回転 */
+  .status.busy{display:flex;align-items:center;gap:10px}
+  .status.busy::before{
+    content:"";flex:none;width:15px;height:15px;border-radius:50%;
+    border:2px solid rgba(15,28,23,.18);border-top-color:var(--gold);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){ .status.busy::before{animation-duration:2.4s} }
   .status.err{border-left-color:#B4432E;color:#8A3422;background:#F6E9E5}
 
   /* ---------- pool ---------- */
@@ -241,7 +250,7 @@
     <div class="head-top">
       <div>
         <h1 data-i18n="index.h1">シールド構築</h1>
-      <p data-i18n="index.lead">6パック分のカードプールを生成して40枚デッキを組み、MTGアリーナにそのまま貼り付けられるテキストを書き出します。ドラフト構築の練習は上のタブから。</p>
+      <p data-i18n="index.lead">6パック分のカードプールを生成して40枚デッキを組み、マジック：ザ・ギャザリング アリーナにそのまま貼り付けられるテキストを書き出します。ドラフト構築の練習は上のタブから。</p>
     </div>
     <div class="controls">
       <select id="setSelect" data-i18n-label="sel.set"><option value="">…</option></select>
@@ -321,10 +330,10 @@ function renderSetOptions(){
 const $ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-function setStatus(msg, isErr){
+function setStatus(msg, isErr, busy){
   const el = $("status");
   el.textContent = msg;
-  el.className = "status" + (isErr ? " err" : "");
+  el.className = "status" + (isErr ? " err" : "") + (busy ? " busy" : "");
 }
 
 /* ---------- セット一覧 ---------- */
@@ -443,13 +452,13 @@ async function openPacks(){
   const code = $("setSelect").value;
   if(!code){ setStatus(t("err.noSet"), true); return; }   // セット未選択のまま押された場合
   $("openBtn").disabled = true;
-  setStatus(t("index.loading"));
+  setStatus(t("index.loading"), false, true);
   try{
     if(code !== setCode){
       await loadCards(code);
-      setStatus(t("index.loadingJa"));
+      setStatus(t("index.loadingJa"), false, true);
       await loadJapanese(code);
-      setStatus(t("index.loadingWr"));
+      setStatus(t("index.loadingWr"), false, true);
       await loadWinRates(code);
       setCode = code;
     }

@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Limited Workbench">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
 <meta name="twitter:card" content="summary">
 <script src="./i18n.js"></script>
 <style>
@@ -70,6 +70,15 @@
   .modebar select{background:#fff;color:var(--ink);border:1px solid var(--line);min-width:150px;padding:8px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px}
 
   .status{padding:14px 16px;background:var(--paper-2);border-left:3px solid var(--muted);font-size:14px;color:var(--muted);margin-bottom:16px}
+  /* 読み込み中を示す回転 */
+  .status.busy{display:flex;align-items:center;gap:10px}
+  .status.busy::before{
+    content:"";flex:none;width:15px;height:15px;border-radius:50%;
+    border:2px solid rgba(15,28,23,.18);border-top-color:var(--gold);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){ .status.busy::before{animation-duration:2.4s} }
   .status.err{border-left-color:#B4432E;color:#8A3422;background:#F6E9E5}
 
   .filters{display:flex;gap:18px;flex-wrap:wrap;align-items:center;padding:12px 0 14px;border-bottom:1px solid var(--line);margin-bottom:4px}
@@ -168,7 +177,7 @@
     <div class="head-top">
       <div>
         <h1 data-i18n="ratings.h1">カード勝率一覧</h1>
-        <p data-i18n="ratings.lead">MTGアリーナのリミテッドにおけるカードごとの実戦勝率です。17Landsの公開データを集計したもので、主観的な点数ではありません。色別・数値順に並べ替えられます。</p>
+        <p data-i18n="ratings.lead">マジック：ザ・ギャザリング アリーナのリミテッドにおけるカードごとの実戦勝率です。17Landsの公開データを集計したもので、主観的な点数ではありません。色別・数値順に並べ替えられます。</p>
       </div>
       <div class="controls">
         <select id="setSelect" data-i18n-label="sel.set"><option value="">…</option></select>
@@ -309,10 +318,10 @@ function parseCsv(text){
 const $ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-function setStatus(msg, isErr){
+function setStatus(msg, isErr, busy){
   const el = $("status");
   el.textContent = msg;
-  el.className = "status" + (isErr ? " err" : "");
+  el.className = "status" + (isErr ? " err" : "") + (busy ? " busy" : "");
 }
 
 /* ---------- セット一覧 ---------- */
@@ -496,7 +505,7 @@ async function load(){
   loading = true;
   $("tblwrap").hidden = true;
   $("filters").hidden = true;
-  setStatus(t("ratings.loading"));
+  setStatus(t("ratings.loading"), false, true);
   let apiNote = "";
 
   try{
@@ -532,7 +541,7 @@ async function load(){
     info = { count: d.count ?? cards.length, total: d.total_games, generated: d.generated_at, wr: d.overall_win_rate };
 
     if(mapsFor !== code){
-      setStatus(t("ratings.loadingJa"));
+      setStatus(t("ratings.loadingJa"), false, true);
       await loadCardMaps(code, cards.map(c => c.name));
       mapsFor = code;
     }

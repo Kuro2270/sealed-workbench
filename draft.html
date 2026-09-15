@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Limited Workbench">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
 <meta name="twitter:card" content="summary">
 <script src="./i18n.js"></script>
 <style>
@@ -63,6 +63,15 @@
   @media (max-width:980px){main{grid-template-columns:1fr}}
 
   .status{padding:14px 16px;background:var(--paper-2);border-left:3px solid var(--muted);font-size:14px;color:var(--muted);margin-bottom:16px}
+  /* 読み込み中を示す回転 */
+  .status.busy{display:flex;align-items:center;gap:10px}
+  .status.busy::before{
+    content:"";flex:none;width:15px;height:15px;border-radius:50%;
+    border:2px solid rgba(15,28,23,.18);border-top-color:var(--gold);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){ .status.busy::before{animation-duration:2.4s} }
   .status.err{border-left-color:#B4432E;color:#8A3422;background:#F6E9E5}
 
   .phase{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:10px}
@@ -275,10 +284,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const esc = s => (s || "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
 
-function setStatus(msg, isErr){
+function setStatus(msg, isErr, busy){
   const el = $("status");
   el.textContent = msg;
-  el.className = "status" + (isErr ? " err" : "");
+  el.className = "status" + (isErr ? " err" : "") + (busy ? " busy" : "");
 }
 
 /* ---------- セット一覧 ---------- */
@@ -464,13 +473,13 @@ async function start(){
   if(!code){ setStatus(t("err.noSet"), true); return; }   // セット未選択のまま押された場合
   $("startBtn").disabled = true;
   $("intro").hidden = true;
-  setStatus(t("index.loading"));
+  setStatus(t("index.loading"), false, true);
   try{
     if(code !== setCode){
       await loadCards(code);
-      setStatus(t("index.loadingJa"));
+      setStatus(t("index.loadingJa"), false, true);
       await loadJapanese(code);
-      setStatus(t("index.loadingWr"));
+      setStatus(t("index.loadingWr"), false, true);
       await loadWinRates(code);
       setCode = code;
     }
@@ -652,7 +661,7 @@ function render(){
     const ul = document.createElement("ul");
     ul.className = "grid";
     current[0].slice()
-      .sort((a,b) => ratingOf(b) - ratingOf(a))
+      .sort(byRarity)
       .forEach(c => ul.appendChild(tile(c, () => humanPick(c))));
     board.appendChild(ul);
   }else if(phase === "build"){
@@ -670,13 +679,20 @@ function render(){
       board.appendChild(h);
       const ul = document.createElement("ul");
       ul.className = "grid";
-      list.sort((a,b) => ratingOf(b) - ratingOf(a))
+      list.sort(byRarity)
           .forEach(c => ul.appendChild(tile(c, () => { deck.push(c); render(); })));
       board.appendChild(ul);
     });
   }
 
   renderSide();
+}
+
+/* 並び順：神話レア→レア→アンコモン→コモン。同じレアリティ内は勝率の高い順。 */
+const RARITY_RANK = {mythic:0, special:0, bonus:0, rare:1, uncommon:2, common:3};
+function byRarity(a, b){
+  const ra = RARITY_RANK[a.rarity] ?? 4, rb = RARITY_RANK[b.rarity] ?? 4;
+  return ra - rb || ratingOf(b) - ratingOf(a);
 }
 
 function colorKey(c){

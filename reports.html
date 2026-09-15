@@ -6,7 +6,7 @@
 <title>Set reports — MTG Arena Limited</title>
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Limited Workbench">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
 <meta name="twitter:card" content="summary">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -63,6 +63,15 @@
   .modebar select{background:#fff;color:var(--ink);border:1px solid var(--line);min-width:150px;padding:8px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px}
 
   .status{padding:14px 16px;background:var(--paper-2);border-left:3px solid var(--muted);font-size:14px;color:var(--muted);margin-bottom:8px}
+  /* 読み込み中を示す回転 */
+  .status.busy{display:flex;align-items:center;gap:10px}
+  .status.busy::before{
+    content:"";flex:none;width:15px;height:15px;border-radius:50%;
+    border:2px solid rgba(15,28,23,.18);border-top-color:var(--gold);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){ .status.busy::before{animation-duration:2.4s} }
   .status.err{border-left-color:#B4432E;color:#8A3422;background:#F6E9E5}
   .built{font-size:12px;color:var(--muted);margin:0 0 22px}
 
@@ -197,10 +206,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const esc = s => (s || "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
 const pct = v => v == null ? "—" : (v * 100).toFixed(1) + "%";
 
-function setStatus(msg, isErr){
+function setStatus(msg, isErr, busy){
   const el = $("status");
   el.textContent = msg;
-  el.className = "status" + (isErr ? " err" : "");
+  el.className = "status" + (isErr ? " err" : "") + (busy ? " busy" : "");
 }
 
 /* ---------- 一覧の読み込み ---------- */
@@ -360,7 +369,7 @@ async function load(){
   }
 
   $("body").hidden = true;
-  setStatus(t("reports.loading"));
+  setStatus(t("reports.loading"), false, true);
 
   try{
     let r = repCache[key];
