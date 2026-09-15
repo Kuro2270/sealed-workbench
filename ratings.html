@@ -184,10 +184,9 @@
       <button type="button" class="tab on" role="tab" aria-selected="true"  data-mode="draft"  data-i18n="mode.draft">ドラフト</button>
       <button type="button" class="tab"    role="tab" aria-selected="false" data-mode="sealed" data-i18n="mode.sealed">シールド</button>
     </div>
-    <button id="loadBtn" disabled data-i18n="ratings.load">読み込む</button>
   </div>
 
-  <div id="status" class="status" data-i18n="ratings.ready">セットと形式を選んで「読み込む」を押してください。</div>
+  <div id="status" class="status" data-i18n="ratings.ready">セットと形式を選んでください。</div>
 
   <div class="note" data-i18n-html="ratings.note"><b>GIH勝率</b>：そのカードが手札か戦場にあった試合の勝率。カードの強さを見る基本の指標です。　<b>GP勝率</b>：そのカードをデッキに入れた試合の勝率。　<b>IWD</b>：引いた試合と引かなかった試合の勝率差（GIH勝率 − GNS勝率）。　<b>GNS勝率</b>：デッキには入れたが引かなかった試合の勝率。　<b>採用数</b>：デッキに入れられた試合数。　<b>試合数</b>：GIH勝率の母数。少ないカードは数値が揺れやすいので併せて見てください。</div>
 
@@ -242,6 +241,7 @@ const RARITIES = [
 let sets = [], cards = [], jaMap = {}, nameMap = {}, source = "", available = null;
 let mode = "draft";              // 表示中の形式（ドラフト／シールド）
 let loadedSet = null;            // 読み込み済みのセット
+let loading = false;             // 読み込み中かどうか
 const dataCache = {};            // セット×形式ごとの結果。タブの切り替えを即時にする
 let mapsFor = null;              // 日本語名・画像の取得済みセット
 let sortKey = "gih", sortDesc = true;
@@ -339,8 +339,7 @@ async function loadSets(){
 
     renderSetOptions();
     updateModeTabs();
-    $("loadBtn").disabled = !$("setSelect").value;
-    setStatus(t("ratings.ready"));
+    if($("setSelect").value) load(); else setStatus(t("ratings.ready"));
   }catch(e){
     setStatus(t("err.sets", {e: e.message}), true);
   }
@@ -493,8 +492,8 @@ async function load(){
   const code = $("setSelect").value;
   const event = mode;
   const eventLabel = t("mode." + mode);
-  if(!code) return;
-  $("loadBtn").disabled = true;
+  if(!code || loading) return;
+  loading = true;
   $("tblwrap").hidden = true;
   $("filters").hidden = true;
   setStatus(t("ratings.loading"));
@@ -553,7 +552,7 @@ async function load(){
   }catch(e){
     setStatus(t("ratings.fail"), true);
   }finally{
-    $("loadBtn").disabled = false;
+    loading = false;
   }
 }
 
@@ -765,15 +764,13 @@ document.querySelectorAll('#filters .chip[data-min]').forEach(b => {
   };
 });
 
-$("loadBtn").onclick = load;
-$("setSelect").onchange = () => { updateModeTabs(); };
+$("setSelect").onchange = () => { updateModeTabs(); load(); };
 document.querySelectorAll("#modeTabs .tab").forEach(b => {
   b.onclick = () => {
     if(b.disabled || b.dataset.mode === mode) return;
     mode = b.dataset.mode;
     syncModeTabs();
-    // すでに表示中のセットなら、そのまま同じセットの反対側に切り替える
-    if(loadedSet === $("setSelect").value) load();
+    load();
   };
 });
 $("langSelect").value = I18N.lang;

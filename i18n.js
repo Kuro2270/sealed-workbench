@@ -142,7 +142,7 @@
     "ratings.lead":     { ja:"MTGアリーナのリミテッドにおけるカードごとの実戦勝率です。17Landsの公開データを集計したもので、主観的な点数ではありません。色別・数値順に並べ替えられます。",
                           en:"Measured win rates for MTG Arena Limited, aggregated from the 17Lands public datasets — not subjective grades. Sort by color or by any metric." },
     "ratings.load":     { ja:"読み込む", en:"Load" },
-    "ratings.ready":    { ja:"セットと形式を選んで「読み込む」を押してください。",
+    "ratings.ready":    { ja:"セットと形式を選んでください。",
                           en:"Choose a set and event type, then press “Load”." },
     "ratings.loading":  { ja:"データを読み込んでいます…", en:"Loading data…" },
     "ratings.loadingJa":{ ja:"カード情報を取得しています…", en:"Loading card details…" },
