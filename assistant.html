@@ -535,6 +535,7 @@ function addCard(c){
     colors: front.includes("Land") ? [] : (c.color_identity || []).filter(x => "WUBRG".includes(x)),
     rarity: c.rarity || "", cmc: c.cmc ?? 0, type: front.trim(),
     basic: front.includes("Basic Land"),
+    legendary: front.includes("Legendary"),
     img: imgOf(c), imgJa: "",
     mana: c.mana_cost || c.card_faces?.[0]?.mana_cost || "",
     set: (c.set || "").toUpperCase()
@@ -668,9 +669,16 @@ function scorePack(){
     // 3) 環境の速さ（土地は対象外）
     let adjPace = 0;
     if(c && kind !== "land" && pace && PACE_ADJ[pace]) adjPace = PACE_ADJ[pace][Math.min(7, Math.round(c.cmc || 0))] || 0;
+    // 4) 伝説のカード：同じものは場に1枚しか置けないので、2枚目は大きく、3枚目以降はほぼ取らない
+    let adjLegend = 0, owned = 0;
+    if(c && c.legendary){
+      owned = D.picked.filter(x => x === id).length;
+      if(owned === 1) adjLegend = -4;
+      else if(owned >= 2) adjLegend = -10;
+    }
     const basic = !!(c && c.basic);
-    const score = basic ? -1 : base + adjColor + adjSlot + adjPace;
-    return { id, c, base, fit, adjColor, adjSlot, adjPace, score, commit, basic, kind };
+    const score = basic ? -1 : base + adjColor + adjSlot + adjPace + adjLegend;
+    return { id, c, base, fit, adjColor, adjSlot, adjPace, adjLegend, owned, score, commit, basic, kind };
   }).sort((a, b) => b.score - a.score);
 }
 function reasonFor(e){
@@ -686,6 +694,7 @@ function reasonFor(e){
   else if(e.fit <= 0.25) main = t("assist.reasonOff", {c: ranked.join("・")});
   else main = t("assist.reasonBest");
   const extra = [];
+  if(e.adjLegend < 0) extra.push(t("assist.reasonLegend", {n: e.owned}));
   if(e.adjSlot >= 1) extra.push(t(e.kind === "creature" ? "assist.reasonNeedCreature" : "assist.reasonNeedSpell"));
   if(e.adjPace >= 1) extra.push(t("assist.reasonPace", {p: t("assist.pace." + pace)}));
   return main + (extra.length ? " " + extra.join(" ") : "");
@@ -693,7 +702,7 @@ function reasonFor(e){
 /* 一覧の各行に、内訳を出す */
 function breakdown(e){
   const f = v => (v >= 0 ? "+" : "") + v.toFixed(1);
-  return t("assist.breakdown", {b: e.base.toFixed(1), c: f(e.adjColor), s: f(e.adjSlot), p: f(e.adjPace)});
+  return t("assist.breakdown", {b: e.base.toFixed(1), c: f(e.adjColor), s: f(e.adjSlot), p: f(e.adjPace)}) + (e.adjLegend ? "　" + t("assist.breakdownLegend", {v: f(e.adjLegend)}) : "");
 }
 
 /* ================= デッキ案 =================
@@ -707,19 +716,28 @@ function buildDeck(pair){
   const inPair = x => x.c.colors.every(k => pair.includes(k));
   const spells = pool.filter(x => kindOf(x.c) !== "land" && inPair(x)).map(x => ({ ...x, r: ratingOf(x.id), kind: kindOf(x.c) }));
   const byR = (a, b) => b.r - a.r;
+  const deck = [];
+  // 伝説のカードは、同じものを何枚まで入れるか（まず1枚、足りなければ2枚）
+  const legendCount = id => deck.filter(x => x.id === id).length;
+  const allowed = (x, cap) => !x.c.legendary || legendCount(x.id) < cap;
+  const take = (arr, n, cap) => {
+    for(let i = 0; i < arr.length && n > 0; ){
+      if(allowed(arr[i], cap)){ deck.push(arr.splice(i, 1)[0]); n--; }
+      else i++;
+    }
+  };
   const creatures = spells.filter(x => x.kind === "creature").sort(byR);
   const others    = spells.filter(x => x.kind === "spell").sort(byR);
-  const deck = [];
-  const take = (arr, n) => { while(n-- > 0 && arr.length) deck.push(arr.shift()); };
-  take(creatures, DECK_TARGET.creature);
-  take(others, DECK_TARGET.spell);
+  take(creatures, DECK_TARGET.creature, 1);
+  take(others, DECK_TARGET.spell, 1);
   const rest = creatures.concat(others).sort(byR);
-  take(rest, 23 - deck.length);
+  take(rest, 23 - deck.length, 1);
+  if(deck.length < 23) take(rest, 23 - deck.length, 2);        // それでも足りなければ2枚目を許す
   // 重いカード（5マナ以上）が6枚を超えるなら、評価差が小さい範囲で軽いカードと入れ替える
   const heavy = () => deck.filter(x => (x.c.cmc || 0) >= 5);
   while(heavy().length > 6 && rest.length){
     const h = heavy().sort((a, b) => a.r - b.r)[0];
-    const light = rest.find(x => (x.c.cmc || 0) <= 3 && h.r - x.r < 4);
+    const light = rest.find(x => (x.c.cmc || 0) <= 3 && h.r - x.r < 4 && allowed(x, 1));
     if(!light) break;
     deck.splice(deck.indexOf(h), 1); rest.splice(rest.indexOf(light), 1);
     deck.push(light); rest.push(h); rest.sort(byR);
@@ -854,14 +872,14 @@ function render(){
       const wrTxt = e.basic ? "—" : (wrE && wrE.gih != null ? (wrE.gih * 100).toFixed(1) + "%" : "—");
       const anyColor = Object.values(D.colorScore).some(v => v > 0);
       const fitCls = !c || !cols.length || e.basic || e.commit < 0.5 || !anyColor ? "" : (e.fit >= 0.75 ? " on" : (e.fit <= 0.25 ? " off" : ""));
-      const fitTxt = fitCls === " on" ? t("assist.onColor") : fitCls === " off" ? t("assist.offColor") : "";
+      const fitTxt = e.adjLegend < 0 ? t("assist.legendTag", {n: e.owned}) : (fitCls === " on" ? t("assist.onColor") : fitCls === " off" ? t("assist.offColor") : "");
       li.title = e.basic ? "" : breakdown(e);
       li.innerHTML =
         `<span class="rk">${i + 1}</span>` +
         `<span class="dot" style="background:${dotColor}"></span>` +
         `<span class="nm">${c ? esc(displayName(c)) : "#" + esc(e.id)}${c && c.rarity ? `<small>${esc(t("rarity." + c.rarity))}</small>` : ""}</span>` +
         `<span class="wr${wrE ? "" : " na"}" title="${esc(t("wr.gih.tip"))}">${wrTxt}</span>` +
-        `<span class="fit${fitCls}">${esc(fitTxt)}</span>`;
+        `<span class="fit${e.adjLegend < 0 ? " off" : fitCls}">${esc(fitTxt)}</span>`;
       ul.appendChild(li);
     });
   }
