@@ -109,6 +109,9 @@
   #standings th.num,#standings td.num{text-align:right}
   #standings td.rank{width:36px;color:var(--muted)}
   #standings tr.top td.rank{color:var(--gold);font-weight:700}
+  #standings tr.champ td{background:#FBF6E3}
+  #standings tr.champ td.rank{font-size:16px}
+  .champ-tag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:var(--gold);color:#1A1405;font-size:11px;font-weight:700;vertical-align:1px}
   .pct{color:var(--muted);font-size:12.5px}
 
   details summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--muted);padding:4px 0}
@@ -194,6 +197,16 @@
         <input type="text" id="nameInput" class="grow" data-i18n-ph="swiss.namePh" placeholder="名前（Enterで追加）" autocomplete="off">
         <button id="addBtn" data-i18n="swiss.add">追加</button>
       </div>
+
+      <h3 class="subh" data-i18n="swiss.import">名簿をファイルから読み込む</h3>
+      <p class="hint" data-i18n="swiss.importHint">1行に1人の名前を書いたテキストファイル（.txt）を読み込みます。すでに名簿にある名前は重複しません。</p>
+      <div class="row">
+        <input type="file" id="importFile" accept=".txt,text/plain" hidden>
+        <button class="ghost" id="importBtn" data-i18n="swiss.importBtn">ファイルを選んで読み込む</button>
+        <button class="ghost" id="sampleBtn" data-i18n="swiss.sample">サンプルをダウンロード</button>
+        <button class="ghost" id="exportBtn" data-i18n="swiss.export">いまの名簿を書き出す</button>
+        <span class="hint" id="importMsg" style="margin:0"></span>
+      </div>
     </section>
 
     <section class="card">
@@ -261,7 +274,9 @@
       <p class="hint" style="margin-top:8px" data-i18n="swiss.tiebreakHint">同点のときは OMW%（対戦相手の勝率）、GW%（自分のゲーム勝率）、OGW%（対戦相手のゲーム勝率）の順で比べます。マジックの公式大会と同じ基準です。</p>
       <div class="actions">
         <button class="ghost" id="copyBtn" data-i18n="swiss.copy">順位表をコピー</button>
+        <button class="ghost" id="imgBtn" data-i18n="swiss.saveImage">画像で保存</button>
       </div>
+      <canvas id="shot" hidden></canvas>
     </section>
 
     <section class="card">
@@ -593,10 +608,11 @@ function renderStandings(){
   standings().forEach((s, i) => {
     const p = T.players.find(x => x.id === s.id);
     const tr = document.createElement("tr");
-    if(i === 0) tr.className = "top";
+    const champ = T.done && i === 0;
+    if(i === 0) tr.className = "top" + (champ ? " champ" : "");
     tr.innerHTML =
-      `<td class="rank">${i + 1}</td>` +
-      `<td>${esc(s.name)}${p && !p.active ? ` <span class="tag">${esc(t("swiss.out"))}</span>` : ""}${s.byes ? ` <span class="tag">${esc(t("swiss.byeTag"))}</span>` : ""}</td>` +
+      `<td class="rank">${champ ? "🏆" : i + 1}</td>` +
+      `<td>${esc(s.name)}${champ ? ` <span class="champ-tag">${esc(t("swiss.champion"))}</span>` : ""}${p && !p.active ? ` <span class="tag">${esc(t("swiss.out"))}</span>` : ""}${s.byes ? ` <span class="tag">${esc(t("swiss.byeTag"))}</span>` : ""}</td>` +
       `<td class="num">${s.w}-${s.l}-${s.d}</td>` +
       `<td class="num"><b>${s.mp}</b></td>` +
       `<td class="num pct">${pct(s.omwp)}</td>` +
@@ -718,6 +734,125 @@ $("resetBtn").onclick = () => {
   saveState();
   delete $("rounds").dataset.touched;
   renderAll();
+};
+
+/* ---------- 名簿のファイル入出力 ---------- */
+function parseNames(text){
+  return text.replace(/^\uFEFF/, "").split(/[\r\n,、，;]+/).map(x => x.trim()).filter(Boolean);
+}
+function downloadText(name, text){
+  const blob = new Blob(["\uFEFF" + text], {type: "text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$("importBtn").onclick = () => $("importFile").click();
+$("importFile").onchange = async () => {
+  const f = $("importFile").files[0];
+  if(!f) return;
+  const text = await f.text();
+  let added = 0;
+  parseNames(text).forEach(n => { if(addName(n)) added++; });
+  $("importMsg").textContent = t("swiss.imported", {n: added});
+  $("importFile").value = "";
+  renderRoster();
+};
+$("sampleBtn").onclick = () => downloadText(t("swiss.sampleFile"), t("swiss.sampleBody"));
+$("exportBtn").onclick = () => {
+  if(!roster.length) return;
+  downloadText(t("swiss.exportFile"), roster.map(p => p.name).join("\n"));
+};
+
+/* ---------- 順位表を画像に ---------- */
+function standingsImage(){
+  const rows = standings();
+  const scale = 2;                                  // 高解像度で描く
+  const W = 720, rowH = 44, headH = 96, footH = 40;
+  const H = headH + 34 + rows.length * rowH + footH;
+  const cv = $("shot");
+  cv.width = W * scale; cv.height = H * scale;
+  const g = cv.getContext("2d");
+  g.scale(scale, scale);
+  const font = '"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif';
+
+  // 背景と見出し
+  g.fillStyle = "#F3F5F1"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#23342E"; g.fillRect(0, 0, W, headH);
+  g.fillStyle = "#B8912F"; g.fillRect(0, headH - 4, W, 4);
+  g.fillStyle = "#B8912F"; g.font = "700 13px " + font;
+  g.fillText(t("site.name"), 24, 30);
+  g.fillStyle = "#F3F5F1"; g.font = "800 24px " + font;
+  g.fillText(T.done ? t("swiss.final") : t("swiss.copyTitle", {n: T.rounds.length}), 24, 62);
+  g.fillStyle = "#B9C7C0"; g.font = "400 12px " + font;
+  const started = T.startedAt ? new Date(T.startedAt).toLocaleDateString(I18N.lang === "ja" ? "ja-JP" : "en-US") : "";
+  g.fillText(started + (started ? "　" : "") + t("swiss.roundOf", {n: T.rounds.length, total: T.total}), 24, 82);
+
+  // 列見出し
+  const colX = { rank: 24, name: 72, rec: 470, pt: 560, omw: 680 };
+  let y = headH + 24;
+  g.fillStyle = "#63736C"; g.font = "500 12px " + font;
+  g.fillText("#", colX.rank, y);
+  g.fillText(t("swiss.name"), colX.name, y);
+  g.textAlign = "right";
+  g.fillText(t("swiss.record"), colX.rec, y);
+  g.fillText(t("swiss.points"), colX.pt, y);
+  g.fillText("OMW%", colX.omw, y);
+  g.textAlign = "left";
+  y += 10;
+  g.strokeStyle = "#CBD3CA"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
+
+  // 行
+  rows.forEach((s, i) => {
+    const top = y;
+    const champ = T.done && i === 0;
+    if(champ){ g.fillStyle = "#FBF6E3"; g.fillRect(16, top + 2, W - 32, rowH - 4); }
+    const base = top + rowH / 2 + 5;
+    g.fillStyle = i === 0 ? "#B8912F" : "#63736C"; g.font = "700 14px " + font;
+    g.fillText(champ ? "🏆" : String(i + 1), colX.rank, base);
+    g.fillStyle = "#0F1C17"; g.font = (champ ? "700 " : "500 ") + "15px " + font;
+    let nameX = colX.name;
+    g.fillText(s.name, nameX, base);
+    if(champ){
+      const w = g.measureText(s.name).width;
+      const label = t("swiss.champion");
+      g.font = "700 11px " + font;
+      const lw = g.measureText(label).width + 14;
+      g.fillStyle = "#B8912F"; roundRect(g, nameX + w + 8, base - 12, lw, 17, 8); g.fill();
+      g.fillStyle = "#1A1405"; g.fillText(label, nameX + w + 15, base);
+    }
+    g.textAlign = "right";
+    g.fillStyle = "#0F1C17"; g.font = "500 14px " + font;
+    g.fillText(`${s.w}-${s.l}-${s.d}`, colX.rec, base);
+    g.font = "700 15px " + font;
+    g.fillText(String(s.mp), colX.pt, base);
+    g.fillStyle = "#63736C"; g.font = "400 12px " + font;
+    g.fillText(s.omwp == null ? "—" : (s.omwp * 100).toFixed(1) + "%", colX.omw, base);
+    g.textAlign = "left";
+    y += rowH;
+    g.strokeStyle = "#E6EAE3"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
+  });
+
+  // 脚注
+  g.fillStyle = "#63736C"; g.font = "400 11px " + font;
+  g.fillText("sealed-workbench.com", 24, H - 14);
+  return cv;
+}
+function roundRect(g, x, y, w, h, r){
+  g.beginPath();
+  g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+}
+$("imgBtn").onclick = () => {
+  const cv = standingsImage();
+  cv.toBlob(blob => {
+    if(!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = t("swiss.imageFile", {d: new Date().toISOString().slice(0, 10)});
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }, "image/png");
 };
 
 $("copyBtn").onclick = async () => {
