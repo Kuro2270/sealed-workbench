@@ -786,12 +786,6 @@ function render(){
   if(D.picked.length) ensureCards(D.picked);
   recomputeColors();                              // カード情報が後から揃うこともあるので毎回
 
-  // 表示の切り替え
-  document.querySelectorAll("#viewTabs .tab").forEach(b => b.classList.toggle("on", b.dataset.view === view));
-  $("viewTabs").hidden = !D.picked.length;
-  const deckMode = view === "deck" && D.picked.length > 0;
-  $("best").hidden = true; $("pack").hidden = deckMode; $("packEmpty").hidden = deckMode; $("deckView").hidden = !deckMode;
-  if(deckMode){ renderDeck(); syncPip(); return; }
 
   const has = D.pack.length > 0;
   $("pickTitle").textContent = has ? t("assist.packPick", {p: D.packNo || "?", k: D.pickNo || "?"})
@@ -825,6 +819,13 @@ function render(){
     s.title = t("assist.paceTip");
     cb.appendChild(s);
   }
+
+  // 表示の切り替え
+  document.querySelectorAll("#viewTabs .tab").forEach(b => b.classList.toggle("on", b.dataset.view === view));
+  $("viewTabs").hidden = !D.picked.length;
+  const deckMode = view === "deck" && D.picked.length > 0;
+  $("best").hidden = true; $("pack").hidden = deckMode; $("packEmpty").hidden = deckMode; $("deckView").hidden = !deckMode;
+  if(deckMode){ renderDeck(); syncPip(); return; }
 
   // パック
   const ul = $("pack");
