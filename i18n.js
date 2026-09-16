@@ -288,6 +288,8 @@
     "swiss.exportFile": { ja:"参加者名簿.txt", en:"roster.txt" },
     "swiss.saveImage":  { ja:"画像で保存", en:"Save as image" },
     "swiss.imageFile":  { ja:"順位表_{d}.png", en:"standings_{d}.png" },
+    "swiss.roundImageFile":{ ja:"対戦表_ラウンド{n}_{d}.png", en:"pairings_round{n}_{d}.png" },
+    "swiss.resultShort":{ ja:"結果", en:"Result" },
     "swiss.champion":   { ja:"優勝", en:"Champion" },
     "swiss.setup":      { ja:"大会の設定", en:"Tournament settings" },
     "swiss.rounds":     { ja:"ラウンド数", en:"Rounds" },

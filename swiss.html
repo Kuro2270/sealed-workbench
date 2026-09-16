@@ -89,7 +89,8 @@
   /* 対戦表 */
   .round-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
   .round-head h2{margin:0}
-  .round-head .sub{color:var(--muted);font-size:13px}
+  .round-head .sub{color:var(--muted);font-size:13px;flex:1}
+  button.small{padding:6px 12px;font-size:12.5px}
   table{width:100%;border-collapse:collapse;font-size:14px}
   th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
   td{padding:7px 8px;border-bottom:1px solid var(--paper-2);vertical-align:middle}
@@ -236,6 +237,7 @@
       <div class="round-head">
         <h2 id="roundTitle"></h2>
         <span class="sub" id="roundSub"></span>
+        <button class="ghost small" id="roundImgBtn" data-i18n="swiss.saveImage">画像で保存</button>
       </div>
       <table id="pairings">
         <thead><tr>
@@ -842,17 +844,87 @@ function roundRect(g, x, y, w, h, r){
   g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
   g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
 }
-$("imgBtn").onclick = () => {
-  const cv = standingsImage();
+function roundImage(){
+  const r = currentRound(), no = T.rounds.length;
+  const scale = 2;
+  const W = 720, rowH = 46, headH = 96, footH = 40;
+  const H = headH + 34 + r.matches.length * rowH + footH;
+  const cv = $("shot");
+  cv.width = W * scale; cv.height = H * scale;
+  const g = cv.getContext("2d");
+  g.scale(scale, scale);
+  const font = '"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif';
+
+  g.fillStyle = "#F3F5F1"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#23342E"; g.fillRect(0, 0, W, headH);
+  g.fillStyle = "#B8912F"; g.fillRect(0, headH - 4, W, 4);
+  g.fillStyle = "#B8912F"; g.font = "700 13px " + font;
+  g.fillText(t("site.name"), 24, 30);
+  g.fillStyle = "#F3F5F1"; g.font = "800 24px " + font;
+  g.fillText(t("swiss.round", {n: no}), 24, 62);
+  g.fillStyle = "#B9C7C0"; g.font = "400 12px " + font;
+  const started = T.startedAt ? new Date(T.startedAt).toLocaleDateString(I18N.lang === "ja" ? "ja-JP" : "en-US") : "";
+  g.fillText(started + (started ? "　" : "") + t("swiss.roundOf", {n: no, total: T.total}), 24, 82);
+
+  // 列見出し：卓／左／結果／右
+  const cx = { tbl: 24, a: 70, res: W / 2, b: W - 24 };
+  let y = headH + 24;
+  g.fillStyle = "#63736C"; g.font = "500 12px " + font;
+  g.fillText(t("swiss.table"), cx.tbl, y);
+  g.fillText(t("swiss.playerA"), cx.a, y);
+  g.textAlign = "center"; g.fillText(t("swiss.resultShort"), cx.res, y);
+  g.textAlign = "right";  g.fillText(t("swiss.playerB"), cx.b, y);
+  g.textAlign = "left";
+  y += 10;
+  g.strokeStyle = "#CBD3CA"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
+
+  r.matches.forEach((m, i) => {
+    const base = y + rowH / 2 + 5;
+    const done = m.b == null || (m.ga != null && m.gb != null);
+    if(done){ g.fillStyle = "#F7F9F5"; g.fillRect(16, y + 2, W - 32, rowH - 4); }
+    g.fillStyle = "#63736C"; g.font = "500 13px " + font;
+    g.fillText(m.b == null ? "—" : String(i + 1), cx.tbl, base);
+    if(m.b == null){
+      g.fillStyle = "#0F1C17"; g.font = "700 15px " + font;
+      g.fillText(nameOf(m.a), cx.a, base);
+      g.fillStyle = "#63736C"; g.font = "400 13px " + font;
+      g.textAlign = "center"; g.fillText(t("swiss.byeRow"), cx.res, base); g.textAlign = "left";
+    }else{
+      const aw = m.ga != null && m.ga > m.gb, bw = m.gb != null && m.gb > m.ga;
+      g.fillStyle = aw ? "#2F6B47" : "#0F1C17"; g.font = "700 15px " + font;
+      g.fillText(nameOf(m.a), cx.a, base);
+      g.fillStyle = bw ? "#2F6B47" : "#0F1C17";
+      g.textAlign = "right"; g.fillText(nameOf(m.b), cx.b, base);
+      g.textAlign = "center";
+      g.fillStyle = m.ga == null ? "#B9C1BC" : "#0F1C17"; g.font = "700 16px " + font;
+      g.fillText(m.ga == null ? "vs" : `${m.ga} - ${m.gb}`, cx.res, base);
+      g.textAlign = "left";
+    }
+    y += rowH;
+    g.strokeStyle = "#E6EAE3"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
+  });
+
+  g.fillStyle = "#63736C"; g.font = "400 11px " + font;
+  g.fillText("sealed-workbench.com", 24, H - 14);
+  return cv;
+}
+
+function saveCanvas(cv, filename){
   cv.toBlob(blob => {
     if(!blob) return;
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = t("swiss.imageFile", {d: new Date().toISOString().slice(0, 10)});
+    a.href = url; a.download = filename;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   }, "image/png");
+}
+$("roundImgBtn").onclick = () => {
+  saveCanvas(roundImage(), t("swiss.roundImageFile", {n: T.rounds.length, d: new Date().toISOString().slice(0, 10)}));
+};
+
+$("imgBtn").onclick = () => {
+  saveCanvas(standingsImage(), t("swiss.imageFile", {d: new Date().toISOString().slice(0, 10)}));
 };
 
 $("copyBtn").onclick = async () => {
