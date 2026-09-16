@@ -93,6 +93,14 @@
   ul.pack li .fit.on{background:#EAF3EC;color:#2F6B47}
   ul.pack li .fit.off{background:#F8ECE8;color:#A24B32}
   .empty{color:var(--muted);font-size:13px;padding:18px 0;text-align:center}
+  /* おすすめの1枚 */
+  .best{display:flex;gap:14px;align-items:center;padding:10px;margin:0 0 10px;background:#FBF6E3;border:1px solid #E6D6A8;border-radius:var(--radius)}
+  .best img{width:150px;height:auto;border-radius:6px;flex:none;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  .best-lbl{display:inline-block;padding:1px 9px;border-radius:999px;background:var(--gold);color:#1A1405;font-size:11px;font-weight:700;margin-bottom:6px}
+  .best-nm{font-size:18px;font-weight:700;line-height:1.3}
+  .best-wr{font-size:14px;margin-top:2px}
+  .best-why{font-size:12.5px;color:var(--muted);margin-top:4px}
+  main select{font-family:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;color:var(--ink)}
   .picked{display:flex;flex-wrap:wrap;gap:4px;font-size:12px}
   .picked span{padding:2px 8px;border-radius:3px;background:var(--paper-2)}
 
@@ -174,11 +182,30 @@
       <span class="sub" id="pickSub"></span>
     </div>
     <div class="colors" id="colorBar"></div>
+    <div class="best" id="best" hidden>
+      <img id="bestImg" alt="" src="">
+      <div class="best-txt">
+        <div class="best-lbl" data-i18n="assist.best">おすすめ</div>
+        <div class="best-nm" id="bestName"></div>
+        <div class="best-wr" id="bestWr"></div>
+        <div class="best-why" id="bestWhy"></div>
+      </div>
+    </div>
     <ul class="pack" id="pack"></ul>
     <div class="empty" id="packEmpty" data-i18n="assist.packEmpty">アリーナでドラフトのパックを開くと、ここにカードが並びます。</div>
   </section>
 
   <section class="card">
+    <div class="row" style="margin-bottom:10px">
+      <label style="font-size:13.5px"><span data-i18n="assist.weight">色へのこだわり</span>
+        <select id="weightSel" style="margin-left:6px">
+          <option value="weak" data-i18n="assist.weightWeak">弱め（勝率を重視）</option>
+          <option value="mid" data-i18n="assist.weightMid">標準</option>
+          <option value="strong" data-i18n="assist.weightStrong">強め（色を重視）</option>
+        </select>
+      </label>
+      <span class="hint" style="margin:0" data-i18n="assist.weightHint">4手目以降、自分の色に合うカードをどれだけ持ち上げるかです。</span>
+    </div>
     <div class="row">
       <button id="pipBtn" class="ghost" data-i18n="assist.pip">常に前面の小窓で表示</button>
       <span class="hint" style="margin:0" data-i18n="assist.pipHint">アリーナを全画面ではなくウィンドウ表示にしておくと、小窓を横に置けます。</span>
@@ -433,18 +460,21 @@ async function ensureSet(code){
   // 日本語名
   await scryAll(`set:${code.toLowerCase()} lang:ja unique:prints`, c => {
     const en = Object.values(cards).find(x => x.cn === c.collector_number);
-    if(en) en.ja = c.printed_name || (c.card_faces?.[0]?.printed_name) || "";
+    if(en){ en.ja = c.printed_name || (c.card_faces?.[0]?.printed_name) || ""; en.imgJa = imgOf(c); }
   });
   setStatus(handle || demo ? t("assist.ready", {set: code, n: Object.keys(cards).length}) : t("assist.idle"), handle ? "live" : "");
   render();
 }
+function imgOf(c){ return c.image_uris?.normal || c.card_faces?.[0]?.image_uris?.normal || ""; }
 function addCard(c){
   if(!c.arena_id) return;
   const front = (c.type_line || "").split("//")[0];
   cards[String(c.arena_id)] = {
     name: c.name, ja: "", cn: c.collector_number,
     colors: front.includes("Land") ? [] : (c.color_identity || []).filter(x => "WUBRG".includes(x)),
-    rarity: c.rarity || "", cmc: c.cmc ?? 0, type: front.trim()
+    rarity: c.rarity || "", cmc: c.cmc ?? 0, type: front.trim(),
+    basic: front.includes("Basic Land"),
+    img: imgOf(c), imgJa: ""
   };
 }
 async function scryAll(q, fn){
@@ -497,10 +527,15 @@ function colorBonus(){
   ranked.forEach(([k, v], i) => { b[k] = W[i] * Math.min(1, v / top); });
   return b;
 }
+/* 色へのこだわり。数字は「色が完全に合うカード」に足す最大の勝率ポイント */
+const WEIGHTS = { weak: 5, mid: 10, strong: 15 };
+function colorWeight(){ return WEIGHTS[localStorage.getItem("assist.weight") || "mid"] ?? 10; }
+
 function scorePack(){
   const pickIndex = D.picked.length;
-  const commit = Math.min(1, pickIndex / 6);
+  const commit = Math.min(1, pickIndex / 4);        // 4手目でこだわりが最大になる
   const bonus = colorBonus();
+  const w = colorWeight();
   return D.pack.map(id => {
     const c = cards[id];
     const base = ratingOf(id);
@@ -509,9 +544,18 @@ function scorePack(){
     if(!cols.length) fit = 0.5;
     else fit = cols.reduce((n, k) => n + bonus[k], 0) / cols.length;
     if(cols.length > 1) fit *= 0.9;
-    const score = base + commit * 4 * (fit - 0.4);
-    return { id, c, base, fit, score, commit };
+    const adj = commit * w * (fit - 0.4);
+    const basic = !!(c && c.basic);
+    const score = basic ? -1 : base + adj;             // 基本土地は最後に回す
+    return { id, c, base, fit, adj, score, commit, basic };
   }).sort((a, b) => b.score - a.score);
+}
+function reasonFor(e){
+  if(e.commit < 0.5) return t("assist.reasonEarly");
+  const ranked = Object.entries(D.colorScore).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => colorName(k));
+  if(e.fit >= 0.6) return t("assist.reasonColor", {c: ranked.join("・")});
+  if(e.fit <= 0.2) return t("assist.reasonOff", {c: ranked.join("・")});
+  return t("assist.reasonBest");
 }
 
 /* ================= 描画 ================= */
@@ -549,17 +593,29 @@ function render(){
   // パック
   const ul = $("pack");
   ul.innerHTML = "";
+  $("best").hidden = true;
   if(has){
     const list = scorePack();
+    const top = list.find(e => e.c && !e.basic);
+    if(top){
+      const c = top.c;
+      const wrE = wr[c.name] || wr[c.name.split(" // ")[0]];
+      $("bestImg").src = (I18N.lang === "ja" && c.imgJa) || c.img || "";
+      $("bestImg").hidden = !$("bestImg").src;
+      $("bestName").textContent = displayName(c);
+      $("bestWr").textContent = wrE && wrE.gih != null ? t("assist.bestWr", {p: (wrE.gih * 100).toFixed(1)}) : "";
+      $("bestWhy").textContent = reasonFor(top);
+      $("best").hidden = false;
+    }
     list.forEach((e, i) => {
       const li = document.createElement("li");
-      if(i < 3) li.className = "top";
+      if(i < 3 && !e.basic) li.className = "top";
       const c = e.c;
       const cols = c ? c.colors : [];
       const dotColor = cols.length === 0 ? "var(--c)" : cols.length > 1 ? "var(--m)" : `var(--${cols[0].toLowerCase()})`;
       const wrE = c ? (wr[c.name] || wr[c.name.split(" // ")[0]]) : null;
-      const wrTxt = wrE && wrE.gih != null ? (wrE.gih * 100).toFixed(1) + "%" : "—";
-      const fitCls = !c || !cols.length || e.commit < 0.34 ? "" : (e.fit >= 0.6 ? " on" : (e.fit <= 0.2 ? " off" : ""));
+      const wrTxt = e.basic ? "—" : (wrE && wrE.gih != null ? (wrE.gih * 100).toFixed(1) + "%" : "—");
+      const fitCls = !c || !cols.length || e.basic || e.commit < 0.5 ? "" : (e.fit >= 0.6 ? " on" : (e.fit <= 0.2 ? " off" : ""));
       const fitTxt = fitCls === " on" ? t("assist.onColor") : fitCls === " off" ? t("assist.offColor") : "";
       li.innerHTML =
         `<span class="rk">${i + 1}</span>` +
@@ -640,6 +696,8 @@ $("pickBtn").onclick = pickFile;
 $("resumeBtn").onclick = resume;
 $("demoBtn").onclick = runDemo;
 $("pipBtn").onclick = openPip;
+$("weightSel").value = localStorage.getItem("assist.weight") || "mid";
+$("weightSel").onchange = () => { try{ localStorage.setItem("assist.weight", $("weightSel").value); }catch(e){} render(); };
 const sel = $("langSelect");
 sel.value = I18N.lang;
 sel.onchange = e => I18N.set(e.target.value);
