@@ -959,11 +959,19 @@ async function openPip(){
   box.id = "pipBox"; box.style.padding = "10px 12px";
   pip.document.body.appendChild(box);
   pip.addEventListener("pagehide", () => { pip = null; $("pipBtn").textContent = t("assist.pip"); });
-  pip.document.addEventListener("click", ev => {
+  pip.document.addEventListener("click", async ev => {
     const b = ev.target.closest("button");
     if(!b) return;
-    if(b.dataset.view){ view = b.dataset.view; render(); }
-    else if(b.id === "deckCopyBtn"){ $("deckCopyBtn")?.click(); }
+    if(b.dataset.view){ view = b.dataset.view; render(); return; }
+    if(b.id === "deckCopyBtn"){
+      // クリップボードへの書き込みは、押された側の窓（小窓）から行う必要がある
+      const d = bestDecks()[0];
+      if(!d) return;
+      const text = deckText(d);
+      try{ await pip.navigator.clipboard.writeText(text); b.textContent = t("assist.deckCopied"); }
+      catch(e){ pip.prompt(t("swiss.copyManual"), text); }
+      setTimeout(() => { if(pip){ const x = pip.document.getElementById("deckCopyBtn"); if(x) x.textContent = t("assist.deckCopy"); } }, 2000);
+    }
   });
   $("pipBtn").textContent = t("assist.pipClose");
   syncPip();
