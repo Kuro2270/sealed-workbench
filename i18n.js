@@ -415,7 +415,7 @@
     "assist.weightWeak":{ ja:"弱め（勝率を重視）", en:"Weak (favour win rate)" },
     "assist.weightMid": { ja:"標準", en:"Standard" },
     "assist.weightStrong":{ ja:"強め（色を重視）", en:"Strong (favour colours)" },
-    "assist.weightHint":{ ja:"ピック済みの上位2色を自分の色とみなし、合うカードを持ち上げ、違うカードを下げます。標準では最大±4ポイントで、勝率の差がそれより大きければ勝率が優先されます。", en:"Your two most-picked colours count as yours. On-colour cards are boosted and off-colour cards lowered — by up to ±4 points on Standard, so a bigger win-rate gap still wins." },
+    "assist.weightHint":{ ja:"ピック済みの上位2色を自分の色とみなし、合うカードを持ち上げ、違うカードを下げます。標準では1パック目で最大±4、2パック目で±6、3パック目で±8ポイントです。", en:"Your two most-picked colours count as yours. On-colour cards are boosted and off-colour cards lowered — on Standard, up to ±4 points in pack 1, ±6 in pack 2 and ±8 in pack 3." },
     "assist.onColor":   { ja:"色が合う", en:"On colour" },
     "assist.offColor":  { ja:"色が違う", en:"Off colour" },
     "assist.pip":       { ja:"常に前面の小窓で表示", en:"Open always-on-top window" },

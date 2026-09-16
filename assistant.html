@@ -208,7 +208,7 @@
           <option value="strong" data-i18n="assist.weightStrong">強め（色を重視）</option>
         </select>
       </label>
-      <span class="hint" style="margin:0" data-i18n="assist.weightHint">ピック済みの上位2色を自分の色とみなし、合うカードを持ち上げ、違うカードを下げます。標準では最大±4ポイントで、勝率の差がそれより大きければ勝率が優先されます。</span>
+      <span class="hint" style="margin:0" data-i18n="assist.weightHint">ピック済みの上位2色を自分の色とみなし、合うカードを持ち上げ、違うカードを下げます。標準では1パック目で最大±4、2パック目で±6、3パック目で±8ポイントです。</span>
     </div>
     <div class="row">
       <button id="pipBtn" class="ghost" data-i18n="assist.pip">常に前面の小窓で表示</button>
@@ -544,7 +544,14 @@ function recomputeColors(){
 function colorBonus(){
   const ranked = Object.entries(D.colorScore).filter(([, v]) => v > 0).sort((a,b) => b[1] - a[1]);
   const b = {W:0,U:0,B:0,R:0,G:0};
-  ranked.forEach(([k], i) => { b[k] = i < 2 ? 1 : (i === 2 ? 0.4 : 0); });
+  const second = ranked[1] ? ranked[1][1] : 0;
+  ranked.forEach(([k, v], i) => {
+    if(i < 2) b[k] = 1;
+    // 3色目は、2色目に比べてどれだけ集まっているかに応じてだけ評価する。
+    // 仕方なく取った1枚程度なら、ほぼ0になる。
+    else if(i === 2) b[k] = second > 0 ? 0.4 * Math.min(1, v / second) : 0;
+    else b[k] = 0;
+  });
   return b;
 }
 /* 色へのこだわり。数字は「色が完全に合うカード」に足す最大の勝率ポイント */
@@ -589,7 +596,10 @@ const PACE_ADJ = {
 
 function scorePack(){
   const pickIndex = D.picked.length;
-  const commit = Math.min(1, pickIndex / 4);        // 色へのこだわりは4手目で最大
+  // 色へのこだわり：4手目で1.0になり、2パック目で1.5、3パック目で2.0まで強まる。
+  // 後半ほど色は固まっているので、色違いの強いカードに引きずられにくくする。
+  const packIdx = Math.floor(pickIndex / 14);
+  const commit = Math.min(1, pickIndex / 4) * (1 + 0.5 * Math.min(2, packIdx));
   const ramp = Math.min(1, pickIndex / 8);          // 枠の調整は8手目で最大
   const bonus = colorBonus();
   const w = colorWeight();
