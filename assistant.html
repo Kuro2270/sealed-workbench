@@ -156,7 +156,7 @@
     <div class="head-top">
       <div>
         <h1 data-i18n="assist.h1">ドラフト・アシスタント（PC版）</h1>
-        <p data-i18n="assist.lead">アリーナのドラフト中に、いま見ているパックのカードを勝率と自分の色から並べ替えて表示します。</p>
+        <p data-i18n="assist.lead">アリーナのドラフト中に、いま見ているパックのカードを勝率と自分の色から並べ替えて表示します。PCのChrome／Edge専用です。</p>
       </div>
       <div class="controls">
         <select id="langSelect" data-i18n-label="lang.label">
@@ -168,6 +168,7 @@
 </header>
 
 <main>
+  <div class="status" data-i18n-html="assist.support"><b>対応環境</b>：Windows／MacのPCで、<b>Google Chrome</b> または <b>Microsoft Edge</b>。FirefoxとSafariは、ログファイルを読み続ける機能が無いため使えません。<b>スマートフォン・タブレットでは利用できません</b>（スマホ版アリーナはログを外部に公開しない作りのため）。</div>
   <div id="unsupported" class="status bad" hidden data-i18n="assist.unsupported">このブラウザでは動きません。PCのChromeまたはEdgeで開いてください。</div>
 
   <section class="card" id="setup">
