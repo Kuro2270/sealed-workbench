@@ -391,6 +391,8 @@
     "assist.leaning":   { ja:"向かっている色：", en:"Leaning:" },
     "assist.best":      { ja:"おすすめ", en:"Pick this" },
     "assist.bestWr":    { ja:"GIH勝率 {p}%", en:"GIH win rate {p}%" },
+    "assist.reasonLast":{ ja:"残り1枚なので、選ぶ余地はありません。デッキに入らなくても気にしなくて大丈夫です。", en:"Only one card left, so there is nothing to choose. It need not make the deck." },
+    "assist.reasonLate":{ ja:"パックの終盤で選択肢が少ない場面です。色や勝率が合わなくても仕方ありません。デッキに入らない前提で、いちばん無難なものを挙げています。", en:"Late in the pack with little left. Colour and win rate cannot be helped here; this is simply the least bad option, and it probably will not make the deck." },
     "assist.reasonEarly":{ ja:"まだ色を決める前なので、勝率が最も高いカードです。", en:"Colours are still open, so this is simply the highest win rate." },
     "assist.reasonColor":{ ja:"いま向かっている{c}に合い、総合評価が最も高いカードです。", en:"Fits the {c} you are drafting and scores highest overall." },
     "assist.reasonOff": { ja:"{c}とは色が違いますが、勝率が飛び抜けているので候補に残しています。", en:"Off your {c} lane, but the win rate is high enough to stay on top." },

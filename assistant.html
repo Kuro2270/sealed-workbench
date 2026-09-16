@@ -619,6 +619,11 @@ function scorePack(){
 }
 function reasonFor(e){
   const ranked = Object.entries(D.colorScore).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => colorName(k));
+  // パックの終盤：選択肢が少なく、色も勝率も合わないカードしか残っていないことがある
+  const left = D.pack.filter(id => !(cards[id] && cards[id].basic)).length;
+  if(left <= 1) return t("assist.reasonLast");
+  const offColor = ranked.length && e.commit >= 0.5 && e.fit <= 0.25;
+  if(left <= 3 && (offColor || e.base < 53)) return t("assist.reasonLate");
   let main;
   if(e.commit < 0.5 || !ranked.length) main = t("assist.reasonEarly");
   else if(e.fit >= 0.75) main = t("assist.reasonColor", {c: ranked.join("・")});
