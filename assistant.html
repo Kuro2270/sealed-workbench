@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ja" data-title="page.assist.title" data-desc="desc.assist">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ドラフト・アシスタント — MTGアリーナ リミテッド・ワークベンチ</title>
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="./i18n.js"></script>
+<style>
+  :root{
+    --pine:#23342E; --pine-deep:#18241F;
+    --paper:#F3F5F1; --paper-2:#E6EAE3;
+    --ink:#0F1C17; --muted:#63736C;
+    --gold:#B8912F; --line:#CBD3CA;
+    --w:#FAF4E2; --u:#7FB4D8; --b:#7A7480; --r:#DB8068; --g:#79A87F; --m:#C3A03B; --c:#9AA3A0;
+    --radius:3px;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  /* 内容の長さでスクロールバーが出たり消えたりしても、位置が動かないようにする */
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+
+  header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .head-top{display:block}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{
+    display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;
+    font-size:13px;font-weight:500;line-height:1;white-space:nowrap;
+    color:#CBD8D2;text-decoration:none;background:rgba(255,255,255,.05);
+    border:1px solid #3D544B;transition:background .12s,color .12s;
+  }
+  nav a:hover{background:#31473E;color:var(--paper);border-color:#547064}
+  nav a.on{background:var(--gold);border-color:var(--gold);color:#1A1405;font-weight:700}
+  .controls{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  header select{background:var(--pine-deep);color:var(--paper);border:1px solid #3D544B;padding:9px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px;min-width:120px}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  main{max-width:1000px;margin:0 auto;padding:22px 24px 70px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px}
+  .card h2{font-size:17px;margin:0 0 10px}
+  .hint{color:var(--muted);font-size:12.5px;margin:0 0 10px}
+  ol.steps{margin:0 0 10px;padding-left:1.4em}
+  ol.steps li{margin-bottom:6px}
+  code{background:var(--paper-2);padding:1px 6px;border-radius:3px;font-size:12.5px;word-break:break-all}
+  .shot{margin:6px 0 12px}
+  .shot img{display:block;width:100%;max-width:560px;height:auto;border:1px solid var(--line);border-radius:var(--radius)}
+  .shot figcaption{color:var(--muted);font-size:12px;margin-top:4px}
+  button{border:none;border-radius:var(--radius);padding:9px 16px;cursor:pointer;background:var(--gold);color:#1A1405;font-weight:700;font-family:inherit;font-size:14px}
+  button:hover{background:#CBA33B}
+  button:disabled{background:#B9C1BC;color:#F3F5F1;cursor:not-allowed}
+  button.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);font-weight:600}
+  button.ghost:hover{background:var(--paper-2)}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .status{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;margin:0 0 14px;font-size:13.5px;color:#3B4A44}
+  .status.bad{border-left-color:#A24B32;background:#F8ECE8}
+  .status.live{border-left-color:#2F6B47;background:#EAF3EC}
+  .status.live::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:#2F6B47;margin-right:8px;animation:blink 1.4s ease-in-out infinite}
+  @keyframes blink{50%{opacity:.25}}
+
+  /* パック表示（この部分を小窓にも出す） */
+  .panel{background:#fff}
+  .pick-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .pick-head h2{margin:0;font-size:17px}
+  .pick-head .sub{color:var(--muted);font-size:13px}
+  .colors{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px;font-size:12px;color:var(--muted);align-items:center}
+  .colors .cb{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;background:var(--paper-2)}
+  .colors .cb.main{background:var(--pine);color:var(--paper)}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);flex:none}
+  ul.pack{list-style:none;margin:0;padding:0}
+  ul.pack li{display:grid;grid-template-columns:22px 18px 1fr auto auto;align-items:center;gap:8px;padding:6px 6px;border-bottom:1px solid var(--paper-2);font-size:14px}
+  ul.pack li.top{background:#FBF6E3}
+  ul.pack li.top .nm{font-weight:700}
+  ul.pack li .rk{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;text-align:right}
+  ul.pack li.top .rk{color:var(--gold);font-weight:700}
+  ul.pack li .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  ul.pack li .nm small{color:var(--muted);font-size:11.5px;margin-left:6px}
+  ul.pack li .wr{font-variant-numeric:tabular-nums;font-weight:600;min-width:52px;text-align:right}
+  ul.pack li .wr.na{color:var(--muted);font-weight:400}
+  ul.pack li .fit{font-size:11px;padding:1px 6px;border-radius:3px;background:var(--paper-2);color:var(--muted);min-width:44px;text-align:center}
+  ul.pack li .fit.on{background:#EAF3EC;color:#2F6B47}
+  ul.pack li .fit.off{background:#F8ECE8;color:#A24B32}
+  .empty{color:var(--muted);font-size:13px;padding:18px 0;text-align:center}
+  .picked{display:flex;flex-wrap:wrap;gap:4px;font-size:12px}
+  .picked span{padding:2px 8px;border-radius:3px;background:var(--paper-2)}
+
+  details summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--muted);padding:4px 0}
+  textarea{width:100%;min-height:120px;font-family:ui-monospace,monospace;font-size:12px;border:1px solid var(--line);border-radius:var(--radius);padding:8px}
+
+  footer{max-width:1000px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+
+  @media (max-width:720px){
+    header p{min-height:0}
+    html,body{overflow-x:hidden}
+    body{font-size:14px}
+    header{padding:16px 14px 12px}
+    header h1{font-size:20px}
+    header p{font-size:12px;max-width:none}
+    main{padding:16px 12px 50px}
+    footer{padding:0 14px 40px}
+    .head-top{flex-direction:column;align-items:stretch;gap:12px}
+    .controls select{width:100%}
+    nav{margin:0 0 14px;gap:6px;font-size:12px}
+    nav a{white-space:nowrap}
+    .card{padding:14px 12px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand" data-i18n="site.name">MTGアリーナ リミテッド・ワークベンチ</div>
+    <nav>
+      <a href="./guide.html" data-i18n="nav.guide">使い方</a>
+      <a href="./" data-i18n="nav.sealed">シールド構築</a>
+      <a href="./draft.html" data-i18n="nav.draft">ドラフト構築</a>
+      <a href="./ratings.html" data-i18n="nav.ratings">カード勝率一覧</a>
+      <a href="./reports.html" data-i18n="nav.reports">環境レポート</a>
+      <a href="./swiss.html" data-i18n="nav.swiss">スイスドロー</a>
+      <a href="./assistant.html" class="on" data-i18n="nav.assist">ドラフト補助</a>
+      <a href="./privacy.html" data-i18n="nav.privacy">プライバシー</a>
+    </nav>
+    <div class="head-top">
+      <div>
+        <h1 data-i18n="assist.h1">ドラフト・アシスタント（PC版）</h1>
+        <p data-i18n="assist.lead">アリーナのドラフト中に、いま見ているパックのカードを勝率と自分の色から並べ替えて表示します。</p>
+      </div>
+      <div class="controls">
+        <select id="langSelect" data-i18n-label="lang.label">
+          <option value="ja">日本語</option><option value="en">English</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="unsupported" class="status bad" hidden data-i18n="assist.unsupported">このブラウザでは動きません。PCのChromeまたはEdgeで開いてください。</div>
+
+  <section class="card" id="setup">
+    <h2 data-i18n="assist.setupH">準備（初回だけ）</h2>
+    <ol class="steps" data-i18n-html="assist.steps"><li>マジック：ザ・ギャザリング アリーナを起動し、右上の歯車から設定を開き、「アカウント」→「詳細ログ（プラグインのサポート）」にチェックを入れる</li><li>アリーナを再起動する</li><li>下の「Player.log を選ぶ」を押して、ログファイルを選ぶ<br>Windows：<code>C:\Users\ユーザー名\AppData\LocalLow\Wizards Of The Coast\MTGA\Player.log</code><br>Mac：<code>~/Library/Logs/Wizards Of The Coast/MTGA/Player.log</code></li></ol>
+    <figure class="shot">
+      <img src="./img/arena-detailed-log.jpg" alt="" loading="lazy" width="1165" height="910">
+      <figcaption data-i18n="assist.shotCap">設定 →「アカウント」の画面。「詳細ログ（プラグインのサポート）」にチェックを入れます。</figcaption>
+    </figure>
+    <p class="hint" data-i18n="assist.setupHint">ファイルはこのブラウザの中でだけ読み取ります。内容がどこかに送られることはありません。AppData は隠しフォルダなので、ファイル選択の画面で上のパスを直接貼り付けると早く着けます。</p>
+    <div class="row">
+      <button id="pickBtn" data-i18n="assist.pick">Player.log を選ぶ</button>
+      <button id="resumeBtn" class="ghost" hidden data-i18n="assist.resume">前回のファイルで再開</button>
+      <button id="demoBtn" class="ghost" data-i18n="assist.demo">サンプルで動きを見る</button>
+    </div>
+  </section>
+
+  <div id="statusBox" class="status" data-i18n="assist.idle">ログファイルを選ぶと監視を始めます。</div>
+
+  <section class="card panel" id="panel">
+    <div class="pick-head">
+      <h2 id="pickTitle" data-i18n="assist.waiting">ドラフトの開始を待っています</h2>
+      <span class="sub" id="pickSub"></span>
+    </div>
+    <div class="colors" id="colorBar"></div>
+    <ul class="pack" id="pack"></ul>
+    <div class="empty" id="packEmpty" data-i18n="assist.packEmpty">アリーナでドラフトのパックを開くと、ここにカードが並びます。</div>
+  </section>
+
+  <section class="card">
+    <div class="row">
+      <button id="pipBtn" class="ghost" data-i18n="assist.pip">常に前面の小窓で表示</button>
+      <span class="hint" style="margin:0" data-i18n="assist.pipHint">アリーナを全画面ではなくウィンドウ表示にしておくと、小窓を横に置けます。</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="assist.pickedH">これまでのピック</h2>
+    <div class="picked" id="picked"></div>
+    <div class="empty" id="pickedEmpty" data-i18n="assist.pickedEmpty">まだありません。</div>
+  </section>
+
+  <section class="card">
+    <details>
+      <summary data-i18n="assist.debugH">読み取りの記録（うまく動かないときに）</summary>
+      <p class="hint" data-i18n="assist.debugHint">ログから拾えた出来事を新しい順に出します。パックを開いたのにここに何も出ない場合は、アリーナ側のログ形式が変わった可能性があります。この内容を添えてお知らせください。</p>
+      <textarea id="debug" readonly></textarea>
+    </details>
+  </section>
+</main>
+
+<footer>
+  <span data-i18n-html="foot.short">データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="./privacy.html">プライバシーポリシー</a>にまとめています。</span>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const t = (k, v) => I18N.t(k, v);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const SCRY = "https://api.scryfall.com";
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ================= 状態 ================= */
+let handle = null;          // Player.log のファイルハンドル
+let offset = 0;             // 読み終えた位置
+let tail = "";              // 行の途中で切れた残り
+let timer = null;
+let demo = false;
+
+const D = {                 // ドラフトの状態
+  set: "",                  // セットコード（HOB など）
+  event: "",                // イベント名
+  packNo: 0, pickNo: 0,     // 1始まり
+  pack: [],                 // いま見ているパック（arena_id の配列）
+  picked: [],               // ピック済み（arena_id の配列）
+  colorScore: {W:0,U:0,B:0,R:0,G:0}
+};
+let cards = {};             // arena_id → {name, ja, colors, rarity, cmc, type}
+let wr = {};                // 英語名 → {gih, games}
+let loadedSet = "";
+const RAR_BASE = { common:52.0, uncommon:53.5, rare:55.0, mythic:56.0 };
+
+/* ================= ログの解析 =================
+   アリーナのログには行の末尾に JSON が入っている。
+   人間相手のドラフト（プレミア）と Bot 相手（クイック）でキーが違うので、両方を見る。
+   形式はアップデートで変わることがあるため、キー名は大文字小文字を無視して探す。 */
+function findKey(o, names){
+  if(!o || typeof o !== "object") return undefined;
+  for(const k of Object.keys(o)){
+    if(names.includes(k.toLowerCase())) return o[k];
+  }
+  return undefined;
+}
+function parseJsonTail(line){
+  const i = line.indexOf("{");
+  if(i < 0) return null;
+  const s = line.slice(i);
+  try{ return JSON.parse(s); }catch(e){}
+  // 末尾にゴミがある場合は、対応する閉じ括弧まで切る
+  let depth = 0, inStr = false, escp = false;
+  for(let j = 0; j < s.length; j++){
+    const ch = s[j];
+    if(inStr){ if(escp) escp = false; else if(ch === "\\") escp = true; else if(ch === '"') inStr = false; continue; }
+    if(ch === '"') inStr = true;
+    else if(ch === "{") depth++;
+    else if(ch === "}"){ depth--; if(depth === 0){ try{ return JSON.parse(s.slice(0, j + 1)); }catch(e){ return null; } } }
+  }
+  return null;
+}
+function unwrap(o){
+  // {"request":"{...}"} のように JSON が文字列で入れ子になっているものを開く
+  if(o && typeof o === "object"){
+    for(const k of ["request","payload","Payload","params"]){
+      if(typeof o[k] === "string" && o[k].trim().startsWith("{")){ try{ o[k] = JSON.parse(o[k]); }catch(e){} }
+    }
+  }
+  return o;
+}
+const toIds = v => {
+  if(Array.isArray(v)) return v.map(x => String(x).trim()).filter(Boolean);
+  if(typeof v === "string") return v.split(",").map(x => x.trim()).filter(Boolean);
+  return [];
+};
+
+function handleLine(line){
+  if(!line.includes("{")) return;
+  const o = unwrap(parseJsonTail(line));
+  if(!o) return;
+  let hit = false;
+
+  // イベント名（セットコードを取り出す）
+  const evName = deepFind(o, ["internaleventname","eventname"]);
+  if(typeof evName === "string" && /draft/i.test(evName)){
+    const m = evName.match(/_([A-Z0-9]{3,5})_/);
+    if(m && m[1] !== D.set){ D.set = m[1]; hit = true; }
+    if(evName !== D.event){ D.event = evName; hit = true; }
+  }
+
+  // 人間相手のドラフト：PackCards / SelfPack / SelfPick
+  const packCards = deepFind(o, ["packcards"]);
+  if(packCards !== undefined){
+    const ids = toIds(packCards);
+    if(ids.length){
+      D.pack = ids;
+      D.packNo = +(deepFind(o, ["selfpack"]) ?? D.packNo) || D.packNo;
+      D.pickNo = +(deepFind(o, ["selfpick"]) ?? D.pickNo) || D.pickNo;
+      hit = true; log(`pack ${D.packNo} pick ${D.pickNo}: ${ids.length} cards (human)`);
+    }
+  }
+
+  // Bot 相手のドラフト：DraftPack / PackNumber / PickNumber / PickedCards
+  const draftPack = deepFind(o, ["draftpack"]);
+  if(draftPack !== undefined){
+    const ids = toIds(draftPack);
+    const pn = deepFind(o, ["packnumber"]), pk = deepFind(o, ["picknumber"]);
+    if(ids.length){
+      D.pack = ids;
+      if(pn != null) D.packNo = +pn + 1;
+      if(pk != null) D.pickNo = +pk + 1;
+      const pc = deepFind(o, ["pickedcards"]);
+      if(pc !== undefined){ D.picked = toIds(pc); recomputeColors(); }
+      hit = true; log(`pack ${D.packNo} pick ${D.pickNo}: ${ids.length} cards (bot)`);
+    }
+  }
+
+  // 自分のピック：cardId / GrpId / GrpIds
+  const cardId = deepFind(o, ["cardid","grpid"]);
+  const cardIds = deepFind(o, ["grpids","cardids"]);
+  if(line.includes("==>") && /pick/i.test(line) && (cardId != null || cardIds != null)){
+    const ids = cardIds != null ? toIds(cardIds) : [String(cardId)];
+    ids.forEach(id => { if(D.pack.includes(id) || !D.pack.length){ D.picked.push(id); } });
+    recomputeColors();
+    D.pack = D.pack.filter(id => !ids.includes(id));
+    hit = true; log(`picked: ${ids.map(id => cards[id]?.name || id).join(", ")}`);
+  }
+
+  if(hit) render();
+}
+function deepFind(o, names, depth = 0){
+  if(!o || typeof o !== "object" || depth > 4) return undefined;
+  const v = findKey(o, names);
+  if(v !== undefined) return v;
+  for(const k of Object.keys(o)){
+    const r = deepFind(o[k], names, depth + 1);
+    if(r !== undefined) return r;
+  }
+  return undefined;
+}
+function consume(text){
+  const chunk = tail + text;
+  const lines = chunk.split(/\r?\n/);
+  tail = lines.pop() || "";
+  lines.forEach(handleLine);
+}
+
+const dbg = [];
+function log(msg){
+  dbg.unshift(new Date().toLocaleTimeString() + "  " + msg);
+  if(dbg.length > 60) dbg.pop();
+  $("debug").value = dbg.join("\n");
+}
+
+/* ================= ファイルの監視 ================= */
+const supported = typeof window.showOpenFilePicker === "function";
+
+async function pickFile(){
+  try{
+    const [h] = await window.showOpenFilePicker({
+      types: [{ description: "Player.log", accept: { "text/plain": [".log", ".txt"] } }],
+      multiple: false
+    });
+    handle = h;
+    await saveHandle(h);
+    await startWatch();
+  }catch(e){ /* キャンセル */ }
+}
+async function startWatch(){
+  stopWatch();
+  demo = false;
+  D.set = ""; D.event = ""; D.pack = []; D.picked = []; D.packNo = 0; D.pickNo = 0; recomputeColors();
+  // 先頭から読む。Player.log は起動ごとに作り直されるので、今回の起動分をなぞれば
+  // ドラフトの途中で選んでも、いまのパックまでたどり着く。
+  offset = 0;
+  tail = "";
+  setStatus(t("assist.watching", {name: handle.name}), "live");
+  timer = setInterval(poll, 1000);
+}
+function stopWatch(){ if(timer){ clearInterval(timer); timer = null; } }
+async function poll(){
+  try{
+    const f = await handle.getFile();
+    if(f.size < offset){ offset = 0; tail = ""; }     // アリーナ再起動でログが作り直された
+    if(f.size > offset){
+      const text = await f.slice(offset, f.size).text();
+      offset = f.size;
+      consume(text);
+    }
+  }catch(e){
+    stopWatch();
+    setStatus(t("assist.lost"), "bad");
+    $("resumeBtn").hidden = false;
+  }
+}
+
+/* 前回のファイルを覚えておく（IndexedDB にハンドルを保存） */
+function idb(){
+  return new Promise((res, rej) => {
+    const r = indexedDB.open("assist", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("kv");
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function saveHandle(h){
+  try{ const db = await idb(); const tx = db.transaction("kv", "readwrite"); tx.objectStore("kv").put(h, "log"); }catch(e){}
+}
+async function loadHandle(){
+  try{
+    const db = await idb();
+    return await new Promise((res) => { const q = db.transaction("kv").objectStore("kv").get("log"); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); });
+  }catch(e){ return null; }
+}
+async function resume(){
+  if(!handle) return;
+  const p = await handle.requestPermission({ mode: "read" });
+  if(p === "granted"){ $("resumeBtn").hidden = true; await startWatch(); }
+}
+
+/* ================= カード情報と勝率 ================= */
+async function ensureSet(code){
+  if(!code || code === loadedSet) return;
+  loadedSet = code;
+  setStatus(t("assist.loadingSet", {set: code}));
+  cards = {}; wr = {};
+  // 勝率（ドラフトの統合データ）
+  try{
+    const r = await fetch(`./data/ratings/${code}_draft.json`, {cache: "no-cache"});
+    if(r.ok){ const d = await r.json(); (d.cards || []).forEach(c => { wr[c.name] = { gih: c.gih, games: c.games }; }); }
+  }catch(e){}
+  // カード情報（英語）
+  await scryAll(`set:${code.toLowerCase()} unique:prints`, c => addCard(c));
+  // 日本語名
+  await scryAll(`set:${code.toLowerCase()} lang:ja unique:prints`, c => {
+    const en = Object.values(cards).find(x => x.cn === c.collector_number);
+    if(en) en.ja = c.printed_name || (c.card_faces?.[0]?.printed_name) || "";
+  });
+  setStatus(handle || demo ? t("assist.ready", {set: code, n: Object.keys(cards).length}) : t("assist.idle"), handle ? "live" : "");
+  render();
+}
+function addCard(c){
+  if(!c.arena_id) return;
+  const front = (c.type_line || "").split("//")[0];
+  cards[String(c.arena_id)] = {
+    name: c.name, ja: "", cn: c.collector_number,
+    colors: front.includes("Land") ? [] : (c.color_identity || []).filter(x => "WUBRG".includes(x)),
+    rarity: c.rarity || "", cmc: c.cmc ?? 0, type: front.trim()
+  };
+}
+async function scryAll(q, fn){
+  let url = `${SCRY}/cards/search?q=${encodeURIComponent(q)}`;
+  while(url){
+    try{
+      const r = await fetch(url);
+      if(!r.ok) break;
+      const d = await r.json();
+      (d.data || []).forEach(fn);
+      url = d.has_more ? d.next_page : null;
+      if(url) await sleep(110);
+    }catch(e){ break; }
+  }
+}
+/* パックに知らない ID があれば、個別に取りに行く（特別枠など） */
+async function ensureCards(ids){
+  const missing = ids.filter(id => !cards[id]);
+  for(const id of missing){
+    try{
+      const r = await fetch(`${SCRY}/cards/arena/${id}`);
+      if(r.ok){ addCard(await r.json()); }
+    }catch(e){}
+    await sleep(110);
+  }
+  if(missing.length) render();
+}
+
+/* ================= 推奨 =================
+   ドラフト構築の他プレイヤーと同じ考え方。勝率を基本に、ピックが進むほど自分の色を優先する。 */
+function ratingOf(id){
+  const c = cards[id]; if(!c) return 50;
+  const e = wr[c.name] || wr[c.name.split(" // ")[0]];
+  if(e && e.gih != null && e.games >= 200) return e.gih * 100;
+  return RAR_BASE[c.rarity] ?? 52;
+}
+function recomputeColors(){
+  D.colorScore = {W:0,U:0,B:0,R:0,G:0};
+  D.picked.forEach(id => {
+    const c = cards[id]; if(!c) return;
+    const w = Math.max(0, ratingOf(id) - 50);
+    c.colors.forEach(k => { D.colorScore[k] += w; });
+  });
+}
+function colorBonus(){
+  const ranked = Object.entries(D.colorScore).sort((a,b) => b[1] - a[1]);
+  const W = [1, 0.9, 0.3, 0, 0];
+  const b = {W:0,U:0,B:0,R:0,G:0};
+  const top = ranked[0][1] || 1;
+  ranked.forEach(([k, v], i) => { b[k] = W[i] * Math.min(1, v / top); });
+  return b;
+}
+function scorePack(){
+  const pickIndex = D.picked.length;
+  const commit = Math.min(1, pickIndex / 6);
+  const bonus = colorBonus();
+  return D.pack.map(id => {
+    const c = cards[id];
+    const base = ratingOf(id);
+    const cols = c ? c.colors : [];
+    let fit;
+    if(!cols.length) fit = 0.5;
+    else fit = cols.reduce((n, k) => n + bonus[k], 0) / cols.length;
+    if(cols.length > 1) fit *= 0.9;
+    const score = base + commit * 4 * (fit - 0.4);
+    return { id, c, base, fit, score, commit };
+  }).sort((a, b) => b.score - a.score);
+}
+
+/* ================= 描画 ================= */
+function setStatus(msg, cls){
+  const el = $("statusBox");
+  el.textContent = msg;
+  el.className = "status" + (cls ? " " + cls : "");
+}
+function colorName(k){ return t("color." + k); }
+function displayName(c){ return I18N.lang === "ja" && c.ja ? c.ja : c.name; }
+
+function render(){
+  if(D.set && D.set !== loadedSet) ensureSet(D.set);
+  if(D.pack.length) ensureCards(D.pack);
+
+  const has = D.pack.length > 0;
+  $("pickTitle").textContent = has ? t("assist.packPick", {p: D.packNo || "?", k: D.pickNo || "?"}) : t("assist.waiting");
+  $("pickSub").textContent = D.set ? (t("assist.setLabel", {set: D.set}) + (D.event ? "　" + D.event : "")) : "";
+  $("packEmpty").hidden = has;
+
+  // 向かっている色
+  const cb = $("colorBar");
+  cb.innerHTML = "";
+  const ranked = Object.entries(D.colorScore).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  if(ranked.length){
+    const lab = document.createElement("span"); lab.textContent = t("assist.leaning"); cb.appendChild(lab);
+    ranked.slice(0, 3).forEach(([k, v], i) => {
+      const s = document.createElement("span");
+      s.className = "cb" + (i < 2 ? " main" : "");
+      s.innerHTML = `<span class="dot" style="background:var(--${k.toLowerCase()})"></span>${esc(colorName(k))} <small>${Math.round(v)}</small>`;
+      cb.appendChild(s);
+    });
+  }
+
+  // パック
+  const ul = $("pack");
+  ul.innerHTML = "";
+  if(has){
+    const list = scorePack();
+    list.forEach((e, i) => {
+      const li = document.createElement("li");
+      if(i < 3) li.className = "top";
+      const c = e.c;
+      const cols = c ? c.colors : [];
+      const dotColor = cols.length === 0 ? "var(--c)" : cols.length > 1 ? "var(--m)" : `var(--${cols[0].toLowerCase()})`;
+      const wrE = c ? (wr[c.name] || wr[c.name.split(" // ")[0]]) : null;
+      const wrTxt = wrE && wrE.gih != null ? (wrE.gih * 100).toFixed(1) + "%" : "—";
+      const fitCls = !c || !cols.length || e.commit < 0.34 ? "" : (e.fit >= 0.6 ? " on" : (e.fit <= 0.2 ? " off" : ""));
+      const fitTxt = fitCls === " on" ? t("assist.onColor") : fitCls === " off" ? t("assist.offColor") : "";
+      li.innerHTML =
+        `<span class="rk">${i + 1}</span>` +
+        `<span class="dot" style="background:${dotColor}"></span>` +
+        `<span class="nm">${c ? esc(displayName(c)) : "#" + esc(e.id)}${c && c.rarity ? `<small>${esc(t("rarity." + c.rarity))}</small>` : ""}</span>` +
+        `<span class="wr${wrE ? "" : " na"}" title="${esc(t("wr.gih.tip"))}">${wrTxt}</span>` +
+        `<span class="fit${fitCls}">${esc(fitTxt)}</span>`;
+      ul.appendChild(li);
+    });
+  }
+
+  // ピック済み
+  const pk = $("picked");
+  pk.innerHTML = "";
+  D.picked.forEach(id => {
+    const s = document.createElement("span");
+    s.textContent = cards[id] ? displayName(cards[id]) : "#" + id;
+    pk.appendChild(s);
+  });
+  $("pickedEmpty").hidden = D.picked.length > 0;
+
+  syncPip();
+}
+
+/* ================= 常に前面の小窓 ================= */
+let pip = null;
+async function openPip(){
+  if(!("documentPictureInPicture" in window)){ setStatus(t("assist.pipUnsupported"), "bad"); return; }
+  if(pip){ pip.close(); return; }
+  pip = await window.documentPictureInPicture.requestWindow({ width: 380, height: 560 });
+  // 同じ見た目にする
+  [...document.querySelectorAll("style,link[rel=stylesheet]")].forEach(n => pip.document.head.appendChild(n.cloneNode(true)));
+  pip.document.body.style.margin = "0";
+  pip.document.body.style.background = "#fff";
+  const box = pip.document.createElement("div");
+  box.id = "pipBox"; box.style.padding = "10px 12px";
+  pip.document.body.appendChild(box);
+  pip.addEventListener("pagehide", () => { pip = null; $("pipBtn").textContent = t("assist.pip"); });
+  $("pipBtn").textContent = t("assist.pipClose");
+  syncPip();
+}
+function syncPip(){
+  if(!pip) return;
+  const box = pip.document.getElementById("pipBox");
+  if(box) box.innerHTML = $("panel").innerHTML;
+}
+
+/* ================= サンプル ================= */
+const DEMO_LINES = [
+  '[UnityCrossThreadLogger]<== EventGetCoursesV2(1) {"Courses":[{"InternalEventName":"PremierDraft_HOB_20260814","CurrentModule":"Draft"}]}',
+  '[UnityCrossThreadLogger]Draft.Notify {"draftId":"demo","SelfPick":1,"SelfPack":1,"PackCards":"__PACK__"}'
+];
+async function runDemo(){
+  stopWatch(); demo = true; handle = null;
+  D.set = ""; D.event = ""; D.pack = []; D.picked = []; D.packNo = 0; D.pickNo = 0; recomputeColors();
+  setStatus(t("assist.demoLoading"));
+  // 最新セットのカードから14枚を仮のパックにする
+  let latest = "";
+  try{
+    const r = await fetch("./data/articles/index.json", {cache: "no-cache"});
+    const j = await r.json();
+    const d = (j.articles || []).filter(a => a.mode === "draft").sort((a, b) => (b.released_at || "").localeCompare(a.released_at || ""));
+    latest = d[0]?.set || (j.articles || [])[0]?.set || "";
+  }catch(e){}
+  if(!latest){ setStatus(t("assist.demoFailed"), "bad"); return; }
+  await ensureSet(latest);
+  const ids = Object.keys(cards);
+  const pick = [];
+  const by = r => ids.filter(id => cards[id].rarity === r);
+  const take = (arr, n) => { for(let i = 0; i < n && arr.length; i++){ const j = Math.floor(Math.random() * arr.length); pick.push(arr.splice(j, 1)[0]); } };
+  take(by("rare"), 1); take(by("uncommon"), 3); take(by("common"), 10);
+  DEMO_LINES.map(l => l.replace("_HOB_", `_${latest}_`).replace("__PACK__", pick.join(","))).forEach(handleLine);
+  setStatus(t("assist.demoReady", {set: latest}));
+}
+
+/* ================= 起動 ================= */
+$("pickBtn").onclick = pickFile;
+$("resumeBtn").onclick = resume;
+$("demoBtn").onclick = runDemo;
+$("pipBtn").onclick = openPip;
+const sel = $("langSelect");
+sel.value = I18N.lang;
+sel.onchange = e => I18N.set(e.target.value);
+I18N.onChange(() => render());
+
+(async () => {
+  if(!supported){
+    $("unsupported").hidden = false;
+    $("pickBtn").disabled = true;
+    return;
+  }
+  handle = await loadHandle();
+  if(handle){
+    const p = await handle.queryPermission({ mode: "read" });
+    if(p === "granted") startWatch();
+    else $("resumeBtn").hidden = false;
+  }
+})();
+</script>
+</body>
+</html>
