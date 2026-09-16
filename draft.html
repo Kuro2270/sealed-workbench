@@ -93,8 +93,6 @@
     background:rgba(24,36,31,.92);color:#F3F5F1;font-size:12px;font-weight:700;line-height:1;
     padding:4px 9px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.3);
   }
-  .tile .wrbadge.hot{background:#2F6B47}
-  .tile .wrbadge.cold{background:#A24B32}
   .tile .noimg{
     display:flex;align-items:center;justify-content:center;text-align:center;aspect-ratio:5/7;
     background:var(--paper-2);border:1px solid var(--line);border-radius:7px;
@@ -137,8 +135,6 @@
   .card-row:hover{background:var(--paper-2)}
   .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
   .wr{font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);text-align:right}
-  .wr.hot{color:var(--hot);font-weight:700}
-  .wr.cold{color:var(--cold)}
   .rar{width:6px;height:14px;border-radius:1px;background:#2B3833}
   .rar.uncommon{background:#AEBDC4}.rar.rare{background:var(--gold)}.rar.mythic{background:#C4552C}
 
@@ -674,13 +670,6 @@ function wrOf(c){
   return wrEntry(c);
 }
 
-function wrClass(v){
-  if(wrAvg == null || v == null) return "";
-  if(v >= wrAvg + 0.03) return " hot";
-  if(v >= wrAvg + 0.01) return "";
-  if(v <= wrAvg - 0.03) return " cold";
-  return "";
-}
 
 function tile(c, onClick){
   const li = document.createElement("li");
@@ -701,7 +690,7 @@ function tile(c, onClick){
   const w = wrOf(c);
   if(w){
     const b = document.createElement("span");
-    b.className = "wrbadge" + wrClass(w.gih);
+    b.className = "wrbadge";
     b.textContent = (w.gih * 100).toFixed(1) + "%";
     b.title = t("tip.gih", {p: (w.gih * 100).toFixed(1), n: w.games.toLocaleString()}) + "\n" + t("wr.gih.tip");
     li.appendChild(b);
@@ -839,7 +828,7 @@ function sideRow(c, where){
   li.innerHTML =
     `<span class="rar ${c.rarity}"></span>` +
     `<span class="name">${esc(displayName(c))}</span>` +
-    `<span class="wr${w ? wrClass(w.gih) : ""}"${w ? ` title="${t("wr.gih.tip")}"` : ""}>${w ? (w.gih*100).toFixed(1) + "%" : ""}</span>` +
+    `<span class="wr"${w ? ` title="${t("wr.gih.tip")}"` : ""}>${w ? (w.gih*100).toFixed(1) + "%" : ""}</span>` +
     `<span style="font-size:12px;color:var(--muted)">${esc(c.mana_cost || "")}</span>`;
   li.onmouseenter = ev => showPreview(c, ev.clientX, ev.clientY);
   li.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);

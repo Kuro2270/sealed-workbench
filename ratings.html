@@ -109,8 +109,6 @@
   .rar.uncommon{background:#8496A0}
   .rar.rare{background:var(--gold);color:#1A1405}
   .rar.mythic{background:#C4552C}
-  .num.hot{color:var(--hot);font-weight:700}
-  .num.cold{color:var(--cold)}
   .thin{color:var(--muted);font-size:12px}
 
   .cname .nm{border-bottom:1px dotted var(--line);cursor:default}
@@ -661,9 +659,6 @@ function render(){
     return (x - y) * dir;
   });
 
-  // GIH勝率の色付け基準
-  const vals = list.map(c => c.gih).filter(v => v != null);
-  const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
 
   const tb = $("tbody");
   tb.innerHTML = "";
@@ -671,13 +666,12 @@ function render(){
     const tr = document.createElement("tr");
     const ck = colorKey(c);
     const cv = (COLOR_DEFS.find(x => x.key === ck) || {}).var || "--c";
-    const cls = c.gih == null ? "" : (c.gih >= avg + 0.02 ? " hot" : (c.gih <= avg - 0.02 ? " cold" : ""));
     const thin = (c.games || 0) < 200 ? " thin" : "";
     tr.innerHTML =
       `<td><span class="cname"><span class="dot" style="background:var(${cv})"></span>` +
       `<span class="nm">${esc(displayName(c))}</span></span></td>` +
       `<td><span class="rar ${esc(c.rarity || "")}">${(RARITIES.find(r => r.key === c.rarity) || {label:"?"}).label}</span></td>` +
-      `<td class="num${cls}${thin}" title="${esc(t("wr.gih.tip"))}">${pct(c.gih)}</td>` +
+      `<td class="num${thin}" title="${esc(t("wr.gih.tip"))}">${pct(c.gih)}</td>` +
       `<td class="num${thin}">${pct(c.gp)}</td>` +
       `<td class="num${thin}">${sgn(c.iwd)}</td>` +
       `<td class="num${thin}">${pct(c.gns)}</td>` +
