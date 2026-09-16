@@ -77,6 +77,14 @@
   ul.people li .x:hover{color:#A24B32;background:transparent}
   ul.people li.off .nm{color:var(--muted);text-decoration:line-through}
   .tag{font-size:11px;padding:1px 6px;border-radius:3px;background:var(--paper-2);color:var(--muted)}
+  .subh{font-size:13px;color:var(--muted);margin:14px 0 6px;font-weight:700}
+  /* 参加／不参加の切り替え */
+  .sw{flex:none;padding:4px 11px;font-size:12px;font-weight:700;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--muted);min-width:64px}
+  .sw.in{background:var(--pine);color:var(--paper);border-color:var(--pine)}
+  .sw:hover{background:var(--paper-2)}
+  .sw.in:hover{background:#2E4239}
+  .join{flex:none;padding:4px 11px;font-size:12px;font-weight:700;border-radius:999px;border:1px solid var(--gold);background:#fff;color:#7A5E14}
+  .join:hover{background:#FBF3DC}
 
   /* 対戦表 */
   .round-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
@@ -251,10 +259,16 @@
 
     <section class="card">
       <h2 data-i18n="swiss.attendance">参加者の出入り</h2>
-      <p class="hint" data-i18n="swiss.attendanceHint">遅れて来た人はここで「参加」にすると、次のラウンドから組み込まれます。途中で帰る人は「不参加」にします。進行中のラウンドには影響しません。</p>
+      <p class="hint" data-i18n="swiss.attendanceHint">ボタンで参加と不参加を切り替えます。遅れて来た人は「参加させる」を押すと、次のラウンドから組み込まれます。進行中のラウンドには影響しません。</p>
       <ul class="people" id="liveRoster"></ul>
+
+      <h3 class="subh" data-i18n="swiss.fromRoster">名簿から途中参加させる</h3>
+      <ul class="people" id="benchRoster"></ul>
+      <p class="hint" id="benchEmpty" data-i18n="swiss.benchEmpty" hidden>名簿の全員がすでに参加しています。</p>
+
+      <h3 class="subh" data-i18n="swiss.newLate">名簿にない人を途中参加させる</h3>
       <div class="row">
-        <input type="text" id="lateInput" class="grow" data-i18n-ph="swiss.latePh" placeholder="途中参加の名前" autocomplete="off">
+        <input type="text" id="lateInput" class="grow" data-i18n-ph="swiss.latePh" placeholder="名前" autocomplete="off">
         <button class="ghost" id="lateBtn" data-i18n="swiss.lateAdd">途中参加を追加</button>
       </div>
     </section>
@@ -562,23 +576,52 @@ function renderStandings(){
   });
 }
 
+/* 途中参加：名簿にも残しつつ、大会に加える */
+function joinLate(name){
+  if(!name || T.done) return;
+  if(T.players.some(p => p.name === name)) return;
+  const id = Math.max(0, ...T.players.map(p => p.id)) + 1;
+  T.players.push({ id, name, active: true });
+  if(!roster.some(p => p.name === name)){ roster.push({ name, on: true }); saveRoster(); }
+  saveState(); renderAll();
+}
+
 function renderLiveRoster(){
+  // 今日の参加者：ボタンで参加／不参加を切り替える
   const ul = $("liveRoster");
   ul.innerHTML = "";
   T.players.forEach(p => {
     const li = document.createElement("li");
     if(!p.active) li.className = "off";
-    const cb = document.createElement("input");
-    cb.type = "checkbox"; cb.checked = p.active;
-    cb.setAttribute("aria-label", t("swiss.joinLabel", {n: p.name}));
-    cb.disabled = T.done;
-    cb.onchange = () => { p.active = cb.checked; saveState(); renderAll(); };
     const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = p.name;
-    const tag = document.createElement("span"); tag.className = "tag";
-    tag.textContent = p.active ? t("swiss.in") : t("swiss.out");
-    li.append(cb, nm, tag);
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "sw" + (p.active ? " in" : "");
+    b.textContent = p.active ? t("swiss.in") : t("swiss.out");
+    b.title = t(p.active ? "swiss.setOut" : "swiss.setIn", {n: p.name});
+    b.setAttribute("aria-pressed", String(p.active));
+    b.disabled = T.done;
+    b.onclick = () => { p.active = !p.active; saveState(); renderAll(); };
+    li.append(nm, b);
     ul.appendChild(li);
   });
+
+  // 名簿にいて、まだ今日の大会に入っていない人
+  const bench = roster.filter(r => !T.players.some(p => p.name === r.name));
+  const bl = $("benchRoster");
+  bl.innerHTML = "";
+  bench.forEach(r => {
+    const li = document.createElement("li");
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = r.name;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "join";
+    b.textContent = t("swiss.joinNow");
+    b.disabled = T.done;
+    b.onclick = () => joinLate(r.name);
+    li.append(nm, b);
+    bl.appendChild(li);
+  });
+  $("benchEmpty").hidden = bench.length > 0;
   $("lateBtn").disabled = T.done;
 }
 
@@ -634,12 +677,8 @@ $("finishBtn").onclick = () => {
 $("lateBtn").onclick = () => {
   const name = $("lateInput").value.trim();
   if(!name) return;
-  if(T.players.some(p => p.name === name)){ $("lateInput").value = ""; return; }
-  const id = Math.max(0, ...T.players.map(p => p.id)) + 1;
-  T.players.push({ id, name, active: true });
-  addName(name);                 // 名簿にも残す
+  joinLate(name);
   $("lateInput").value = "";
-  saveState(); renderAll();
 };
 $("lateInput").onkeydown = ev => { if(ev.key === "Enter"){ ev.preventDefault(); $("lateBtn").click(); } };
 
