@@ -94,8 +94,12 @@
   ul.pack li .fit.off{background:#F8ECE8;color:#A24B32}
   .empty{color:var(--muted);font-size:13px;padding:18px 0;text-align:center}
   /* おすすめの1枚 */
-  .best{display:flex;gap:14px;align-items:center;padding:10px;margin:0 0 10px;background:#FBF6E3;border:1px solid #E6D6A8;border-radius:var(--radius)}
+  .best{display:flex;gap:10px;flex-wrap:wrap;padding:10px;margin:0 0 10px;background:#FBF6E3;border:1px solid #E6D6A8;border-radius:var(--radius)}
+  .best-one{display:flex;gap:12px;align-items:center;flex:1 1 300px;min-width:0}
+  .best.two .best-one{flex:1 1 46%}
   .best img{width:150px;height:auto;border-radius:6px;flex:none;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  .best.two img{width:120px}
+  .best-note{flex:1 1 100%;font-size:12px;color:var(--muted);border-top:1px dashed #E6D6A8;padding-top:6px}
   .best-lbl{display:inline-block;padding:1px 9px;border-radius:999px;background:var(--gold);color:#1A1405;font-size:11px;font-weight:700;margin-bottom:6px}
   .best-nm{font-size:18px;font-weight:700;line-height:1.3}
   .best-wr{font-size:14px;margin-top:2px}
@@ -182,15 +186,7 @@
       <span class="sub" id="pickSub"></span>
     </div>
     <div class="colors" id="colorBar"></div>
-    <div class="best" id="best" hidden>
-      <img id="bestImg" alt="" src="">
-      <div class="best-txt">
-        <div class="best-lbl" data-i18n="assist.best">おすすめ</div>
-        <div class="best-nm" id="bestName"></div>
-        <div class="best-wr" id="bestWr"></div>
-        <div class="best-why" id="bestWhy"></div>
-      </div>
-    </div>
+    <div class="best" id="best" hidden></div>
     <ul class="pack" id="pack"></ul>
     <div class="empty" id="packEmpty" data-i18n="assist.packEmpty">アリーナでドラフトのパックを開くと、ここにカードが並びます。</div>
   </section>
@@ -204,7 +200,7 @@
           <option value="strong" data-i18n="assist.weightStrong">強め（色を重視）</option>
         </select>
       </label>
-      <span class="hint" style="margin:0" data-i18n="assist.weightHint">4手目以降、自分の色に合うカードをどれだけ持ち上げるかです。</span>
+      <span class="hint" style="margin:0" data-i18n="assist.weightHint">ピック済みの上位2色を自分の色とみなし、合うカードを持ち上げ、違うカードを下げます。標準では最大±4ポイントで、勝率の差がそれより大きければ勝率が優先されます。</span>
     </div>
     <div class="row">
       <button id="pipBtn" class="ghost" data-i18n="assist.pip">常に前面の小窓で表示</button>
@@ -256,6 +252,7 @@ const D = {                 // ドラフトの状態
 let cards = {};             // arena_id → {name, ja, colors, rarity, cmc, type}
 let wr = {};                // 英語名 → {gih, games}
 let loadedSet = "";
+let pace = "";                // 環境の速さ（fast / mid / slow / slower）
 const RAR_BASE = { common:52.0, uncommon:53.5, rare:55.0, mythic:56.0 };
 
 /* ================= ログの解析 =================
@@ -455,6 +452,16 @@ async function ensureSet(code){
     const r = await fetch(`./data/ratings/${code}_draft.json`, {cache: "no-cache"});
     if(r.ok){ const d = await r.json(); (d.cards || []).forEach(c => { wr[c.name] = { gih: c.gih, games: c.games }; }); }
   }catch(e){}
+  // 環境の速さ（環境レポートと同じデータ）：最も勝率の高い区分を採用する
+  pace = "";
+  try{
+    const r = await fetch(`./data/articles/${code}_draft.json`, {cache: "no-cache"});
+    if(r.ok){
+      const d = await r.json();
+      const best = (d.speed || []).filter(x => x.wr != null).sort((a, b) => b.wr - a.wr)[0];
+      pace = best ? best.key : "";
+    }
+  }catch(e){}
   // カード情報（英語）
   await scryAll(`set:${code.toLowerCase()} unique:prints`, c => addCard(c));
   // 日本語名
@@ -524,43 +531,100 @@ function recomputeColors(){
     c.colors.forEach(k => { D.colorScore[k] += w; });
   });
 }
+/* 自分の色：ピック済みの色を強い順に並べ、上位2色を「自分の色」とみなす。
+   2色目が1色目より少なくても、同じ扱いにする。3色目はわずかに評価し、それ以外は0。 */
 function colorBonus(){
-  const ranked = Object.entries(D.colorScore).sort((a,b) => b[1] - a[1]);
-  const W = [1, 0.9, 0.3, 0, 0];
+  const ranked = Object.entries(D.colorScore).filter(([, v]) => v > 0).sort((a,b) => b[1] - a[1]);
   const b = {W:0,U:0,B:0,R:0,G:0};
-  const top = ranked[0][1] || 1;
-  ranked.forEach(([k, v], i) => { b[k] = W[i] * Math.min(1, v / top); });
+  ranked.forEach(([k], i) => { b[k] = i < 2 ? 1 : (i === 2 ? 0.4 : 0); });
   return b;
 }
 /* 色へのこだわり。数字は「色が完全に合うカード」に足す最大の勝率ポイント */
-const WEIGHTS = { weak: 5, mid: 10, strong: 15 };
-function colorWeight(){ return WEIGHTS[localStorage.getItem("assist.weight") || "mid"] ?? 10; }
+const WEIGHTS = { weak: 4, mid: 8, strong: 12 };
+function colorWeight(){ return WEIGHTS[localStorage.getItem("assist.weight") || "mid"] ?? 8; }
+
+/* デッキの枠：40枚デッキの土地以外23枚のうち、クリーチャー17枚・スペル6枚を目安にする */
+const DECK_TARGET = { creature: 17, spell: 6 };
+function kindOf(c){
+  const ty = (c && c.type) || "";
+  if(ty.includes("Land")) return "land";
+  return ty.includes("Creature") ? "creature" : "spell";
+}
+/* 自分の色のカードだけを数える（デッキに入る見込みのある分） */
+function pickedCounts(){
+  const bonus = colorBonus();
+  const n = { creature: 0, spell: 0 };
+  D.picked.forEach(id => {
+    const c = cards[id]; if(!c) return;
+    const k = kindOf(c); if(k === "land") return;
+    const on = !c.colors.length || c.colors.every(x => bonus[x] >= 1);
+    if(on) n[k]++;
+  });
+  return n;
+}
+/* 枠の過不足：+1 ならクリーチャーが大きく足りない、-1 ならスペルが大きく足りない */
+function slotNeed(){
+  const n = pickedCounts();
+  const total = n.creature + n.spell;
+  if(total < 3) return 0;                                  // 数枚では判断しない
+  const target = DECK_TARGET.creature / (DECK_TARGET.creature + DECK_TARGET.spell);   // 0.74
+  const ratio = n.creature / total;
+  return Math.max(-1, Math.min(1, (target - ratio) / 0.25));
+}
+/* 環境の速さに応じた、マナ総量ごとの上げ下げ（勝率ポイント） */
+const PACE_ADJ = {
+  fast:   {0:0, 1:1.5, 2:1.5, 3:0.5, 4:-0.5, 5:-1.5, 6:-2,   7:-2},
+  mid:    {0:0, 1:0,   2:0.5, 3:0.5, 4:0,    5:-0.5, 6:-1.5, 7:-2},
+  slow:   {0:0, 1:-1,  2:0,   3:0.5, 4:0.5,  5:0.5,  6:0,    7:-0.5},
+  slower: {0:0, 1:-1.5,2:-0.5,3:0,   4:0.5,  5:1,    6:0.5,  7:0}
+};
 
 function scorePack(){
   const pickIndex = D.picked.length;
-  const commit = Math.min(1, pickIndex / 4);        // 4手目でこだわりが最大になる
+  const commit = Math.min(1, pickIndex / 4);        // 色へのこだわりは4手目で最大
+  const ramp = Math.min(1, pickIndex / 8);          // 枠の調整は8手目で最大
   const bonus = colorBonus();
   const w = colorWeight();
+  const need = slotNeed();
   return D.pack.map(id => {
     const c = cards[id];
     const base = ratingOf(id);
     const cols = c ? c.colors : [];
+    const kind = kindOf(c);
+    // 1) 色
     let fit;
     if(!cols.length) fit = 0.5;
     else fit = cols.reduce((n, k) => n + bonus[k], 0) / cols.length;
     if(cols.length > 1) fit *= 0.9;
-    const adj = commit * w * (fit - 0.4);
+    const adjColor = commit * w * (fit - 0.5);
+    // 2) 枠（クリーチャーが足りなければクリーチャーを、スペルが足りなければスペルを）
+    let adjSlot = 0;
+    if(kind === "creature") adjSlot = ramp * 3 * need;
+    else if(kind === "spell") adjSlot = -ramp * 3 * need;
+    // 3) 環境の速さ（土地は対象外）
+    let adjPace = 0;
+    if(c && kind !== "land" && pace && PACE_ADJ[pace]) adjPace = PACE_ADJ[pace][Math.min(7, Math.round(c.cmc || 0))] || 0;
     const basic = !!(c && c.basic);
-    const score = basic ? -1 : base + adj;             // 基本土地は最後に回す
-    return { id, c, base, fit, adj, score, commit, basic };
+    const score = basic ? -1 : base + adjColor + adjSlot + adjPace;
+    return { id, c, base, fit, adjColor, adjSlot, adjPace, score, commit, basic, kind };
   }).sort((a, b) => b.score - a.score);
 }
 function reasonFor(e){
   const ranked = Object.entries(D.colorScore).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => colorName(k));
-  if(e.commit < 0.5 || !ranked.length) return t("assist.reasonEarly");
-  if(e.fit >= 0.6) return t("assist.reasonColor", {c: ranked.join("・")});
-  if(e.fit <= 0.2) return t("assist.reasonOff", {c: ranked.join("・")});
-  return t("assist.reasonBest");
+  let main;
+  if(e.commit < 0.5 || !ranked.length) main = t("assist.reasonEarly");
+  else if(e.fit >= 0.75) main = t("assist.reasonColor", {c: ranked.join("・")});
+  else if(e.fit <= 0.25) main = t("assist.reasonOff", {c: ranked.join("・")});
+  else main = t("assist.reasonBest");
+  const extra = [];
+  if(e.adjSlot >= 1) extra.push(t(e.kind === "creature" ? "assist.reasonNeedCreature" : "assist.reasonNeedSpell"));
+  if(e.adjPace >= 1) extra.push(t("assist.reasonPace", {p: t("assist.pace." + pace)}));
+  return main + (extra.length ? " " + extra.join(" ") : "");
+}
+/* 一覧の各行に、内訳を出す */
+function breakdown(e){
+  const f = v => (v >= 0 ? "+" : "") + v.toFixed(1);
+  return t("assist.breakdown", {b: e.base.toFixed(1), c: f(e.adjColor), s: f(e.adjSlot), p: f(e.adjPace)});
 }
 
 /* ================= 描画 ================= */
@@ -583,7 +647,7 @@ function render(){
   $("pickSub").textContent = D.set ? (t("assist.setLabel", {set: D.set}) + (D.event ? "　" + D.event : "")) : "";
   $("packEmpty").hidden = has;
 
-  // 向かっている色
+  // 向かっている色・枠・環境の速さ
   const cb = $("colorBar");
   cb.innerHTML = "";
   const ranked = Object.entries(D.colorScore).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
@@ -596,6 +660,19 @@ function render(){
       cb.appendChild(s);
     });
   }
+  if(D.picked.length){
+    const n = pickedCounts();
+    const s = document.createElement("span"); s.className = "cb";
+    s.textContent = t("assist.slots", {c: n.creature, s: n.spell, tc: DECK_TARGET.creature, ts: DECK_TARGET.spell});
+    s.title = t("assist.slotsTip");
+    cb.appendChild(s);
+  }
+  if(pace){
+    const s = document.createElement("span"); s.className = "cb";
+    s.textContent = t("assist.paceLabel", {p: t("assist.pace." + pace)});
+    s.title = t("assist.paceTip");
+    cb.appendChild(s);
+  }
 
   // パック
   const ul = $("pack");
@@ -603,16 +680,35 @@ function render(){
   $("best").hidden = true;
   if(has){
     const list = scorePack();
-    const top = list.find(e => e.c && !e.basic);
-    if(top){
-      const c = top.c;
-      const wrE = wr[c.name] || wr[c.name.split(" // ")[0]];
-      $("bestImg").src = (I18N.lang === "ja" && c.imgJa) || c.img || "";
-      $("bestImg").hidden = !$("bestImg").src;
-      $("bestName").textContent = displayName(c);
-      $("bestWr").textContent = wrE && wrE.gih != null ? t("assist.bestWr", {p: (wrE.gih * 100).toFixed(1)}) : "";
-      $("bestWhy").textContent = reasonFor(top);
-      $("best").hidden = false;
+    const cands = list.filter(e => e.c && !e.basic);
+    // 1位と2位の差が小さければ2枚並べて、最後は本人に委ねる
+    const shown = cands.length >= 2 && (cands[0].score - cands[1].score) < 1.0 ? cands.slice(0, 2) : cands.slice(0, 1);
+    if(shown.length){
+      const box = $("best");
+      box.innerHTML = "";
+      box.classList.toggle("two", shown.length === 2);
+      shown.forEach((e, i) => {
+        const c = e.c;
+        const wrE = wr[c.name] || wr[c.name.split(" // ")[0]];
+        const img = (I18N.lang === "ja" && c.imgJa) || c.img || "";
+        const el = document.createElement("div");
+        el.className = "best-one";
+        el.innerHTML =
+          (img ? `<img src="${esc(img)}" alt="">` : "") +
+          `<div class="best-txt">` +
+            `<div class="best-lbl">${esc(shown.length === 2 ? t("assist.bestN", {n: i + 1}) : t("assist.best"))}</div>` +
+            `<div class="best-nm">${esc(displayName(c))}</div>` +
+            `<div class="best-wr">${wrE && wrE.gih != null ? esc(t("assist.bestWr", {p: (wrE.gih * 100).toFixed(1)})) : ""}</div>` +
+            `<div class="best-why">${esc(reasonFor(e))}</div>` +
+          `</div>`;
+        box.appendChild(el);
+      });
+      if(shown.length === 2){
+        const note = document.createElement("div"); note.className = "best-note";
+        note.textContent = t("assist.bestTwoNote");
+        box.appendChild(note);
+      }
+      box.hidden = false;
     }
     list.forEach((e, i) => {
       const li = document.createElement("li");
@@ -623,8 +719,9 @@ function render(){
       const wrE = c ? (wr[c.name] || wr[c.name.split(" // ")[0]]) : null;
       const wrTxt = e.basic ? "—" : (wrE && wrE.gih != null ? (wrE.gih * 100).toFixed(1) + "%" : "—");
       const anyColor = Object.values(D.colorScore).some(v => v > 0);
-      const fitCls = !c || !cols.length || e.basic || e.commit < 0.5 || !anyColor ? "" : (e.fit >= 0.6 ? " on" : (e.fit <= 0.2 ? " off" : ""));
+      const fitCls = !c || !cols.length || e.basic || e.commit < 0.5 || !anyColor ? "" : (e.fit >= 0.75 ? " on" : (e.fit <= 0.25 ? " off" : ""));
       const fitTxt = fitCls === " on" ? t("assist.onColor") : fitCls === " off" ? t("assist.offColor") : "";
+      li.title = e.basic ? "" : breakdown(e);
       li.innerHTML =
         `<span class="rk">${i + 1}</span>` +
         `<span class="dot" style="background:${dotColor}"></span>` +
