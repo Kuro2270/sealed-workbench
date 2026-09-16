@@ -191,16 +191,35 @@
 
   <section class="card" id="setup">
     <h2 data-i18n="assist.setupH">準備（初回だけ）</h2>
-    <ol class="steps" data-i18n-html="assist.steps"><li>マジック：ザ・ギャザリング アリーナを起動し、右上の歯車から設定を開き、「アカウント」→「詳細ログ（プラグインのサポート）」にチェックを入れる</li><li>アリーナを再起動する</li><li>下の「Player.log を選ぶ」を押して、ログファイルを選ぶ<br>Windows：<code>C:\Users\ユーザー名\AppData\LocalLow\Wizards Of The Coast\MTGA\Player.log</code><br>Mac：<code>~/Library/Logs/Wizards Of The Coast/MTGA/Player.log</code></li></ol>
+    <ol class="steps" data-i18n-html="assist.steps"><li>マジック：ザ・ギャザリング アリーナを起動し、右上の歯車から設定を開き、「アカウント」→「詳細ログ（プラグインのサポート）」にチェックを入れる</li><li>アリーナを再起動する</li><li>下の「Player.log を選ぶ」を押すとファイル選択の画面が開くので、上部のアドレス欄に次を貼り付けてEnterを押し、開いたフォルダの中の <b>Player.log</b> を選ぶ<br>Windows：<code>%USERPROFILE%\AppData\LocalLow\Wizards Of The Coast\MTGA</code><br>Mac：<code>~/Library/Logs/Wizards Of The Coast/MTGA</code></li></ol>
     <figure class="shot">
       <img src="./img/arena-detailed-log.jpg" alt="" loading="lazy" width="1165" height="910">
       <figcaption data-i18n="assist.shotCap">設定 →「アカウント」の画面。「詳細ログ（プラグインのサポート）」にチェックを入れます。</figcaption>
     </figure>
-    <p class="hint" data-i18n="assist.setupHint">ファイルはこのブラウザの中でだけ読み取ります。内容がどこかに送られることはありません。AppData は隠しフォルダなので、ファイル選択の画面で上のパスを直接貼り付けると早く着けます。</p>
+    <p class="hint" data-i18n="assist.setupHint">ファイルはこのブラウザの中でだけ読み取ります。内容がどこかに送られることはありません。上のパスはユーザー名を打たなくても自分のフォルダに置き換わります。</p>
     <div class="row">
       <button id="pickBtn" data-i18n="assist.pick">Player.log を選ぶ</button>
       <button id="resumeBtn" class="ghost" hidden data-i18n="assist.resume">前回のファイルで再開</button>
       <button id="demoBtn" class="ghost" data-i18n="assist.demo">サンプルで動きを見る</button>
+    </div>
+  </section>
+
+  <section class="card" id="settings">
+    <h2 data-i18n="assist.settingsH">設定</h2>
+    <div class="row" style="margin-bottom:10px">
+      <label style="font-size:13.5px"><span data-i18n="assist.weight">色へのこだわり</span>
+        <select id="weightSel" style="margin-left:6px">
+          <option value="weak" data-i18n="assist.weightWeak">弱め（勝率を重視）</option>
+          <option value="mid" data-i18n="assist.weightMid">標準</option>
+          <option value="strong" data-i18n="assist.weightStrong">強め（色を重視）</option>
+        </select>
+      </label>
+      <span class="hint" style="margin:0" data-i18n="assist.weightHint">ピック済みの上位2色を自分の色とみなし、合うカードを持ち上げ、違うカードを下げます。標準では1パック目で最大±4、2パック目で±6、3パック目で±8ポイントです。</span>
+    </div>
+    <div class="row">
+      <span style="font-size:13.5px" data-i18n="assist.pipLabel">小窓表示</span>
+      <button id="pipBtn" class="ghost" data-i18n="assist.pip">常に前面の小窓で表示</button>
+      <span class="hint" style="margin:0" data-i18n="assist.pipHint">アリーナを全画面ではなくウィンドウ表示にしておくと、小窓を横に置けます。</span>
     </div>
   </section>
 
@@ -222,22 +241,6 @@
     <div id="deckView" hidden></div>
   </section>
 
-  <section class="card">
-    <div class="row" style="margin-bottom:10px">
-      <label style="font-size:13.5px"><span data-i18n="assist.weight">色へのこだわり</span>
-        <select id="weightSel" style="margin-left:6px">
-          <option value="weak" data-i18n="assist.weightWeak">弱め（勝率を重視）</option>
-          <option value="mid" data-i18n="assist.weightMid">標準</option>
-          <option value="strong" data-i18n="assist.weightStrong">強め（色を重視）</option>
-        </select>
-      </label>
-      <span class="hint" style="margin:0" data-i18n="assist.weightHint">ピック済みの上位2色を自分の色とみなし、合うカードを持ち上げ、違うカードを下げます。標準では1パック目で最大±4、2パック目で±6、3パック目で±8ポイントです。</span>
-    </div>
-    <div class="row">
-      <button id="pipBtn" class="ghost" data-i18n="assist.pip">常に前面の小窓で表示</button>
-      <span class="hint" style="margin:0" data-i18n="assist.pipHint">アリーナを全画面ではなくウィンドウ表示にしておくと、小窓を横に置けます。</span>
-    </div>
-  </section>
 
   <section class="card">
     <h2 data-i18n="assist.pickedH">これまでのピック</h2>
