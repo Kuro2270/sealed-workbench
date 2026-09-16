@@ -120,6 +120,8 @@
   .hist table{font-size:13px}
   .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
   .status{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;margin:0 0 14px;font-size:13.5px;color:#3B4A44}
+  .status.share{border-left-color:var(--gold);background:#FBF6E3}
+  body.view .edit-only{display:none !important}
 
   footer{max-width:1000px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
   footer a{color:var(--muted)}
@@ -232,6 +234,7 @@
   <!-- ========== 進行中 ========== -->
   <div id="live" hidden>
     <div class="status" id="liveStatus"></div>
+    <div class="status share" id="viewNote" hidden></div>
 
     <section class="card">
       <div class="round-head">
@@ -248,7 +251,7 @@
         </tr></thead>
         <tbody></tbody>
       </table>
-      <div class="actions" id="nextRow">
+      <div class="actions edit-only" id="nextRow">
         <label style="font-size:13.5px"><span data-i18n="swiss.nextBye">次のラウンドのバイ</span>
           <select id="nextBye"><option value="" data-i18n="swiss.byeAuto">自動（順位の低い人）</option></select>
         </label>
@@ -277,11 +280,13 @@
       <div class="actions">
         <button class="ghost" id="copyBtn" data-i18n="swiss.copy">順位表をコピー</button>
         <button class="ghost" id="imgBtn" data-i18n="swiss.saveImage">画像で保存</button>
+        <button class="ghost edit-only" id="shareBtn" data-i18n="swiss.share">共有用URLをコピー</button>
       </div>
+      <p class="hint edit-only" id="shareHint" data-i18n="swiss.shareHint">共有用URLを開いた人は、この時点の対戦表と順位表を見ることだけができます。結果の入力や組み合わせの変更はできません。更新したら、もう一度URLを作って送ってください。</p>
       <canvas id="shot" hidden></canvas>
     </section>
 
-    <section class="card">
+    <section class="card edit-only">
       <h2 data-i18n="swiss.attendance">参加者の出入り</h2>
       <p class="hint" data-i18n="swiss.attendanceHint">ボタンで参加と不参加を切り替えます。遅れて来た人は「参加させる」を押すと、次のラウンドから組み込まれます。進行中のラウンドには影響しません。</p>
       <ul class="people" id="liveRoster"></ul>
@@ -302,7 +307,7 @@
         <summary data-i18n="swiss.history">これまでのラウンド</summary>
         <div class="hist" id="history"></div>
       </details>
-      <div class="actions">
+      <div class="actions edit-only">
         <button class="danger" id="resetBtn" data-i18n="swiss.reset">この大会を消して最初から</button>
       </div>
     </section>
@@ -326,6 +331,7 @@ const WIN = 3, DRAW = 1;            // マッチポイント
 
 let roster = [];
 let T = null;                       // 進行中の大会。無ければ null
+let viewOnly = false;               // 共有URLで開いた閲覧専用の表示か
 
 function load(){
   try{ roster = JSON.parse(localStorage.getItem(KEY_ROSTER) || "[]"); }catch(e){ roster = []; }
@@ -334,7 +340,47 @@ function load(){
 }
 function saveRoster(){ try{ localStorage.setItem(KEY_ROSTER, JSON.stringify(roster)); }catch(e){} }
 function saveState(){
+  if(viewOnly) return;              // 共有された表示は、この端末の大会を上書きしない
   try{ T ? localStorage.setItem(KEY_STATE, JSON.stringify(T)) : localStorage.removeItem(KEY_STATE); }catch(e){}
+}
+
+/* ---------- 共有URL ----------
+   大会の中身を小さくまとめて URL の # の後ろに載せる。サーバーには何も置かない。
+   開いた側は見るだけで、結果の入力や組み合わせの変更はできない。 */
+function packState(){
+  const idx = new Map(T.players.map((p, i) => [p.id, i]));
+  return {
+    p: T.players.map(p => [p.name, p.active ? 1 : 0]),
+    r: T.rounds.map(r => r.matches.map(m => [idx.get(m.a), m.b == null ? -1 : idx.get(m.b), m.ga, m.gb])),
+    t: T.total, d: T.done ? 1 : 0, s: T.startedAt || ""
+  };
+}
+function unpackState(o){
+  const players = o.p.map((x, i) => ({ id: i + 1, name: String(x[0]), active: !!x[1] }));
+  const rounds = o.r.map(ms => ({ matches: ms.map(m => ({
+    a: m[0] + 1, b: m[1] < 0 ? null : m[1] + 1, ga: m[2] ?? null, gb: m[3] ?? null })) }));
+  return { players, rounds, total: o.t || rounds.length, done: !!o.d, startedAt: o.s || "" };
+}
+const b64u = { enc: b => btoa(String.fromCharCode(...b)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""),
+               dec: s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0)) };
+async function encodeShare(){
+  const json = JSON.stringify(packState());
+  const bytes = new TextEncoder().encode(json);
+  if(typeof CompressionStream === "function"){
+    const cs = new CompressionStream("deflate-raw");
+    const buf = await new Response(new Blob([bytes]).stream().pipeThrough(cs)).arrayBuffer();
+    return "z" + b64u.enc(new Uint8Array(buf));
+  }
+  return "j" + b64u.enc(bytes);
+}
+async function decodeShare(str){
+  const kind = str[0], body = str.slice(1);
+  let bytes = b64u.dec(body);
+  if(kind === "z"){
+    const ds = new DecompressionStream("deflate-raw");
+    bytes = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(ds)).arrayBuffer());
+  }
+  return unpackState(JSON.parse(new TextDecoder().decode(bytes)));
 }
 
 /* ---------- 名簿 ---------- */
@@ -555,6 +601,11 @@ function renderRound(){
   $("liveStatus").textContent = T.done
     ? t("swiss.statusDone", {n: no})
     : (roundComplete(r) ? t("swiss.statusReady") : t("swiss.statusEnter"));
+  if(viewOnly){
+    $("liveStatus").textContent = T.done ? t("swiss.statusDone", {n: no}) : t("swiss.viewStatus");
+    $("viewNote").textContent = t("swiss.viewNote");
+    $("viewNote").hidden = false;
+  }
 
   const tb = $("pairings").querySelector("tbody");
   tb.innerHTML = "";
@@ -571,8 +622,10 @@ function renderRound(){
     const tdA = `<td class="who${aw ? " win" : ""}">${esc(nameOf(m.a))}</td>`;
     const tdB = `<td class="who${bw ? " win" : ""}">${esc(nameOf(m.b))}</td>`;
     const opts = [[2,0],[2,1],[1,1],[1,2],[0,2]];
-    const btns = opts.map(([ga, gb]) =>
-      `<button type="button" data-i="${i}" data-ga="${ga}" data-gb="${gb}" class="${m.ga === ga && m.gb === gb ? "on" : ""}"${T.done ? " disabled" : ""}>${ga}-${gb}</button>`).join("");
+    const btns = viewOnly
+      ? `<b>${m.ga == null ? "vs" : `${m.ga} - ${m.gb}`}</b>`
+      : opts.map(([ga, gb]) =>
+          `<button type="button" data-i="${i}" data-ga="${ga}" data-gb="${gb}" class="${m.ga === ga && m.gb === gb ? "on" : ""}"${T.done ? " disabled" : ""}>${ga}-${gb}</button>`).join("");
     tr.innerHTML = `<td class="tbl">${i + 1}</td>${tdA}<td><span class="res">${btns}</span></td>${tdB}`;
     tb.appendChild(tr);
   });
@@ -926,6 +979,17 @@ $("roundImgBtn").onclick = () => {
 $("imgBtn").onclick = () => {
   saveCanvas(standingsImage(), t("swiss.imageFile", {d: new Date().toISOString().slice(0, 10)}));
 };
+$("shareBtn").onclick = async () => {
+  try{
+    const code = await encodeShare();
+    const url = location.origin + location.pathname + "#v=" + code;
+    try{ await navigator.clipboard.writeText(url); $("shareBtn").textContent = t("swiss.shared"); }
+    catch(e){ prompt(t("swiss.copyManual"), url); }
+  }catch(e){
+    $("shareBtn").textContent = t("swiss.shareFailed");
+  }
+  setTimeout(() => { $("shareBtn").textContent = t("swiss.share"); }, 2200);
+};
 
 $("copyBtn").onclick = async () => {
   const lines = [t("swiss.copyTitle", {n: T.rounds.length})];
@@ -943,7 +1007,20 @@ sel.onchange = e => I18N.set(e.target.value);
 I18N.onChange(() => renderAll());
 
 load();
-renderAll();
+(async () => {
+  const m = location.hash.match(/^#v=(.+)$/);
+  if(m){
+    try{
+      T = await decodeShare(m[1]);
+      viewOnly = true;
+      document.body.classList.add("view");
+    }catch(e){
+      // 壊れたURLなら、通常の自分の大会を表示する
+      load();
+    }
+  }
+  renderAll();
+})();
 </script>
 </body>
 </html>
