@@ -96,9 +96,16 @@
   /* おすすめの1枚 */
   .best{display:flex;gap:10px;flex-wrap:wrap;padding:10px;margin:0 0 10px;background:#FBF6E3;border:1px solid #E6D6A8;border-radius:var(--radius)}
   .best-one{display:flex;gap:12px;align-items:center;flex:1 1 300px;min-width:0}
-  .best.two .best-one{flex:1 1 46%}
+  .best.two .best-one{flex:1 1 300px}
+  .best-txt{flex:1 1 140px;min-width:140px}
   .best img{width:150px;height:auto;border-radius:6px;flex:none;box-shadow:0 2px 8px rgba(0,0,0,.25)}
-  .best.two img{width:120px}
+  .best.two img{width:110px}
+  /* 小窓や狭い画面では、2枚を縦に並べる */
+  @media (max-width:560px){
+    .best-one,.best.two .best-one{flex:1 1 100%}
+    .best img,.best.two img{width:96px}
+    .best-nm{font-size:15px}
+  }
   .best-note{flex:1 1 100%;font-size:12px;color:var(--muted);border-top:1px dashed #E6D6A8;padding-top:6px}
   .best-lbl{display:inline-block;padding:1px 9px;border-radius:999px;background:var(--gold);color:#1A1405;font-size:11px;font-weight:700;margin-bottom:6px}
   .best-nm{font-size:18px;font-weight:700;line-height:1.3}
