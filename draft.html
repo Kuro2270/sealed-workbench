@@ -106,7 +106,18 @@
   .side-head h3{font-size:16px;margin:0}
   .count{font-size:24px;font-variant-numeric:tabular-nums}
   .count.ok{color:var(--hot)}
-  .side-body{padding:12px 16px;max-height:52vh;overflow:auto}
+  .side-body{padding:12px 16px;max-height:40vh;overflow:auto}
+  /* 追加先の切り替えと、サイドボード */
+  .target{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+  .target .seg{display:inline-flex;gap:2px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:2px}
+  .target .seg button{background:transparent;border:none;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit}
+  .target .seg button.on{background:var(--pine);color:var(--paper)}
+  .side-head.sub{border-top:1px solid var(--line);padding:10px 16px}
+  .side-head.sub h3{font-size:14px}
+  .count.small{font-size:20px}
+  .count.over{color:#A24B32}
+  .sb-body{padding:10px 16px;max-height:24vh;overflow:auto}
+  .card-row .mv{width:24px;height:22px;border-radius:6px;border:1px solid var(--line);background:var(--paper-2);color:var(--ink);font-size:13px;line-height:20px;padding:0;cursor:pointer;flex:none;margin-left:6px}
   .empty{color:var(--muted);font-size:13px;padding:18px 0;text-align:center}
 
   .colors{padding:12px 16px;border-top:1px solid var(--line)}
@@ -241,7 +252,19 @@
       <h3 id="sideTitle" data-i18n="draft.picked">ピック済み</h3>
       <div class="count" id="sideCount">0</div>
     </div>
+    <div class="target" id="targetRow" hidden>
+      <span data-i18n="deck.target">追加先</span>
+      <span class="seg" id="targetSeg">
+        <button type="button" class="on" data-target="main" data-i18n="deck.targetMain">メイン</button>
+        <button type="button" data-target="side" data-i18n="deck.targetSide">サイド</button>
+      </span>
+    </div>
     <div class="side-body" id="sideBody"><div class="empty" data-i18n="draft.pickedEmpty">まだ何も取っていません</div></div>
+    <div class="side-head sub" id="sbHead" hidden>
+      <h3 data-i18n="deck.side">サイドボード</h3>
+      <div class="count small" id="sbCount">0<span style="font-size:12px;color:var(--muted)"> / 15</span></div>
+    </div>
+    <div class="sb-body" id="sbBody" hidden><div class="empty" data-i18n="deck.sideEmpty">追加先を「サイド」にしてプールのカードを押すと加わります</div></div>
 
     <div class="colors" id="colors" hidden>
       <h4 data-i18n="draft.colors">色の内訳</h4>
@@ -280,7 +303,9 @@ let sets = [], setCode = "";
 let boosterCards = [], basicCards = {}, jaMap = {}, wrMap = {}, wrAvg = null, wrSource = "";
 let packsAll = [], seats = [], phase = "idle";
 let packNo = 0, pickNo = 0, current = [];
-let pool = [], deck = [], landCount = {};
+let pool = [], deck = [], side = [], landCount = {};
+let target = "main";           // 構築画面でカードを押したときの追加先（main / side）
+const SIDE_MAX = 15;
 
 const $ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -522,13 +547,18 @@ async function start(){
     for(let p = 0; p < PACKS; p++){
       packsAll.push(Array.from({length: PLAYERS}, () => buildPack()));
     }
-    pool = []; deck = []; landCount = {};
+    pool = []; deck = []; side = []; landCount = {};
     packNo = 0; pickNo = 0;
     phase = "draft";
 
     $("phase").hidden = false;
     $("bar").hidden = false;
     $("colors").hidden = false;
+    $("targetRow").hidden = true;
+    $("sbHead").hidden = true;
+    $("sbBody").hidden = true;
+    target = "main";
+    document.querySelectorAll("#targetSeg button").forEach(x => x.classList.toggle("on", x.dataset.target === "main"));
     $("sideTitle").textContent = t("draft.picked");
 
     const wrN = Object.keys(wrMap).length;
@@ -591,6 +621,9 @@ function finishDraft(){
   $("bar").hidden = true;
   $("lands").hidden = false;
   $("exportWrap").hidden = false;
+  $("targetRow").hidden = false;
+  $("sbHead").hidden = false;
+  $("sbBody").hidden = false;
   $("sideTitle").textContent = t("deck.title");
   setStatus(t("draft.done", {n: pool.length}));
   render();
@@ -697,7 +730,7 @@ function render(){
     board.appendChild(ul);
   }else if(phase === "build"){
     const remaining = pool.slice();
-    deck.forEach(d => {
+    deck.concat(side).forEach(d => {
       const i = remaining.findIndex(c => c.id === d.id);
       if(i >= 0) remaining.splice(i, 1);
     });
@@ -711,7 +744,7 @@ function render(){
       const ul = document.createElement("ul");
       ul.className = "grid";
       list.sort(byRarity)
-          .forEach(c => ul.appendChild(tile(c, () => { deck.push(c); render(); })));
+          .forEach(c => ul.appendChild(tile(c, () => { (target === "side" ? side : deck).push(c); render(); })));
       board.appendChild(ul);
     });
   }
@@ -772,33 +805,71 @@ function renderSide(){
       const ul = document.createElement("ul");
       sub.slice().sort((a,b) => (a.cmc ?? 0) - (b.cmc ?? 0)
                              || displayName(a).localeCompare(displayName(b), "ja"))
-        .forEach(c => {
-          const li = document.createElement("li");
-          li.className = "card-row";
-          const w = wrOf(c);
-          li.innerHTML =
-            `<span class="rar ${c.rarity}"></span>` +
-            `<span class="name">${esc(displayName(c))}</span>` +
-            `<span class="wr${w ? wrClass(w.gih) : ""}"${w ? ` title="${t("wr.gih.tip")}"` : ""}>${w ? (w.gih*100).toFixed(1) + "%" : ""}</span>` +
-            `<span style="font-size:12px;color:var(--muted)">${esc(c.mana_cost || "")}</span>`;
-          li.onmouseenter = ev => showPreview(c, ev.clientX, ev.clientY);
-          li.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
-          li.onmouseleave = hidePreview;
-          if(phase === "build"){
-            li.onclick = () => {
-              const i = deck.findIndex(x => x.id === c.id);
-              if(i >= 0) deck.splice(i, 1);
-              hidePreview(); render();
-            };
-          }
-          ul.appendChild(li);
-        });
+        .forEach(c => ul.appendChild(sideRow(c, phase === "build" ? "main" : "pick")));
       body.appendChild(ul);
     });
   }
 
+  // サイドボード（構築画面のみ）
+  if(phase === "build"){
+    const sc = $("sbCount");
+    sc.innerHTML = side.length + '<span style="font-size:12px;color:var(--muted)"> / ' + SIDE_MAX + '</span>';
+    sc.className = "count small" + (side.length > SIDE_MAX ? " over" : "");
+    const sb = $("sbBody");
+    sb.innerHTML = "";
+    if(!side.length){
+      sb.innerHTML = '<div class="empty">' + t("deck.sideEmpty") + '</div>';
+    }else{
+      const ul = document.createElement("ul");
+      side.slice().sort((a,b) => (a.cmc ?? 0) - (b.cmc ?? 0) || displayName(a).localeCompare(displayName(b), "ja"))
+          .forEach(c => ul.appendChild(sideRow(c, "side")));
+      sb.appendChild(ul);
+    }
+  }
+
   renderColors();
   if(phase === "build") renderLands();
+}
+
+/* 右欄の1行。where は pick（ドラフト中）／ main／ side */
+function sideRow(c, where){
+  const li = document.createElement("li");
+  li.className = "card-row";
+  const w = wrOf(c);
+  li.innerHTML =
+    `<span class="rar ${c.rarity}"></span>` +
+    `<span class="name">${esc(displayName(c))}</span>` +
+    `<span class="wr${w ? wrClass(w.gih) : ""}"${w ? ` title="${t("wr.gih.tip")}"` : ""}>${w ? (w.gih*100).toFixed(1) + "%" : ""}</span>` +
+    `<span style="font-size:12px;color:var(--muted)">${esc(c.mana_cost || "")}</span>`;
+  li.onmouseenter = ev => showPreview(c, ev.clientX, ev.clientY);
+  li.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
+  li.onmouseleave = hidePreview;
+  if(where === "pick") return li;
+
+  // メイン⇄サイドの移動ボタン
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "mv";
+  b.textContent = where === "side" ? "↑" : "↓";
+  b.title = t(where === "side" ? "deck.moveToMain" : "deck.moveToSide");
+  b.setAttribute("aria-label", b.title);
+  b.onclick = ev => {
+    ev.stopPropagation(); hidePreview();
+    const src = where === "side" ? side : deck, dst = where === "side" ? deck : side;
+    const i = src.findIndex(x => x.id === c.id);
+    if(i >= 0){ src.splice(i, 1); dst.push(c); }
+    render();
+  };
+  li.appendChild(b);
+
+  // 行そのものを押すとプールへ戻す
+  li.onclick = () => {
+    const arr = where === "side" ? side : deck;
+    const i = arr.findIndex(x => x.id === c.id);
+    if(i >= 0) arr.splice(i, 1);
+    hidePreview(); render();
+  };
+  return li;
 }
 
 function renderColors(){
@@ -856,8 +927,14 @@ function renderExport(){
     const bc = basicCards[en];
     lines.push(bc ? `${n} ${en} (${bc.set.toUpperCase()}) ${bc.collector_number}` : `${n} ${en}`);
   });
+  if(side.length){
+    const sm = new Map();
+    side.forEach(c => sm.set(c.id, {card:c, n:(sm.get(c.id)?.n || 0) + 1}));
+    lines.push("", "Sideboard");
+    sm.forEach(e => lines.push(`${e.n} ${e.card.name} (${e.card.set.toUpperCase()}) ${e.card.collector_number}`));
+  }
   const lands = Object.values(landCount).reduce((a,b) => a+b, 0);
-  $("exportBox").value = (deck.length || lands) ? lines.join("\n") : "";
+  $("exportBox").value = (deck.length || side.length || lands) ? lines.join("\n") : "";
 }
 
 /* ---------- プレビュー ---------- */
@@ -900,6 +977,12 @@ $("langSelect").onchange = e => I18N.set(e.target.value);
 I18N.onChange(() => { hidePreview(); renderSetOptions(); if(phase !== "idle") render(); });
 $("wrToggle").onchange = () => { hidePreview(); if(phase !== "idle") render(); };
 window.addEventListener("scroll", hidePreview, {passive:true});
+document.querySelectorAll("#targetSeg button").forEach(b => {
+  b.onclick = () => {
+    target = b.dataset.target;
+    document.querySelectorAll("#targetSeg button").forEach(x => x.classList.toggle("on", x.dataset.target === target));
+  };
+});
 $("copyBtn").onclick = async () => {
   const t = $("exportBox").value;
   if(!t) return;

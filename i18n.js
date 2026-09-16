@@ -60,6 +60,13 @@
     "deck.exportPh":    { ja:"デッキを組むとここにアリーナ用テキストが出ます", en:"Build a deck and the Arena import text appears here" },
     "deck.exportNote":  { ja:"インポート用のカード名は、表示設定にかかわらず英語名で出力します。",
                           en:"Card names in the import text are always in English." },
+    "deck.target":      { ja:"追加先", en:"Add to" },
+    "deck.targetMain":  { ja:"メイン", en:"Main" },
+    "deck.targetSide":  { ja:"サイド", en:"Side" },
+    "deck.side":        { ja:"サイドボード", en:"Sideboard" },
+    "deck.sideEmpty":   { ja:"追加先を「サイド」にしてプールのカードを押すと加わります", en:"Set \"Add to\" to Side, then click a card in the pool" },
+    "deck.moveToSide":  { ja:"サイドボードへ移す", en:"Move to sideboard" },
+    "deck.moveToMain":  { ja:"メインデッキへ戻す", en:"Move to main deck" },
     "deck.copy":        { ja:"アリーナ用テキストをコピー", en:"Copy Arena import text" },
     "deck.copied":      { ja:"コピーしました", en:"Copied" },
     "deck.copyManual":  { ja:"テキストを選択しました。Ctrl+C でコピーしてください", en:"Text selected — press Ctrl+C to copy" },
@@ -201,8 +208,8 @@
                           en:"<p><b>1. You have spare wildcards</b><br>If you mostly play Limited, wildcards pile up with nowhere to go. Building a 40-card Limited deck and playing it against a friend is one use for them.</p><p><b>2. You already own most of a set</b><br>If you have the cards, you can build without spending wildcards — a fair Limited game that does not hinge on who opened better packs.</p><p><b>3. You want to practise first</b><br>Get a feel for a set's Sealed or Draft before paying to enter an event. As many times as you like, for free.</p><p><b>4. You want to understand the format</b><br>You are welcome to skip the builders and come only for the data: which cards are strong, which colour pairs are winning, whether the format is fast or slow. Few sites cover a whole format this way in Japanese.</p>" },
 
     "guide.s3.h":       { ja:"アリーナで遊ぶまでの流れ", en:"Getting a deck into Arena" },
-    "guide.s3.body":    { ja:"<ol><li>このサイトでプールを生成し、40枚のデッキを組む</li><li>「アリーナ用テキストをコピー」を押す</li><li>マジック：ザ・ギャザリング アリーナのデッキ画面で「インポート」を選ぶ</li><li>対戦相手とダイレクトチャレンジ（フレンド対戦）で対戦する</li></ol><p><b>大切な注意点</b>：40枚のデッキは、イベント外では<b>ダイレクトチャレンジでしか使えません</b>。通常のマッチングでは60枚以上が必要です。友人と遊ぶ前提のツールだとお考えください。</p><p><b>ワイルドカードについて</b>：持っていないカードは作成が必要です。構築画面に「作成に必要なワイルドカード」を表示しているので、組む前に確認できます。集め方は次の節にまとめました。</p>",
-                          en:"<ol><li>Generate a pool here and build your 40 cards</li><li>Press “Copy Arena import text”</li><li>In Arena, open the deck screen and choose Import</li><li>Play your opponent via Direct Challenge</li></ol><p><b>Important</b>: outside of events, a 40-card deck can <b>only</b> be used in Direct Challenge. Normal matchmaking requires 60 or more cards. Treat this as a tool for playing with friends.</p><p><b>About wildcards</b>: you have to craft any card you do not own. The builder shows how many wildcards of each rarity a deck needs, so you can check before committing. The next section covers how to earn them.</p>" },
+    "guide.s3.body":    { ja:"<ol><li>このサイトでプールを生成し、40枚のデッキを組む</li><li>「アリーナ用テキストをコピー」を押す</li><li>マジック：ザ・ギャザリング アリーナのデッキ画面で「インポート」を選ぶ</li><li>対戦相手とダイレクトチャレンジ（フレンド対戦）で対戦する</li></ol><p><b>大切な注意点</b>：40枚のデッキは、イベント外では<b>ダイレクトチャレンジでしか使えません</b>。通常のマッチングでは60枚以上が必要です。友人と遊ぶ前提のツールだとお考えください。</p><p><b>サイドボードについて</b>：構築画面で追加先を「サイド」にすると、サイドボードにも入れられます。アリーナに取り込むと、そのままサイドボードとして登録されます。フレンド対戦を2本先取で行うときにお使いください。上限は15枚です。</p><p><b>ワイルドカードについて</b>：持っていないカードは作成が必要です。構築画面に「作成に必要なワイルドカード」を表示しているので、組む前に確認できます。集め方は次の節にまとめました。</p>",
+                          en:"<ol><li>Generate a pool here and build your 40 cards</li><li>Press “Copy Arena import text”</li><li>In Arena, open the deck screen and choose Import</li><li>Play your opponent via Direct Challenge</li></ol><p><b>Important</b>: outside of events, a 40-card deck can <b>only</b> be used in Direct Challenge. Normal matchmaking requires 60 or more cards. Treat this as a tool for playing with friends.</p><p><b>About sideboards</b>: set \"Add to\" to Side in the builder to put cards in a sideboard. Arena imports it as the deck's sideboard, which is handy for best-of-three matches with friends. The limit is 15 cards.</p><p><b>About wildcards</b>: you have to craft any card you do not own. The builder shows how many wildcards of each rarity a deck needs, so you can check before committing. The next section covers how to earn them.</p>" },
 
     "guide.s7.h":       { ja:"ワイルドカードの集め方", en:"How to get wildcards" },
     "guide.s7.body":    { ja:"<p>このサイトで組んだデッキをアリーナで使うには、持っていないカードをワイルドカードで作る必要があります。集める方法は主に4つです。</p>"
