@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ja" data-title="page.swiss.title" data-desc="desc.swiss">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>スイスドロー対戦表 — MTGアリーナ リミテッド・ワークベンチ</title>
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="./i18n.js"></script>
+<style>
+  :root{
+    --pine:#23342E; --pine-deep:#18241F;
+    --paper:#F3F5F1; --paper-2:#E6EAE3;
+    --ink:#0F1C17; --muted:#63736C;
+    --gold:#B8912F; --line:#CBD3CA;
+    --radius:3px;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  /* 内容の長さでスクロールバーが出たり消えたりしても、位置が動かないようにする */
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+
+  header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .head-top{display:block}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{
+    display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;
+    font-size:13px;font-weight:500;line-height:1;white-space:nowrap;
+    color:#CBD8D2;text-decoration:none;background:rgba(255,255,255,.05);
+    border:1px solid #3D544B;transition:background .12s,color .12s;
+  }
+  nav a:hover{background:#31473E;color:var(--paper);border-color:#547064}
+  nav a.on{background:var(--gold);border-color:var(--gold);color:#1A1405;font-weight:700}
+  .controls{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  header select{background:var(--pine-deep);color:var(--paper);border:1px solid #3D544B;padding:9px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px;min-width:120px}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  main{max-width:1000px;margin:0 auto;padding:22px 24px 70px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px}
+  .card h2{font-size:17px;margin:0 0 10px}
+  .hint{color:var(--muted);font-size:12.5px;margin:0 0 10px}
+
+  /* 入力・ボタン */
+  input[type=text],input[type=number],main select{
+    font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;color:var(--ink)
+  }
+  input[type=number]{width:72px}
+  button{border:none;border-radius:var(--radius);padding:9px 16px;cursor:pointer;background:var(--gold);color:#1A1405;font-weight:700;font-family:inherit;font-size:14px}
+  button:hover{background:#CBA33B}
+  button:disabled{background:#B9C1BC;color:#F3F5F1;cursor:not-allowed}
+  button.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);font-weight:600}
+  button.ghost:hover{background:var(--paper-2)}
+  button.danger{background:#fff;color:#A24B32;border:1px solid #D8B4AA;font-weight:600}
+  button.danger:hover{background:#F8ECE8}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .row + .row{margin-top:10px}
+  .row label{display:inline-flex;align-items:center;gap:6px;font-size:13.5px}
+  .grow{flex:1 1 220px}
+
+  /* 参加者一覧 */
+  ul.people{list-style:none;margin:0 0 12px;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 14px}
+  ul.people li{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:14px}
+  ul.people li .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  ul.people li .x{background:transparent;color:var(--muted);border:none;padding:2px 6px;font-size:16px;line-height:1}
+  ul.people li .x:hover{color:#A24B32;background:transparent}
+  ul.people li.off .nm{color:var(--muted);text-decoration:line-through}
+  .tag{font-size:11px;padding:1px 6px;border-radius:3px;background:var(--paper-2);color:var(--muted)}
+
+  /* 対戦表 */
+  .round-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .round-head h2{margin:0}
+  .round-head .sub{color:var(--muted);font-size:13px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+  td{padding:7px 8px;border-bottom:1px solid var(--paper-2);vertical-align:middle}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  td.tbl{width:38px;color:var(--muted);font-variant-numeric:tabular-nums}
+  tr.done td{background:#F7F9F5}
+  .who{font-weight:600}
+  .who.win{color:#2F6B47}
+  .res{display:inline-flex;gap:3px;flex-wrap:wrap}
+  .res button{padding:5px 8px;font-size:12.5px;background:#fff;color:var(--ink);border:1px solid var(--line);font-weight:600;min-width:38px}
+  .res button:hover{background:var(--paper-2)}
+  .res button.on{background:var(--pine);color:var(--paper);border-color:var(--pine)}
+  .bye{color:var(--muted);font-style:normal}
+  .warn{color:#A24B32;font-size:12.5px;margin:8px 0 0}
+
+  /* 順位表 */
+  #standings th.num,#standings td.num{text-align:right}
+  #standings td.rank{width:36px;color:var(--muted)}
+  #standings tr.top td.rank{color:var(--gold);font-weight:700}
+  .pct{color:var(--muted);font-size:12.5px}
+
+  details summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--muted);padding:4px 0}
+  .hist h3{font-size:13px;margin:12px 0 4px;color:var(--muted)}
+  .hist table{font-size:13px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+  .status{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;margin:0 0 14px;font-size:13.5px;color:#3B4A44}
+
+  footer{max-width:1000px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+
+  /* ---------- スマートフォン ---------- */
+  @media (max-width:720px){
+    header p{min-height:0}
+    html,body{overflow-x:hidden}
+    body{font-size:14px}
+    header{padding:16px 14px 12px}
+    header h1{font-size:20px}
+    header p{font-size:12px;max-width:none}
+    main{padding:16px 12px 50px}
+    footer{padding:0 14px 40px}
+    .head-top{flex-direction:column;align-items:stretch;gap:12px}
+    .controls select{width:100%}
+    nav{margin:0 0 14px;gap:6px;font-size:12px}
+    nav a{white-space:nowrap}
+    .card{padding:14px 12px}
+    ul.people{grid-template-columns:1fr}
+    table{font-size:13px}
+    td,th{padding:6px 5px}
+    .res button{min-width:34px;padding:5px 6px}
+    #standings .pct{display:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand" data-i18n="site.name">MTGアリーナ リミテッド・ワークベンチ</div>
+    <nav>
+      <a href="./guide.html" data-i18n="nav.guide">使い方</a>
+      <a href="./" data-i18n="nav.sealed">シールド構築</a>
+      <a href="./draft.html" data-i18n="nav.draft">ドラフト構築</a>
+      <a href="./ratings.html" data-i18n="nav.ratings">カード勝率一覧</a>
+      <a href="./reports.html" data-i18n="nav.reports">環境レポート</a>
+      <a href="./swiss.html" class="on" data-i18n="nav.swiss">スイスドロー</a>
+      <a href="./privacy.html" data-i18n="nav.privacy">プライバシー</a>
+    </nav>
+    <div class="head-top">
+      <div>
+        <h1 data-i18n="swiss.h1">スイスドロー対戦表</h1>
+        <p data-i18n="swiss.lead">友人との対戦会の組み合わせと順位を管理します。参加者はこのブラウザに保存され、次回もそのまま呼び出せます。</p>
+      </div>
+      <div class="controls">
+        <select id="langSelect" data-i18n-label="lang.label">
+          <option value="ja">日本語</option><option value="en">English</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ========== 準備 ========== -->
+  <div id="setup">
+    <section class="card">
+      <h2 data-i18n="swiss.players">参加者</h2>
+      <p class="hint" data-i18n="swiss.playersHint">名前を入れて追加してください。一度登録した名前はこのブラウザに残るので、次回は左のチェックを入れるだけで呼び出せます。</p>
+      <div class="row">
+        <input type="text" id="nameInput" class="grow" data-i18n-ph="swiss.namePh" placeholder="名前（Enterで追加）" autocomplete="off">
+        <button id="addBtn" data-i18n="swiss.add">追加</button>
+      </div>
+      <ul class="people" id="roster" style="margin-top:12px"></ul>
+      <div class="row">
+        <span class="hint" id="rosterCount" style="margin:0"></span>
+        <button class="ghost" id="checkAllBtn" data-i18n="swiss.checkAll">全員を参加にする</button>
+        <button class="ghost" id="uncheckAllBtn" data-i18n="swiss.uncheckAll">全員を外す</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 data-i18n="swiss.setup">大会の設定</h2>
+      <div class="row">
+        <label><span data-i18n="swiss.rounds">ラウンド数</span> <input type="number" id="rounds" min="1" max="12" value="3"></label>
+        <span class="hint" id="roundsHint" style="margin:0"></span>
+      </div>
+      <div class="row">
+        <label><span data-i18n="swiss.firstBye">初戦のバイ</span>
+          <select id="firstBye"><option value="" data-i18n="swiss.byeAuto">自動（順位の低い人）</option></select>
+        </label>
+        <span class="hint" style="margin:0" id="firstByeHint" data-i18n="swiss.firstByeHint">遅れて来る人が決まっているときに指定します。人数が奇数のときだけバイが出ます。</span>
+      </div>
+      <div class="actions">
+        <button id="startBtn" data-i18n="swiss.start">大会を始める</button>
+        <span class="warn" id="setupWarn" hidden></span>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========== 進行中 ========== -->
+  <div id="live" hidden>
+    <div class="status" id="liveStatus"></div>
+
+    <section class="card">
+      <div class="round-head">
+        <h2 id="roundTitle"></h2>
+        <span class="sub" id="roundSub"></span>
+      </div>
+      <table id="pairings">
+        <thead><tr>
+          <th class="tbl" data-i18n="swiss.table">卓</th>
+          <th data-i18n="swiss.playerA">プレイヤー</th>
+          <th data-i18n="swiss.result">結果（左の勝ち数 − 右の勝ち数）</th>
+          <th data-i18n="swiss.playerB">プレイヤー</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="actions" id="nextRow">
+        <label style="font-size:13.5px"><span data-i18n="swiss.nextBye">次のラウンドのバイ</span>
+          <select id="nextBye"><option value="" data-i18n="swiss.byeAuto">自動（順位の低い人）</option></select>
+        </label>
+        <span class="hint" id="nextByeNote" style="margin:0"></span>
+        <button id="nextBtn" data-i18n="swiss.next">次のラウンドを組む</button>
+        <button id="finishBtn" class="ghost" data-i18n="swiss.finish">ここで大会を終える</button>
+      </div>
+      <p class="warn" id="liveWarn" hidden></p>
+    </section>
+
+    <section class="card">
+      <h2 data-i18n="swiss.standings">順位表</h2>
+      <table id="standings">
+        <thead><tr>
+          <th class="rank">#</th>
+          <th data-i18n="swiss.name">名前</th>
+          <th class="num" data-i18n="swiss.record">勝-敗-分</th>
+          <th class="num" data-i18n="swiss.points">Pt</th>
+          <th class="num pct">OMW%</th>
+          <th class="num pct">GW%</th>
+          <th class="num pct">OGW%</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="hint" style="margin-top:8px" data-i18n="swiss.tiebreakHint">同点のときは OMW%（対戦相手の勝率）、GW%（自分のゲーム勝率）、OGW%（対戦相手のゲーム勝率）の順で比べます。マジックの公式大会と同じ基準です。</p>
+      <div class="actions">
+        <button class="ghost" id="copyBtn" data-i18n="swiss.copy">順位表をコピー</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 data-i18n="swiss.attendance">参加者の出入り</h2>
+      <p class="hint" data-i18n="swiss.attendanceHint">遅れて来た人はここで「参加」にすると、次のラウンドから組み込まれます。途中で帰る人は「不参加」にします。進行中のラウンドには影響しません。</p>
+      <ul class="people" id="liveRoster"></ul>
+      <div class="row">
+        <input type="text" id="lateInput" class="grow" data-i18n-ph="swiss.latePh" placeholder="途中参加の名前" autocomplete="off">
+        <button class="ghost" id="lateBtn" data-i18n="swiss.lateAdd">途中参加を追加</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <details>
+        <summary data-i18n="swiss.history">これまでのラウンド</summary>
+        <div class="hist" id="history"></div>
+      </details>
+      <div class="actions">
+        <button class="danger" id="resetBtn" data-i18n="swiss.reset">この大会を消して最初から</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <span data-i18n-html="foot.short">データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="./privacy.html">プライバシーポリシー</a>にまとめています。</span>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const t = (k, v) => I18N.t(k, v);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+
+/* ---------- 保存 ----------
+   参加者名簿と進行中の大会は、このブラウザのローカルストレージにだけ保存します。 */
+const KEY_ROSTER = "sw.roster";     // 名簿：[{name, on}]  on = 今回参加するか
+const KEY_STATE  = "sw.state";      // 大会：{players, rounds, total, done}
+const WIN = 3, DRAW = 1;            // マッチポイント
+
+let roster = [];
+let T = null;                       // 進行中の大会。無ければ null
+
+function load(){
+  try{ roster = JSON.parse(localStorage.getItem(KEY_ROSTER) || "[]"); }catch(e){ roster = []; }
+  try{ T = JSON.parse(localStorage.getItem(KEY_STATE) || "null"); }catch(e){ T = null; }
+  if(!Array.isArray(roster)) roster = [];
+}
+function saveRoster(){ try{ localStorage.setItem(KEY_ROSTER, JSON.stringify(roster)); }catch(e){} }
+function saveState(){
+  try{ T ? localStorage.setItem(KEY_STATE, JSON.stringify(T)) : localStorage.removeItem(KEY_STATE); }catch(e){}
+}
+
+/* ---------- 名簿 ---------- */
+function addName(raw){
+  const name = (raw || "").trim();
+  if(!name) return false;
+  if(roster.some(p => p.name === name)) return false;
+  roster.push({ name, on: true });
+  saveRoster();
+  return true;
+}
+
+function renderRoster(){
+  const ul = $("roster");
+  ul.innerHTML = "";
+  roster.forEach((p, i) => {
+    const li = document.createElement("li");
+    if(!p.on) li.className = "off";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.checked = !!p.on;
+    cb.setAttribute("aria-label", t("swiss.joinLabel", {n: p.name}));
+    cb.onchange = () => { p.on = cb.checked; saveRoster(); renderRoster(); };
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = p.name;
+    const x = document.createElement("button"); x.className = "x"; x.textContent = "×";
+    x.title = t("swiss.remove"); x.setAttribute("aria-label", t("swiss.removeLabel", {n: p.name}));
+    x.onclick = () => { roster.splice(i, 1); saveRoster(); renderRoster(); };
+    li.append(cb, nm, x);
+    ul.appendChild(li);
+  });
+  const on = roster.filter(p => p.on).length;
+  $("rosterCount").textContent = t("swiss.rosterCount", {n: on, all: roster.length});
+
+  // 初戦のバイの候補と、ラウンド数の目安
+  const sel = $("firstBye"), keep = sel.value;
+  sel.innerHTML = `<option value="">${esc(t("swiss.byeAuto"))}</option>`;
+  roster.filter(p => p.on).forEach(p => {
+    const o = document.createElement("option"); o.value = p.name; o.textContent = p.name; sel.appendChild(o);
+  });
+  if([...sel.options].some(o => o.value === keep)) sel.value = keep;
+  const even = on > 0 && on % 2 === 0;
+  sel.disabled = even;
+  $("firstByeHint").textContent = even ? t("swiss.byeEven") : t("swiss.firstByeHint");
+  const rec = suggestRounds(on);
+  $("roundsHint").textContent = on >= 2 ? t("swiss.roundsHint", {n: on, r: rec}) : "";
+  if(!$("rounds").dataset.touched) $("rounds").value = rec;
+  $("startBtn").disabled = on < 2;
+}
+
+function suggestRounds(n){
+  if(n <= 2) return 1;
+  if(n <= 4) return 2;
+  if(n <= 8) return 3;
+  if(n <= 16) return 4;
+  if(n <= 32) return 5;
+  return 6;
+}
+
+/* ---------- 大会 ---------- */
+function startTournament(){
+  const names = roster.filter(p => p.on).map(p => p.name);
+  const warn = $("setupWarn");
+  if(names.length < 2){ warn.textContent = t("swiss.needTwo"); warn.hidden = false; return; }
+  const total = Math.max(1, Math.min(12, parseInt($("rounds").value, 10) || suggestRounds(names.length)));
+  T = {
+    players: names.map((name, i) => ({ id: i + 1, name, active: true })),
+    rounds: [],
+    total,
+    done: false
+  };
+  const bye = $("firstBye").value;
+  const byeId = bye ? (T.players.find(p => p.name === bye) || {}).id : null;
+  makeRound(byeId);
+  saveState();
+  renderAll();
+}
+
+/* 成績の集計 */
+function computeStats(){
+  const S = {};
+  T.players.forEach(p => { S[p.id] = { id: p.id, name: p.name, mp: 0, w: 0, l: 0, d: 0, gw: 0, gl: 0, rounds: 0, opps: [], byes: 0 }; });
+  T.rounds.forEach(r => r.matches.forEach(m => {
+    if(m.b == null){                           // バイ：不戦勝（2-0）
+      const s = S[m.a]; if(!s) return;
+      s.mp += WIN; s.w++; s.gw += 2; s.rounds++; s.byes++;
+      return;
+    }
+    if(m.ga == null || m.gb == null) return;   // 未入力
+    const a = S[m.a], b = S[m.b]; if(!a || !b) return;
+    a.gw += m.ga; a.gl += m.gb; b.gw += m.gb; b.gl += m.ga;
+    a.rounds++; b.rounds++;
+    a.opps.push(b.id); b.opps.push(a.id);
+    if(m.ga > m.gb){ a.mp += WIN; a.w++; b.l++; }
+    else if(m.gb > m.ga){ b.mp += WIN; b.w++; a.l++; }
+    else { a.mp += DRAW; b.mp += DRAW; a.d++; b.d++; }
+  }));
+  // マッチ勝率・ゲーム勝率（下限 1/3 は公式ルールと同じ）
+  const floor = v => Math.max(1/3, v);
+  Object.values(S).forEach(s => {
+    s.mwp = s.rounds ? floor(s.mp / (WIN * s.rounds)) : 0;
+    s.gwp = (s.gw + s.gl) ? floor(s.gw / (s.gw + s.gl)) : 0;
+  });
+  Object.values(S).forEach(s => {
+    const o = s.opps.map(id => S[id]).filter(Boolean);
+    s.omwp = o.length ? o.reduce((a, x) => a + (x.rounds ? floor(x.mp / (WIN * x.rounds)) : 1/3), 0) / o.length : 0;
+    s.ogwp = o.length ? o.reduce((a, x) => a + ((x.gw + x.gl) ? floor(x.gw / (x.gw + x.gl)) : 1/3), 0) / o.length : 0;
+  });
+  return S;
+}
+
+function standings(){
+  const S = computeStats();
+  return Object.values(S).sort((a, b) =>
+    b.mp - a.mp || b.omwp - a.omwp || b.gwp - a.gwp || b.ogwp - a.ogwp || a.name.localeCompare(b.name, "ja"));
+}
+
+/* これまでに当たった組（再戦を避けるため） */
+function playedPairs(){
+  const set = new Set();
+  T.rounds.forEach(r => r.matches.forEach(m => { if(m.b != null){ set.add(m.a + "|" + m.b); set.add(m.b + "|" + m.a); } }));
+  return set;
+}
+
+/* 再戦を避けながら上から順に組む。無理なら再戦を許して組む。 */
+function pairUp(order, played){
+  const res = [];
+  let budget = 20000;
+  function bt(list){
+    if(!list.length) return true;
+    if(--budget < 0) return false;
+    const a = list[0];
+    for(let i = 1; i < list.length; i++){
+      const b = list[i];
+      if(played.has(a + "|" + b)) continue;
+      res.push([a, b]);
+      if(bt(list.filter((_, k) => k !== 0 && k !== i))) return true;
+      res.pop();
+    }
+    return false;
+  }
+  if(bt(order)) return res;
+  res.length = 0;
+  for(let i = 0; i + 1 < order.length; i += 2) res.push([order[i], order[i + 1]]);
+  return res;
+}
+
+function makeRound(manualByeId){
+  const active = T.players.filter(p => p.active).map(p => p.id);
+  let order;
+  if(!T.rounds.length){
+    order = active.slice();
+    for(let i = order.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  }else{
+    const st = standings().map(s => s.id);
+    order = st.filter(id => active.includes(id));
+  }
+  const matches = [];
+  const byes = [];
+
+  // 奇数のときだけバイが出る。指定があればその人、無ければまだバイを受けていない中で最下位の人。
+  if(order.length % 2 === 1 && manualByeId && order.includes(manualByeId)){
+    byes.push(manualByeId);
+    order = order.filter(id => id !== manualByeId);
+  }
+  if(order.length % 2 === 1){
+    const S = computeStats();
+    const pick = order.slice().reverse().find(id => !S[id].byes) ?? order[order.length - 1];
+    byes.push(pick);
+    order = order.filter(id => id !== pick);
+  }
+  pairUp(order, playedPairs()).forEach(([a, b]) => matches.push({ a, b, ga: null, gb: null }));
+  byes.forEach(id => matches.push({ a: id, b: null, ga: 2, gb: 0 }));
+  T.rounds.push({ matches });
+}
+
+function currentRound(){ return T.rounds[T.rounds.length - 1]; }
+function roundComplete(r){ return r.matches.every(m => m.b == null || (m.ga != null && m.gb != null)); }
+function nameOf(id){ return (T.players.find(p => p.id === id) || {}).name || "?"; }
+
+/* ---------- 描画 ---------- */
+function renderAll(){
+  const live = !!T;
+  $("setup").hidden = live;
+  $("live").hidden = !live;
+  if(!live){ renderRoster(); return; }
+  renderRound();
+  renderStandings();
+  renderLiveRoster();
+  renderHistory();
+}
+
+function renderRound(){
+  const r = currentRound(), no = T.rounds.length;
+  $("roundTitle").textContent = T.done ? t("swiss.final") : t("swiss.round", {n: no});
+  $("roundSub").textContent = t("swiss.roundOf", {n: no, total: T.total});
+  $("liveStatus").textContent = T.done
+    ? t("swiss.statusDone", {n: no})
+    : (roundComplete(r) ? t("swiss.statusReady") : t("swiss.statusEnter"));
+
+  const tb = $("pairings").querySelector("tbody");
+  tb.innerHTML = "";
+  r.matches.forEach((m, i) => {
+    const tr = document.createElement("tr");
+    const done = m.b == null || (m.ga != null && m.gb != null);
+    if(done) tr.className = "done";
+    if(m.b == null){
+      tr.innerHTML = `<td class="tbl">—</td><td class="who">${esc(nameOf(m.a))}</td>` +
+                     `<td colspan="2" class="bye">${esc(t("swiss.byeRow"))}</td>`;
+      tb.appendChild(tr); return;
+    }
+    const aw = m.ga != null && m.ga > m.gb, bw = m.gb != null && m.gb > m.ga;
+    const tdA = `<td class="who${aw ? " win" : ""}">${esc(nameOf(m.a))}</td>`;
+    const tdB = `<td class="who${bw ? " win" : ""}">${esc(nameOf(m.b))}</td>`;
+    const opts = [[2,0],[2,1],[1,1],[1,2],[0,2]];
+    const btns = opts.map(([ga, gb]) =>
+      `<button type="button" data-i="${i}" data-ga="${ga}" data-gb="${gb}" class="${m.ga === ga && m.gb === gb ? "on" : ""}"${T.done ? " disabled" : ""}>${ga}-${gb}</button>`).join("");
+    tr.innerHTML = `<td class="tbl">${i + 1}</td>${tdA}<td><span class="res">${btns}</span></td>${tdB}`;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll("button[data-i]").forEach(b => {
+    b.onclick = () => {
+      const m = r.matches[+b.dataset.i];
+      m.ga = +b.dataset.ga; m.gb = +b.dataset.gb;
+      saveState(); renderAll();
+    };
+  });
+
+  // 次ラウンドの操作
+  const last = T.rounds.length >= T.total;
+  $("nextRow").hidden = T.done;
+  $("nextBtn").disabled = !roundComplete(r);
+  $("nextBtn").textContent = last ? t("swiss.addRound") : t("swiss.next");
+  $("finishBtn").textContent = roundComplete(r) && last ? t("swiss.finishFinal") : t("swiss.finish");
+  const sel = $("nextBye"), keep = sel.value;
+  const active = T.players.filter(p => p.active);
+  sel.innerHTML = `<option value="">${esc(t("swiss.byeAuto"))}</option>`;
+  active.forEach(p => {
+    const o = document.createElement("option"); o.value = p.id; o.textContent = p.name; sel.appendChild(o);
+  });
+  if([...sel.options].some(o => o.value === keep)) sel.value = keep;
+  const even = active.length % 2 === 0;
+  sel.disabled = even;
+  $("nextByeNote").textContent = even ? t("swiss.byeEven") : "";
+  $("liveWarn").hidden = true;
+}
+
+function renderStandings(){
+  const tb = $("standings").querySelector("tbody");
+  tb.innerHTML = "";
+  const pct = v => (v * 100).toFixed(1) + "%";
+  standings().forEach((s, i) => {
+    const p = T.players.find(x => x.id === s.id);
+    const tr = document.createElement("tr");
+    if(i === 0) tr.className = "top";
+    tr.innerHTML =
+      `<td class="rank">${i + 1}</td>` +
+      `<td>${esc(s.name)}${p && !p.active ? ` <span class="tag">${esc(t("swiss.out"))}</span>` : ""}${s.byes ? ` <span class="tag">${esc(t("swiss.byeTag"))}</span>` : ""}</td>` +
+      `<td class="num">${s.w}-${s.l}-${s.d}</td>` +
+      `<td class="num"><b>${s.mp}</b></td>` +
+      `<td class="num pct">${pct(s.omwp)}</td>` +
+      `<td class="num pct">${pct(s.gwp)}</td>` +
+      `<td class="num pct">${pct(s.ogwp)}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function renderLiveRoster(){
+  const ul = $("liveRoster");
+  ul.innerHTML = "";
+  T.players.forEach(p => {
+    const li = document.createElement("li");
+    if(!p.active) li.className = "off";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.checked = p.active;
+    cb.setAttribute("aria-label", t("swiss.joinLabel", {n: p.name}));
+    cb.disabled = T.done;
+    cb.onchange = () => { p.active = cb.checked; saveState(); renderAll(); };
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = p.name;
+    const tag = document.createElement("span"); tag.className = "tag";
+    tag.textContent = p.active ? t("swiss.in") : t("swiss.out");
+    li.append(cb, nm, tag);
+    ul.appendChild(li);
+  });
+  $("lateBtn").disabled = T.done;
+}
+
+function renderHistory(){
+  const box = $("history");
+  box.innerHTML = "";
+  T.rounds.slice(0, -1).forEach((r, i) => {
+    const h = document.createElement("h3"); h.textContent = t("swiss.round", {n: i + 1});
+    const tbl = document.createElement("table");
+    tbl.innerHTML = r.matches.map(m => m.b == null
+      ? `<tr><td class="who">${esc(nameOf(m.a))}</td><td colspan="2" class="bye">${esc(t("swiss.byeRow"))}</td></tr>`
+      : `<tr><td class="who${m.ga > m.gb ? " win" : ""}">${esc(nameOf(m.a))}</td><td class="num">${m.ga}-${m.gb}</td><td class="who${m.gb > m.ga ? " win" : ""}">${esc(nameOf(m.b))}</td></tr>`
+    ).join("");
+    box.append(h, tbl);
+  });
+  if(!T.rounds.length || T.rounds.length === 1) box.innerHTML = `<p class="hint">${esc(t("swiss.noHistory"))}</p>`;
+}
+
+/* ---------- 操作 ---------- */
+function addFromInput(inputId){
+  const el = $(inputId);
+  const ok = addName(el.value);
+  if(ok) el.value = "";
+  return ok;
+}
+
+$("addBtn").onclick = () => { addFromInput("nameInput"); renderRoster(); $("nameInput").focus(); };
+$("nameInput").onkeydown = ev => { if(ev.key === "Enter"){ ev.preventDefault(); $("addBtn").click(); } };
+$("checkAllBtn").onclick = () => { roster.forEach(p => p.on = true); saveRoster(); renderRoster(); };
+$("uncheckAllBtn").onclick = () => { roster.forEach(p => p.on = false); saveRoster(); renderRoster(); };
+$("rounds").oninput = () => { $("rounds").dataset.touched = "1"; };
+$("startBtn").onclick = startTournament;
+
+$("nextBtn").onclick = () => {
+  const r = currentRound();
+  if(!roundComplete(r)) return;
+  const active = T.players.filter(p => p.active).length;
+  if(active < 2){ $("liveWarn").textContent = t("swiss.needTwo"); $("liveWarn").hidden = false; return; }
+  if(T.rounds.length >= T.total) T.total = T.rounds.length + 1;   // 予定を超えて続ける
+  const byeId = $("nextBye").value ? +$("nextBye").value : null;
+  makeRound(byeId);
+  $("nextBye").value = "";
+  saveState(); renderAll();
+  window.scrollTo({top: 0, behavior: "smooth"});
+};
+
+$("finishBtn").onclick = () => {
+  if(!confirm(t("swiss.finishConfirm"))) return;
+  T.done = true;
+  saveState(); renderAll();
+};
+
+$("lateBtn").onclick = () => {
+  const name = $("lateInput").value.trim();
+  if(!name) return;
+  if(T.players.some(p => p.name === name)){ $("lateInput").value = ""; return; }
+  const id = Math.max(0, ...T.players.map(p => p.id)) + 1;
+  T.players.push({ id, name, active: true });
+  addName(name);                 // 名簿にも残す
+  $("lateInput").value = "";
+  saveState(); renderAll();
+};
+$("lateInput").onkeydown = ev => { if(ev.key === "Enter"){ ev.preventDefault(); $("lateBtn").click(); } };
+
+$("resetBtn").onclick = () => {
+  if(!confirm(t("swiss.resetConfirm"))) return;
+  T = null;
+  saveState();
+  delete $("rounds").dataset.touched;
+  renderAll();
+};
+
+$("copyBtn").onclick = async () => {
+  const lines = [t("swiss.copyTitle", {n: T.rounds.length})];
+  standings().forEach((s, i) => lines.push(`${i + 1}. ${s.name}  ${s.w}-${s.l}-${s.d}  ${s.mp}pt`));
+  const text = lines.join("\n");
+  try{ await navigator.clipboard.writeText(text); $("copyBtn").textContent = t("swiss.copied"); }
+  catch(e){ prompt(t("swiss.copyManual"), text); }
+  setTimeout(() => { $("copyBtn").textContent = t("swiss.copy"); }, 2000);
+};
+
+/* ---------- 言語 ---------- */
+const sel = $("langSelect");
+sel.value = I18N.lang;
+sel.onchange = e => I18N.set(e.target.value);
+I18N.onChange(() => renderAll());
+
+load();
+renderAll();
+</script>
+</body>
+</html>
