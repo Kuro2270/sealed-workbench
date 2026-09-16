@@ -194,9 +194,11 @@
   .tile{position:relative;cursor:pointer;border-radius:8px;line-height:0}
   .tile img{width:100%;height:auto;border-radius:7px;display:block}
   .tile:hover img,.tile:focus-visible img{outline:2px solid var(--gold);outline-offset:2px;border-radius:7px}
+  /* 枚数（×2 など）。カード右上のマナコストにかからないよう、名前欄の下のイラスト部分に置く */
   .tile .badge{
-    position:absolute;right:5px;top:5px;background:var(--pine);color:var(--paper);
+    position:absolute;right:5px;top:19%;background:rgba(24,36,31,.62);color:var(--paper);
     font-size:11px;font-weight:700;line-height:1;padding:3px 6px;border-radius:9px;
+    backdrop-filter:blur(1.5px);
   }
   .tile .noimg{
     display:flex;align-items:center;justify-content:center;text-align:center;
@@ -234,6 +236,7 @@
     ul.grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:7px}
     .deck-body ul.grid,.side ul.grid{grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
     .tile .wrbadge{font-size:10px;padding:3px 6px;bottom:4px}
+    .tile .badge{font-size:10px;padding:2px 5px;right:4px}
 
     /* 右のパネルは固定せず、下に流す */
     .deck,.side{position:static;max-width:100%}
