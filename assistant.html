@@ -93,6 +93,24 @@
   ul.pack li .fit.on{background:#EAF3EC;color:#2F6B47}
   ul.pack li .fit.off{background:#F8ECE8;color:#A24B32}
   .empty{color:var(--muted);font-size:13px;padding:18px 0;text-align:center}
+  /* 表示の切り替え */
+  .tabs{display:inline-flex;gap:2px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:2px;margin-left:auto}
+  .tabs .tab{background:transparent;border:none;border-radius:999px;padding:5px 14px;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit}
+  .tabs .tab.on{background:var(--pine);color:var(--paper)}
+  /* デッキ案 */
+  .deck-sum{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 8px;font-size:13px}
+  .deck-sum .cb{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;background:var(--paper-2);color:var(--muted);font-size:12px}
+  .deck-sum .cb.main{background:var(--pine);color:var(--paper)}
+  .deck-sec{display:flex;justify-content:space-between;align-items:baseline;margin:10px 0 3px;padding-bottom:3px;border-bottom:1px solid var(--line);font-size:13px}
+  .deck-sec b{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif}
+  .deck-sec span{color:var(--muted);font-size:11.5px}
+  ul.dl{list-style:none;margin:0;padding:0}
+  ul.dl li{display:grid;grid-template-columns:18px 26px 1fr auto;gap:8px;align-items:center;padding:3px 4px;border-bottom:1px solid var(--paper-2);font-size:13.5px}
+  ul.dl li .cmc{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+  ul.dl li .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  ul.dl li .wr{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
+  .deck-alt{margin-top:10px;font-size:12.5px;color:var(--muted)}
+  .deck-note{font-size:12.5px;color:var(--muted);margin:8px 0 0}
   /* おすすめの1枚 */
   .best{display:flex;gap:10px;flex-wrap:wrap;padding:10px;margin:0 0 10px;background:#FBF6E3;border:1px solid #E6D6A8;border-radius:var(--radius)}
   .best-one{display:flex;gap:12px;align-items:center;flex:1 1 300px;min-width:0}
@@ -192,11 +210,16 @@
     <div class="pick-head">
       <h2 id="pickTitle" data-i18n="assist.waiting">ドラフトの開始を待っています</h2>
       <span class="sub" id="pickSub"></span>
+      <span class="tabs" id="viewTabs">
+        <button type="button" class="tab on" data-view="pack" data-i18n="assist.viewPack">パック</button>
+        <button type="button" class="tab" data-view="deck" data-i18n="assist.viewDeck">デッキ案</button>
+      </span>
     </div>
     <div class="colors" id="colorBar"></div>
     <div class="best" id="best" hidden></div>
     <ul class="pack" id="pack"></ul>
     <div class="empty" id="packEmpty" data-i18n="assist.packEmpty">アリーナでドラフトのパックを開くと、ここにカードが並びます。</div>
+    <div id="deckView" hidden></div>
   </section>
 
   <section class="card">
@@ -255,8 +278,10 @@ const D = {                 // ドラフトの状態
   packNo: 0, pickNo: 0,     // 1始まり
   pack: [],                 // いま見ているパック（arena_id の配列）
   picked: [],               // ピック済み（arena_id の配列）
+  done: false,              // ドラフトが終わったか
   colorScore: {W:0,U:0,B:0,R:0,G:0}
 };
+let view = "pack";          // 小窓に出す内容：pack（いまのパック）／deck（デッキ案）
 let cards = {};             // arena_id → {name, ja, colors, rarity, cmc, type}
 let wr = {};                // 英語名 → {gih, games}
 let loadedSet = "";
@@ -331,6 +356,20 @@ function handleLine(line){
     }
   }
 
+  // ドラフト終了（Bot 相手）：DraftStatus が Completed
+  const st = deepFind(o, ["draftstatus"]);
+  if(typeof st === "string" && /complete/i.test(st)){
+    const pc = deepFind(o, ["pickedcards"]);
+    if(pc !== undefined) D.picked = toIds(pc);
+    D.pack = []; D.done = true; view = "deck";
+    recomputeColors();
+    hit = true; log(`draft completed: ${D.picked.length} cards`);
+  }
+  // 新しいドラフトが始まったら状態を戻す
+  if(D.done && deepFind(o, ["draftpack","packcards"]) !== undefined && toIds(deepFind(o, ["draftpack","packcards"])).length){
+    D.done = false; D.picked = []; view = "pack"; recomputeColors();
+  }
+
   // Bot 相手のドラフト：DraftPack / PackNumber / PickNumber / PickedCards
   const draftPack = deepFind(o, ["draftpack"]);
   if(draftPack !== undefined){
@@ -354,6 +393,7 @@ function handleLine(line){
     ids.forEach(id => { if(D.pack.includes(id) || !D.pack.length){ D.picked.push(id); } });
     recomputeColors();
     D.pack = D.pack.filter(id => !ids.includes(id));
+    if(D.picked.length >= 42 && !D.done){ D.done = true; D.pack = []; view = "deck"; }
     hit = true; log(`picked: ${ids.map(id => cards[id]?.name || id).join(", ")}`);
   }
 
@@ -400,7 +440,7 @@ async function pickFile(){
 async function startWatch(){
   stopWatch();
   demo = false;
-  D.set = ""; D.event = ""; D.pack = []; D.picked = []; D.packNo = 0; D.pickNo = 0; recomputeColors();
+  D.set = ""; D.event = ""; D.pack = []; D.picked = []; D.packNo = 0; D.pickNo = 0; D.done = false; view = "pack"; recomputeColors();
   // 先頭から読む。Player.log は起動ごとに作り直されるので、今回の起動分をなぞれば
   // ドラフトの途中で選んでも、いまのパックまでたどり着く。
   offset = 0;
@@ -491,7 +531,9 @@ function addCard(c){
     colors: front.includes("Land") ? [] : (c.color_identity || []).filter(x => "WUBRG".includes(x)),
     rarity: c.rarity || "", cmc: c.cmc ?? 0, type: front.trim(),
     basic: front.includes("Basic Land"),
-    img: imgOf(c), imgJa: ""
+    img: imgOf(c), imgJa: "",
+    mana: c.mana_cost || c.card_faces?.[0]?.mana_cost || "",
+    set: (c.set || "").toUpperCase()
   };
 }
 async function scryAll(q, fn){
@@ -650,6 +692,63 @@ function breakdown(e){
   return t("assist.breakdown", {b: e.base.toFixed(1), c: f(e.adjColor), s: f(e.adjSlot), p: f(e.adjPace)});
 }
 
+/* ================= デッキ案 =================
+   ピック済みのプールから、2色の組み合わせごとに23枚を選び、最も評価の高い組み合わせを出す。
+   枠はクリーチャー17・スペル6を目安にし、重いカードが多すぎれば軽いカードに入れ替える。 */
+const PAIRS = ["WU","WB","WR","WG","UB","UR","UG","BR","BG","RG"];
+const BASIC_OF = { W:"Plains", U:"Island", B:"Swamp", R:"Mountain", G:"Forest" };
+
+function buildDeck(pair){
+  const pool = D.picked.map(id => ({ id, c: cards[id] })).filter(x => x.c);
+  const inPair = x => x.c.colors.every(k => pair.includes(k));
+  const spells = pool.filter(x => kindOf(x.c) !== "land" && inPair(x)).map(x => ({ ...x, r: ratingOf(x.id), kind: kindOf(x.c) }));
+  const byR = (a, b) => b.r - a.r;
+  const creatures = spells.filter(x => x.kind === "creature").sort(byR);
+  const others    = spells.filter(x => x.kind === "spell").sort(byR);
+  const deck = [];
+  const take = (arr, n) => { while(n-- > 0 && arr.length) deck.push(arr.shift()); };
+  take(creatures, DECK_TARGET.creature);
+  take(others, DECK_TARGET.spell);
+  const rest = creatures.concat(others).sort(byR);
+  take(rest, 23 - deck.length);
+  // 重いカード（5マナ以上）が6枚を超えるなら、評価差が小さい範囲で軽いカードと入れ替える
+  const heavy = () => deck.filter(x => (x.c.cmc || 0) >= 5);
+  while(heavy().length > 6 && rest.length){
+    const h = heavy().sort((a, b) => a.r - b.r)[0];
+    const light = rest.find(x => (x.c.cmc || 0) <= 3 && h.r - x.r < 4);
+    if(!light) break;
+    deck.splice(deck.indexOf(h), 1); rest.splice(rest.indexOf(light), 1);
+    deck.push(light); rest.push(h); rest.sort(byR);
+  }
+  // 土地：色ごとのマナ・シンボルの数で17枚を分ける
+  const pips = {};
+  pair.split("").forEach(k => pips[k] = 0);
+  deck.forEach(x => { for(const k of pair) pips[k] += ((x.c.mana || "").match(new RegExp("\\{" + k + "\\}", "g")) || []).length; });
+  const totalPips = Object.values(pips).reduce((a, b) => a + b, 0) || 1;
+  const lands = {};
+  let assigned = 0;
+  pair.split("").forEach((k, i) => {
+    lands[k] = i === pair.length - 1 ? 17 - assigned : Math.round(17 * pips[k] / totalPips);
+    assigned += lands[k];
+  });
+  // 1色に寄りすぎて0枚になる色があれば、最低3枚は確保する
+  pair.split("").forEach(k => { if(pips[k] > 0 && lands[k] < 3){ const other = pair.replace(k, ""); lands[other] -= (3 - lands[k]); lands[k] = 3; } });
+  const score = deck.reduce((a, x) => a + x.r, 0) - (23 - deck.length) * 45 - Math.max(0, heavy().length - 6) * 2;
+  const side = rest.slice(0, 6);
+  return { pair, deck, side, lands, score, short: 23 - deck.length, avgCmc: deck.length ? deck.reduce((a, x) => a + (x.c.cmc || 0), 0) / deck.length : 0 };
+}
+function bestDecks(){
+  return PAIRS.map(buildDeck).sort((a, b) => b.score - a.score);
+}
+function deckText(d){
+  const lines = ["Deck"];
+  const tally = new Map();
+  d.deck.forEach(x => tally.set(x.id, (tally.get(x.id) || 0) + 1));
+  tally.forEach((n, id) => { const c = cards[id]; lines.push(`${n} ${c.name} (${c.set}) ${c.cn}`); });
+  Object.entries(d.lands).forEach(([k, n]) => { if(n > 0) lines.push(`${n} ${BASIC_OF[k]}`); });
+  return lines.join("\n");
+}
+
 /* ================= 描画 ================= */
 function setStatus(msg, cls){
   const el = $("statusBox");
@@ -665,8 +764,16 @@ function render(){
   if(D.picked.length) ensureCards(D.picked);
   recomputeColors();                              // カード情報が後から揃うこともあるので毎回
 
+  // 表示の切り替え
+  document.querySelectorAll("#viewTabs .tab").forEach(b => b.classList.toggle("on", b.dataset.view === view));
+  $("viewTabs").hidden = !D.picked.length;
+  const deckMode = view === "deck" && D.picked.length > 0;
+  $("best").hidden = true; $("pack").hidden = deckMode; $("packEmpty").hidden = deckMode; $("deckView").hidden = !deckMode;
+  if(deckMode){ renderDeck(); syncPip(); return; }
+
   const has = D.pack.length > 0;
-  $("pickTitle").textContent = has ? t("assist.packPick", {p: D.packNo || "?", k: D.pickNo || "?"}) : t("assist.waiting");
+  $("pickTitle").textContent = has ? t("assist.packPick", {p: D.packNo || "?", k: D.pickNo || "?"})
+                             : (D.done ? t("assist.doneTitle") : t("assist.waiting"));
   $("pickSub").textContent = D.set ? (t("assist.setLabel", {set: D.set}) + (D.event ? "　" + D.event : "")) : "";
   $("packEmpty").hidden = has;
 
@@ -768,6 +875,45 @@ function render(){
   syncPip();
 }
 
+function renderDeck(){
+  const box = $("deckView");
+  const list = bestDecks();
+  const d = list[0];
+  if(!d || !d.deck.length){ box.innerHTML = `<div class="empty">${esc(t("assist.deckNone"))}</div>`; return; }
+  const pairName = pr => pr.split("").map(colorName).join("");
+  $("pickTitle").textContent = t(D.done ? "assist.deckTitleDone" : "assist.deckTitle", {c: pairName(d.pair)});
+  const pct = x => { const e = wr[x.c.name] || wr[x.c.name.split(" // ")[0]]; return e && e.gih != null ? (e.gih * 100).toFixed(1) + "%" : "—"; };
+  const row = x => {
+    const cols = x.c.colors, dot = cols.length === 0 ? "var(--c)" : cols.length > 1 ? "var(--m)" : `var(--${cols[0].toLowerCase()})`;
+    return `<li><span class="dot" style="background:${dot}"></span><span class="cmc">${x.c.cmc ?? 0}</span><span class="nm">${esc(displayName(x.c))}</span><span class="wr">${pct(x)}</span></li>`;
+  };
+  const byCmc = (a, b) => (a.c.cmc || 0) - (b.c.cmc || 0) || b.r - a.r;
+  const cre = d.deck.filter(x => x.kind === "creature").sort(byCmc);
+  const spl = d.deck.filter(x => x.kind === "spell").sort(byCmc);
+  const landTxt = Object.entries(d.lands).filter(([, n]) => n > 0).map(([k, n]) => `${t("land." + BASIC_OF[k])} ${n}`).join("・");
+  const alt = list.slice(1, 3).filter(x => x.deck.length >= 20).map(x => pairName(x.pair) + "（" + Math.round(x.score - d.score) + "）").join("、");
+  box.innerHTML =
+    `<div class="deck-sum">` +
+      `<span class="cb main">${esc(pairName(d.pair))}</span>` +
+      `<span class="cb">${esc(t("assist.deckCount", {n: d.deck.length, c: cre.length, s: spl.length}))}</span>` +
+      `<span class="cb">${esc(t("assist.deckAvg", {v: d.avgCmc.toFixed(2)}))}</span>` +
+    `</div>` +
+    (d.short > 0 ? `<p class="deck-note">${esc(t("assist.deckShort", {n: d.short}))}</p>` : "") +
+    `<div class="deck-sec"><b>${esc(t("assist.deckCreatures"))}</b><span>${cre.length}</span></div><ul class="dl">${cre.map(row).join("")}</ul>` +
+    `<div class="deck-sec"><b>${esc(t("assist.deckSpells"))}</b><span>${spl.length}</span></div><ul class="dl">${spl.map(row).join("")}</ul>` +
+    `<div class="deck-sec"><b>${esc(t("assist.deckLands"))}</b><span>17</span></div><p style="margin:4px 4px 0;font-size:13.5px">${esc(landTxt)}</p>` +
+    (d.side.length ? `<div class="deck-sec"><b>${esc(t("assist.deckSide"))}</b><span>${d.side.length}</span></div><ul class="dl">${d.side.map(row).join("")}</ul>` : "") +
+    (alt ? `<p class="deck-alt">${esc(t("assist.deckAlt", {a: alt}))}</p>` : "") +
+    `<div class="row" style="margin-top:10px"><button type="button" class="ghost" id="deckCopyBtn">${esc(t("assist.deckCopy"))}</button></div>` +
+    `<p class="deck-note">${esc(t("assist.deckNote"))}</p>`;
+  $("deckCopyBtn").onclick = async () => {
+    try{ await navigator.clipboard.writeText(deckText(d)); $("deckCopyBtn").textContent = t("assist.deckCopied"); }
+    catch(e){ prompt(t("swiss.copyManual"), deckText(d)); }
+    setTimeout(() => { const b = $("deckCopyBtn"); if(b) b.textContent = t("assist.deckCopy"); }, 2000);
+  };
+}
+document.querySelectorAll("#viewTabs .tab").forEach(b => { b.onclick = () => { view = b.dataset.view; render(); }; });
+
 /* ================= 常に前面の小窓 ================= */
 let pip = null;
 async function openPip(){
@@ -782,6 +928,12 @@ async function openPip(){
   box.id = "pipBox"; box.style.padding = "10px 12px";
   pip.document.body.appendChild(box);
   pip.addEventListener("pagehide", () => { pip = null; $("pipBtn").textContent = t("assist.pip"); });
+  pip.document.addEventListener("click", ev => {
+    const b = ev.target.closest("button");
+    if(!b) return;
+    if(b.dataset.view){ view = b.dataset.view; render(); }
+    else if(b.id === "deckCopyBtn"){ $("deckCopyBtn")?.click(); }
+  });
   $("pipBtn").textContent = t("assist.pipClose");
   syncPip();
 }
@@ -798,7 +950,7 @@ const DEMO_LINES = [
 ];
 async function runDemo(){
   stopWatch(); demo = true; handle = null;
-  D.set = ""; D.event = ""; D.pack = []; D.picked = []; D.packNo = 0; D.pickNo = 0; recomputeColors();
+  D.set = ""; D.event = ""; D.pack = []; D.picked = []; D.packNo = 0; D.pickNo = 0; D.done = false; view = "pack"; recomputeColors();
   setStatus(t("assist.demoLoading"));
   // 最新セットのカードから14枚を仮のパックにする
   let latest = "";
