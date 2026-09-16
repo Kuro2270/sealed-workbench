@@ -459,8 +459,9 @@ async function ensureSet(code){
   await scryAll(`set:${code.toLowerCase()} unique:prints`, c => addCard(c));
   // 日本語名
   await scryAll(`set:${code.toLowerCase()} lang:ja unique:prints`, c => {
-    const en = Object.values(cards).find(x => x.cn === c.collector_number);
-    if(en){ en.ja = c.printed_name || (c.card_faces?.[0]?.printed_name) || ""; en.imgJa = imgOf(c); }
+    const en = Object.values(cards).find(x => x.name === c.name)
+            || Object.values(cards).find(x => x.cn === c.collector_number);
+    if(en && !en.ja){ en.ja = c.printed_name || (c.card_faces?.[0]?.printed_name) || ""; en.imgJa = imgOf(c); }
   });
   setStatus(handle || demo ? t("assist.ready", {set: code, n: Object.keys(cards).length}) : t("assist.idle"), handle ? "live" : "");
   render();
@@ -468,6 +469,7 @@ async function ensureSet(code){
 function imgOf(c){ return c.image_uris?.normal || c.card_faces?.[0]?.image_uris?.normal || ""; }
 function addCard(c){
   if(!c.arena_id) return;
+  if(cards[String(c.arena_id)]) return;              // 通常版を先に登録し、別イラスト版で上書きしない
   const front = (c.type_line || "").split("//")[0];
   cards[String(c.arena_id)] = {
     name: c.name, ja: "", cn: c.collector_number,
@@ -491,13 +493,16 @@ async function scryAll(q, fn){
   }
 }
 /* パックに知らない ID があれば、個別に取りに行く（特別枠など） */
+const fetching = new Set();
 async function ensureCards(ids){
-  const missing = ids.filter(id => !cards[id]);
+  const missing = ids.filter(id => !cards[id] && !fetching.has(id));
+  missing.forEach(id => fetching.add(id));
   for(const id of missing){
     try{
       const r = await fetch(`${SCRY}/cards/arena/${id}`);
       if(r.ok){ addCard(await r.json()); }
     }catch(e){}
+    fetching.delete(id);
     await sleep(110);
   }
   if(missing.length) render();
@@ -551,8 +556,8 @@ function scorePack(){
   }).sort((a, b) => b.score - a.score);
 }
 function reasonFor(e){
-  if(e.commit < 0.5) return t("assist.reasonEarly");
   const ranked = Object.entries(D.colorScore).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => colorName(k));
+  if(e.commit < 0.5 || !ranked.length) return t("assist.reasonEarly");
   if(e.fit >= 0.6) return t("assist.reasonColor", {c: ranked.join("・")});
   if(e.fit <= 0.2) return t("assist.reasonOff", {c: ranked.join("・")});
   return t("assist.reasonBest");
@@ -570,6 +575,8 @@ function displayName(c){ return I18N.lang === "ja" && c.ja ? c.ja : c.name; }
 function render(){
   if(D.set && D.set !== loadedSet) ensureSet(D.set);
   if(D.pack.length) ensureCards(D.pack);
+  if(D.picked.length) ensureCards(D.picked);
+  recomputeColors();                              // カード情報が後から揃うこともあるので毎回
 
   const has = D.pack.length > 0;
   $("pickTitle").textContent = has ? t("assist.packPick", {p: D.packNo || "?", k: D.pickNo || "?"}) : t("assist.waiting");
@@ -615,7 +622,8 @@ function render(){
       const dotColor = cols.length === 0 ? "var(--c)" : cols.length > 1 ? "var(--m)" : `var(--${cols[0].toLowerCase()})`;
       const wrE = c ? (wr[c.name] || wr[c.name.split(" // ")[0]]) : null;
       const wrTxt = e.basic ? "—" : (wrE && wrE.gih != null ? (wrE.gih * 100).toFixed(1) + "%" : "—");
-      const fitCls = !c || !cols.length || e.basic || e.commit < 0.5 ? "" : (e.fit >= 0.6 ? " on" : (e.fit <= 0.2 ? " off" : ""));
+      const anyColor = Object.values(D.colorScore).some(v => v > 0);
+      const fitCls = !c || !cols.length || e.basic || e.commit < 0.5 || !anyColor ? "" : (e.fit >= 0.6 ? " on" : (e.fit <= 0.2 ? " off" : ""));
       const fitTxt = fitCls === " on" ? t("assist.onColor") : fitCls === " off" ? t("assist.offColor") : "";
       li.innerHTML =
         `<span class="rk">${i + 1}</span>` +
