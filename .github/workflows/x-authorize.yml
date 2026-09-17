@@ -1,0 +1,49 @@
+name: X 投稿許可
+
+# サイト用アカウントが、アプリに「投稿してよい」と許可を出すための手続き。
+# 1回目：入力なしで実行 → ログにURLと一時トークンが出る
+# 2回目：PIN と一時トークンを入れて実行 → ログにアクセストークンが出る（Secrets に登録して、ログは削除）
+
+on:
+  workflow_dispatch:
+    inputs:
+      pin:
+        description: "2回目のみ：画面に表示された PIN"
+        required: false
+      req_token:
+        description: "2回目のみ：1回目のログに出た req_token"
+        required: false
+      req_secret:
+        description: "2回目のみ：1回目のログに出た req_secret"
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  auth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 開始（URL と一時トークンを表示）
+        if: inputs.pin == ''
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+        run: node maintenance/x-auth.mjs start
+
+      - name: 完了（アクセストークンを表示）
+        if: inputs.pin != ''
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          PIN: ${{ inputs.pin }}
+          REQ_TOKEN: ${{ inputs.req_token }}
+          REQ_SECRET: ${{ inputs.req_secret }}
+        run: node maintenance/x-auth.mjs finish
