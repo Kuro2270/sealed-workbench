@@ -126,7 +126,7 @@ async function setInfo(code, cache){
 async function cardNamesJa(code){
   const path = `${NAMES}/${code}.json`;
   const cached = await readJson(path, null);
-  if(cached && cached.names) return cached;
+  if(cached && cached.names && Object.keys(cached.names).length) return cached;   // 空のまま保存されたものは取り直す
   const names = {};
   let url = `${SCRY}/cards/search?q=${encodeURIComponent(`set:${code.toLowerCase()} lang:ja unique:prints`)}`;
   try{

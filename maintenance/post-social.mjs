@@ -50,9 +50,38 @@ async function latestSet(){
   drafts.sort((a, b) => (b.released_at || "").localeCompare(a.released_at || ""));
   return drafts[0] ? drafts[0].set : null;
 }
+/* カードの日本語名とセット情報。保存済みのものが無い・空なら Scryfall から取り直す */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function ensureNames(code){
+  const path = `data/names/${code}.json`;
+  let cur = await readJson(path, null) || { names: {}, set: "", released_at: "" };
+  let changed = false;
+  if(!cur.set){
+    try{ const r = await fetch(`https://api.scryfall.com/sets/${code.toLowerCase()}`); if(r.ok){ const j = await r.json(); cur.set = j.name; cur.released_at = j.released_at; changed = true; } }catch(e){}
+  }
+  if(!cur.names || !Object.keys(cur.names).length){
+    const names = {};
+    let url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(`set:${code.toLowerCase()} lang:ja unique:prints`)}`;
+    try{
+      while(url){
+        const r = await fetch(url);
+        if(!r.ok) break;
+        const d = await r.json();
+        (d.data || []).forEach(c => { const ja = c.printed_name || c.card_faces?.[0]?.printed_name; if(ja && !names[c.name]) names[c.name] = ja; });
+        url = d.has_more ? d.next_page : null;
+        if(url) await sleep(120);
+      }
+    }catch(e){}
+    if(Object.keys(names).length){ cur.names = names; changed = true; }
+  }
+  if(changed){ try{ await (await import("node:fs/promises")).mkdir("data/names", { recursive: true }); await writeFile(path, JSON.stringify(cur), "utf8"); }catch(e){} }
+  console.log(`${code}: 日本語名 ${Object.keys(cur.names || {}).length}件 / セット名 ${cur.set || "(不明)"}`);
+  return cur;
+}
+
 async function setContext(code){
   const ja = await setNamesJa();
-  const names = await readJson(`data/names/${code}.json`, { names: {}, set: code });
+  const names = await ensureNames(code);
   const draft = await readJson(`data/articles/${code}_draft.json`, null);
   const sealed = await readJson(`data/articles/${code}_sealed.json`, null);
   return {
