@@ -350,6 +350,11 @@ async function loadSets(){
     sets = sets.slice(0, 30);
 
     renderSetOptions();
+    // URL に ?set=HOB があれば、そのセットを最初に開く（セット別ページからのリンク用）
+    const want = new URLSearchParams(location.search).get("set");
+    if(want && [...$("setSelect").options].some(o => o.value.toUpperCase() === want.toUpperCase())){
+      $("setSelect").value = [...$("setSelect").options].find(o => o.value.toUpperCase() === want.toUpperCase()).value;
+    }
     updateModeTabs();
     if($("setSelect").value) load(); else setStatus(t("ratings.ready"));
   }catch(e){

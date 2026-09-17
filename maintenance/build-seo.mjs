@@ -63,6 +63,29 @@ async function main(){
     ].join("\n");
   });
 
+  // セット別ページ（sets/<SET>.html が日本語、sets/<SET>.en.html が英語）
+  let setFiles = [];
+  try{ setFiles = (await readdir("sets")).filter(f => f.endsWith(".html") && !f.endsWith(".en.html")); }catch(e){}
+  setFiles.sort().forEach(f => {
+    const ja = `${SITE}/sets/${f}`, en = `${SITE}/sets/${f.replace(/\.html$/, ".en.html")}`;
+    const alt = [
+      `    <xhtml:link rel="alternate" hreflang="ja" href="${ja}"/>`,
+      `    <xhtml:link rel="alternate" hreflang="en" href="${en}"/>`,
+      `    <xhtml:link rel="alternate" hreflang="x-default" href="${ja}"/>`
+    ].join("\n");
+    for(const loc of [ja, en]){
+      entries.push([
+        "  <url>",
+        `    <loc>${loc}</loc>`,
+        `    <lastmod>${day}</lastmod>`,
+        "    <changefreq>monthly</changefreq>",
+        `    <priority>${f === "index.html" ? "0.7" : "0.8"}</priority>`,
+        alt,
+        "  </url>"
+      ].join("\n"));
+    }
+  });
+
   const xml =
 `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"

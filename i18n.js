@@ -522,6 +522,7 @@
     "reports.h1":       { ja:"環境レポート", en:"Set report" },
     "reports.lead":     { ja:"そのセットのリミテッド環境を、実戦データから読み解きます。",
                           en:"Reading a set's Limited format from real game data." },
+    "reports.staticLink":{ ja:"このセットの固定ページ（共有・検索用）", en:"Static page for this set (for sharing and search)" },
     "reports.ready":    { ja:"セットと形式を選んでください。", en:"Choose a set and a format." },
     "reports.loading":  { ja:"レポートを読み込んでいます…", en:"Loading the report…" },
     "reports.none":     { ja:"この組み合わせのレポートはまだありません。", en:"No report for this combination yet." },

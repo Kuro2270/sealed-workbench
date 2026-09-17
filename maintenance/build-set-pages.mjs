@@ -1,0 +1,401 @@
+#!/usr/bin/env node
+/*
+ * セットごとの固定ページを作る（検索エンジン向け）。
+ *
+ *   node maintenance/build-set-pages.mjs
+ *
+ * 出力:
+ *   sets/<SET>.html      日本語（例: sets/HOB.html）
+ *   sets/<SET>.en.html   英語
+ *   sets/index.html      一覧（日本語）／ sets/index.en.html（英語）
+ *   data/names/<SET>.json  カードの日本語名（Scryfall から一度だけ取得して保存）
+ *
+ * ・data/articles/<SET>_<mode>.json（環境レポートと同じデータ）から本文を組み立てる
+ * ・環境レポートのページは1つのURLでセットを切り替える作りなので、検索エンジンには
+ *   1ページにしか見えない。ここではセットごとに別のURLを用意して、
+ *   「<セット名> ドラフト 勝率」のような検索に1セットずつ引っかかるようにする
+ * ・中身は静的なHTMLで完結させ、JSに頼らない（クローラーがそのまま読める）
+ */
+
+import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
+import { existsSync } from "node:fs";
+
+const SITE = process.env.SITE_URL || "https://sealed-workbench.com";
+const ARTICLES = "data/articles";
+const NAMES = "data/names";
+const OUT = "sets";
+const SCRY = "https://api.scryfall.com";
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function readJson(path, fallback){
+  try{ return JSON.parse(await readFile(path, "utf8")); }catch(e){ return fallback; }
+}
+const esc = s => String(s ?? "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const pct = v => v == null ? "—" : (v * 100).toFixed(1) + "%";
+
+/* ---------- 文言（日本語・英語） ---------- */
+const L = {
+  ja: {
+    site: "MTGアリーナ リミテッド・ワークベンチ",
+    title: s => `${s} リミテッド環境レポート（ドラフト・シールドの勝率）`,
+    desc: (s, g) => `マジック：ザ・ギャザリング アリーナ「${s}」のリミテッド環境を、17Landsの実戦データ（${g}試合）から読み解きます。環境の速さ、色の強さ、強いアーキタイプ、レアリティ別の強いカード。`,
+    h1: s => `${s}｜リミテッド環境レポート`,
+    lead: "マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。",
+    mode: { draft: "ドラフト", sealed: "シールド" },
+    games: (n, d) => `総試合数 ${n}／全体勝率 ${d}`,
+    built: d => `集計 ${d}`,
+    speedH: "環境の速さ",
+    speedBest: (lab, p) => `${lab}が最も勝率が高く、${p}です。`,
+    speedn: { fast:"平均マナ総量2.9未満の速いデッキ", mid:"平均マナ総量3.2未満の中速デッキ", slow:"平均マナ総量3.5未満の遅いデッキ", slower:"平均マナ総量3.5以上の重いデッキ" },
+    pace: { fast: c => `直近${c}セットと比べると、速い環境です。`, same: c => `直近${c}セットと比べると、速さは同じくらいです。`, slow: c => `直近${c}セットと比べると、遅い環境です。` },
+    colorsH: "色の強さ", colorsLead: "その色のカードをデッキに入れた試合の勝率です。",
+    archeH: "色の組み合わせ", archeLead: "2色の組み合わせごとの勝率です。試合数の多い順に並べています。",
+    curveH: "マナ総量ごとの勝率", curveLead: "そのマナ総量のカードが手札か戦場にあった試合の勝率です。",
+    cardsH: "レアリティ別の強いカード", cardsLead: "GIH勝率（そのカードが手札か戦場にあった試合の勝率）の高い順です。",
+    rarity: { mythic:"神話レア", rare:"レア", uncommon:"アンコモン", common:"コモン" },
+    col: { color:"色", pair:"色の組み合わせ", cmc:"マナ総量", wr:"勝率", games:"試合数", card:"カード", cards:"種類数" },
+    colorName: { W:"白", U:"青", B:"黒", R:"赤", G:"緑" },
+    links: "関連ページ",
+    linkRatings: "このセットの全カードの勝率一覧",
+    linkReports: "環境レポート（他のセットに切り替え）",
+    linkSealed: "シールド構築の練習", linkDraft: "ドラフト構築の練習", linkAssist: "ドラフト補助（PC・Chrome/Edge）",
+    linkIndex: "セット一覧",
+    indexH1: "セット別のリミテッド環境レポート",
+    indexLead: "セットを選ぶと、ドラフトとシールドの環境レポートが開きます。発売日の新しい順です。",
+    source: "出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。",
+    none: "このセットのデータはまだありません。",
+    nav: { guide:"使い方", sealed:"シールド構築", draft:"ドラフト構築", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", privacy:"プライバシー" },
+    foot: 'データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。',
+    otherLang: "English", otherHref: c => `${c}.en.html`
+  },
+  en: {
+    site: "MTG Arena Limited Workbench",
+    title: s => `${s} Limited format report — Draft and Sealed win rates`,
+    desc: (s, g) => `A data-driven look at Magic: The Gathering Arena Limited for ${s}, built from ${g} games of 17Lands public data: format speed, colour strength, best archetypes and the best cards at each rarity.`,
+    h1: s => `${s} — Limited format report`,
+    lead: "Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data.",
+    mode: { draft: "Draft", sealed: "Sealed" },
+    games: (n, d) => `${n} games · overall win rate ${d}`,
+    built: d => `Built ${d}`,
+    speedH: "Format speed",
+    speedBest: (lab, p) => `${lab} have the highest win rate, at ${p}.`,
+    speedn: { fast:"Decks averaging under 2.9 mana value", mid:"Decks averaging under 3.2 mana value", slow:"Decks averaging under 3.5 mana value", slower:"Decks averaging 3.5 mana value or more" },
+    pace: { fast: c => `Compared with the last ${c} sets, this is a fast format.`, same: c => `Compared with the last ${c} sets, the pace is about the same.`, slow: c => `Compared with the last ${c} sets, this is a slow format.` },
+    colorsH: "Colour strength", colorsLead: "Win rate of games where the deck included cards of that colour.",
+    archeH: "Colour pairs", archeLead: "Win rate by two-colour pair, sorted by number of games.",
+    curveH: "Win rate by mana value", curveLead: "Win rate of games where a card of that mana value was in hand or on the battlefield.",
+    cardsH: "Best cards by rarity", cardsLead: "Sorted by GIH win rate (games where the card was in hand or on the battlefield).",
+    rarity: { mythic:"Mythic", rare:"Rare", uncommon:"Uncommon", common:"Common" },
+    col: { color:"Colour", pair:"Pair", cmc:"Mana value", wr:"Win rate", games:"Games", card:"Card", cards:"Cards" },
+    colorName: { W:"White", U:"Blue", B:"Black", R:"Red", G:"Green" },
+    links: "Related pages",
+    linkRatings: "All card win rates for this set",
+    linkReports: "Set reports (switch sets)",
+    linkSealed: "Sealed practice", linkDraft: "Draft practice", linkAssist: "Draft assistant (PC, Chrome/Edge)",
+    linkIndex: "All sets",
+    indexH1: "Limited format reports by set",
+    indexLead: "Pick a set to open its Draft and Sealed report. Newest first.",
+    source: "Source: 17Lands Public Data (CC BY 4.0), aggregated by this site. Card data via Scryfall.",
+    none: "No data for this set yet.",
+    nav: { guide:"Guide", sealed:"Sealed", draft:"Draft", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", privacy:"Privacy" },
+    foot: 'Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.',
+    otherLang: "日本語", otherHref: c => `${c}.html`
+  }
+};
+
+/* ---------- セット名 ---------- */
+async function setNamesJa(){
+  // i18n.js の SET_JA をそのまま使う
+  try{
+    const src = await readFile("i18n.js", "utf8");
+    const m = src.match(/const SET_JA = (\{[\s\S]*?\});/);
+    if(m) return new Function("return " + m[1])();
+  }catch(e){}
+  return {};
+}
+async function setInfo(code, cache){
+  // 英語名と発売日は Scryfall から。取れたら data/names に残す
+  if(cache.set && cache.released_at) return cache;
+  try{
+    const r = await fetch(`${SCRY}/sets/${code.toLowerCase()}`);
+    if(r.ok){ const j = await r.json(); return { set: j.name, released_at: j.released_at }; }
+  }catch(e){}
+  return { set: cache.set || code, released_at: cache.released_at || "" };
+}
+/* カードの日本語名（セットごとに一度だけ取得して保存） */
+async function cardNamesJa(code){
+  const path = `${NAMES}/${code}.json`;
+  const cached = await readJson(path, null);
+  if(cached && cached.names) return cached;
+  const names = {};
+  let url = `${SCRY}/cards/search?q=${encodeURIComponent(`set:${code.toLowerCase()} lang:ja unique:prints`)}`;
+  try{
+    while(url){
+      const r = await fetch(url);
+      if(!r.ok) break;
+      const d = await r.json();
+      (d.data || []).forEach(c => {
+        const ja = c.printed_name || c.card_faces?.[0]?.printed_name;
+        if(ja && !names[c.name]) names[c.name] = ja;
+      });
+      url = d.has_more ? d.next_page : null;
+      if(url) await sleep(120);
+    }
+  }catch(e){}
+  const out = { set: "", released_at: "", names, fetched_at: new Date().toISOString() };
+  await mkdir(NAMES, { recursive: true });
+  await writeFile(path, JSON.stringify(out), "utf8");
+  return out;
+}
+
+/* ---------- HTML ---------- */
+function shell(lang, code, head, body){
+  const T = L[lang];
+  const other = T.otherHref(code);
+  const nav = Object.entries({ guide:"../guide.html", sealed:"../", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", privacy:"../privacy.html" })
+    .map(([k, href]) => `<a href="${href}">${esc(T.nav[k])}</a>`).join("\n      ");
+  return `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+${head}
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta property="og:image" content="${SITE}/ogp-${lang}.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root{--pine:#23342E;--pine-deep:#18241F;--paper:#F3F5F1;--paper-2:#E6EAE3;--ink:#0F1C17;--muted:#63736C;--gold:#B8912F;--line:#CBD3CA;
+        --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:3px}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
+  .brand a{color:inherit;text-decoration:none}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;color:#CBD8D2;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #3D544B}
+  nav a:hover{background:#31473E;color:var(--paper)}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  .lang{margin-top:12px;font-size:13px}
+  .lang a{color:#CBD8D2}
+  main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
+  .mode{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:22px}
+  .mode > h2{font-size:22px;margin:0 0 4px;display:flex;align-items:baseline;gap:12px}
+  .mode > h2 small{font-size:13px;color:var(--muted);font-weight:500}
+  .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
+  section{margin-top:18px}
+  section h3{font-size:16px;margin:0 0 4px}
+  .lead{color:var(--muted);font-size:13px;margin:0 0 8px}
+  .verdict{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;font-size:14.5px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+  td{padding:6px 8px;border-bottom:1px solid var(--paper-2)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2B3833;margin-right:6px}
+  .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#1A1405}.rar.mythic{background:#C4552C}
+  .links ul{margin:6px 0 0;padding-left:1.2em}
+  .links a{color:var(--pine)}
+  .source{color:var(--muted);font-size:12px;margin-top:20px}
+  .setlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+  .setlist li a{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
+  .setlist li a:hover{border-color:var(--gold)}
+  .setlist small{display:block;color:var(--muted);font-size:12px}
+  footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+  @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand"><a href="../">${esc(T.site)}</a></div>
+    <nav>
+      ${nav}
+    </nav>
+${body.header}
+    <div class="lang"><a href="${other}" hreflang="${lang === "ja" ? "en" : "ja"}">${esc(T.otherLang)}</a></div>
+  </div>
+</header>
+<main>
+${body.main}
+</main>
+<footer>${T.foot}</footer>
+</body>
+</html>
+`;
+}
+
+function modeSection(lang, code, mode, d, speedIndex, names, setDisplay){
+  const T = L[lang];
+  const cn = n => (lang === "ja" && names[n]) ? names[n] : n;
+  const dotOf = c => c.length === 0 ? "var(--c)" : c.length > 1 ? "var(--m)" : `var(--${c.toLowerCase()})`;
+  const colorLabel = k => T.colorName[k] || k;
+  const pairLabel = p => p.split("").map(colorLabel).join(lang === "ja" ? "" : "/");
+
+  let out = `<article class="mode">
+  <h2>${esc(T.mode[mode])} <small>${esc(T.games((d.total_games || 0).toLocaleString(), pct(d.overall_win_rate)))}</small></h2>
+  <p class="built">${esc(T.built((d.data_generated_at || d.generated_at || "").slice(0, 10)))}</p>`;
+
+  // 環境の速さ
+  const best = (d.speed || []).filter(s => s.wr != null).sort((a, b) => b.wr - a.wr)[0];
+  if(best){
+    let paceTxt = "";
+    const grp = speedIndex && speedIndex[mode];
+    if(grp && grp.average != null){
+      const mine = (grp.sets || []).find(x => x.set === code)?.avg_turns ?? d.avg_turns;
+      if(mine != null){
+        const diff = mine - grp.average;
+        const key = Math.abs(diff) < 0.15 ? "same" : (diff < 0 ? "fast" : "slow");
+        paceTxt = " " + T.pace[key](grp.count || (grp.sets || []).length);
+      }
+    }
+    out += `
+  <section><h3>${esc(T.speedH)}</h3>
+    <div class="verdict">${esc(T.speedBest(T.speedn[best.key] || best.key, pct(best.wr)))}${esc(paceTxt)}</div>
+  </section>`;
+  }
+  // 色の強さ
+  if(d.colors && d.colors.length){
+    out += `
+  <section><h3>${esc(T.colorsH)}</h3><p class="lead">${esc(T.colorsLead)}</p>
+    <table><thead><tr><th>${esc(T.col.color)}</th><th class="num">${esc(T.col.wr)}</th><th class="num">${esc(T.col.games)}</th></tr></thead><tbody>
+    ${d.colors.slice().sort((a, b) => b.wr - a.wr).map(c => `<tr><td><span class="dot" style="background:${dotOf(c.color)}"></span>${esc(colorLabel(c.color))}</td><td class="num"><b>${pct(c.wr)}</b></td><td class="num">${(c.games || 0).toLocaleString()}</td></tr>`).join("\n    ")}
+    </tbody></table>
+  </section>`;
+  }
+  // 色の組み合わせ
+  if(d.archetypes && d.archetypes.length){
+    const rows = d.archetypes.filter(a => a.games >= 500).sort((a, b) => b.games - a.games).slice(0, 10);
+    out += `
+  <section><h3>${esc(T.archeH)}</h3><p class="lead">${esc(T.archeLead)}</p>
+    <table><thead><tr><th>${esc(T.col.pair)}</th><th class="num">${esc(T.col.wr)}</th><th class="num">${esc(T.col.games)}</th></tr></thead><tbody>
+    ${rows.map(a => `<tr><td>${esc(pairLabel(a.colors))}</td><td class="num"><b>${pct(a.wr)}</b></td><td class="num">${(a.games || 0).toLocaleString()}</td></tr>`).join("\n    ")}
+    </tbody></table>
+  </section>`;
+  }
+  // マナカーブ
+  if(d.curve && d.curve.length){
+    out += `
+  <section><h3>${esc(T.curveH)}</h3><p class="lead">${esc(T.curveLead)}</p>
+    <table><thead><tr><th>${esc(T.col.cmc)}</th><th class="num">${esc(T.col.wr)}</th><th class="num">${esc(T.col.cards)}</th><th class="num">${esc(T.col.games)}</th></tr></thead><tbody>
+    ${d.curve.map(c => `<tr><td>${c.cmc}${c.cmc >= 7 ? "+" : ""}</td><td class="num"><b>${pct(c.wr)}</b></td><td class="num">${c.cards ?? ""}</td><td class="num">${(c.games || 0).toLocaleString()}</td></tr>`).join("\n    ")}
+    </tbody></table>
+  </section>`;
+  }
+  // レアリティ別
+  if(d.top){
+    const blocks = ["mythic","rare","uncommon","common"].filter(r => (d.top[r] || []).length).map(r => `
+      <div><h3><span class="rar ${r}">${esc(T.rarity[r])}</span></h3>
+      <table><thead><tr><th>${esc(T.col.card)}</th><th class="num">${esc(T.col.wr)}</th><th class="num">${esc(T.col.games)}</th></tr></thead><tbody>
+      ${d.top[r].map(c => `<tr><td><span class="dot" style="background:${dotOf(c.color || "")}"></span>${esc(cn(c.name))}</td><td class="num"><b>${pct(c.gih)}</b></td><td class="num">${(c.games || 0).toLocaleString()}</td></tr>`).join("\n      ")}
+      </tbody></table></div>`).join("");
+    out += `
+  <section><h3>${esc(T.cardsH)}</h3><p class="lead">${esc(T.cardsLead)}</p>
+    <div class="grid">${blocks}
+    </div>
+  </section>`;
+  }
+  out += `
+</article>`;
+  return out;
+}
+
+function setPage(lang, code, setDisplay, info, arts, speedIndex, names){
+  const T = L[lang];
+  const modes = ["draft","sealed"].filter(m => arts[m]);
+  const totalGames = modes.reduce((a, m) => a + (arts[m].total_games || 0), 0).toLocaleString();
+  const canonical = `${SITE}/${OUT}/${code}${lang === "en" ? ".en" : ""}.html`;
+  const altJa = `${SITE}/${OUT}/${code}.html`, altEn = `${SITE}/${OUT}/${code}.en.html`;
+  const title = T.title(setDisplay);
+  const head = `<title>${esc(title)} — ${esc(T.site)}</title>
+<meta name="description" content="${esc(T.desc(setDisplay, totalGames))}">
+<link rel="canonical" href="${canonical}">
+<link rel="alternate" hreflang="ja" href="${altJa}">
+<link rel="alternate" hreflang="en" href="${altEn}">
+<link rel="alternate" hreflang="x-default" href="${altJa}">
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(T.desc(setDisplay, totalGames))}">
+<meta property="og:url" content="${canonical}">`;
+  const header = `    <h1>${esc(T.h1(setDisplay))}</h1>
+    <p>${esc(T.lead)}${info.released_at ? `　${lang === "ja" ? "発売" : "Released"} ${esc(info.released_at)}` : ""}</p>`;
+  const body = modes.length
+    ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay)).join("\n")
+    : `<p>${esc(T.none)}</p>`;
+  const links = `<section class="links"><h3>${esc(T.links)}</h3><ul>
+  <li><a href="../ratings.html?set=${code}">${esc(T.linkRatings)}</a></li>
+  <li><a href="../reports.html?set=${code}">${esc(T.linkReports)}</a></li>
+  <li><a href="../">${esc(T.linkSealed)}</a>／<a href="../draft.html">${esc(T.linkDraft)}</a>／<a href="../assistant.html">${esc(T.linkAssist)}</a></li>
+  <li><a href="index${lang === "en" ? ".en" : ""}.html">${esc(T.linkIndex)}</a></li>
+</ul></section>
+<p class="source">${esc(T.source)}</p>`;
+  return shell(lang, code, head, { header, main: body + "\n" + links });
+}
+
+function indexPage(lang, rows){
+  const T = L[lang];
+  const canonical = `${SITE}/${OUT}/index${lang === "en" ? ".en" : ""}.html`;
+  const head = `<title>${esc(T.indexH1)} — ${esc(T.site)}</title>
+<meta name="description" content="${esc(T.indexLead)}">
+<link rel="canonical" href="${canonical}">
+<link rel="alternate" hreflang="ja" href="${SITE}/${OUT}/index.html">
+<link rel="alternate" hreflang="en" href="${SITE}/${OUT}/index.en.html">
+<link rel="alternate" hreflang="x-default" href="${SITE}/${OUT}/index.html">
+<meta property="og:title" content="${esc(T.indexH1)}">
+<meta property="og:url" content="${canonical}">`;
+  const header = `    <h1>${esc(T.indexH1)}</h1>
+    <p>${esc(T.lead)}</p>`;
+  const main = `<p class="lead">${esc(T.indexLead)}</p>
+<ul class="setlist">
+${rows.map(r => `  <li><a href="${r.code}${lang === "en" ? ".en" : ""}.html">${esc(r.name[lang])}<small>${esc(r.code)}${r.released_at ? "　" + esc(r.released_at) : ""}　${esc((r.games || 0).toLocaleString())} ${lang === "ja" ? "試合" : "games"}</small></a></li>`).join("\n")}
+</ul>`;
+  const other = lang === "ja" ? "index.en.html" : "index.html";
+  return shell(lang, "index", head, { header, main }).replace(`href="${L[lang].otherHref("index")}"`, `href="${other}"`);
+}
+
+/* ---------- 本体 ---------- */
+async function main(){
+  const index = await readJson(`${ARTICLES}/index.json`, null);
+  if(!index || !Array.isArray(index.articles)){ console.error("data/articles/index.json がありません"); return; }
+  const speedIndex = index.speed || null;
+  const ja = await setNamesJa();
+  await mkdir(OUT, { recursive: true });
+
+  const codes = [...new Set(index.articles.map(a => a.set))];
+  const rows = [];
+  for(const code of codes){
+    const arts = {};
+    for(const m of ["draft","sealed"]){
+      const d = await readJson(`${ARTICLES}/${code}_${m}.json`, null);
+      if(d) arts[m] = d;
+    }
+    const cache = await cardNamesJa(code);
+    const info = await setInfo(code, cache);
+    if(info.set !== cache.set || info.released_at !== cache.released_at){
+      await writeFile(`${NAMES}/${code}.json`, JSON.stringify({ ...cache, set: info.set, released_at: info.released_at }), "utf8");
+    }
+    const name = { ja: ja[code.toLowerCase()] || info.set || code, en: info.set || code };
+    const games = Object.values(arts).reduce((a, d) => a + (d.total_games || 0), 0);
+    rows.push({ code, name, released_at: info.released_at || (index.articles.find(a => a.set === code) || {}).released_at || "", games });
+    for(const lang of ["ja","en"]){
+      const html = setPage(lang, code, name[lang], info, arts, speedIndex, cache.names || {});
+      await writeFile(`${OUT}/${code}${lang === "en" ? ".en" : ""}.html`, html, "utf8");
+    }
+    await sleep(120);
+  }
+  rows.sort((a, b) => (b.released_at || "").localeCompare(a.released_at || "") || a.code.localeCompare(b.code));
+  await writeFile(`${OUT}/index.html`, indexPage("ja", rows), "utf8");
+  await writeFile(`${OUT}/index.en.html`, indexPage("en", rows), "utf8");
+  console.error(`セット別ページを生成: ${rows.length}セット × 2言語`);
+}
+
+main().catch(e => { console.error(e); process.exit(1); });

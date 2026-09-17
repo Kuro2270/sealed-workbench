@@ -182,6 +182,7 @@
   </div>
 
   <div id="status" class="status" data-i18n="reports.ready">セットと形式を選んでください。</div>
+  <p class="hint" style="margin:-6px 0 12px"><a id="staticLink" href="./sets/index.html" data-i18n="reports.staticLink">このセットの固定ページ（共有・検索用）</a></p>
   <p class="built" id="built"></p>
   <div id="body" hidden></div>
 </main>
@@ -226,7 +227,10 @@ async function loadIndex(){
     index = j.articles || [];
     speedIndex = j.speed || null;
     renderSetOptions();
+    const want = new URLSearchParams(location.search).get("set");
+    if(want && [...$("setSelect").options].some(o => o.value === want.toUpperCase())) $("setSelect").value = want.toUpperCase();
     updateModeTabs();
+    syncStaticLink();
     if(index.length) load();
   }catch(e){
     setStatus(t("reports.none"), true);
@@ -578,6 +582,11 @@ function hidePreview(){
 
 /* ---------- イベント ---------- */
 $("setSelect").onchange = () => { updateModeTabs(); load(); };
+function syncStaticLink(){
+  const code = $("setSelect").value;
+  $("staticLink").href = code ? `./sets/${code}${I18N.lang === "en" ? ".en" : ""}.html` : `./sets/index${I18N.lang === "en" ? ".en" : ""}.html`;
+}
+$("setSelect").addEventListener("change", syncStaticLink);
 document.querySelectorAll("#modeTabs .tab").forEach(b => {
   b.onclick = () => {
     if(b.disabled || b.dataset.mode === mode) return;
@@ -589,7 +598,7 @@ document.querySelectorAll("#modeTabs .tab").forEach(b => {
 $("langSelect").value = I18N.lang;
 $("langSelect").onchange = e => I18N.set(e.target.value);
 I18N.onChange(() => {
-  hidePreview(); renderSetOptions(); updateModeTabs();
+  hidePreview(); renderSetOptions(); updateModeTabs(); syncStaticLink();
   if(report) load();
 });
 window.addEventListener("scroll", hidePreview, {passive:true});
