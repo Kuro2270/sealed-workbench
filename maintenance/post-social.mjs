@@ -88,14 +88,20 @@ async function fetchJaNames(code){
     if(!jaByName[c.name]) jaByName[c.name] = p;
     if(!jaByName[front(c.name)]) jaByName[front(c.name)] = p;
   });
-  const names = {};
+  const names = {}, images = {};
   const put = (key, p) => { if(key && p && !names[key]) names[key] = p; };
+  const imgOf = c => (c.image_uris && c.image_uris.normal) || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris && c.card_faces[0].image_uris.normal) || "";
+  const jaImgByCn = {};
+  ja.forEach(c => { const u = imgOf(c); if(u && !jaImgByCn[c.collector_number]) jaImgByCn[c.collector_number] = u; });
   en.forEach(c => {
     const p = jaByCn[c.collector_number] || jaByName[c.name] || jaByName[front(c.name)];
     put(c.name, p); put(front(c.name), p);
+    // 画像は日本語版があればそれ、無ければ英語版。通常版（最初に出てくる版）を優先する
+    const u = jaImgByCn[c.collector_number] || imgOf(c);
+    if(u){ if(!images[c.name]) images[c.name] = u; if(!images[front(c.name)]) images[front(c.name)] = u; }
   });
   Object.keys(jaByName).forEach(n => put(n, jaByName[n]));
-  return names;
+  return { names, images };
 }
 
 async function ensureNames(code){
@@ -105,10 +111,10 @@ async function ensureNames(code){
   if(!cur.set || cur.set === code){
     try{ const r = await fetch(`https://api.scryfall.com/sets/${code.toLowerCase()}`, { headers: SCRY_HEADERS }); if(r.ok){ const j = await r.json(); cur.set = j.name; cur.released_at = j.released_at; changed = true; } }catch(e){}
   }
-  if(!cur.names || !Object.keys(cur.names).length || cur.v !== 2){
-    const names = await fetchJaNames(code);
-    cur.v = 2;
-    if(Object.keys(names).length){ cur.names = names; changed = true; }
+  if(!cur.names || !Object.keys(cur.names).length || cur.v !== 3){
+    const { names, images } = await fetchJaNames(code);
+    cur.v = 3;
+    if(Object.keys(names).length){ cur.names = names; cur.images = images; changed = true; }
   }
   if(changed){ try{ await (await import("node:fs/promises")).mkdir("data/names", { recursive: true }); await writeFile(path, JSON.stringify(cur), "utf8"); }catch(e){} }
   console.log(`${code}: 日本語名 ${Object.keys(cur.names || {}).length}件 / セット名 ${cur.set || "(不明)"}`);
@@ -124,6 +130,7 @@ async function setContext(code){
     code,
     name: { ja: ja[code.toLowerCase()] || names.set || code, en: names.set || code },
     cardJa: names.names || {},
+    cardImg: names.images || {},
     draft, sealed,
     url: lang => `${SITE}/sets/${code}${lang === "en" ? ".en" : ""}.html`
   };
@@ -167,6 +174,7 @@ function cardLabel(ctx, lang, name){
 
 function weeklyPost(ctx, lang, theme, track){
   const d = ctx.draft; if(!d) return null;
+  let picCards = [];
   const nm = ctx.name[lang], url = ctx.url(lang) + `?from=${track}`;
   const L = lang === "ja";
   let lines = [];
@@ -175,6 +183,7 @@ function weeklyPost(ctx, lang, theme, track){
     const head = L ? `【${nm} ドラフト】今週の${theme === 0 ? "コモン" : "アンコモン"}勝率トップ5`
                    : `${nm} Draft — top 5 ${rar}s this week (GIH win rate)`;
     lines = [head, ""];
+    picCards = topBy(d, rar, 3);
     topBy(d, rar, 5).forEach((c, i) => lines.push(`~${i + 1}. ${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`));
     lines.push("", L ? "~GIH勝率＝そのカードが手札か戦場にあった試合の勝率（17Lands公開データを集計）" : "~GIH = games-in-hand win rate, from 17Lands public data");
   }else if(theme === 2){
@@ -190,10 +199,11 @@ function weeklyPost(ctx, lang, theme, track){
     lines = [head, ""];
     if(best) lines.push(L ? `最も勝率の高いデッキは${label}で ${pct(best.wr)}` : `Best-performing decks are ${label} at ${pct(best.wr)}`);
     const rares = topBy(d, "rare", 3).concat(topBy(d, "mythic", 2)).sort((a, b) => b.gih - a.gih).slice(0, 3);
+    picCards = rares;
     if(rares.length){ lines.push("", L ? "~レア以上の勝率トップ3" : "~Top rares/mythics"); rares.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); }
   }
   lines.push("", url, TAGS[lang]);
-  return fit(lines);
+  return { text: fit(lines), cards: picCards };
 }
 
 function monthlyPost(ctx, lang, track){
@@ -207,7 +217,7 @@ function monthlyPost(ctx, lang, track){
       : `${games.toLocaleString()} games across Draft and Sealed (17Lands public data). Card win rates, set reports and the draft assistant are all updated.`,
     "", url, TAGS[lang]
   ];
-  return fit(lines);
+  return { text: fit(lines), cards: [] };
 }
 
 function announcePost(ctx, lang, track){
@@ -224,7 +234,36 @@ function announcePost(ctx, lang, track){
   ];
   if(top.length){ lines.push(L ? "~いまのレア以上トップ3：" : "~Top rares so far:"); top.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); lines.push(""); }
   lines.push(url, TAGS[lang]);
-  return fit(lines);
+  return { text: fit(lines), cards: top };
+}
+
+/* ---------- 画像：上位3枚のカードを横に並べる ---------- */
+async function composeImage(ctx, cards){
+  const urls = cards.map(c => ctx.cardImg[c.name] || ctx.cardImg[String(c.name).split(" // ")[0]]).filter(Boolean).slice(0, 3);
+  if(!urls.length) return null;
+  let sharp;
+  try{ sharp = (await import("sharp")).default; }catch(e){ console.log("画像: sharp が無いので添付しません"); return null; }
+  const W = 1200, H = 675, pad = 24;                      // X で切れにくい 16:9
+  const n = urls.length;
+  // 高さと幅の両方に収まる大きさにして、余白を均等に配る
+  const cardW = Math.min(Math.round((H - pad * 2) * 488 / 680), Math.floor((W - pad * (n + 1)) / n));
+  const cardH = Math.round(cardW * 680 / 488);
+  const gap = Math.round((W - cardW * n) / (n + 1));
+  const top = Math.round((H - cardH) / 2);
+  const layers = [];
+  for(let i = 0; i < urls.length; i++){
+    try{
+      const r = await fetch(urls[i], { headers: SCRY_HEADERS });
+      if(!r.ok) continue;
+      const buf = Buffer.from(await r.arrayBuffer());
+      const img = await sharp(buf).resize(cardW, cardH, { fit: "cover" }).png().toBuffer();
+      layers.push({ input: img, left: gap + i * (cardW + gap), top });
+    }catch(e){}
+    await sleep(120);
+  }
+  if(!layers.length) return null;
+  return sharp({ create: { width: W, height: H, channels: 3, background: "#23342E" } })
+    .composite(layers).jpeg({ quality: 88 }).toBuffer();
 }
 
 /* ---------- X ---------- */
@@ -238,10 +277,33 @@ function oauthHeader(method, url){
   p.oauth_signature = crypto.createHmac("sha1", `${enc(S)}&${enc(TS)}`).update(base).digest("base64");
   return "OAuth " + Object.keys(p).sort().map(k => `${enc(k)}="${enc(p[k])}"`).join(", ");
 }
-async function postX(text){
+/* 画像を X にアップロードして media_id を得る。v2 で失敗したら v1.1 も試す。失敗しても投稿は続ける */
+async function uploadXImage(buf){
+  const tryUpload = async (url, field) => {
+    const form = new FormData();
+    form.append(field, new Blob([buf], { type: "image/jpeg" }), "cards.jpg");
+    form.append("media_category", "tweet_image");
+    const r = await fetch(url, { method: "POST", headers: { Authorization: oauthHeader("POST", url) }, body: form });
+    const body = await r.text();
+    if(!r.ok) throw new Error(`HTTP ${r.status}: ${body.slice(0, 200)}`);
+    const j = JSON.parse(body);
+    return j.data?.id || j.media_id_string || null;
+  };
+  try{ return await tryUpload("https://api.x.com/2/media/upload", "media"); }
+  catch(e){ console.log("X 画像(v2): " + e.message); }
+  try{ return await tryUpload("https://upload.twitter.com/1.1/media/upload.json", "media"); }
+  catch(e){ console.log("X 画像(v1.1): " + e.message); }
+  return null;
+}
+async function postX(text, image){
   if(!process.env.X_API_KEY || !process.env.X_ACCESS_TOKEN) return "X: 鍵が無いので飛ばしました";
   const url = "https://api.x.com/2/tweets";
-  const r = await fetch(url, { method: "POST", headers: { Authorization: oauthHeader("POST", url), "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
+  const payload = { text };
+  if(image){
+    const id = await uploadXImage(image);
+    if(id) payload.media = { media_ids: [String(id)] }; else console.log("X: 画像は添付せずに投稿します");
+  }
+  const r = await fetch(url, { method: "POST", headers: { Authorization: oauthHeader("POST", url), "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   const body = await r.text();
   if(!r.ok) throw new Error(`X HTTP ${r.status}: ${body}`);
   const id = JSON.parse(body)?.data?.id;
@@ -266,7 +328,7 @@ function bskyFacets(text){
   }
   return facets;
 }
-async function postBsky(text){
+async function postBsky(text, image){
   const H = process.env.BSKY_HANDLE, P = process.env.BSKY_APP_PASSWORD;
   if(!H || !P) return "Bluesky: 鍵が無いので飛ばしました";
   const base = "https://bsky.social/xrpc";
@@ -274,6 +336,13 @@ async function postBsky(text){
   if(!s.ok) throw new Error(`Bluesky login HTTP ${s.status}: ${await s.text()}`);
   const session = await s.json();
   const record = { $type: "app.bsky.feed.post", text, facets: bskyFacets(text), createdAt: new Date().toISOString(), langs: [/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text) ? "ja" : "en"] };
+  if(image){
+    try{
+      const up = await fetch(`${base}/com.atproto.repo.uploadBlob`, { method: "POST", headers: { "Content-Type": "image/jpeg", Authorization: `Bearer ${session.accessJwt}` }, body: image });
+      if(up.ok){ const blob = (await up.json()).blob; record.embed = { $type: "app.bsky.embed.images", images: [{ image: blob, alt: "Top cards" }] }; }
+      else console.log("Bluesky: 画像は添付せずに投稿します");
+    }catch(e){ console.log("Bluesky 画像: " + e.message); }
+  }
   const r = await fetch(`${base}/com.atproto.repo.createRecord`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.accessJwt}` },
     body: JSON.stringify({ repo: session.did, collection: "app.bsky.feed.post", record }) });
   if(!r.ok) throw new Error(`Bluesky HTTP ${r.status}: ${await r.text()}`);
@@ -281,13 +350,16 @@ async function postBsky(text){
 }
 
 /* ---------- 本体 ---------- */
-async function send(label, textX, textBsky){
+async function send(label, textX, textBsky, image){
   console.log(`\n--- ${label} ---`);
   console.log(textX);
-  console.log(`（X換算 ${xLength(textX)} 文字）`);
-  if(DRY){ console.log("DRY_RUN のため投稿しません"); return; }
+  console.log(`（X換算 ${xLength(textX)} 文字／画像 ${image ? Math.round(image.length / 1024) + "KB" : "なし"}）`);
+  if(DRY){
+    if(image){ await writeFile(`social-preview-${label.replace(/\s+/g, "-")}.jpg`, image); console.log("画像を social-preview-*.jpg に保存しました"); }
+    console.log("DRY_RUN のため投稿しません"); return;
+  }
   for(const [name, fn, text] of [["X", postX, textX], ["Bluesky", postBsky, textBsky]]){
-    try{ console.log(await fn(text)); }
+    try{ console.log(await fn(text, image)); }
     catch(e){ console.error(`${name}: 失敗 — ${e.message}`); process.exitCode = 1; }
   }
 }
@@ -306,13 +378,16 @@ async function main(){
   const theme = process.env.THEME && THEMES[process.env.THEME] !== undefined ? THEMES[process.env.THEME] : week % 4;
   for(const code of sets){
     const ctx = await setContext(code);
+    let image = null, imageCards = null;
     for(const lang of LANGS){
-      let textX, textB;
-      if(mode === "weekly"){ textX = weeklyPost(ctx, lang, theme, "x"); textB = weeklyPost(ctx, lang, theme, "bsky"); }
-      else if(mode === "monthly"){ textX = monthlyPost(ctx, lang, "x"); textB = monthlyPost(ctx, lang, "bsky"); }
-      else { textX = announcePost(ctx, lang, "x"); textB = announcePost(ctx, lang, "bsky"); }
-      if(!textX){ console.log(`${code}/${lang}: データが無いので飛ばしました`); continue; }
-      await send(`${mode} ${code} ${lang}`, textX, textB);
+      let px, pb;
+      if(mode === "weekly"){ px = weeklyPost(ctx, lang, theme, "x"); pb = weeklyPost(ctx, lang, theme, "bsky"); }
+      else if(mode === "monthly"){ px = monthlyPost(ctx, lang, "x"); pb = monthlyPost(ctx, lang, "bsky"); }
+      else { px = announcePost(ctx, lang, "x"); pb = announcePost(ctx, lang, "bsky"); }
+      if(!px){ console.log(`${code}/${lang}: データが無いので飛ばしました`); continue; }
+      // 画像は言語に関係なく同じなので、1回だけ作って使い回す
+      if(imageCards === null){ imageCards = px.cards || []; image = imageCards.length ? await composeImage(ctx, imageCards) : null; }
+      await send(`${mode} ${code} ${lang}`, px.text, pb.text, image);
     }
   }
 }

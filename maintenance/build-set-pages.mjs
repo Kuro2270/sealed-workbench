@@ -159,23 +159,29 @@ async function fetchJaNames(code){
     if(!jaByName[c.name]) jaByName[c.name] = p;
     if(!jaByName[front(c.name)]) jaByName[front(c.name)] = p;
   });
-  const names = {};
+  const names = {}, images = {};
   const put = (key, p) => { if(key && p && !names[key]) names[key] = p; };
+  const imgOf = c => (c.image_uris && c.image_uris.normal) || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris && c.card_faces[0].image_uris.normal) || "";
+  const jaImgByCn = {};
+  ja.forEach(c => { const u = imgOf(c); if(u && !jaImgByCn[c.collector_number]) jaImgByCn[c.collector_number] = u; });
   en.forEach(c => {
     const p = jaByCn[c.collector_number] || jaByName[c.name] || jaByName[front(c.name)];
     put(c.name, p); put(front(c.name), p);
+    // 画像は日本語版があればそれ、無ければ英語版。通常版（最初に出てくる版）を優先する
+    const u = jaImgByCn[c.collector_number] || imgOf(c);
+    if(u){ if(!images[c.name]) images[c.name] = u; if(!images[front(c.name)]) images[front(c.name)] = u; }
   });
   Object.keys(jaByName).forEach(n => put(n, jaByName[n]));
-  return names;
+  return { names, images };
 }
 
 /* カードの日本語名（セットごとに一度だけ取得して保存） */
 async function cardNamesJa(code){
   const path = `${NAMES}/${code}.json`;
   const cached = await readJson(path, null);
-  if(cached && cached.names && Object.keys(cached.names).length && cached.v === 2) return cached;   // 空や古い形式のものは取り直す
-  const names = await fetchJaNames(code);
-  const out = { v: 2, set: (cached && cached.set) || "", released_at: (cached && cached.released_at) || "", names, fetched_at: new Date().toISOString() };
+  if(cached && cached.names && Object.keys(cached.names).length && cached.v === 3) return cached;   // 空や古い形式のものは取り直す
+  const { names, images } = await fetchJaNames(code);
+  const out = { v: 3, set: (cached && cached.set) || "", released_at: (cached && cached.released_at) || "", names, images, fetched_at: new Date().toISOString() };
   await mkdir(NAMES, { recursive: true });
   await writeFile(path, JSON.stringify(out), "utf8");
   return out;
