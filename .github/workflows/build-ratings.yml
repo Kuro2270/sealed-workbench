@@ -95,6 +95,10 @@ jobs:
           echo "プッシュに失敗しました。"
           exit 1
 
+      - name: 画像合成ライブラリを入れる（投稿用）
+        if: steps.build.outputs.status == '0'
+        run: npm install --no-save sharp
+
       - name: 月次のデータ更新を投稿（定期実行のときだけ）
         if: github.event_name == 'schedule' && steps.build.outputs.status == '0'
         env:

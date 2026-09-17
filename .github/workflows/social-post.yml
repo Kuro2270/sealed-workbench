@@ -40,6 +40,9 @@ jobs:
         with:
           node-version: "22"
 
+      - name: 画像合成ライブラリを入れる
+        run: npm install --no-save sharp
+
       - name: 投稿
         env:
           SITE_URL: https://sealed-workbench.com
@@ -53,3 +56,11 @@ jobs:
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: node maintenance/post-social.mjs "${{ inputs.kind || 'weekly' }}"
+
+      - name: 確認用の画像を保存（文面の確認だけのとき）
+        if: inputs.dry_run == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: social-preview
+          path: social-preview-*.jpg
+          if-no-files-found: ignore
