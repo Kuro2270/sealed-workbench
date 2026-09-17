@@ -147,16 +147,25 @@ async function scryAll(q){
 async function fetchJaNames(code){
   const en = await scryAll(`set:${code.toLowerCase()} unique:prints`);
   const ja = await scryAll(`set:${code.toLowerCase()} lang:ja unique:prints`);
+  // 出来事・両面カードは「表 // 裏」の形なので、表の名前でも引けるようにする。
+  // 日本語名も表の面のものを使う（「表 // 裏」のまま出さない）。
+  const front = s => String(s || "").split(" // ")[0].trim();
+  const jaOf = c => (c.card_faces && c.card_faces[0] && c.card_faces[0].printed_name) || front(c.printed_name);
   const jaByCn = {}, jaByName = {};
   ja.forEach(c => {
-    const p = c.printed_name || c.card_faces?.[0]?.printed_name;
+    const p = jaOf(c);
     if(!p) return;
     if(!jaByCn[c.collector_number]) jaByCn[c.collector_number] = p;
     if(!jaByName[c.name]) jaByName[c.name] = p;
+    if(!jaByName[front(c.name)]) jaByName[front(c.name)] = p;
   });
   const names = {};
-  en.forEach(c => { if(!names[c.name]){ const p = jaByCn[c.collector_number] || jaByName[c.name]; if(p) names[c.name] = p; } });
-  Object.keys(jaByName).forEach(n => { if(!names[n]) names[n] = jaByName[n]; });
+  const put = (key, p) => { if(key && p && !names[key]) names[key] = p; };
+  en.forEach(c => {
+    const p = jaByCn[c.collector_number] || jaByName[c.name] || jaByName[front(c.name)];
+    put(c.name, p); put(front(c.name), p);
+  });
+  Object.keys(jaByName).forEach(n => put(n, jaByName[n]));
   return names;
 }
 
@@ -164,9 +173,9 @@ async function fetchJaNames(code){
 async function cardNamesJa(code){
   const path = `${NAMES}/${code}.json`;
   const cached = await readJson(path, null);
-  if(cached && cached.names && Object.keys(cached.names).length) return cached;   // 空のまま保存されたものは取り直す
+  if(cached && cached.names && Object.keys(cached.names).length && cached.v === 2) return cached;   // 空や古い形式のものは取り直す
   const names = await fetchJaNames(code);
-  const out = { set: "", released_at: "", names, fetched_at: new Date().toISOString() };
+  const out = { v: 2, set: (cached && cached.set) || "", released_at: (cached && cached.released_at) || "", names, fetched_at: new Date().toISOString() };
   await mkdir(NAMES, { recursive: true });
   await writeFile(path, JSON.stringify(out), "utf8");
   return out;

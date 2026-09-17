@@ -76,16 +76,25 @@ async function scryAll(q){
 async function fetchJaNames(code){
   const en = await scryAll(`set:${code.toLowerCase()} unique:prints`);
   const ja = await scryAll(`set:${code.toLowerCase()} lang:ja unique:prints`);
+  // 出来事・両面カードは「表 // 裏」の形なので、表の名前でも引けるようにする。
+  // 日本語名も表の面のものを使う（「表 // 裏」のまま出さない）。
+  const front = s => String(s || "").split(" // ")[0].trim();
+  const jaOf = c => (c.card_faces && c.card_faces[0] && c.card_faces[0].printed_name) || front(c.printed_name);
   const jaByCn = {}, jaByName = {};
   ja.forEach(c => {
-    const p = c.printed_name || c.card_faces?.[0]?.printed_name;
+    const p = jaOf(c);
     if(!p) return;
     if(!jaByCn[c.collector_number]) jaByCn[c.collector_number] = p;
     if(!jaByName[c.name]) jaByName[c.name] = p;
+    if(!jaByName[front(c.name)]) jaByName[front(c.name)] = p;
   });
   const names = {};
-  en.forEach(c => { if(!names[c.name]){ const p = jaByCn[c.collector_number] || jaByName[c.name]; if(p) names[c.name] = p; } });
-  Object.keys(jaByName).forEach(n => { if(!names[n]) names[n] = jaByName[n]; });
+  const put = (key, p) => { if(key && p && !names[key]) names[key] = p; };
+  en.forEach(c => {
+    const p = jaByCn[c.collector_number] || jaByName[c.name] || jaByName[front(c.name)];
+    put(c.name, p); put(front(c.name), p);
+  });
+  Object.keys(jaByName).forEach(n => put(n, jaByName[n]));
   return names;
 }
 
@@ -96,8 +105,9 @@ async function ensureNames(code){
   if(!cur.set || cur.set === code){
     try{ const r = await fetch(`https://api.scryfall.com/sets/${code.toLowerCase()}`, { headers: SCRY_HEADERS }); if(r.ok){ const j = await r.json(); cur.set = j.name; cur.released_at = j.released_at; changed = true; } }catch(e){}
   }
-  if(!cur.names || !Object.keys(cur.names).length){
+  if(!cur.names || !Object.keys(cur.names).length || cur.v !== 2){
     const names = await fetchJaNames(code);
+    cur.v = 2;
     if(Object.keys(names).length){ cur.names = names; changed = true; }
   }
   if(changed){ try{ await (await import("node:fs/promises")).mkdir("data/names", { recursive: true }); await writeFile(path, JSON.stringify(cur), "utf8"); }catch(e){} }
