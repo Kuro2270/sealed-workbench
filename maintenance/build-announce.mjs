@@ -130,6 +130,7 @@ async function main(){
   ].join("\n");
 
   await writeFile("announce.md", body, "utf8");
+  await writeFile("announce.json", JSON.stringify({ sets: fresh }), "utf8");   // 自動投稿が読む
   await writeFile(SEEN, JSON.stringify({ updated_at: new Date().toISOString(), sets: [...seen, ...fresh] }), "utf8");
 
   process.stderr.write(`告知文案を作成: ${fresh.join(", ")}\n`);
