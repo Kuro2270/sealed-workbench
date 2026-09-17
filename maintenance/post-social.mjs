@@ -22,6 +22,9 @@
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import crypto from "node:crypto";
 
+// Scryfall は送信元を名乗らないアクセスを拒否するので、必ずこのヘッダーを付ける
+const SCRY_HEADERS = { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)", Accept: "application/json" };
+
 const SITE = process.env.SITE_URL || "https://sealed-workbench.com";
 const DRY = process.env.DRY_RUN === "1";
 const LANGS = (process.env.LANGS || "ja,en").split(",").map(s => s.trim()).filter(Boolean);
@@ -57,14 +60,14 @@ async function ensureNames(code){
   let cur = await readJson(path, null) || { names: {}, set: "", released_at: "" };
   let changed = false;
   if(!cur.set){
-    try{ const r = await fetch(`https://api.scryfall.com/sets/${code.toLowerCase()}`); if(r.ok){ const j = await r.json(); cur.set = j.name; cur.released_at = j.released_at; changed = true; } }catch(e){}
+    try{ const r = await fetch(`https://api.scryfall.com/sets/${code.toLowerCase()}`, { headers: SCRY_HEADERS }); if(r.ok){ const j = await r.json(); cur.set = j.name; cur.released_at = j.released_at; changed = true; } }catch(e){}
   }
   if(!cur.names || !Object.keys(cur.names).length){
     const names = {};
     let url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(`set:${code.toLowerCase()} lang:ja unique:prints`)}`;
     try{
       while(url){
-        const r = await fetch(url);
+        const r = await fetch(url, { headers: SCRY_HEADERS });
         if(!r.ok) break;
         const d = await r.json();
         (d.data || []).forEach(c => { const ja = c.printed_name || c.card_faces?.[0]?.printed_name; if(ja && !names[c.name]) names[c.name] = ja; });

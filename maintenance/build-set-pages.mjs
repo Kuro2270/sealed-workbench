@@ -20,6 +20,9 @@
 import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
+// Scryfall は送信元を名乗らないアクセスを拒否するので、必ずこのヘッダーを付ける
+const SCRY_HEADERS = { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)", Accept: "application/json" };
+
 const SITE = process.env.SITE_URL || "https://sealed-workbench.com";
 const ARTICLES = "data/articles";
 const NAMES = "data/names";
@@ -117,7 +120,7 @@ async function setInfo(code, cache){
   // 英語名と発売日は Scryfall から。取れたら data/names に残す
   if(cache.set && cache.released_at) return cache;
   try{
-    const r = await fetch(`${SCRY}/sets/${code.toLowerCase()}`);
+    const r = await fetch(`${SCRY}/sets/${code.toLowerCase()}`, { headers: SCRY_HEADERS });
     if(r.ok){ const j = await r.json(); return { set: j.name, released_at: j.released_at }; }
   }catch(e){}
   return { set: cache.set || code, released_at: cache.released_at || "" };
@@ -131,7 +134,7 @@ async function cardNamesJa(code){
   let url = `${SCRY}/cards/search?q=${encodeURIComponent(`set:${code.toLowerCase()} lang:ja unique:prints`)}`;
   try{
     while(url){
-      const r = await fetch(url);
+      const r = await fetch(url, { headers: SCRY_HEADERS });
       if(!r.ok) break;
       const d = await r.json();
       (d.data || []).forEach(c => {
