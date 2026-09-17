@@ -1,0 +1,49 @@
+name: SNS 定期投稿
+
+# 毎週金曜 12:00（日本時間）に、最新セットの話題を X と Bluesky に投稿する。
+# 手動実行では、種類（test / weekly / monthly）と言語を選べる。まず test で動作確認する。
+
+on:
+  schedule:
+    - cron: "0 3 * * 5"        # 金曜 03:00 UTC = 12:00 JST
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: "投稿の種類"
+        type: choice
+        options: [test, weekly, monthly]
+        default: test
+      langs:
+        description: "言語（ja,en / ja / en）"
+        default: "ja,en"
+      dry_run:
+        description: "文面の確認だけ（投稿しない）"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 投稿
+        env:
+          SITE_URL: https://sealed-workbench.com
+          LANGS: ${{ inputs.langs || 'ja,en' }}
+          DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+        run: node maintenance/post-social.mjs "${{ inputs.kind || 'weekly' }}"
