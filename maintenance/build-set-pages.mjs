@@ -125,26 +125,47 @@ async function setInfo(code, cache){
   }catch(e){}
   return { set: cache.set || code, released_at: cache.released_at || "" };
 }
-/* カードの日本語名（セットごとに一度だけ取得して保存） */
-async function cardNamesJa(code){
-  const path = `${NAMES}/${code}.json`;
-  const cached = await readJson(path, null);
-  if(cached && cached.names && Object.keys(cached.names).length) return cached;   // 空のまま保存されたものは取り直す
-  const names = {};
-  let url = `${SCRY}/cards/search?q=${encodeURIComponent(`set:${code.toLowerCase()} lang:ja unique:prints`)}`;
+
+/* Scryfall の検索結果を全ページ集める */
+async function scryAll(q){
+  const out = [];
+  let url = `${SCRY}/cards/search?q=${encodeURIComponent(q)}`;
   try{
     while(url){
       const r = await fetch(url, { headers: SCRY_HEADERS });
       if(!r.ok) break;
       const d = await r.json();
-      (d.data || []).forEach(c => {
-        const ja = c.printed_name || c.card_faces?.[0]?.printed_name;
-        if(ja && !names[c.name]) names[c.name] = ja;
-      });
+      out.push(...(d.data || []));
       url = d.has_more ? d.next_page : null;
       if(url) await sleep(120);
     }
   }catch(e){}
+  return out;
+}
+/* カードの日本語名を作る。カード番号で英語版と日本語版を突き合わせ、名前でも補う。
+   （日本語版の name が英語名と一致しないカードがあるため、番号照合を主にする） */
+async function fetchJaNames(code){
+  const en = await scryAll(`set:${code.toLowerCase()} unique:prints`);
+  const ja = await scryAll(`set:${code.toLowerCase()} lang:ja unique:prints`);
+  const jaByCn = {}, jaByName = {};
+  ja.forEach(c => {
+    const p = c.printed_name || c.card_faces?.[0]?.printed_name;
+    if(!p) return;
+    if(!jaByCn[c.collector_number]) jaByCn[c.collector_number] = p;
+    if(!jaByName[c.name]) jaByName[c.name] = p;
+  });
+  const names = {};
+  en.forEach(c => { if(!names[c.name]){ const p = jaByCn[c.collector_number] || jaByName[c.name]; if(p) names[c.name] = p; } });
+  Object.keys(jaByName).forEach(n => { if(!names[n]) names[n] = jaByName[n]; });
+  return names;
+}
+
+/* カードの日本語名（セットごとに一度だけ取得して保存） */
+async function cardNamesJa(code){
+  const path = `${NAMES}/${code}.json`;
+  const cached = await readJson(path, null);
+  if(cached && cached.names && Object.keys(cached.names).length) return cached;   // 空のまま保存されたものは取り直す
+  const names = await fetchJaNames(code);
   const out = { set: "", released_at: "", names, fetched_at: new Date().toISOString() };
   await mkdir(NAMES, { recursive: true });
   await writeFile(path, JSON.stringify(out), "utf8");
