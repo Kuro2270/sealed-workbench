@@ -300,12 +300,15 @@ async function main(){
   }
   const sets = mode === "announce" ? (process.env.ANNOUNCE_SETS || "").split(/\s+/).filter(Boolean) : [await latestSet()].filter(Boolean);
   if(!sets.length){ console.log("対象のセットがありません。"); return; }
+  // 週次の話題：THEME で指定があればそれ、無ければ週ごとに順番に回す
+  const THEMES = { commons: 0, uncommons: 1, pairs: 2, speed: 3 };
   const week = process.env.WEEK ? parseInt(process.env.WEEK, 10) : Math.floor(Date.now() / (7 * 86400000));
+  const theme = process.env.THEME && THEMES[process.env.THEME] !== undefined ? THEMES[process.env.THEME] : week % 4;
   for(const code of sets){
     const ctx = await setContext(code);
     for(const lang of LANGS){
       let textX, textB;
-      if(mode === "weekly"){ textX = weeklyPost(ctx, lang, week % 4, "x"); textB = weeklyPost(ctx, lang, week % 4, "bsky"); }
+      if(mode === "weekly"){ textX = weeklyPost(ctx, lang, theme, "x"); textB = weeklyPost(ctx, lang, theme, "bsky"); }
       else if(mode === "monthly"){ textX = monthlyPost(ctx, lang, "x"); textB = monthlyPost(ctx, lang, "bsky"); }
       else { textX = announcePost(ctx, lang, "x"); textB = announcePost(ctx, lang, "bsky"); }
       if(!textX){ console.log(`${code}/${lang}: データが無いので飛ばしました`); continue; }
