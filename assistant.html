@@ -18,7 +18,7 @@
     --paper:#F3F5F1; --paper-2:#E6EAE3;
     --ink:#0F1C17; --muted:#63736C;
     --gold:#B8912F; --line:#CBD3CA;
-    --w:#FAF4E2; --u:#7FB4D8; --b:#7A7480; --r:#DB8068; --g:#79A87F; --m:#C3A03B; --c:#9AA3A0;
+    --w:#FAF4E2; --u:#7FB4D8; --b:#2C2833; --r:#DB8068; --g:#79A87F; --m:#C3A03B; --c:#C6CCC9;
     --radius:3px;
   }
   *{box-sizing:border-box}
@@ -396,7 +396,7 @@ function handleLine(line){
     const ids = cardIds != null ? toIds(cardIds) : [String(cardId)];
     ids.forEach(id => { if(D.pack.includes(id) || !D.pack.length){ D.picked.push(id); } });
     recomputeColors();
-    D.pack = D.pack.filter(id => !ids.includes(id));
+    D.pack = [];                                   // 残りは次の人に回るので表示しない。次のパックが届くまで待つ
     if(D.picked.length >= 42 && !D.done){ D.done = true; D.pack = []; view = "deck"; }
     hit = true; log(`picked: ${ids.map(id => cards[id]?.name || id).join(", ")}`);
   }
@@ -526,13 +526,32 @@ async function ensureSet(code){
   render();
 }
 function imgOf(c){ return c.image_uris?.normal || c.card_faces?.[0]?.image_uris?.normal || ""; }
+/* マナ・コストを読む。{G} は必須の緑、{B/G} は黒か緑のどちらでも払えるハイブリッド。
+   返り値: required = 必須の色ごとのシンボル数、hybrid = ハイブリッドの選択肢の配列 */
+function parseMana(mana){
+  const required = {W:0,U:0,B:0,R:0,G:0}, hybrid = [];
+  for(const m of String(mana || "").matchAll(/\{([^}]+)\}/g)){
+    const parts = m[1].split("/").filter(x => "WUBRG".includes(x) && x.length === 1);
+    if(parts.length === 1) required[parts[0]]++;
+    else if(parts.length >= 2) hybrid.push(parts);
+  }
+  return { required, hybrid };
+}
 function addCard(c){
   if(!c.arena_id) return;
   if(cards[String(c.arena_id)]) return;              // 通常版を先に登録し、別イラスト版で上書きしない
   const front = (c.type_line || "").split("//")[0];
+  const mana = c.mana_cost || c.card_faces?.[0]?.mana_cost || "";
+  const pm = parseMana(mana);
+  const identity = (c.color_identity || []).filter(x => "WUBRG".includes(x));
+  const reqColors = Object.keys(pm.required).filter(k => pm.required[k] > 0);
   cards[String(c.arena_id)] = {
     name: c.name, ja: "", cn: c.collector_number,
-    colors: front.includes("Land") ? [] : (c.color_identity || []).filter(x => "WUBRG".includes(x)),
+    // 色：土地は色識別（二色土地なら2色）、呪文はマナ・コストの必須シンボルの色。
+    // 必須シンボルが無くハイブリッドだけのカードは、選択肢の色を持たせる（どれか1色で払える）
+    colors: front.includes("Land") ? identity : (reqColors.length ? reqColors : (pm.hybrid.length ? [...new Set(pm.hybrid.flat())] : identity)),
+    reqPips: pm.required, hybrid: pm.hybrid,
+    pureHybrid: !reqColors.length && pm.hybrid.length > 0,
     rarity: c.rarity || "", cmc: c.cmc ?? 0, type: front.trim(),
     basic: front.includes("Basic Land"),
     legendary: front.includes("Legendary"),
@@ -659,16 +678,18 @@ function scorePack(){
     // 1) 色
     let fit;
     if(!cols.length) fit = 0.5;
+    else if(c && c.pureHybrid) fit = Math.max(...cols.map(k => bonus[k]));   // ハイブリッドはどれか1色が合えばよい
     else fit = cols.reduce((n, k) => n + bonus[k], 0) / cols.length;
-    if(cols.length > 1) fit *= 0.9;
+    if(cols.length > 1 && !(c && c.pureHybrid)) fit *= 0.9;
     const adjColor = commit * w * (fit - 0.5);
     // 2) 枠（クリーチャーが足りなければクリーチャーを、スペルが足りなければスペルを）
     let adjSlot = 0;
     if(kind === "creature") adjSlot = ramp * 3 * need;
     else if(kind === "spell") adjSlot = -ramp * 3 * need;
     // 3) 環境の速さ（土地は対象外）
+    // 序盤は勝率そのもので選ぶ。環境の速さの補正は枠と同じく8手目で最大にする（初手は補正なし）
     let adjPace = 0;
-    if(c && kind !== "land" && pace && PACE_ADJ[pace]) adjPace = PACE_ADJ[pace][Math.min(7, Math.round(c.cmc || 0))] || 0;
+    if(c && kind !== "land" && pace && PACE_ADJ[pace]) adjPace = ramp * (PACE_ADJ[pace][Math.min(7, Math.round(c.cmc || 0))] || 0);
     // 4) 伝説のカード：同じものは場に1枚しか置けないので、2枚目は大きく、3枚目以降はほぼ取らない
     let adjLegend = 0, owned = 0;
     if(c && c.legendary){
@@ -711,10 +732,18 @@ function breakdown(e){
 const PAIRS = ["WU","WB","WR","WG","UB","UR","UG","BR","BG","RG"];
 const BASIC_OF = { W:"Plains", U:"Island", B:"Swamp", R:"Mountain", G:"Forest" };
 
+/* このカードがその2色で使えるか（必須の色がすべて含まれ、ハイブリッドはどれか1色が含まれればよい） */
+function fitsPair(c, pair){
+  const req = Object.keys(c.reqPips || {}).filter(k => c.reqPips[k] > 0);
+  if(!req.every(k => pair.includes(k))) return false;
+  if(c.hybrid && c.hybrid.length && !req.length) return c.hybrid.every(opts => opts.some(k => pair.includes(k)));
+  if(c.hybrid && c.hybrid.length) return c.hybrid.every(opts => opts.some(k => pair.includes(k)));
+  return kindOf(c) === "land" ? c.colors.every(k => pair.includes(k)) : true;
+}
+
 function buildDeck(pair){
   const pool = D.picked.map(id => ({ id, c: cards[id] })).filter(x => x.c);
-  const inPair = x => x.c.colors.every(k => pair.includes(k));
-  const spells = pool.filter(x => kindOf(x.c) !== "land" && inPair(x)).map(x => ({ ...x, r: ratingOf(x.id), kind: kindOf(x.c) }));
+  const spells = pool.filter(x => kindOf(x.c) !== "land" && fitsPair(x.c, pair)).map(x => ({ ...x, r: ratingOf(x.id), kind: kindOf(x.c) }));
   const byR = (a, b) => b.r - a.r;
   const deck = [];
   // 伝説のカードは、同じものを何枚まで入れるか（まず1枚、足りなければ2枚）
@@ -742,22 +771,60 @@ function buildDeck(pair){
     deck.splice(deck.indexOf(h), 1); rest.splice(rest.indexOf(light), 1);
     deck.push(light); rest.push(h); rest.sort(byR);
   }
-  // 土地：デッキ内の色ごとのカード枚数の比率で17枚を分ける（2色のカードは両方に数える）
-  const count = {};
-  pair.split("").forEach(k => count[k] = 0);
-  deck.forEach(x => { x.c.colors.forEach(k => { if(count[k] !== undefined) count[k]++; }); });
-  const totalCount = Object.values(count).reduce((a, b) => a + b, 0) || 1;
+
+  // 特殊土地：基本土地でなく、色がこの2色に収まり（無色も可）、勝率が平均以上のものを最大3枚、17枚の土地に含める
+  const specials = pool.filter(x => kindOf(x.c) === "land" && !x.c.basic && fitsPair(x.c, pair))
+    .map(x => ({ ...x, r: ratingOf(x.id), kind: "land" }))
+    .filter(x => x.r >= 53)
+    .sort(byR).slice(0, 3);
+  const basicsTotal = 17 - specials.length;
+
+  // 土地の配分：マナ・シンボルの数で分ける。ハイブリッドは払える色に振り分ける（両方なら半分ずつ）
+  const pips = {}, maxPip = {}, count = {};
+  pair.split("").forEach(k => { pips[k] = 0; maxPip[k] = 0; count[k] = 0; });
+  deck.forEach(x => {
+    const c = x.c;
+    for(const k of pair){
+      const n = (c.reqPips && c.reqPips[k]) || 0;
+      pips[k] += n; if(n > maxPip[k]) maxPip[k] = n;
+    }
+    (c.hybrid || []).forEach(opts => {
+      const inPair = opts.filter(k => pair.includes(k));
+      inPair.forEach(k => { pips[k] += 1 / inPair.length; });
+    });
+    c.colors.forEach(k => { if(count[k] !== undefined) count[k]++; });
+  });
+  const totalPips = Object.values(pips).reduce((a, b) => a + b, 0) || 1;
+  // 特殊土地が出せる色は、その色の土地として数える
+  const specialSrc = {}; pair.split("").forEach(k => specialSrc[k] = specials.filter(x => x.c.colors.includes(k)).length);
   const lands = {};
   let assigned = 0;
   pair.split("").forEach((k, i) => {
-    lands[k] = i === pair.length - 1 ? 17 - assigned : Math.round(17 * count[k] / totalCount);
+    lands[k] = i === pair.length - 1 ? basicsTotal - assigned : Math.round(basicsTotal * pips[k] / totalPips);
     assigned += lands[k];
   });
-  // 使っている色が0〜2枚になるほど偏れば、最低3枚は確保する
-  pair.split("").forEach(k => { if(count[k] > 0 && lands[k] < 3){ const other = pair.replace(k, ""); lands[other] -= (3 - lands[k]); lands[k] = 3; } });
+  // 最低限の土地：ダブルシンボル（同じ色が2つ以上）のカードがある色は8枚以上、3つ以上なら9枚以上、
+  // 1つだけでも使っている色は6枚以上を目安にする（特殊土地も数に入れる）
+  const minFor = k => pips[k] <= 0 ? 0 : (maxPip[k] >= 3 ? 9 : (maxPip[k] >= 2 ? 8 : 6));
+  const ks = pair.split("");
+  for(let guard = 0; guard < 6; guard++){
+    let moved = false;
+    for(const k of ks){
+      const need = minFor(k) - (lands[k] + specialSrc[k]);
+      if(need <= 0) continue;
+      const other = ks.find(o => o !== k);
+      if(!other) break;
+      const spare = (lands[other] + specialSrc[other]) - minFor(other);
+      const give = Math.min(need, Math.max(0, spare));
+      if(give > 0){ lands[other] -= give; lands[k] += give; moved = true; }
+    }
+    if(!moved) break;
+  }
+  const doubles = ks.filter(k => maxPip[k] >= 2);
   const score = deck.reduce((a, x) => a + x.r, 0) - (23 - deck.length) * 45 - Math.max(0, heavy().length - 6) * 2;
   const side = rest.slice(0, 6);
-  return { pair, deck, side, lands, count, score, short: 23 - deck.length, avgCmc: deck.length ? deck.reduce((a, x) => a + (x.c.cmc || 0), 0) / deck.length : 0 };
+  return { pair, deck, side, lands, specials, pips, doubles, count, score, short: 23 - deck.length,
+           avgCmc: deck.length ? deck.reduce((a, x) => a + (x.c.cmc || 0), 0) / deck.length : 0 };
 }
 function bestDecks(){
   return PAIRS.map(buildDeck).sort((a, b) => b.score - a.score);
@@ -767,6 +834,7 @@ function deckText(d){
   const tally = new Map();
   d.deck.forEach(x => tally.set(x.id, (tally.get(x.id) || 0) + 1));
   tally.forEach((n, id) => { const c = cards[id]; lines.push(`${n} ${c.name} (${c.set}) ${c.cn}`); });
+  (d.specials || []).forEach(x => lines.push(`1 ${x.c.name} (${x.c.set}) ${x.c.cn}`));
   Object.entries(d.lands).forEach(([k, n]) => { if(n > 0) lines.push(`${n} ${BASIC_OF[k]}`); });
   return lines.join("\n");
 }
@@ -789,9 +857,10 @@ function render(){
 
   const has = D.pack.length > 0;
   $("pickTitle").textContent = has ? t("assist.packPick", {p: D.packNo || "?", k: D.pickNo || "?"})
-                             : (D.done ? t("assist.doneTitle") : t("assist.waiting"));
+                             : (D.done ? t("assist.doneTitle") : (D.picked.length ? t("assist.waitingNext") : t("assist.waiting")));
   $("pickSub").textContent = D.set ? (t("assist.setLabel", {set: D.set}) + (D.event ? "　" + D.event : "")) : "";
   $("packEmpty").hidden = has;
+  $("packEmpty").textContent = D.picked.length && !D.done ? t("assist.packEmptyNext") : t("assist.packEmpty");
 
   // 向かっている色・枠・環境の速さ
   const cb = $("colorBar");
@@ -921,7 +990,9 @@ function renderDeck(){
   const spl = group(d.deck.filter(x => x.kind === "spell")).sort(byCmc);
   const creN = d.deck.filter(x => x.kind === "creature").length, splN = d.deck.length - creN;
   const landTxt = Object.entries(d.lands).filter(([, n]) => n > 0).map(([k, n]) => `${t("land." + BASIC_OF[k])} ${n}`).join("・")
-    + "　" + t("assist.landBasis", {c: Object.entries(d.count).map(([k, n]) => `${colorName(k)} ${n}`).join("・")});
+    + (d.specials.length ? "・" + d.specials.map(x => displayName(x.c)).join("・") : "")
+    + "　" + t("assist.landBasis", {c: Object.entries(d.pips).map(([k, n]) => `${colorName(k)} ${Math.round(n)}`).join("・")})
+    + (d.doubles.length ? "　" + t("assist.landDouble", {c: d.doubles.map(colorName).join("・")}) : "");
   const alt = list.slice(1, 3).filter(x => x.deck.length >= 20).map(x => pairName(x.pair) + "（" + Math.round(x.score - d.score) + "）").join("、");
   box.innerHTML =
     `<div class="deck-sum">` +
