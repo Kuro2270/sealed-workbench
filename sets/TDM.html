@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>タルキール：龍嵐録 リミテッド環境レポート（ドラフト・シールドの勝率） — MTGアリーナ リミテッド・ワークベンチ</title>
+<meta name="description" content="マジック：ザ・ギャザリング アリーナ「タルキール：龍嵐録」のリミテッド環境を、17Landsの実戦データ（666,532試合）から読み解きます。環境の速さ、色の強さ、強いアーキタイプ、レアリティ別の強いカード。">
+<link rel="canonical" href="https://sealed-workbench.com/sets/TDM.html">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/TDM.html">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/TDM.en.html">
+<link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/TDM.html">
+<meta property="og:title" content="タルキール：龍嵐録 リミテッド環境レポート（ドラフト・シールドの勝率）">
+<meta property="og:description" content="マジック：ザ・ギャザリング アリーナ「タルキール：龍嵐録」のリミテッド環境を、17Landsの実戦データ（666,532試合）から読み解きます。環境の速さ、色の強さ、強いアーキタイプ、レアリティ別の強いカード。">
+<meta property="og:url" content="https://sealed-workbench.com/sets/TDM.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta property="og:image" content="https://sealed-workbench.com/ogp-ja.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root{--pine:#23342E;--pine-deep:#18241F;--paper:#F3F5F1;--paper-2:#E6EAE3;--ink:#0F1C17;--muted:#63736C;--gold:#B8912F;--line:#CBD3CA;
+        --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:3px}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
+  .brand a{color:inherit;text-decoration:none}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;color:#CBD8D2;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #3D544B}
+  nav a:hover{background:#31473E;color:var(--paper)}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  .lang{margin-top:12px;font-size:13px}
+  .lang a{color:#CBD8D2}
+  main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
+  .mode{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:22px}
+  .mode > h2{font-size:22px;margin:0 0 4px;display:flex;align-items:baseline;gap:12px}
+  .mode > h2 small{font-size:13px;color:var(--muted);font-weight:500}
+  .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
+  section{margin-top:18px}
+  section h3{font-size:16px;margin:0 0 4px}
+  .lead{color:var(--muted);font-size:13px;margin:0 0 8px}
+  .verdict{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;font-size:14.5px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+  td{padding:6px 8px;border-bottom:1px solid var(--paper-2)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2B3833;margin-right:6px}
+  .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#1A1405}.rar.mythic{background:#C4552C}
+  .links ul{margin:6px 0 0;padding-left:1.2em}
+  .links a{color:var(--pine)}
+  .source{color:var(--muted);font-size:12px;margin-top:20px}
+  .setlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+  .setlist li a{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
+  .setlist li a:hover{border-color:var(--gold)}
+  .setlist small{display:block;color:var(--muted);font-size:12px}
+  footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+  @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand"><a href="../">MTGアリーナ リミテッド・ワークベンチ</a></div>
+    <nav>
+      <a href="../guide.html">使い方</a>
+      <a href="../">シールド構築</a>
+      <a href="../draft.html">ドラフト構築</a>
+      <a href="../ratings.html">カード勝率一覧</a>
+      <a href="../reports.html">環境レポート</a>
+      <a href="../swiss.html">スイスドロー</a>
+      <a href="../assistant.html">ドラフト補助</a>
+      <a href="../privacy.html">プライバシー</a>
+    </nav>
+    <h1>タルキール：龍嵐録｜リミテッド環境レポート</h1>
+    <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。</p>
+    <div class="lang"><a href="TDM.en.html" hreflang="en">English</a></div>
+  </div>
+</header>
+<main>
+<article class="mode">
+  <h2>ドラフト <small>総試合数 617,527／全体勝率 55.6%</small></h2>
+  <p class="built">集計 2026-09-17</p>
+  <section><h3>環境の速さ</h3>
+    <div class="verdict">平均マナ総量2.9未満の速いデッキが最も勝率が高く、56.6%です。 直近8セットと比べると、速さは同じくらいです。</div>
+  </section>
+  <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
+    <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td><span class="dot" style="background:var(--r)"></span>赤</td><td class="num"><b>56.0%</b></td><td class="num">401,534</td></tr>
+    <tr><td><span class="dot" style="background:var(--w)"></span>白</td><td class="num"><b>55.7%</b></td><td class="num">343,743</td></tr>
+    <tr><td><span class="dot" style="background:var(--u)"></span>青</td><td class="num"><b>55.3%</b></td><td class="num">383,999</td></tr>
+    <tr><td><span class="dot" style="background:var(--b)"></span>黒</td><td class="num"><b>55.1%</b></td><td class="num">315,474</td></tr>
+    <tr><td><span class="dot" style="background:var(--g)"></span>緑</td><td class="num"><b>55.1%</b></td><td class="num">364,098</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>色の組み合わせ</h3><p class="lead">2色の組み合わせごとの勝率です。試合数の多い順に並べています。</p>
+    <table><thead><tr><th>色の組み合わせ</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>青赤緑</td><td class="num"><b>56.0%</b></td><td class="num">103,849</td></tr>
+    <tr><td>青黒緑</td><td class="num"><b>55.0%</b></td><td class="num">88,561</td></tr>
+    <tr><td>白黒赤</td><td class="num"><b>56.2%</b></td><td class="num">82,944</td></tr>
+    <tr><td>白青赤</td><td class="num"><b>55.3%</b></td><td class="num">76,503</td></tr>
+    <tr><td>白赤</td><td class="num"><b>58.9%</b></td><td class="num">56,387</td></tr>
+    <tr><td>青緑</td><td class="num"><b>55.4%</b></td><td class="num">23,689</td></tr>
+    <tr><td>青黒赤緑</td><td class="num"><b>55.4%</b></td><td class="num">22,722</td></tr>
+    <tr><td>黒緑</td><td class="num"><b>55.9%</b></td><td class="num">16,383</td></tr>
+    <tr><td>白黒</td><td class="num"><b>55.6%</b></td><td class="num">13,835</td></tr>
+    <tr><td>青赤</td><td class="num"><b>55.4%</b></td><td class="num">11,881</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>マナ総量ごとの勝率</h3><p class="lead">そのマナ総量のカードが手札か戦場にあった試合の勝率です。</p>
+    <table><thead><tr><th>マナ総量</th><th class="num">勝率</th><th class="num">種類数</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>0</td><td class="num"><b>44.9%</b></td><td class="num">1</td><td class="num">214</td></tr>
+    <tr><td>1</td><td class="num"><b>57.1%</b></td><td class="num">18</td><td class="num">470,694</td></tr>
+    <tr><td>2</td><td class="num"><b>56.8%</b></td><td class="num">65</td><td class="num">1,847,451</td></tr>
+    <tr><td>3</td><td class="num"><b>56.9%</b></td><td class="num">59</td><td class="num">1,221,718</td></tr>
+    <tr><td>4</td><td class="num"><b>56.2%</b></td><td class="num">44</td><td class="num">755,355</td></tr>
+    <tr><td>5</td><td class="num"><b>57.2%</b></td><td class="num">32</td><td class="num">781,888</td></tr>
+    <tr><td>6</td><td class="num"><b>57.7%</b></td><td class="num">23</td><td class="num">670,030</td></tr>
+    <tr><td>7+</td><td class="num"><b>66.1%</b></td><td class="num">5</td><td class="num">42,082</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>レアリティ別の強いカード</h3><p class="lead">GIH勝率（そのカードが手札か戦場にあった試合の勝率）の高い順です。</p>
+    <div class="grid">
+      <div><h3><span class="rar mythic">神話レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--c)"></span>Ugin, Eye of the Storms</td><td class="num"><b>69.3%</b></td><td class="num">8,428</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Jeskai Revelation</td><td class="num"><b>68.9%</b></td><td class="num">10,381</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Ureni, the Song Unending</td><td class="num"><b>68.4%</b></td><td class="num">9,286</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Dragonback Assault</td><td class="num"><b>68.1%</b></td><td class="num">8,856</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Elspeth, Storm Slayer</td><td class="num"><b>67.6%</b></td><td class="num">7,356</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Shiko, Paragon of the Way</td><td class="num"><b>64.4%</b></td><td class="num">8,218</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Betor, Kin to All</td><td class="num"><b>62.9%</b></td><td class="num">7,171</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Death Begets Life</td><td class="num"><b>61.9%</b></td><td class="num">8,641</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Teval, Arbiter of Virtue</td><td class="num"><b>61.7%</b></td><td class="num">8,547</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>All-Out Assault</td><td class="num"><b>60.7%</b></td><td class="num">5,294</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar rare">レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Marang River Regent</td><td class="num"><b>68.0%</b></td><td class="num">19,424</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Roar of Endless Song</td><td class="num"><b>66.0%</b></td><td class="num">19,285</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Sage of the Skies</td><td class="num"><b>65.6%</b></td><td class="num">16,761</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Revival of the Ancestors</td><td class="num"><b>62.2%</b></td><td class="num">11,872</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Qarsi Revenant</td><td class="num"><b>61.8%</b></td><td class="num">12,648</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Fangkeeper's Familiar</td><td class="num"><b>61.7%</b></td><td class="num">16,239</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Eshki Dragonclaw</td><td class="num"><b>61.7%</b></td><td class="num">17,393</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Surrak, Elusive Hunter</td><td class="num"><b>61.5%</b></td><td class="num">15,628</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Winternight Stories</td><td class="num"><b>61.5%</b></td><td class="num">18,961</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Warden of the Grove</td><td class="num"><b>61.5%</b></td><td class="num">15,400</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar uncommon">アンコモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Sonic Shrieker</td><td class="num"><b>61.4%</b></td><td class="num">31,019</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Karakyk Guardian</td><td class="num"><b>61.2%</b></td><td class="num">39,884</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Traveling Botanist</td><td class="num"><b>59.8%</b></td><td class="num">38,150</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Glacial Dragonhunt</td><td class="num"><b>59.8%</b></td><td class="num">35,978</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Twinmaw Stormbrood</td><td class="num"><b>59.7%</b></td><td class="num">37,427</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Rally the Monastery</td><td class="num"><b>59.7%</b></td><td class="num">31,197</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Roiling Dragonstorm</td><td class="num"><b>59.7%</b></td><td class="num">39,779</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Mardu Monument</td><td class="num"><b>59.5%</b></td><td class="num">25,987</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Knockout Maneuver</td><td class="num"><b>59.4%</b></td><td class="num">33,412</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Rakshasa's Bargain</td><td class="num"><b>59.1%</b></td><td class="num">35,311</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar common">コモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Sibsig Appraiser</td><td class="num"><b>59.6%</b></td><td class="num">110,002</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Mardu Devotee</td><td class="num"><b>58.9%</b></td><td class="num">58,459</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Dispelling Exhale</td><td class="num"><b>58.5%</b></td><td class="num">92,775</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Molten Exhale</td><td class="num"><b>58.5%</b></td><td class="num">92,070</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Piercing Exhale</td><td class="num"><b>58.3%</b></td><td class="num">77,921</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Salt Road Packbeast</td><td class="num"><b>58.1%</b></td><td class="num">67,484</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Ainok Wayfarer</td><td class="num"><b>57.9%</b></td><td class="num">79,079</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Temur Tawnyback</td><td class="num"><b>57.8%</b></td><td class="num">63,719</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Riverwalk Technique</td><td class="num"><b>57.7%</b></td><td class="num">68,726</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Fortress Kin-Guard</td><td class="num"><b>57.6%</b></td><td class="num">59,072</td></tr>
+      </tbody></table></div>
+    </div>
+  </section>
+</article>
+<article class="mode">
+  <h2>シールド <small>総試合数 49,005／全体勝率 57.3%</small></h2>
+  <p class="built">集計 2026-09-17</p>
+  <section><h3>環境の速さ</h3>
+    <div class="verdict">平均マナ総量3.5以上の重いデッキが最も勝率が高く、57.9%です。 直近8セットと比べると、遅い環境です。</div>
+  </section>
+  <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
+    <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td><span class="dot" style="background:var(--u)"></span>青</td><td class="num"><b>58.2%</b></td><td class="num">29,542</td></tr>
+    <tr><td><span class="dot" style="background:var(--g)"></span>緑</td><td class="num"><b>58.0%</b></td><td class="num">31,330</td></tr>
+    <tr><td><span class="dot" style="background:var(--r)"></span>赤</td><td class="num"><b>57.7%</b></td><td class="num">32,139</td></tr>
+    <tr><td><span class="dot" style="background:var(--b)"></span>黒</td><td class="num"><b>56.4%</b></td><td class="num">26,350</td></tr>
+    <tr><td><span class="dot" style="background:var(--w)"></span>白</td><td class="num"><b>56.4%</b></td><td class="num">24,462</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>色の組み合わせ</h3><p class="lead">2色の組み合わせごとの勝率です。試合数の多い順に並べています。</p>
+    <table><thead><tr><th>色の組み合わせ</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>青赤緑</td><td class="num"><b>59.6%</b></td><td class="num">13,485</td></tr>
+    <tr><td>白黒赤</td><td class="num"><b>55.9%</b></td><td class="num">9,624</td></tr>
+    <tr><td>青黒緑</td><td class="num"><b>57.4%</b></td><td class="num">7,023</td></tr>
+    <tr><td>白黒緑</td><td class="num"><b>56.3%</b></td><td class="num">6,774</td></tr>
+    <tr><td>白青赤</td><td class="num"><b>57.5%</b></td><td class="num">4,986</td></tr>
+    <tr><td>青黒赤緑</td><td class="num"><b>56.3%</b></td><td class="num">1,312</td></tr>
+    <tr><td>白青黒赤緑</td><td class="num"><b>56.8%</b></td><td class="num">1,271</td></tr>
+    <tr><td>白青赤緑</td><td class="num"><b>56.0%</b></td><td class="num">1,119</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>マナ総量ごとの勝率</h3><p class="lead">そのマナ総量のカードが手札か戦場にあった試合の勝率です。</p>
+    <table><thead><tr><th>マナ総量</th><th class="num">勝率</th><th class="num">種類数</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>1</td><td class="num"><b>58.3%</b></td><td class="num">15</td><td class="num">30,945</td></tr>
+    <tr><td>2</td><td class="num"><b>58.8%</b></td><td class="num">61</td><td class="num">132,814</td></tr>
+    <tr><td>3</td><td class="num"><b>58.5%</b></td><td class="num">55</td><td class="num">96,455</td></tr>
+    <tr><td>4</td><td class="num"><b>58.0%</b></td><td class="num">42</td><td class="num">57,590</td></tr>
+    <tr><td>5</td><td class="num"><b>59.0%</b></td><td class="num">29</td><td class="num">71,354</td></tr>
+    <tr><td>6</td><td class="num"><b>59.3%</b></td><td class="num">23</td><td class="num">57,187</td></tr>
+    <tr><td>7+</td><td class="num"><b>66.8%</b></td><td class="num">5</td><td class="num">3,721</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>レアリティ別の強いカード</h3><p class="lead">GIH勝率（そのカードが手札か戦場にあった試合の勝率）の高い順です。</p>
+    <div class="grid">
+      <div><h3><span class="rar mythic">神話レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Dragonback Assault</td><td class="num"><b>70.3%</b></td><td class="num">1,541</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Elspeth, Storm Slayer</td><td class="num"><b>70.0%</b></td><td class="num">741</td></tr>
+      <tr><td><span class="dot" style="background:var(--c)"></span>Ugin, Eye of the Storms</td><td class="num"><b>69.8%</b></td><td class="num">855</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Ureni, the Song Unending</td><td class="num"><b>69.7%</b></td><td class="num">1,490</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Jeskai Revelation</td><td class="num"><b>69.1%</b></td><td class="num">751</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Shiko, Paragon of the Way</td><td class="num"><b>66.9%</b></td><td class="num">667</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Betor, Kin to All</td><td class="num"><b>65.6%</b></td><td class="num">828</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Teval, Arbiter of Virtue</td><td class="num"><b>65.0%</b></td><td class="num">872</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Death Begets Life</td><td class="num"><b>62.4%</b></td><td class="num">773</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>All-Out Assault</td><td class="num"><b>60.3%</b></td><td class="num">735</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar rare">レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Roar of Endless Song</td><td class="num"><b>69.5%</b></td><td class="num">2,770</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Marang River Regent</td><td class="num"><b>67.5%</b></td><td class="num">1,805</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Ambling Stormshell</td><td class="num"><b>65.6%</b></td><td class="num">1,071</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Sage of the Skies</td><td class="num"><b>65.4%</b></td><td class="num">1,746</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Eshki Dragonclaw</td><td class="num"><b>64.8%</b></td><td class="num">2,488</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Fangkeeper's Familiar</td><td class="num"><b>64.6%</b></td><td class="num">1,575</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Winternight Stories</td><td class="num"><b>64.4%</b></td><td class="num">2,327</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Surrak, Elusive Hunter</td><td class="num"><b>64.1%</b></td><td class="num">3,048</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Bloomvine Regent</td><td class="num"><b>64.0%</b></td><td class="num">1,257</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Narset, Jeskai Waymaster</td><td class="num"><b>63.3%</b></td><td class="num">783</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar uncommon">アンコモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Glacial Dragonhunt</td><td class="num"><b>64.2%</b></td><td class="num">3,412</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Roiling Dragonstorm</td><td class="num"><b>63.2%</b></td><td class="num">1,676</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Karakyk Guardian</td><td class="num"><b>63.2%</b></td><td class="num">3,996</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Spectral Denial</td><td class="num"><b>62.9%</b></td><td class="num">626</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Traveling Botanist</td><td class="num"><b>62.3%</b></td><td class="num">4,715</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Dragonbroods' Relic</td><td class="num"><b>62.1%</b></td><td class="num">803</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Sunset Strikemaster</td><td class="num"><b>61.8%</b></td><td class="num">2,528</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Sonic Shrieker</td><td class="num"><b>61.5%</b></td><td class="num">2,701</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Knockout Maneuver</td><td class="num"><b>61.4%</b></td><td class="num">2,052</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Kishla Trawlers</td><td class="num"><b>61.3%</b></td><td class="num">2,458</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar common">コモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Unending Whisper</td><td class="num"><b>63.7%</b></td><td class="num">3,277</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Sibsig Appraiser</td><td class="num"><b>62.5%</b></td><td class="num">5,579</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Dispelling Exhale</td><td class="num"><b>62.2%</b></td><td class="num">6,241</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Snakeskin Veil</td><td class="num"><b>61.3%</b></td><td class="num">3,499</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Temur Tawnyback</td><td class="num"><b>61.1%</b></td><td class="num">6,559</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Piercing Exhale</td><td class="num"><b>60.7%</b></td><td class="num">11,006</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Iceridge Serpent</td><td class="num"><b>60.5%</b></td><td class="num">2,278</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Ainok Wayfarer</td><td class="num"><b>60.5%</b></td><td class="num">4,838</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Molten Exhale</td><td class="num"><b>60.3%</b></td><td class="num">12,690</td></tr>
+      <tr><td><span class="dot" style="background:var(--c)"></span>Dragonstorm Globe</td><td class="num"><b>59.8%</b></td><td class="num">3,434</td></tr>
+      </tbody></table></div>
+    </div>
+  </section>
+</article>
+<section class="links"><h3>関連ページ</h3><ul>
+  <li><a href="../ratings.html?set=TDM">このセットの全カードの勝率一覧</a></li>
+  <li><a href="../reports.html?set=TDM">環境レポート（他のセットに切り替え）</a></li>
+  <li><a href="../">シールド構築の練習</a>／<a href="../draft.html">ドラフト構築の練習</a>／<a href="../assistant.html">ドラフト補助（PC・Chrome/Edge）</a></li>
+  <li><a href="index.html">セット一覧</a></li>
+</ul></section>
+<p class="source">出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。</p>
+</main>
+<footer>データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。</footer>
+</body>
+</html>

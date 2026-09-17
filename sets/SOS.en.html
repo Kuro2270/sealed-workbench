@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOS Limited format report — Draft and Sealed win rates — MTG Arena Limited Workbench</title>
+<meta name="description" content="A data-driven look at Magic: The Gathering Arena Limited for SOS, built from 707,782 games of 17Lands public data: format speed, colour strength, best archetypes and the best cards at each rarity.">
+<link rel="canonical" href="https://sealed-workbench.com/sets/SOS.en.html">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/SOS.html">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/SOS.en.html">
+<link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/SOS.html">
+<meta property="og:title" content="SOS Limited format report — Draft and Sealed win rates">
+<meta property="og:description" content="A data-driven look at Magic: The Gathering Arena Limited for SOS, built from 707,782 games of 17Lands public data: format speed, colour strength, best archetypes and the best cards at each rarity.">
+<meta property="og:url" content="https://sealed-workbench.com/sets/SOS.en.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta property="og:image" content="https://sealed-workbench.com/ogp-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root{--pine:#23342E;--pine-deep:#18241F;--paper:#F3F5F1;--paper-2:#E6EAE3;--ink:#0F1C17;--muted:#63736C;--gold:#B8912F;--line:#CBD3CA;
+        --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:3px}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
+  .brand a{color:inherit;text-decoration:none}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;color:#CBD8D2;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #3D544B}
+  nav a:hover{background:#31473E;color:var(--paper)}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  .lang{margin-top:12px;font-size:13px}
+  .lang a{color:#CBD8D2}
+  main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
+  .mode{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:22px}
+  .mode > h2{font-size:22px;margin:0 0 4px;display:flex;align-items:baseline;gap:12px}
+  .mode > h2 small{font-size:13px;color:var(--muted);font-weight:500}
+  .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
+  section{margin-top:18px}
+  section h3{font-size:16px;margin:0 0 4px}
+  .lead{color:var(--muted);font-size:13px;margin:0 0 8px}
+  .verdict{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;font-size:14.5px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+  td{padding:6px 8px;border-bottom:1px solid var(--paper-2)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2B3833;margin-right:6px}
+  .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#1A1405}.rar.mythic{background:#C4552C}
+  .links ul{margin:6px 0 0;padding-left:1.2em}
+  .links a{color:var(--pine)}
+  .source{color:var(--muted);font-size:12px;margin-top:20px}
+  .setlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+  .setlist li a{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
+  .setlist li a:hover{border-color:var(--gold)}
+  .setlist small{display:block;color:var(--muted);font-size:12px}
+  footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+  @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand"><a href="../">MTG Arena Limited Workbench</a></div>
+    <nav>
+      <a href="../guide.html">Guide</a>
+      <a href="../">Sealed</a>
+      <a href="../draft.html">Draft</a>
+      <a href="../ratings.html">Card win rates</a>
+      <a href="../reports.html">Set reports</a>
+      <a href="../swiss.html">Swiss pairings</a>
+      <a href="../assistant.html">Draft assistant</a>
+      <a href="../privacy.html">Privacy</a>
+    </nav>
+    <h1>SOS — Limited format report</h1>
+    <p>Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data.</p>
+    <div class="lang"><a href="SOS.html" hreflang="ja">日本語</a></div>
+  </div>
+</header>
+<main>
+<article class="mode">
+  <h2>Draft <small>646,900 games · overall win rate 55.9%</small></h2>
+  <p class="built">Built 2026-09-17</p>
+  <section><h3>Format speed</h3>
+    <div class="verdict">Decks averaging under 2.9 mana value have the highest win rate, at 57.0%. Compared with the last 8 sets, the pace is about the same.</div>
+  </section>
+  <section><h3>Colour strength</h3><p class="lead">Win rate of games where the deck included cards of that colour.</p>
+    <table><thead><tr><th>Colour</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+    <tr><td><span class="dot" style="background:var(--w)"></span>White</td><td class="num"><b>57.4%</b></td><td class="num">287,472</td></tr>
+    <tr><td><span class="dot" style="background:var(--b)"></span>Black</td><td class="num"><b>55.9%</b></td><td class="num">242,647</td></tr>
+    <tr><td><span class="dot" style="background:var(--r)"></span>Red</td><td class="num"><b>55.9%</b></td><td class="num">351,957</td></tr>
+    <tr><td><span class="dot" style="background:var(--u)"></span>Blue</td><td class="num"><b>54.7%</b></td><td class="num">295,461</td></tr>
+    <tr><td><span class="dot" style="background:var(--g)"></span>Green</td><td class="num"><b>54.5%</b></td><td class="num">237,319</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>Colour pairs</h3><p class="lead">Win rate by two-colour pair, sorted by number of games.</p>
+    <table><thead><tr><th>Pair</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+    <tr><td>White/Red</td><td class="num"><b>58.1%</b></td><td class="num">133,005</td></tr>
+    <tr><td>Blue/Red</td><td class="num"><b>55.0%</b></td><td class="num">121,350</td></tr>
+    <tr><td>White/Black</td><td class="num"><b>58.2%</b></td><td class="num">110,553</td></tr>
+    <tr><td>Black/Green</td><td class="num"><b>55.0%</b></td><td class="num">81,227</td></tr>
+    <tr><td>Blue/Green</td><td class="num"><b>55.6%</b></td><td class="num">61,592</td></tr>
+    <tr><td>Blue/Red/Green</td><td class="num"><b>53.8%</b></td><td class="num">52,494</td></tr>
+    <tr><td>Blue/Black/Green</td><td class="num"><b>53.1%</b></td><td class="num">25,874</td></tr>
+    <tr><td>White/Blue/Red</td><td class="num"><b>55.3%</b></td><td class="num">22,561</td></tr>
+    <tr><td>White/Black/Red</td><td class="num"><b>51.2%</b></td><td class="num">10,957</td></tr>
+    <tr><td>Blue/Black/Red/Green</td><td class="num"><b>53.4%</b></td><td class="num">5,736</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>Win rate by mana value</h3><p class="lead">Win rate of games where a card of that mana value was in hand or on the battlefield.</p>
+    <table><thead><tr><th>Mana value</th><th class="num">Win rate</th><th class="num">Cards</th><th class="num">Games</th></tr></thead><tbody>
+    <tr><td>1</td><td class="num"><b>57.5%</b></td><td class="num">26</td><td class="num">552,355</td></tr>
+    <tr><td>2</td><td class="num"><b>57.3%</b></td><td class="num">69</td><td class="num">1,862,467</td></tr>
+    <tr><td>3</td><td class="num"><b>57.4%</b></td><td class="num">66</td><td class="num">1,484,334</td></tr>
+    <tr><td>4</td><td class="num"><b>57.0%</b></td><td class="num">42</td><td class="num">870,908</td></tr>
+    <tr><td>5</td><td class="num"><b>57.3%</b></td><td class="num">26</td><td class="num">629,527</td></tr>
+    <tr><td>6</td><td class="num"><b>58.8%</b></td><td class="num">12</td><td class="num">306,010</td></tr>
+    <tr><td>7+</td><td class="num"><b>58.6%</b></td><td class="num">10</td><td class="num">167,182</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>Best cards by rarity</h3><p class="lead">Sorted by GIH win rate (games where the card was in hand or on the battlefield).</p>
+    <div class="grid">
+      <div><h3><span class="rar mythic">Mythic</span></h3>
+      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Emeritus of Ideation</td><td class="num"><b>65.6%</b></td><td class="num">8,722</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Improvisation Capstone</td><td class="num"><b>63.8%</b></td><td class="num">10,040</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Mathemagics</td><td class="num"><b>63.3%</b></td><td class="num">10,346</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Professor Dellian Fel</td><td class="num"><b>63.1%</b></td><td class="num">7,160</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Quandrix, the Proof</td><td class="num"><b>62.3%</b></td><td class="num">8,128</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Emeritus of Woe</td><td class="num"><b>60.6%</b></td><td class="num">7,076</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Emeritus of Abundance</td><td class="num"><b>60.6%</b></td><td class="num">7,145</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Echocasting Symposium</td><td class="num"><b>60.0%</b></td><td class="num">8,094</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Emeritus of Truce</td><td class="num"><b>59.6%</b></td><td class="num">7,076</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Germination Practicum</td><td class="num"><b>59.4%</b></td><td class="num">6,694</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar rare">Rare</span></h3>
+      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--c)"></span>Together as One</td><td class="num"><b>66.5%</b></td><td class="num">22,214</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Antiquities on the Loose</td><td class="num"><b>66.1%</b></td><td class="num">18,669</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Practiced Offense</td><td class="num"><b>65.8%</b></td><td class="num">18,556</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Moment of Reckoning</td><td class="num"><b>64.8%</b></td><td class="num">15,952</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Ark of Hunger</td><td class="num"><b>63.7%</b></td><td class="num">20,800</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Stirring Hopesinger</td><td class="num"><b>63.7%</b></td><td class="num">17,151</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Colorstorm Stallion</td><td class="num"><b>63.2%</b></td><td class="num">18,559</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Informed Inkwright</td><td class="num"><b>62.2%</b></td><td class="num">16,705</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Splatter Technique</td><td class="num"><b>61.7%</b></td><td class="num">18,837</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Hardened Academic</td><td class="num"><b>61.6%</b></td><td class="num">15,480</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar uncommon">Uncommon</span></h3>
+      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Snarl Song</td><td class="num"><b>62.6%</b></td><td class="num">43,521</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Environmental Scientist</td><td class="num"><b>61.3%</b></td><td class="num">34,173</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Scolding Administrator</td><td class="num"><b>61.2%</b></td><td class="num">25,748</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Arcane Omens</td><td class="num"><b>61.0%</b></td><td class="num">30,122</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Molten Note</td><td class="num"><b>60.7%</b></td><td class="num">38,968</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Stress Dream</td><td class="num"><b>60.7%</b></td><td class="num">43,498</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Silverquill Charm</td><td class="num"><b>60.5%</b></td><td class="num">24,143</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Practiced Scrollsmith</td><td class="num"><b>60.2%</b></td><td class="num">37,065</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Foolish Fate</td><td class="num"><b>59.8%</b></td><td class="num">29,894</td></tr>
+      <tr><td><span class="dot" style="background:var(--c)"></span>Sundering Archaic</td><td class="num"><b>59.8%</b></td><td class="num">37,832</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar common">Common</span></h3>
+      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Elite Interceptor</td><td class="num"><b>60.2%</b></td><td class="num">81,412</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Pursue the Past</td><td class="num"><b>60.0%</b></td><td class="num">62,063</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Rubble Rouser</td><td class="num"><b>58.8%</b></td><td class="num">74,042</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Unsubtle Mockery</td><td class="num"><b>58.7%</b></td><td class="num">86,169</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Ajani's Response</td><td class="num"><b>58.6%</b></td><td class="num">67,468</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Tome Blast</td><td class="num"><b>58.6%</b></td><td class="num">86,457</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Render Speechless</td><td class="num"><b>58.5%</b></td><td class="num">39,599</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Wilt in the Heat</td><td class="num"><b>58.4%</b></td><td class="num">65,963</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Last Gasp</td><td class="num"><b>58.2%</b></td><td class="num">61,662</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Cost of Brilliance</td><td class="num"><b>58.1%</b></td><td class="num">43,346</td></tr>
+      </tbody></table></div>
+    </div>
+  </section>
+</article>
+<article class="mode">
+  <h2>Sealed <small>60,882 games · overall win rate 56.2%</small></h2>
+  <p class="built">Built 2026-09-17</p>
+  <section><h3>Format speed</h3>
+    <div class="verdict">Decks averaging under 3.2 mana value have the highest win rate, at 56.6%. Compared with the last 8 sets, the pace is about the same.</div>
+  </section>
+  <section><h3>Colour strength</h3><p class="lead">Win rate of games where the deck included cards of that colour.</p>
+    <table><thead><tr><th>Colour</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+    <tr><td><span class="dot" style="background:var(--w)"></span>White</td><td class="num"><b>57.5%</b></td><td class="num">24,033</td></tr>
+    <tr><td><span class="dot" style="background:var(--r)"></span>Red</td><td class="num"><b>56.8%</b></td><td class="num">24,984</td></tr>
+    <tr><td><span class="dot" style="background:var(--b)"></span>Black</td><td class="num"><b>56.4%</b></td><td class="num">28,028</td></tr>
+    <tr><td><span class="dot" style="background:var(--g)"></span>Green</td><td class="num"><b>56.0%</b></td><td class="num">25,943</td></tr>
+    <tr><td><span class="dot" style="background:var(--u)"></span>Blue</td><td class="num"><b>54.8%</b></td><td class="num">23,359</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>Colour pairs</h3><p class="lead">Win rate by two-colour pair, sorted by number of games.</p>
+    <table><thead><tr><th>Pair</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+    <tr><td>Black/Green</td><td class="num"><b>56.9%</b></td><td class="num">12,644</td></tr>
+    <tr><td>White/Black</td><td class="num"><b>56.2%</b></td><td class="num">10,707</td></tr>
+    <tr><td>White/Red</td><td class="num"><b>59.3%</b></td><td class="num">10,553</td></tr>
+    <tr><td>Blue/Red</td><td class="num"><b>54.3%</b></td><td class="num">10,410</td></tr>
+    <tr><td>Blue/Green</td><td class="num"><b>54.9%</b></td><td class="num">7,095</td></tr>
+    <tr><td>Blue/Black/Green</td><td class="num"><b>54.7%</b></td><td class="num">2,688</td></tr>
+    <tr><td>Blue/Red/Green</td><td class="num"><b>56.6%</b></td><td class="num">2,382</td></tr>
+    <tr><td>White/Black/Green</td><td class="num"><b>54.9%</b></td><td class="num">1,134</td></tr>
+    <tr><td>White/Black/Red</td><td class="num"><b>57.1%</b></td><td class="num">855</td></tr>
+    <tr><td>White/Blue/Red</td><td class="num"><b>56.1%</b></td><td class="num">784</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>Win rate by mana value</h3><p class="lead">Win rate of games where a card of that mana value was in hand or on the battlefield.</p>
+    <table><thead><tr><th>Mana value</th><th class="num">Win rate</th><th class="num">Cards</th><th class="num">Games</th></tr></thead><tbody>
+    <tr><td>1</td><td class="num"><b>57.4%</b></td><td class="num">24</td><td class="num">45,407</td></tr>
+    <tr><td>2</td><td class="num"><b>57.4%</b></td><td class="num">63</td><td class="num">179,153</td></tr>
+    <tr><td>3</td><td class="num"><b>57.9%</b></td><td class="num">62</td><td class="num">144,402</td></tr>
+    <tr><td>4</td><td class="num"><b>57.2%</b></td><td class="num">39</td><td class="num">87,856</td></tr>
+    <tr><td>5</td><td class="num"><b>57.3%</b></td><td class="num">26</td><td class="num">54,299</td></tr>
+    <tr><td>6</td><td class="num"><b>58.6%</b></td><td class="num">12</td><td class="num">22,112</td></tr>
+    <tr><td>7+</td><td class="num"><b>57.2%</b></td><td class="num">10</td><td class="num">12,987</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>Best cards by rarity</h3><p class="lead">Sorted by GIH win rate (games where the card was in hand or on the battlefield).</p>
+    <div class="grid">
+      <div><h3><span class="rar mythic">Mythic</span></h3>
+      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Professor Dellian Fel</td><td class="num"><b>69.7%</b></td><td class="num">727</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Improvisation Capstone</td><td class="num"><b>65.1%</b></td><td class="num">588</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Emeritus of Ideation</td><td class="num"><b>64.8%</b></td><td class="num">1,404</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Mathemagics</td><td class="num"><b>63.2%</b></td><td class="num">568</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Lorehold, the Historian</td><td class="num"><b>63.2%</b></td><td class="num">1,193</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Quandrix, the Proof</td><td class="num"><b>63.0%</b></td><td class="num">1,225</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Echocasting Symposium</td><td class="num"><b>63.0%</b></td><td class="num">662</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Germination Practicum</td><td class="num"><b>62.0%</b></td><td class="num">686</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Emeritus of Woe</td><td class="num"><b>59.1%</b></td><td class="num">1,263</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Decorum Dissertation</td><td class="num"><b>58.2%</b></td><td class="num">595</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar rare">Rare</span></h3>
+      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Ark of Hunger</td><td class="num"><b>67.7%</b></td><td class="num">2,014</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Antiquities on the Loose</td><td class="num"><b>65.6%</b></td><td class="num">2,011</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Practiced Offense</td><td class="num"><b>65.6%</b></td><td class="num">2,333</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Stirring Hopesinger</td><td class="num"><b>65.4%</b></td><td class="num">2,344</td></tr>
+      <tr><td><span class="dot" style="background:var(--c)"></span>Together as One</td><td class="num"><b>65.4%</b></td><td class="num">1,281</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Postmortem Professor</td><td class="num"><b>64.1%</b></td><td class="num">1,052</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Moment of Reckoning</td><td class="num"><b>63.7%</b></td><td class="num">1,604</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Informed Inkwright</td><td class="num"><b>63.6%</b></td><td class="num">1,217</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Moseo, Vein's New Dean</td><td class="num"><b>63.5%</b></td><td class="num">2,275</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Blech, Loafing Pest</td><td class="num"><b>63.5%</b></td><td class="num">1,875</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar uncommon">Uncommon</span></h3>
+      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Snarl Song</td><td class="num"><b>62.6%</b></td><td class="num">1,028</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Environmental Scientist</td><td class="num"><b>62.1%</b></td><td class="num">2,214</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Essenceknit Scholar</td><td class="num"><b>61.6%</b></td><td class="num">3,469</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Pestbrood Sloth</td><td class="num"><b>61.5%</b></td><td class="num">3,562</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Dissection Practice</td><td class="num"><b>61.0%</b></td><td class="num">1,376</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Molten Note</td><td class="num"><b>60.9%</b></td><td class="num">3,050</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Arcane Omens</td><td class="num"><b>60.8%</b></td><td class="num">536</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Practiced Scrollsmith</td><td class="num"><b>60.7%</b></td><td class="num">3,160</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Foolish Fate</td><td class="num"><b>60.7%</b></td><td class="num">4,386</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Silverquill Charm</td><td class="num"><b>60.4%</b></td><td class="num">2,843</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar common">Common</span></h3>
+      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Pursue the Past</td><td class="num"><b>61.9%</b></td><td class="num">3,594</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Rubble Rouser</td><td class="num"><b>61.5%</b></td><td class="num">5,244</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Ajani's Response</td><td class="num"><b>60.5%</b></td><td class="num">5,526</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Wilt in the Heat</td><td class="num"><b>60.2%</b></td><td class="num">5,118</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Tome Blast</td><td class="num"><b>59.6%</b></td><td class="num">6,153</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Elite Interceptor</td><td class="num"><b>59.5%</b></td><td class="num">6,222</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Grapple with Death</td><td class="num"><b>59.4%</b></td><td class="num">6,605</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Unsubtle Mockery</td><td class="num"><b>59.0%</b></td><td class="num">7,734</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Spirit Mascot</td><td class="num"><b>58.7%</b></td><td class="num">4,696</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Send in the Pest</td><td class="num"><b>58.3%</b></td><td class="num">4,009</td></tr>
+      </tbody></table></div>
+    </div>
+  </section>
+</article>
+<section class="links"><h3>Related pages</h3><ul>
+  <li><a href="../ratings.html?set=SOS">All card win rates for this set</a></li>
+  <li><a href="../reports.html?set=SOS">Set reports (switch sets)</a></li>
+  <li><a href="../">Sealed practice</a>／<a href="../draft.html">Draft practice</a>／<a href="../assistant.html">Draft assistant (PC, Chrome/Edge)</a></li>
+  <li><a href="index.en.html">All sets</a></li>
+</ul></section>
+<p class="source">Source: 17Lands Public Data (CC BY 4.0), aggregated by this site. Card data via Scryfall.</p>
+</main>
+<footer>Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.</footer>
+</body>
+</html>

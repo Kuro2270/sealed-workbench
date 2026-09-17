@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>エッジ・オブ・エタニティーズ リミテッド環境レポート（ドラフト・シールドの勝率） — MTGアリーナ リミテッド・ワークベンチ</title>
+<meta name="description" content="マジック：ザ・ギャザリング アリーナ「エッジ・オブ・エタニティーズ」のリミテッド環境を、17Landsの実戦データ（695,776試合）から読み解きます。環境の速さ、色の強さ、強いアーキタイプ、レアリティ別の強いカード。">
+<link rel="canonical" href="https://sealed-workbench.com/sets/EOE.html">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/EOE.html">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/EOE.en.html">
+<link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/EOE.html">
+<meta property="og:title" content="エッジ・オブ・エタニティーズ リミテッド環境レポート（ドラフト・シールドの勝率）">
+<meta property="og:description" content="マジック：ザ・ギャザリング アリーナ「エッジ・オブ・エタニティーズ」のリミテッド環境を、17Landsの実戦データ（695,776試合）から読み解きます。環境の速さ、色の強さ、強いアーキタイプ、レアリティ別の強いカード。">
+<meta property="og:url" content="https://sealed-workbench.com/sets/EOE.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta property="og:image" content="https://sealed-workbench.com/ogp-ja.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root{--pine:#23342E;--pine-deep:#18241F;--paper:#F3F5F1;--paper-2:#E6EAE3;--ink:#0F1C17;--muted:#63736C;--gold:#B8912F;--line:#CBD3CA;
+        --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:3px}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
+  .brand a{color:inherit;text-decoration:none}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;color:#CBD8D2;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #3D544B}
+  nav a:hover{background:#31473E;color:var(--paper)}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  .lang{margin-top:12px;font-size:13px}
+  .lang a{color:#CBD8D2}
+  main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
+  .mode{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:22px}
+  .mode > h2{font-size:22px;margin:0 0 4px;display:flex;align-items:baseline;gap:12px}
+  .mode > h2 small{font-size:13px;color:var(--muted);font-weight:500}
+  .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
+  section{margin-top:18px}
+  section h3{font-size:16px;margin:0 0 4px}
+  .lead{color:var(--muted);font-size:13px;margin:0 0 8px}
+  .verdict{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;font-size:14.5px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+  td{padding:6px 8px;border-bottom:1px solid var(--paper-2)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2B3833;margin-right:6px}
+  .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#1A1405}.rar.mythic{background:#C4552C}
+  .links ul{margin:6px 0 0;padding-left:1.2em}
+  .links a{color:var(--pine)}
+  .source{color:var(--muted);font-size:12px;margin-top:20px}
+  .setlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+  .setlist li a{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
+  .setlist li a:hover{border-color:var(--gold)}
+  .setlist small{display:block;color:var(--muted);font-size:12px}
+  footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+  @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand"><a href="../">MTGアリーナ リミテッド・ワークベンチ</a></div>
+    <nav>
+      <a href="../guide.html">使い方</a>
+      <a href="../">シールド構築</a>
+      <a href="../draft.html">ドラフト構築</a>
+      <a href="../ratings.html">カード勝率一覧</a>
+      <a href="../reports.html">環境レポート</a>
+      <a href="../swiss.html">スイスドロー</a>
+      <a href="../assistant.html">ドラフト補助</a>
+      <a href="../privacy.html">プライバシー</a>
+    </nav>
+    <h1>エッジ・オブ・エタニティーズ｜リミテッド環境レポート</h1>
+    <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。</p>
+    <div class="lang"><a href="EOE.en.html" hreflang="en">English</a></div>
+  </div>
+</header>
+<main>
+<article class="mode">
+  <h2>ドラフト <small>総試合数 631,747／全体勝率 55.9%</small></h2>
+  <p class="built">集計 2026-09-17</p>
+  <section><h3>環境の速さ</h3>
+    <div class="verdict">平均マナ総量3.5未満の遅いデッキが最も勝率が高く、56.1%です。 直近8セットと比べると、速さは同じくらいです。</div>
+  </section>
+  <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
+    <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td><span class="dot" style="background:var(--g)"></span>緑</td><td class="num"><b>56.4%</b></td><td class="num">285,787</td></tr>
+    <tr><td><span class="dot" style="background:var(--u)"></span>青</td><td class="num"><b>55.9%</b></td><td class="num">285,231</td></tr>
+    <tr><td><span class="dot" style="background:var(--w)"></span>白</td><td class="num"><b>55.8%</b></td><td class="num">222,655</td></tr>
+    <tr><td><span class="dot" style="background:var(--b)"></span>黒</td><td class="num"><b>55.5%</b></td><td class="num">261,243</td></tr>
+    <tr><td><span class="dot" style="background:var(--r)"></span>赤</td><td class="num"><b>55.5%</b></td><td class="num">229,880</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>色の組み合わせ</h3><p class="lead">2色の組み合わせごとの勝率です。試合数の多い順に並べています。</p>
+    <table><thead><tr><th>色の組み合わせ</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>青緑</td><td class="num"><b>57.7%</b></td><td class="num">78,850</td></tr>
+    <tr><td>青黒</td><td class="num"><b>55.6%</b></td><td class="num">70,883</td></tr>
+    <tr><td>赤緑</td><td class="num"><b>56.9%</b></td><td class="num">68,517</td></tr>
+    <tr><td>黒赤</td><td class="num"><b>55.9%</b></td><td class="num">65,618</td></tr>
+    <tr><td>白緑</td><td class="num"><b>56.4%</b></td><td class="num">60,941</td></tr>
+    <tr><td>白黒</td><td class="num"><b>56.6%</b></td><td class="num">60,135</td></tr>
+    <tr><td>白青</td><td class="num"><b>56.0%</b></td><td class="num">59,582</td></tr>
+    <tr><td>青赤緑</td><td class="num"><b>55.5%</b></td><td class="num">10,859</td></tr>
+    <tr><td>青黒緑</td><td class="num"><b>54.5%</b></td><td class="num">7,847</td></tr>
+    <tr><td>緑</td><td class="num"><b>58.2%</b></td><td class="num">5,934</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>マナ総量ごとの勝率</h3><p class="lead">そのマナ総量のカードが手札か戦場にあった試合の勝率です。</p>
+    <table><thead><tr><th>マナ総量</th><th class="num">勝率</th><th class="num">種類数</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>1</td><td class="num"><b>56.9%</b></td><td class="num">33</td><td class="num">860,887</td></tr>
+    <tr><td>2</td><td class="num"><b>57.1%</b></td><td class="num">56</td><td class="num">1,558,704</td></tr>
+    <tr><td>3</td><td class="num"><b>57.1%</b></td><td class="num">64</td><td class="num">1,363,924</td></tr>
+    <tr><td>4</td><td class="num"><b>57.2%</b></td><td class="num">40</td><td class="num">976,508</td></tr>
+    <tr><td>5</td><td class="num"><b>56.8%</b></td><td class="num">29</td><td class="num">562,128</td></tr>
+    <tr><td>6</td><td class="num"><b>56.9%</b></td><td class="num">15</td><td class="num">288,983</td></tr>
+    <tr><td>7+</td><td class="num"><b>58.4%</b></td><td class="num">11</td><td class="num">263,873</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>レアリティ別の強いカード</h3><p class="lead">GIH勝率（そのカードが手札か戦場にあった試合の勝率）の高い順です。</p>
+    <div class="grid">
+      <div><h3><span class="rar mythic">神話レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Ouroboroid</td><td class="num"><b>67.8%</b></td><td class="num">6,947</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Quantum Riddler</td><td class="num"><b>67.1%</b></td><td class="num">8,371</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Cosmogrand Zenith</td><td class="num"><b>63.9%</b></td><td class="num">6,960</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Weftwalking</td><td class="num"><b>59.3%</b></td><td class="num">8,297</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Exalted Sunborn</td><td class="num"><b>58.5%</b></td><td class="num">5,223</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Devastating Onslaught</td><td class="num"><b>58.3%</b></td><td class="num">4,567</td></tr>
+      <tr><td><span class="dot" style="background:var(--c)"></span>The Endstone</td><td class="num"><b>56.5%</b></td><td class="num">7,512</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Tannuk, Steadfast Second</td><td class="num"><b>56.3%</b></td><td class="num">4,050</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Famished Worldsire</td><td class="num"><b>56.2%</b></td><td class="num">4,615</td></tr>
+      <tr><td><span class="dot" style="background:var(--c)"></span>Tezzeret, Cruel Captain</td><td class="num"><b>54.3%</b></td><td class="num">4,794</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar rare">レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Elegy Acolyte</td><td class="num"><b>66.1%</b></td><td class="num">15,104</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Genemorph Imago</td><td class="num"><b>63.2%</b></td><td class="num">15,209</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Nova Hellkite</td><td class="num"><b>62.7%</b></td><td class="num">13,023</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Warmaker Gunship</td><td class="num"><b>62.5%</b></td><td class="num">13,619</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Sunset Saboteur</td><td class="num"><b>62.2%</b></td><td class="num">14,954</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Possibility Technician</td><td class="num"><b>61.9%</b></td><td class="num">14,548</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Syr Vondam, Sunstar Exemplar</td><td class="num"><b>61.7%</b></td><td class="num">9,451</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Sunstar Chaplain</td><td class="num"><b>61.4%</b></td><td class="num">12,902</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Lumen-Class Frigate</td><td class="num"><b>61.0%</b></td><td class="num">12,837</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Mutinous Massacre</td><td class="num"><b>61.0%</b></td><td class="num">10,483</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar uncommon">アンコモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Dubious Delicacy</td><td class="num"><b>61.6%</b></td><td class="num">39,023</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Biomechan Engineer</td><td class="num"><b>61.4%</b></td><td class="num">37,331</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Glacier Godmaw</td><td class="num"><b>61.0%</b></td><td class="num">37,181</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>All-Fates Stalker</td><td class="num"><b>60.8%</b></td><td class="num">32,783</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Codecracker Hound</td><td class="num"><b>60.7%</b></td><td class="num">47,068</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Terrapact Intimidator</td><td class="num"><b>60.6%</b></td><td class="num">32,986</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Fell Gravship</td><td class="num"><b>60.6%</b></td><td class="num">37,113</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Larval Scoutlander</td><td class="num"><b>60.3%</b></td><td class="num">35,515</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Monoist Circuit-Feeder</td><td class="num"><b>60.1%</b></td><td class="num">36,248</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Meltstrider's Resolve</td><td class="num"><b>59.8%</b></td><td class="num">34,006</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar common">コモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Cryogen Relic</td><td class="num"><b>59.7%</b></td><td class="num">91,935</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Galactic Wayfarer</td><td class="num"><b>59.3%</b></td><td class="num">87,408</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Banishing Light</td><td class="num"><b>59.0%</b></td><td class="num">64,965</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Knight Luminary</td><td class="num"><b>58.8%</b></td><td class="num">63,333</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Gene Pollinator</td><td class="num"><b>58.5%</b></td><td class="num">80,400</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Orbital Plunge</td><td class="num"><b>58.3%</b></td><td class="num">72,702</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Biosynthic Burst</td><td class="num"><b>58.0%</b></td><td class="num">51,912</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Selfcraft Mechan</td><td class="num"><b>57.9%</b></td><td class="num">71,072</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Focus Fire</td><td class="num"><b>57.9%</b></td><td class="num">57,585</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Gravpack Monoist</td><td class="num"><b>57.8%</b></td><td class="num">66,848</td></tr>
+      </tbody></table></div>
+    </div>
+  </section>
+</article>
+<article class="mode">
+  <h2>シールド <small>総試合数 64,029／全体勝率 57.4%</small></h2>
+  <p class="built">集計 2026-09-17</p>
+  <section><h3>環境の速さ</h3>
+    <div class="verdict">平均マナ総量3.5未満の遅いデッキが最も勝率が高く、58.0%です。 直近8セットと比べると、速さは同じくらいです。</div>
+  </section>
+  <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
+    <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td><span class="dot" style="background:var(--w)"></span>白</td><td class="num"><b>57.7%</b></td><td class="num">27,314</td></tr>
+    <tr><td><span class="dot" style="background:var(--g)"></span>緑</td><td class="num"><b>57.5%</b></td><td class="num">30,183</td></tr>
+    <tr><td><span class="dot" style="background:var(--b)"></span>黒</td><td class="num"><b>57.3%</b></td><td class="num">30,985</td></tr>
+    <tr><td><span class="dot" style="background:var(--u)"></span>青</td><td class="num"><b>57.2%</b></td><td class="num">22,100</td></tr>
+    <tr><td><span class="dot" style="background:var(--r)"></span>赤</td><td class="num"><b>56.8%</b></td><td class="num">24,720</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>色の組み合わせ</h3><p class="lead">2色の組み合わせごとの勝率です。試合数の多い順に並べています。</p>
+    <table><thead><tr><th>色の組み合わせ</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>白黒</td><td class="num"><b>59.6%</b></td><td class="num">7,566</td></tr>
+    <tr><td>白緑</td><td class="num"><b>57.7%</b></td><td class="num">7,504</td></tr>
+    <tr><td>黒赤</td><td class="num"><b>58.4%</b></td><td class="num">6,429</td></tr>
+    <tr><td>赤緑</td><td class="num"><b>57.2%</b></td><td class="num">6,171</td></tr>
+    <tr><td>黒緑</td><td class="num"><b>57.3%</b></td><td class="num">5,401</td></tr>
+    <tr><td>青緑</td><td class="num"><b>59.9%</b></td><td class="num">4,326</td></tr>
+    <tr><td>白青</td><td class="num"><b>59.1%</b></td><td class="num">4,062</td></tr>
+    <tr><td>白赤</td><td class="num"><b>58.0%</b></td><td class="num">3,135</td></tr>
+    <tr><td>黒赤緑</td><td class="num"><b>57.4%</b></td><td class="num">1,397</td></tr>
+    <tr><td>青赤緑</td><td class="num"><b>58.2%</b></td><td class="num">1,359</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>マナ総量ごとの勝率</h3><p class="lead">そのマナ総量のカードが手札か戦場にあった試合の勝率です。</p>
+    <table><thead><tr><th>マナ総量</th><th class="num">勝率</th><th class="num">種類数</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>1</td><td class="num"><b>58.3%</b></td><td class="num">33</td><td class="num">82,593</td></tr>
+    <tr><td>2</td><td class="num"><b>58.6%</b></td><td class="num">56</td><td class="num">149,084</td></tr>
+    <tr><td>3</td><td class="num"><b>58.4%</b></td><td class="num">62</td><td class="num">141,458</td></tr>
+    <tr><td>4</td><td class="num"><b>58.8%</b></td><td class="num">40</td><td class="num">100,342</td></tr>
+    <tr><td>5</td><td class="num"><b>58.7%</b></td><td class="num">27</td><td class="num">59,359</td></tr>
+    <tr><td>6</td><td class="num"><b>58.9%</b></td><td class="num">15</td><td class="num">32,766</td></tr>
+    <tr><td>7+</td><td class="num"><b>58.6%</b></td><td class="num">11</td><td class="num">25,999</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>レアリティ別の強いカード</h3><p class="lead">GIH勝率（そのカードが手札か戦場にあった試合の勝率）の高い順です。</p>
+    <div class="grid">
+      <div><h3><span class="rar mythic">神話レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Ouroboroid</td><td class="num"><b>68.6%</b></td><td class="num">1,308</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Quantum Riddler</td><td class="num"><b>68.1%</b></td><td class="num">1,160</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Cosmogrand Zenith</td><td class="num"><b>67.7%</b></td><td class="num">1,287</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Weftwalking</td><td class="num"><b>61.7%</b></td><td class="num">609</td></tr>
+      <tr><td><span class="dot" style="background:var(--c)"></span>The Endstone</td><td class="num"><b>60.2%</b></td><td class="num">1,145</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Exalted Sunborn</td><td class="num"><b>59.6%</b></td><td class="num">1,068</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Devastating Onslaught</td><td class="num"><b>59.5%</b></td><td class="num">724</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Sothera, the Supervoid</td><td class="num"><b>58.0%</b></td><td class="num">873</td></tr>
+      <tr><td><span class="dot" style="background:var(--c)"></span>Tezzeret, Cruel Captain</td><td class="num"><b>57.7%</b></td><td class="num">1,060</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Tannuk, Steadfast Second</td><td class="num"><b>57.6%</b></td><td class="num">644</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar rare">レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Elegy Acolyte</td><td class="num"><b>68.5%</b></td><td class="num">2,383</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Genemorph Imago</td><td class="num"><b>66.0%</b></td><td class="num">1,502</td></tr>
+      <tr><td><span class="dot" style="background:var(--c)"></span>Anticausal Vestige</td><td class="num"><b>64.6%</b></td><td class="num">2,928</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Lightstall Inquisitor</td><td class="num"><b>64.3%</b></td><td class="num">1,419</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Nova Hellkite</td><td class="num"><b>63.9%</b></td><td class="num">1,872</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Sunstar Chaplain</td><td class="num"><b>63.2%</b></td><td class="num">1,881</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Haliya, Guided by Light</td><td class="num"><b>63.2%</b></td><td class="num">1,772</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Sunset Saboteur</td><td class="num"><b>63.0%</b></td><td class="num">1,536</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Beyond the Quiet</td><td class="num"><b>62.7%</b></td><td class="num">1,604</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Rust Harvester</td><td class="num"><b>62.3%</b></td><td class="num">1,393</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar uncommon">アンコモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Terrapact Intimidator</td><td class="num"><b>64.1%</b></td><td class="num">3,003</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Dubious Delicacy</td><td class="num"><b>63.7%</b></td><td class="num">3,879</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Tractor Beam</td><td class="num"><b>63.6%</b></td><td class="num">2,444</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Biomechan Engineer</td><td class="num"><b>63.2%</b></td><td class="num">2,268</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>All-Fates Stalker</td><td class="num"><b>63.1%</b></td><td class="num">3,260</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Syr Vondam, the Lucent</td><td class="num"><b>63.0%</b></td><td class="num">1,772</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Fell Gravship</td><td class="num"><b>62.2%</b></td><td class="num">3,031</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Station Monitor</td><td class="num"><b>61.8%</b></td><td class="num">1,147</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Rayblade Trooper</td><td class="num"><b>61.5%</b></td><td class="num">2,988</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Codecracker Hound</td><td class="num"><b>61.4%</b></td><td class="num">2,875</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar common">コモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Cryogen Relic</td><td class="num"><b>61.0%</b></td><td class="num">5,918</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Knight Luminary</td><td class="num"><b>61.0%</b></td><td class="num">5,907</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Banishing Light</td><td class="num"><b>60.9%</b></td><td class="num">7,763</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Galactic Wayfarer</td><td class="num"><b>60.7%</b></td><td class="num">7,767</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Orbital Plunge</td><td class="num"><b>60.3%</b></td><td class="num">6,457</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Perigee Beckoner</td><td class="num"><b>60.1%</b></td><td class="num">4,450</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Depressurize</td><td class="num"><b>60.1%</b></td><td class="num">8,086</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Gravkill</td><td class="num"><b>60.0%</b></td><td class="num">9,003</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Focus Fire</td><td class="num"><b>59.9%</b></td><td class="num">5,329</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Gene Pollinator</td><td class="num"><b>59.7%</b></td><td class="num">6,524</td></tr>
+      </tbody></table></div>
+    </div>
+  </section>
+</article>
+<section class="links"><h3>関連ページ</h3><ul>
+  <li><a href="../ratings.html?set=EOE">このセットの全カードの勝率一覧</a></li>
+  <li><a href="../reports.html?set=EOE">環境レポート（他のセットに切り替え）</a></li>
+  <li><a href="../">シールド構築の練習</a>／<a href="../draft.html">ドラフト構築の練習</a>／<a href="../assistant.html">ドラフト補助（PC・Chrome/Edge）</a></li>
+  <li><a href="index.html">セット一覧</a></li>
+</ul></section>
+<p class="source">出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。</p>
+</main>
+<footer>データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。</footer>
+</body>
+</html>

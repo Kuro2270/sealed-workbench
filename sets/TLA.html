@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>アバター 伝説の少年アン リミテッド環境レポート（ドラフト・シールドの勝率） — MTGアリーナ リミテッド・ワークベンチ</title>
+<meta name="description" content="マジック：ザ・ギャザリング アリーナ「アバター 伝説の少年アン」のリミテッド環境を、17Landsの実戦データ（660,617試合）から読み解きます。環境の速さ、色の強さ、強いアーキタイプ、レアリティ別の強いカード。">
+<link rel="canonical" href="https://sealed-workbench.com/sets/TLA.html">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/TLA.html">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/TLA.en.html">
+<link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/TLA.html">
+<meta property="og:title" content="アバター 伝説の少年アン リミテッド環境レポート（ドラフト・シールドの勝率）">
+<meta property="og:description" content="マジック：ザ・ギャザリング アリーナ「アバター 伝説の少年アン」のリミテッド環境を、17Landsの実戦データ（660,617試合）から読み解きます。環境の速さ、色の強さ、強いアーキタイプ、レアリティ別の強いカード。">
+<meta property="og:url" content="https://sealed-workbench.com/sets/TLA.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta property="og:image" content="https://sealed-workbench.com/ogp-ja.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root{--pine:#23342E;--pine-deep:#18241F;--paper:#F3F5F1;--paper-2:#E6EAE3;--ink:#0F1C17;--muted:#63736C;--gold:#B8912F;--line:#CBD3CA;
+        --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:3px}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
+  .brand a{color:inherit;text-decoration:none}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;color:#CBD8D2;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #3D544B}
+  nav a:hover{background:#31473E;color:var(--paper)}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  .lang{margin-top:12px;font-size:13px}
+  .lang a{color:#CBD8D2}
+  main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
+  .mode{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:22px}
+  .mode > h2{font-size:22px;margin:0 0 4px;display:flex;align-items:baseline;gap:12px}
+  .mode > h2 small{font-size:13px;color:var(--muted);font-weight:500}
+  .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
+  section{margin-top:18px}
+  section h3{font-size:16px;margin:0 0 4px}
+  .lead{color:var(--muted);font-size:13px;margin:0 0 8px}
+  .verdict{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;font-size:14.5px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+  td{padding:6px 8px;border-bottom:1px solid var(--paper-2)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2B3833;margin-right:6px}
+  .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#1A1405}.rar.mythic{background:#C4552C}
+  .links ul{margin:6px 0 0;padding-left:1.2em}
+  .links a{color:var(--pine)}
+  .source{color:var(--muted);font-size:12px;margin-top:20px}
+  .setlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+  .setlist li a{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
+  .setlist li a:hover{border-color:var(--gold)}
+  .setlist small{display:block;color:var(--muted);font-size:12px}
+  footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+  @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand"><a href="../">MTGアリーナ リミテッド・ワークベンチ</a></div>
+    <nav>
+      <a href="../guide.html">使い方</a>
+      <a href="../">シールド構築</a>
+      <a href="../draft.html">ドラフト構築</a>
+      <a href="../ratings.html">カード勝率一覧</a>
+      <a href="../reports.html">環境レポート</a>
+      <a href="../swiss.html">スイスドロー</a>
+      <a href="../assistant.html">ドラフト補助</a>
+      <a href="../privacy.html">プライバシー</a>
+    </nav>
+    <h1>アバター 伝説の少年アン｜リミテッド環境レポート</h1>
+    <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。</p>
+    <div class="lang"><a href="TLA.en.html" hreflang="en">English</a></div>
+  </div>
+</header>
+<main>
+<article class="mode">
+  <h2>ドラフト <small>総試合数 624,759／全体勝率 56.6%</small></h2>
+  <p class="built">集計 2026-09-17</p>
+  <section><h3>環境の速さ</h3>
+    <div class="verdict">平均マナ総量2.9未満の速いデッキが最も勝率が高く、57.3%です。 直近8セットと比べると、速さは同じくらいです。</div>
+  </section>
+  <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
+    <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td><span class="dot" style="background:var(--w)"></span>白</td><td class="num"><b>56.9%</b></td><td class="num">302,259</td></tr>
+    <tr><td><span class="dot" style="background:var(--u)"></span>青</td><td class="num"><b>56.4%</b></td><td class="num">337,160</td></tr>
+    <tr><td><span class="dot" style="background:var(--r)"></span>赤</td><td class="num"><b>56.0%</b></td><td class="num">239,989</td></tr>
+    <tr><td><span class="dot" style="background:var(--g)"></span>緑</td><td class="num"><b>55.9%</b></td><td class="num">229,219</td></tr>
+    <tr><td><span class="dot" style="background:var(--b)"></span>黒</td><td class="num"><b>55.9%</b></td><td class="num">218,265</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>色の組み合わせ</h3><p class="lead">2色の組み合わせごとの勝率です。試合数の多い順に並べています。</p>
+    <table><thead><tr><th>色の組み合わせ</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>白青</td><td class="num"><b>57.6%</b></td><td class="num">84,961</td></tr>
+    <tr><td>青黒</td><td class="num"><b>57.1%</b></td><td class="num">69,181</td></tr>
+    <tr><td>青赤</td><td class="num"><b>57.3%</b></td><td class="num">56,904</td></tr>
+    <tr><td>白緑</td><td class="num"><b>57.8%</b></td><td class="num">53,595</td></tr>
+    <tr><td>白赤</td><td class="num"><b>57.8%</b></td><td class="num">52,365</td></tr>
+    <tr><td>白黒</td><td class="num"><b>56.6%</b></td><td class="num">40,308</td></tr>
+    <tr><td>黒緑</td><td class="num"><b>56.6%</b></td><td class="num">31,423</td></tr>
+    <tr><td>白</td><td class="num"><b>62.5%</b></td><td class="num">11,985</td></tr>
+    <tr><td>黒</td><td class="num"><b>57.6%</b></td><td class="num">5,906</td></tr>
+    <tr><td>青</td><td class="num"><b>56.9%</b></td><td class="num">5,897</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>マナ総量ごとの勝率</h3><p class="lead">そのマナ総量のカードが手札か戦場にあった試合の勝率です。</p>
+    <table><thead><tr><th>マナ総量</th><th class="num">勝率</th><th class="num">種類数</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>1</td><td class="num"><b>57.7%</b></td><td class="num">26</td><td class="num">704,818</td></tr>
+    <tr><td>2</td><td class="num"><b>57.4%</b></td><td class="num">74</td><td class="num">2,037,416</td></tr>
+    <tr><td>3</td><td class="num"><b>57.4%</b></td><td class="num">64</td><td class="num">1,434,984</td></tr>
+    <tr><td>4</td><td class="num"><b>57.3%</b></td><td class="num">52</td><td class="num">859,823</td></tr>
+    <tr><td>5</td><td class="num"><b>57.8%</b></td><td class="num">29</td><td class="num">516,113</td></tr>
+    <tr><td>6</td><td class="num"><b>57.0%</b></td><td class="num">13</td><td class="num">206,598</td></tr>
+    <tr><td>7+</td><td class="num"><b>55.6%</b></td><td class="num">4</td><td class="num">45,383</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>レアリティ別の強いカード</h3><p class="lead">GIH勝率（そのカードが手札か戦場にあった試合の勝率）の高い順です。</p>
+    <div class="grid">
+      <div><h3><span class="rar mythic">神話レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--b)"></span>The Rise of Sozin</td><td class="num"><b>67.8%</b></td><td class="num">9,778</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>The Legend of Yangchen</td><td class="num"><b>66.9%</b></td><td class="num">9,617</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>The Legend of Kuruk</td><td class="num"><b>66.8%</b></td><td class="num">10,728</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Wan Shi Tong, Librarian</td><td class="num"><b>66.1%</b></td><td class="num">9,957</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>United Front</td><td class="num"><b>65.7%</b></td><td class="num">8,811</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Bumi, Unleashed</td><td class="num"><b>64.9%</b></td><td class="num">7,982</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Koh, the Face Stealer</td><td class="num"><b>64.4%</b></td><td class="num">8,854</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>The Legend of Roku</td><td class="num"><b>64.1%</b></td><td class="num">9,182</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Badgermole Cub</td><td class="num"><b>63.9%</b></td><td class="num">7,458</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Phoenix Fleet Airship</td><td class="num"><b>63.1%</b></td><td class="num">8,576</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar rare">レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--b)"></span>The Fire Nation Drill</td><td class="num"><b>67.3%</b></td><td class="num">16,098</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Aang, Swift Savior</td><td class="num"><b>66.2%</b></td><td class="num">16,557</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>The Earth King</td><td class="num"><b>65.8%</b></td><td class="num">15,355</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Azula, Cunning Usurper</td><td class="num"><b>64.1%</b></td><td class="num">17,279</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Earthbender Ascension</td><td class="num"><b>63.4%</b></td><td class="num">14,341</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Suki, Courageous Rescuer</td><td class="num"><b>63.4%</b></td><td class="num">14,608</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Great Divide Guide</td><td class="num"><b>63.2%</b></td><td class="num">13,324</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Raven Eagle</td><td class="num"><b>63.2%</b></td><td class="num">16,550</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Katara, Water Tribe's Hope</td><td class="num"><b>62.8%</b></td><td class="num">16,849</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Aang, at the Crossroads</td><td class="num"><b>62.5%</b></td><td class="num">14,434</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar uncommon">アンコモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Invasion Submersible</td><td class="num"><b>62.7%</b></td><td class="num">46,707</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Aang, the Last Airbender</td><td class="num"><b>62.2%</b></td><td class="num">33,218</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Earth Kingdom Jailer</td><td class="num"><b>61.9%</b></td><td class="num">32,745</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Heartless Act</td><td class="num"><b>60.7%</b></td><td class="num">28,789</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>The Cave of Two Lovers</td><td class="num"><b>60.6%</b></td><td class="num">28,218</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Water Tribe Rallier</td><td class="num"><b>60.5%</b></td><td class="num">35,229</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Gran-Gran</td><td class="num"><b>60.3%</b></td><td class="num">35,172</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Foggy Swamp Spirit Keeper</td><td class="num"><b>60.3%</b></td><td class="num">29,850</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Iroh's Demonstration</td><td class="num"><b>59.9%</b></td><td class="num">30,937</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Allies at Last</td><td class="num"><b>59.9%</b></td><td class="num">26,250</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar common">コモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Lost Days</td><td class="num"><b>59.5%</b></td><td class="num">98,427</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Firebending Lesson</td><td class="num"><b>59.4%</b></td><td class="num">76,609</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>It'll Quench Ya!</td><td class="num"><b>59.1%</b></td><td class="num">79,663</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Watery Grasp</td><td class="num"><b>58.8%</b></td><td class="num">79,967</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Forecasting Fortune Teller</td><td class="num"><b>58.5%</b></td><td class="num">92,971</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Octopus Form</td><td class="num"><b>58.5%</b></td><td class="num">70,638</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Path to Redemption</td><td class="num"><b>58.4%</b></td><td class="num">67,147</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Compassionate Healer</td><td class="num"><b>58.3%</b></td><td class="num">66,703</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Messenger Hawk</td><td class="num"><b>58.1%</b></td><td class="num">87,636</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Airbending Lesson</td><td class="num"><b>58.1%</b></td><td class="num">73,105</td></tr>
+      </tbody></table></div>
+    </div>
+  </section>
+</article>
+<article class="mode">
+  <h2>シールド <small>総試合数 35,858／全体勝率 58.7%</small></h2>
+  <p class="built">集計 2026-09-17</p>
+  <section><h3>環境の速さ</h3>
+    <div class="verdict">平均マナ総量2.9未満の速いデッキが最も勝率が高く、60.4%です。 直近8セットと比べると、速さは同じくらいです。</div>
+  </section>
+  <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
+    <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td><span class="dot" style="background:var(--w)"></span>白</td><td class="num"><b>61.3%</b></td><td class="num">19,569</td></tr>
+    <tr><td><span class="dot" style="background:var(--u)"></span>青</td><td class="num"><b>57.6%</b></td><td class="num">9,456</td></tr>
+    <tr><td><span class="dot" style="background:var(--g)"></span>緑</td><td class="num"><b>57.2%</b></td><td class="num">10,261</td></tr>
+    <tr><td><span class="dot" style="background:var(--b)"></span>黒</td><td class="num"><b>57.2%</b></td><td class="num">8,062</td></tr>
+    <tr><td><span class="dot" style="background:var(--r)"></span>赤</td><td class="num"><b>55.6%</b></td><td class="num">7,825</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>色の組み合わせ</h3><p class="lead">2色の組み合わせごとの勝率です。試合数の多い順に並べています。</p>
+    <table><thead><tr><th>色の組み合わせ</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>白</td><td class="num"><b>65.4%</b></td><td class="num">6,449</td></tr>
+    <tr><td>白青</td><td class="num"><b>59.0%</b></td><td class="num">4,254</td></tr>
+    <tr><td>白緑</td><td class="num"><b>60.4%</b></td><td class="num">3,540</td></tr>
+    <tr><td>青黒</td><td class="num"><b>58.4%</b></td><td class="num">2,396</td></tr>
+    <tr><td>赤緑</td><td class="num"><b>55.4%</b></td><td class="num">2,358</td></tr>
+    <tr><td>白赤</td><td class="num"><b>59.6%</b></td><td class="num">2,310</td></tr>
+    <tr><td>白黒</td><td class="num"><b>59.4%</b></td><td class="num">2,092</td></tr>
+    <tr><td>黒緑</td><td class="num"><b>56.8%</b></td><td class="num">1,336</td></tr>
+    <tr><td>黒</td><td class="num"><b>55.9%</b></td><td class="num">1,045</td></tr>
+    <tr><td>青緑</td><td class="num"><b>56.0%</b></td><td class="num">838</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>マナ総量ごとの勝率</h3><p class="lead">そのマナ総量のカードが手札か戦場にあった試合の勝率です。</p>
+    <table><thead><tr><th>マナ総量</th><th class="num">勝率</th><th class="num">種類数</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>1</td><td class="num"><b>59.7%</b></td><td class="num">22</td><td class="num">29,764</td></tr>
+    <tr><td>2</td><td class="num"><b>59.8%</b></td><td class="num">66</td><td class="num">103,157</td></tr>
+    <tr><td>3</td><td class="num"><b>59.7%</b></td><td class="num">57</td><td class="num">82,827</td></tr>
+    <tr><td>4</td><td class="num"><b>59.9%</b></td><td class="num">44</td><td class="num">55,636</td></tr>
+    <tr><td>5</td><td class="num"><b>57.8%</b></td><td class="num">27</td><td class="num">23,475</td></tr>
+    <tr><td>6</td><td class="num"><b>57.3%</b></td><td class="num">12</td><td class="num">10,487</td></tr>
+    <tr><td>7+</td><td class="num"><b>51.0%</b></td><td class="num">2</td><td class="num">956</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>レアリティ別の強いカード</h3><p class="lead">GIH勝率（そのカードが手札か戦場にあった試合の勝率）の高い順です。</p>
+    <div class="grid">
+      <div><h3><span class="rar mythic">神話レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Appa, Steadfast Guardian</td><td class="num"><b>69.2%</b></td><td class="num">1,319</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Koh, the Face Stealer</td><td class="num"><b>68.9%</b></td><td class="num">589</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>United Front</td><td class="num"><b>67.9%</b></td><td class="num">1,284</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Wan Shi Tong, Librarian</td><td class="num"><b>66.9%</b></td><td class="num">782</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Bumi, Unleashed</td><td class="num"><b>65.3%</b></td><td class="num">706</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Badgermole Cub</td><td class="num"><b>64.2%</b></td><td class="num">720</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Phoenix Fleet Airship</td><td class="num"><b>63.6%</b></td><td class="num">538</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar rare">レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Aang, Swift Savior</td><td class="num"><b>70.9%</b></td><td class="num">800</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>South Pole Voyager</td><td class="num"><b>69.2%</b></td><td class="num">2,213</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>The Fire Nation Drill</td><td class="num"><b>68.6%</b></td><td class="num">986</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Suki, Courageous Rescuer</td><td class="num"><b>66.4%</b></td><td class="num">2,327</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Momo, Friendly Flier</td><td class="num"><b>65.9%</b></td><td class="num">1,670</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Earth King's Lieutenant</td><td class="num"><b>65.2%</b></td><td class="num">534</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Ty Lee, Chi Blocker</td><td class="num"><b>64.7%</b></td><td class="num">1,247</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Raven Eagle</td><td class="num"><b>64.7%</b></td><td class="num">1,051</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>The Earth King</td><td class="num"><b>64.1%</b></td><td class="num">1,713</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Great Divide Guide</td><td class="num"><b>64.1%</b></td><td class="num">1,470</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar uncommon">アンコモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Earth Kingdom Jailer</td><td class="num"><b>67.8%</b></td><td class="num">3,617</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Gather the White Lotus</td><td class="num"><b>66.4%</b></td><td class="num">535</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Aang, the Last Airbender</td><td class="num"><b>65.8%</b></td><td class="num">6,899</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Water Tribe Rallier</td><td class="num"><b>65.8%</b></td><td class="num">3,475</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Momo, Playful Pet</td><td class="num"><b>64.9%</b></td><td class="num">2,994</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Invasion Submersible</td><td class="num"><b>64.7%</b></td><td class="num">1,568</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Earth Kingdom Protectors</td><td class="num"><b>64.5%</b></td><td class="num">2,331</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Invasion Reinforcements</td><td class="num"><b>64.1%</b></td><td class="num">3,244</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Glider Staff</td><td class="num"><b>63.5%</b></td><td class="num">2,709</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Heartless Act</td><td class="num"><b>62.6%</b></td><td class="num">1,558</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar common">コモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Compassionate Healer</td><td class="num"><b>63.7%</b></td><td class="num">5,414</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Jeong Jeong's Deserters</td><td class="num"><b>63.3%</b></td><td class="num">5,173</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Kyoshi Warriors</td><td class="num"><b>63.1%</b></td><td class="num">4,971</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Glider Kids</td><td class="num"><b>63.0%</b></td><td class="num">5,664</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Yip Yip!</td><td class="num"><b>62.6%</b></td><td class="num">2,283</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Airbending Lesson</td><td class="num"><b>62.5%</b></td><td class="num">5,191</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Path to Redemption</td><td class="num"><b>62.5%</b></td><td class="num">6,485</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>It'll Quench Ya!</td><td class="num"><b>61.7%</b></td><td class="num">2,169</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Avatar Enthusiasts</td><td class="num"><b>61.7%</b></td><td class="num">4,952</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Razor Rings</td><td class="num"><b>61.4%</b></td><td class="num">5,100</td></tr>
+      </tbody></table></div>
+    </div>
+  </section>
+</article>
+<section class="links"><h3>関連ページ</h3><ul>
+  <li><a href="../ratings.html?set=TLA">このセットの全カードの勝率一覧</a></li>
+  <li><a href="../reports.html?set=TLA">環境レポート（他のセットに切り替え）</a></li>
+  <li><a href="../">シールド構築の練習</a>／<a href="../draft.html">ドラフト構築の練習</a>／<a href="../assistant.html">ドラフト補助（PC・Chrome/Edge）</a></li>
+  <li><a href="index.html">セット一覧</a></li>
+</ul></section>
+<p class="source">出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。</p>
+</main>
+<footer>データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。</footer>
+</body>
+</html>

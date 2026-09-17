@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>マジック：ザ・ギャザリング｜マーベル スーパー・ヒーローズ リミテッド環境レポート（ドラフト・シールドの勝率） — MTGアリーナ リミテッド・ワークベンチ</title>
+<meta name="description" content="マジック：ザ・ギャザリング アリーナ「マジック：ザ・ギャザリング｜マーベル スーパー・ヒーローズ」のリミテッド環境を、17Landsの実戦データ（584,892試合）から読み解きます。環境の速さ、色の強さ、強いアーキタイプ、レアリティ別の強いカード。">
+<link rel="canonical" href="https://sealed-workbench.com/sets/MSH.html">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/MSH.html">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/MSH.en.html">
+<link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/MSH.html">
+<meta property="og:title" content="マジック：ザ・ギャザリング｜マーベル スーパー・ヒーローズ リミテッド環境レポート（ドラフト・シールドの勝率）">
+<meta property="og:description" content="マジック：ザ・ギャザリング アリーナ「マジック：ザ・ギャザリング｜マーベル スーパー・ヒーローズ」のリミテッド環境を、17Landsの実戦データ（584,892試合）から読み解きます。環境の速さ、色の強さ、強いアーキタイプ、レアリティ別の強いカード。">
+<meta property="og:url" content="https://sealed-workbench.com/sets/MSH.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta property="og:image" content="https://sealed-workbench.com/ogp-ja.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root{--pine:#23342E;--pine-deep:#18241F;--paper:#F3F5F1;--paper-2:#E6EAE3;--ink:#0F1C17;--muted:#63736C;--gold:#B8912F;--line:#CBD3CA;
+        --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:3px}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
+  .brand a{color:inherit;text-decoration:none}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;color:#CBD8D2;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #3D544B}
+  nav a:hover{background:#31473E;color:var(--paper)}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  .lang{margin-top:12px;font-size:13px}
+  .lang a{color:#CBD8D2}
+  main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
+  .mode{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:22px}
+  .mode > h2{font-size:22px;margin:0 0 4px;display:flex;align-items:baseline;gap:12px}
+  .mode > h2 small{font-size:13px;color:var(--muted);font-weight:500}
+  .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
+  section{margin-top:18px}
+  section h3{font-size:16px;margin:0 0 4px}
+  .lead{color:var(--muted);font-size:13px;margin:0 0 8px}
+  .verdict{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;font-size:14.5px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+  td{padding:6px 8px;border-bottom:1px solid var(--paper-2)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2B3833;margin-right:6px}
+  .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#1A1405}.rar.mythic{background:#C4552C}
+  .links ul{margin:6px 0 0;padding-left:1.2em}
+  .links a{color:var(--pine)}
+  .source{color:var(--muted);font-size:12px;margin-top:20px}
+  .setlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+  .setlist li a{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
+  .setlist li a:hover{border-color:var(--gold)}
+  .setlist small{display:block;color:var(--muted);font-size:12px}
+  footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+  @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand"><a href="../">MTGアリーナ リミテッド・ワークベンチ</a></div>
+    <nav>
+      <a href="../guide.html">使い方</a>
+      <a href="../">シールド構築</a>
+      <a href="../draft.html">ドラフト構築</a>
+      <a href="../ratings.html">カード勝率一覧</a>
+      <a href="../reports.html">環境レポート</a>
+      <a href="../swiss.html">スイスドロー</a>
+      <a href="../assistant.html">ドラフト補助</a>
+      <a href="../privacy.html">プライバシー</a>
+    </nav>
+    <h1>マジック：ザ・ギャザリング｜マーベル スーパー・ヒーローズ｜リミテッド環境レポート</h1>
+    <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。</p>
+    <div class="lang"><a href="MSH.en.html" hreflang="en">English</a></div>
+  </div>
+</header>
+<main>
+<article class="mode">
+  <h2>ドラフト <small>総試合数 525,292／全体勝率 56.7%</small></h2>
+  <p class="built">集計 2026-09-17</p>
+  <section><h3>環境の速さ</h3>
+    <div class="verdict">平均マナ総量2.9未満の速いデッキが最も勝率が高く、57.0%です。 直近8セットと比べると、速さは同じくらいです。</div>
+  </section>
+  <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
+    <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td><span class="dot" style="background:var(--w)"></span>白</td><td class="num"><b>57.7%</b></td><td class="num">305,600</td></tr>
+    <tr><td><span class="dot" style="background:var(--u)"></span>青</td><td class="num"><b>57.2%</b></td><td class="num">284,186</td></tr>
+    <tr><td><span class="dot" style="background:var(--g)"></span>緑</td><td class="num"><b>56.8%</b></td><td class="num">188,115</td></tr>
+    <tr><td><span class="dot" style="background:var(--b)"></span>黒</td><td class="num"><b>55.3%</b></td><td class="num">180,977</td></tr>
+    <tr><td><span class="dot" style="background:var(--r)"></span>赤</td><td class="num"><b>54.0%</b></td><td class="num">141,804</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>色の組み合わせ</h3><p class="lead">2色の組み合わせごとの勝率です。試合数の多い順に並べています。</p>
+    <table><thead><tr><th>色の組み合わせ</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>白青</td><td class="num"><b>59.5%</b></td><td class="num">123,992</td></tr>
+    <tr><td>白緑</td><td class="num"><b>57.8%</b></td><td class="num">58,824</td></tr>
+    <tr><td>青黒</td><td class="num"><b>55.8%</b></td><td class="num">42,220</td></tr>
+    <tr><td>白黒</td><td class="num"><b>56.8%</b></td><td class="num">40,786</td></tr>
+    <tr><td>青緑</td><td class="num"><b>58.0%</b></td><td class="num">36,074</td></tr>
+    <tr><td>白赤</td><td class="num"><b>55.9%</b></td><td class="num">28,331</td></tr>
+    <tr><td>黒緑</td><td class="num"><b>56.9%</b></td><td class="num">27,822</td></tr>
+    <tr><td>青黒緑</td><td class="num"><b>56.4%</b></td><td class="num">7,122</td></tr>
+    <tr><td>白黒緑</td><td class="num"><b>55.7%</b></td><td class="num">6,569</td></tr>
+    <tr><td>白</td><td class="num"><b>61.5%</b></td><td class="num">3,679</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>マナ総量ごとの勝率</h3><p class="lead">そのマナ総量のカードが手札か戦場にあった試合の勝率です。</p>
+    <table><thead><tr><th>マナ総量</th><th class="num">勝率</th><th class="num">種類数</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>1</td><td class="num"><b>57.9%</b></td><td class="num">26</td><td class="num">544,911</td></tr>
+    <tr><td>2</td><td class="num"><b>57.9%</b></td><td class="num">63</td><td class="num">1,451,294</td></tr>
+    <tr><td>3</td><td class="num"><b>57.8%</b></td><td class="num">80</td><td class="num">1,398,528</td></tr>
+    <tr><td>4</td><td class="num"><b>58.0%</b></td><td class="num">52</td><td class="num">1,001,018</td></tr>
+    <tr><td>5</td><td class="num"><b>58.7%</b></td><td class="num">25</td><td class="num">400,993</td></tr>
+    <tr><td>6</td><td class="num"><b>56.7%</b></td><td class="num">6</td><td class="num">85,719</td></tr>
+    <tr><td>7+</td><td class="num"><b>57.4%</b></td><td class="num">3</td><td class="num">59,286</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>レアリティ別の強いカード</h3><p class="lead">GIH勝率（そのカードが手札か戦場にあった試合の勝率）の高い順です。</p>
+    <div class="grid">
+      <div><h3><span class="rar mythic">神話レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Captain Marvel, Earth's Protector</td><td class="num"><b>69.5%</b></td><td class="num">7,087</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Doctor Doom</td><td class="num"><b>66.6%</b></td><td class="num">6,577</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Jennifer Walters</td><td class="num"><b>66.5%</b></td><td class="num">6,992</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>M.O.D.O.K.</td><td class="num"><b>64.5%</b></td><td class="num">5,875</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>The Coming of Galactus</td><td class="num"><b>64.3%</b></td><td class="num">5,615</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Avengers Assemble!</td><td class="num"><b>64.0%</b></td><td class="num">6,422</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Monica Rambeau</td><td class="num"><b>63.7%</b></td><td class="num">6,723</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Thor, God of Thunder</td><td class="num"><b>63.0%</b></td><td class="num">5,005</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Kang the Conqueror</td><td class="num"><b>62.4%</b></td><td class="num">6,530</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>King T'Challa</td><td class="num"><b>62.3%</b></td><td class="num">7,214</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar rare">レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--m)"></span>The Super Hero Civil War</td><td class="num"><b>70.4%</b></td><td class="num">15,409</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Leader, Super-Genius</td><td class="num"><b>68.3%</b></td><td class="num">15,986</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Wolverine, Fierce Fighter</td><td class="num"><b>65.1%</b></td><td class="num">10,370</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Avengers: Under Siege</td><td class="num"><b>64.7%</b></td><td class="num">9,538</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Agent Phil Coulson</td><td class="num"><b>64.7%</b></td><td class="num">13,849</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>The Wondrous Wasp</td><td class="num"><b>64.6%</b></td><td class="num">15,425</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Elektra, Daughter of the Hand</td><td class="num"><b>64.0%</b></td><td class="num">11,722</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Captain America, Wings of Freedom</td><td class="num"><b>62.8%</b></td><td class="num">13,470</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Cloak and Dagger, Entwined</td><td class="num"><b>62.8%</b></td><td class="num">11,236</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Vision Quest</td><td class="num"><b>61.8%</b></td><td class="num">11,309</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar uncommon">アンコモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Justice, Vance Astrovik</td><td class="num"><b>64.2%</b></td><td class="num">41,267</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Ka-Zar of the Savage Land</td><td class="num"><b>62.3%</b></td><td class="num">29,963</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>She-Hulk, Jade Defender</td><td class="num"><b>61.8%</b></td><td class="num">25,485</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Killmonger, Scourge of Wakanda</td><td class="num"><b>61.5%</b></td><td class="num">23,408</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Falcon, Winged Wonder</td><td class="num"><b>61.2%</b></td><td class="num">35,076</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Punishing Punch</td><td class="num"><b>60.8%</b></td><td class="num">26,113</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Agent Maria Hill</td><td class="num"><b>60.5%</b></td><td class="num">29,569</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Dark Deed</td><td class="num"><b>60.5%</b></td><td class="num">26,391</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Stature, Size Shifter</td><td class="num"><b>60.4%</b></td><td class="num">32,551</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Spider-Woman, Secret Agent</td><td class="num"><b>60.3%</b></td><td class="num">34,301</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar common">コモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Trickster's Stratagem</td><td class="num"><b>61.3%</b></td><td class="num">85,955</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Hero in Training</td><td class="num"><b>61.1%</b></td><td class="num">87,080</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Murdock's Crusade</td><td class="num"><b>61.1%</b></td><td class="num">71,735</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Web Up</td><td class="num"><b>60.6%</b></td><td class="num">76,503</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>S.H.I.E.L.D. Deployment Drone</td><td class="num"><b>60.5%</b></td><td class="num">83,946</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Undercover Skrull</td><td class="num"><b>60.4%</b></td><td class="num">58,287</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>We Say Thee Nay!</td><td class="num"><b>60.2%</b></td><td class="num">75,924</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Take Up the Shield</td><td class="num"><b>60.0%</b></td><td class="num">66,044</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Cruel Alliance</td><td class="num"><b>59.8%</b></td><td class="num">61,149</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Borough Backup</td><td class="num"><b>59.3%</b></td><td class="num">74,419</td></tr>
+      </tbody></table></div>
+    </div>
+  </section>
+</article>
+<article class="mode">
+  <h2>シールド <small>総試合数 59,600／全体勝率 58.4%</small></h2>
+  <p class="built">集計 2026-09-17</p>
+  <section><h3>環境の速さ</h3>
+    <div class="verdict">平均マナ総量2.9未満の速いデッキが最も勝率が高く、58.7%です。 直近8セットと比べると、速さは同じくらいです。</div>
+  </section>
+  <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
+    <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td><span class="dot" style="background:var(--w)"></span>白</td><td class="num"><b>59.9%</b></td><td class="num">36,006</td></tr>
+    <tr><td><span class="dot" style="background:var(--u)"></span>青</td><td class="num"><b>58.6%</b></td><td class="num">28,282</td></tr>
+    <tr><td><span class="dot" style="background:var(--g)"></span>緑</td><td class="num"><b>57.6%</b></td><td class="num">22,839</td></tr>
+    <tr><td><span class="dot" style="background:var(--b)"></span>黒</td><td class="num"><b>56.8%</b></td><td class="num">22,986</td></tr>
+    <tr><td><span class="dot" style="background:var(--r)"></span>赤</td><td class="num"><b>55.9%</b></td><td class="num">18,056</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>色の組み合わせ</h3><p class="lead">2色の組み合わせごとの勝率です。試合数の多い順に並べています。</p>
+    <table><thead><tr><th>色の組み合わせ</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>白青</td><td class="num"><b>62.2%</b></td><td class="num">10,661</td></tr>
+    <tr><td>白緑</td><td class="num"><b>60.6%</b></td><td class="num">6,550</td></tr>
+    <tr><td>白黒</td><td class="num"><b>59.9%</b></td><td class="num">4,538</td></tr>
+    <tr><td>青黒</td><td class="num"><b>57.1%</b></td><td class="num">4,490</td></tr>
+    <tr><td>白赤</td><td class="num"><b>60.5%</b></td><td class="num">3,612</td></tr>
+    <tr><td>白青緑</td><td class="num"><b>56.1%</b></td><td class="num">2,843</td></tr>
+    <tr><td>黒緑</td><td class="num"><b>57.1%</b></td><td class="num">2,664</td></tr>
+    <tr><td>青緑</td><td class="num"><b>58.8%</b></td><td class="num">2,616</td></tr>
+    <tr><td>白青黒</td><td class="num"><b>58.4%</b></td><td class="num">1,935</td></tr>
+    <tr><td>白黒緑</td><td class="num"><b>59.1%</b></td><td class="num">1,451</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>マナ総量ごとの勝率</h3><p class="lead">そのマナ総量のカードが手札か戦場にあった試合の勝率です。</p>
+    <table><thead><tr><th>マナ総量</th><th class="num">勝率</th><th class="num">種類数</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>1</td><td class="num"><b>59.0%</b></td><td class="num">26</td><td class="num">51,896</td></tr>
+    <tr><td>2</td><td class="num"><b>59.7%</b></td><td class="num">63</td><td class="num">158,252</td></tr>
+    <tr><td>3</td><td class="num"><b>59.3%</b></td><td class="num">78</td><td class="num">160,321</td></tr>
+    <tr><td>4</td><td class="num"><b>59.6%</b></td><td class="num">51</td><td class="num">112,531</td></tr>
+    <tr><td>5</td><td class="num"><b>60.2%</b></td><td class="num">24</td><td class="num">48,772</td></tr>
+    <tr><td>6</td><td class="num"><b>57.8%</b></td><td class="num">6</td><td class="num">10,662</td></tr>
+    <tr><td>7+</td><td class="num"><b>59.1%</b></td><td class="num">2</td><td class="num">5,785</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>レアリティ別の強いカード</h3><p class="lead">GIH勝率（そのカードが手札か戦場にあった試合の勝率）の高い順です。</p>
+    <div class="grid">
+      <div><h3><span class="rar mythic">神話レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Captain Marvel, Earth's Protector</td><td class="num"><b>71.7%</b></td><td class="num">1,315</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Jennifer Walters</td><td class="num"><b>68.2%</b></td><td class="num">1,101</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Monica Rambeau</td><td class="num"><b>66.8%</b></td><td class="num">1,287</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>M.O.D.O.K.</td><td class="num"><b>66.2%</b></td><td class="num">1,000</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Avengers Assemble!</td><td class="num"><b>66.2%</b></td><td class="num">1,213</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Doctor Doom</td><td class="num"><b>65.9%</b></td><td class="num">1,390</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Kang the Conqueror</td><td class="num"><b>65.5%</b></td><td class="num">1,097</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>Thor, God of Thunder</td><td class="num"><b>65.4%</b></td><td class="num">996</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>The Coming of Galactus</td><td class="num"><b>64.0%</b></td><td class="num">924</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Tony Stark</td><td class="num"><b>63.8%</b></td><td class="num">719</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar rare">レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--m)"></span>The Super Hero Civil War</td><td class="num"><b>71.8%</b></td><td class="num">2,467</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Leader, Super-Genius</td><td class="num"><b>69.2%</b></td><td class="num">2,364</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Agent Phil Coulson</td><td class="num"><b>66.3%</b></td><td class="num">2,353</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Avengers: Under Siege</td><td class="num"><b>65.9%</b></td><td class="num">1,224</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Elektra, Daughter of the Hand</td><td class="num"><b>65.2%</b></td><td class="num">1,754</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Cloak and Dagger, Entwined</td><td class="num"><b>65.2%</b></td><td class="num">1,541</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Wolverine, Fierce Fighter</td><td class="num"><b>64.9%</b></td><td class="num">1,508</td></tr>
+      <tr><td><span class="dot" style="background:var(--c)"></span>The Vision</td><td class="num"><b>64.5%</b></td><td class="num">2,789</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>The Ruinous Wrecking Crew</td><td class="num"><b>63.5%</b></td><td class="num">1,379</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>The Wondrous Wasp</td><td class="num"><b>63.1%</b></td><td class="num">1,978</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar uncommon">アンコモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Killmonger, Scourge of Wakanda</td><td class="num"><b>64.3%</b></td><td class="num">2,186</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Ka-Zar of the Savage Land</td><td class="num"><b>64.2%</b></td><td class="num">3,403</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Justice, Vance Astrovik</td><td class="num"><b>63.7%</b></td><td class="num">3,580</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Spider-Woman, Secret Agent</td><td class="num"><b>63.1%</b></td><td class="num">4,316</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Dark Deed</td><td class="num"><b>62.9%</b></td><td class="num">3,510</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>Captain America, Living Legend</td><td class="num"><b>62.8%</b></td><td class="num">2,287</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Red Guardian, Super-Soldier</td><td class="num"><b>62.2%</b></td><td class="num">3,681</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Agent 13, Sharon Carter</td><td class="num"><b>62.0%</b></td><td class="num">3,762</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Attuma, Atlantean Warlord</td><td class="num"><b>61.9%</b></td><td class="num">1,388</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Falcon's Wing Harness</td><td class="num"><b>61.6%</b></td><td class="num">2,146</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar common">コモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Hero in Training</td><td class="num"><b>63.3%</b></td><td class="num">8,499</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Murdock's Crusade</td><td class="num"><b>63.0%</b></td><td class="num">7,847</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>Trickster's Stratagem</td><td class="num"><b>62.9%</b></td><td class="num">6,425</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>S.H.I.E.L.D. Spy Kit</td><td class="num"><b>62.3%</b></td><td class="num">4,524</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Web Up</td><td class="num"><b>62.1%</b></td><td class="num">9,710</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>Cruel Alliance</td><td class="num"><b>62.0%</b></td><td class="num">7,290</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>Undercover Skrull</td><td class="num"><b>61.8%</b></td><td class="num">6,332</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Raft Security Officer</td><td class="num"><b>61.7%</b></td><td class="num">6,618</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>We Say Thee Nay!</td><td class="num"><b>61.7%</b></td><td class="num">6,034</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>Brave Brawler</td><td class="num"><b>61.6%</b></td><td class="num">7,078</td></tr>
+      </tbody></table></div>
+    </div>
+  </section>
+</article>
+<section class="links"><h3>関連ページ</h3><ul>
+  <li><a href="../ratings.html?set=MSH">このセットの全カードの勝率一覧</a></li>
+  <li><a href="../reports.html?set=MSH">環境レポート（他のセットに切り替え）</a></li>
+  <li><a href="../">シールド構築の練習</a>／<a href="../draft.html">ドラフト構築の練習</a>／<a href="../assistant.html">ドラフト補助（PC・Chrome/Edge）</a></li>
+  <li><a href="index.html">セット一覧</a></li>
+</ul></section>
+<p class="source">出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。</p>
+</main>
+<footer>データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。</footer>
+</body>
+</html>

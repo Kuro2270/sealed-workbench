@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>セット別のリミテッド環境レポート — MTGアリーナ リミテッド・ワークベンチ</title>
+<meta name="description" content="セットを選ぶと、ドラフトとシールドの環境レポートが開きます。発売日の新しい順です。">
+<link rel="canonical" href="https://sealed-workbench.com/sets/index.html">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/index.html">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/index.en.html">
+<link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/index.html">
+<meta property="og:title" content="セット別のリミテッド環境レポート">
+<meta property="og:url" content="https://sealed-workbench.com/sets/index.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta property="og:image" content="https://sealed-workbench.com/ogp-ja.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root{--pine:#23342E;--pine-deep:#18241F;--paper:#F3F5F1;--paper-2:#E6EAE3;--ink:#0F1C17;--muted:#63736C;--gold:#B8912F;--line:#CBD3CA;
+        --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:3px}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
+  .brand a{color:inherit;text-decoration:none}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;color:#CBD8D2;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #3D544B}
+  nav a:hover{background:#31473E;color:var(--paper)}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  .lang{margin-top:12px;font-size:13px}
+  .lang a{color:#CBD8D2}
+  main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
+  .mode{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:22px}
+  .mode > h2{font-size:22px;margin:0 0 4px;display:flex;align-items:baseline;gap:12px}
+  .mode > h2 small{font-size:13px;color:var(--muted);font-weight:500}
+  .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
+  section{margin-top:18px}
+  section h3{font-size:16px;margin:0 0 4px}
+  .lead{color:var(--muted);font-size:13px;margin:0 0 8px}
+  .verdict{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;font-size:14.5px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+  td{padding:6px 8px;border-bottom:1px solid var(--paper-2)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2B3833;margin-right:6px}
+  .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#1A1405}.rar.mythic{background:#C4552C}
+  .links ul{margin:6px 0 0;padding-left:1.2em}
+  .links a{color:var(--pine)}
+  .source{color:var(--muted);font-size:12px;margin-top:20px}
+  .setlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+  .setlist li a{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
+  .setlist li a:hover{border-color:var(--gold)}
+  .setlist small{display:block;color:var(--muted);font-size:12px}
+  footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+  @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand"><a href="../">MTGアリーナ リミテッド・ワークベンチ</a></div>
+    <nav>
+      <a href="../guide.html">使い方</a>
+      <a href="../">シールド構築</a>
+      <a href="../draft.html">ドラフト構築</a>
+      <a href="../ratings.html">カード勝率一覧</a>
+      <a href="../reports.html">環境レポート</a>
+      <a href="../swiss.html">スイスドロー</a>
+      <a href="../assistant.html">ドラフト補助</a>
+      <a href="../privacy.html">プライバシー</a>
+    </nav>
+    <h1>セット別のリミテッド環境レポート</h1>
+    <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。</p>
+    <div class="lang"><a href="index.en.html" hreflang="en">English</a></div>
+  </div>
+</header>
+<main>
+<p class="lead">セットを選ぶと、ドラフトとシールドの環境レポートが開きます。発売日の新しい順です。</p>
+<ul class="setlist">
+  <li><a href="HOB.html">ホビット<small>HOB　2026-08-14　436,926 試合</small></a></li>
+  <li><a href="MSH.html">マジック：ザ・ギャザリング｜マーベル スーパー・ヒーローズ<small>MSH　2026-06-26　584,892 試合</small></a></li>
+  <li><a href="SOS.html">ストリクスヘイヴンの秘密<small>SOS　2026-04-24　707,782 試合</small></a></li>
+  <li><a href="TMT.html">ミュータント タートルズ<small>TMT　2026-03-06　237,044 試合</small></a></li>
+  <li><a href="ECL.html">ローウィンの昏明<small>ECL　2026-01-23　648,813 試合</small></a></li>
+  <li><a href="TLA.html">アバター 伝説の少年アン<small>TLA　2025-11-21　660,617 試合</small></a></li>
+  <li><a href="OM1.html">領界路の彼方<small>OM1　2025-09-23　232,543 試合</small></a></li>
+  <li><a href="EOE.html">エッジ・オブ・エタニティーズ<small>EOE　2025-08-01　695,776 試合</small></a></li>
+  <li><a href="FIN.html">ファイナルファンタジー<small>FIN　2025-06-13　937,161 試合</small></a></li>
+  <li><a href="TDM.html">タルキール：龍嵐録<small>TDM　2025-04-11　666,532 試合</small></a></li>
+  <li><a href="DFT.html">霊気走破<small>DFT　2025-02-14　1,040,830 試合</small></a></li>
+  <li><a href="FDN.html">基本セット：ファウンデーションズ<small>FDN　2024-11-15　977,795 試合</small></a></li>
+  <li><a href="DSK.html">ダスクモーン：戦慄の館<small>DSK　2024-09-27　1,272,361 試合</small></a></li>
+  <li><a href="BLB.html">ブルームバロウ<small>BLB　2024-08-02　1,160,683 試合</small></a></li>
+  <li><a href="OTJ.html">サンダー・ジャンクションの無法者<small>OTJ　2024-04-19　1,452,728 試合</small></a></li>
+</ul>
+</main>
+<footer>データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。</footer>
+</body>
+</html>
