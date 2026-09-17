@@ -59,7 +59,7 @@ async function ensureNames(code){
   const path = `data/names/${code}.json`;
   let cur = await readJson(path, null) || { names: {}, set: "", released_at: "" };
   let changed = false;
-  if(!cur.set){
+  if(!cur.set || cur.set === code){
     try{ const r = await fetch(`https://api.scryfall.com/sets/${code.toLowerCase()}`, { headers: SCRY_HEADERS }); if(r.ok){ const j = await r.json(); cur.set = j.name; cur.released_at = j.released_at; changed = true; } }catch(e){}
   }
   if(!cur.names || !Object.keys(cur.names).length){
@@ -126,6 +126,11 @@ const TAGS = { ja: "#MTGアリーナ #MTGA", en: "#MTGArena #MTGLimited" };
 
 function topBy(d, rarity, n){ return ((d.top || {})[rarity] || []).slice(0, n); }
 function cardName(ctx, lang, name){ return lang === "ja" ? (ctx.cardJa[name] || name) : name; }
+/* 日本語名があれば14字、無ければ英語名なので30字まで許す */
+function cardLabel(ctx, lang, name){
+  const n = cardName(ctx, lang, name);
+  return short(n, lang === "ja" && ctx.cardJa[name] ? 14 : 30);
+}
 
 function weeklyPost(ctx, lang, theme, track){
   const d = ctx.draft; if(!d) return null;
@@ -137,7 +142,7 @@ function weeklyPost(ctx, lang, theme, track){
     const head = L ? `【${nm} ドラフト】今週の${theme === 0 ? "コモン" : "アンコモン"}勝率トップ5`
                    : `${nm} Draft — top 5 ${rar}s this week (GIH win rate)`;
     lines = [head, ""];
-    topBy(d, rar, 5).forEach((c, i) => lines.push(`~${i + 1}. ${short(cardName(ctx, lang, c.name), L ? 14 : 30)} ${pct(c.gih)}`));
+    topBy(d, rar, 5).forEach((c, i) => lines.push(`~${i + 1}. ${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`));
     lines.push("", L ? "~GIH勝率＝そのカードが手札か戦場にあった試合の勝率（17Lands公開データを集計）" : "~GIH = games-in-hand win rate, from 17Lands public data");
   }else if(theme === 2){
     const rows = (d.archetypes || []).filter(a => a.games >= 2000 && a.colors.length === 2).sort((a, b) => b.wr - a.wr).slice(0, 5);
@@ -152,7 +157,7 @@ function weeklyPost(ctx, lang, theme, track){
     lines = [head, ""];
     if(best) lines.push(L ? `最も勝率の高いデッキは${label}で ${pct(best.wr)}` : `Best-performing decks are ${label} at ${pct(best.wr)}`);
     const rares = topBy(d, "rare", 3).concat(topBy(d, "mythic", 2)).sort((a, b) => b.gih - a.gih).slice(0, 3);
-    if(rares.length){ lines.push("", L ? "~レア以上の勝率トップ3" : "~Top rares/mythics"); rares.forEach(c => lines.push(`~・${short(cardName(ctx, lang, c.name), L ? 14 : 30)} ${pct(c.gih)}`)); }
+    if(rares.length){ lines.push("", L ? "~レア以上の勝率トップ3" : "~Top rares/mythics"); rares.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); }
   }
   lines.push("", url, TAGS[lang]);
   return fit(lines);
@@ -184,7 +189,7 @@ function announcePost(ctx, lang, track){
     L ? `${games.toLocaleString()}試合分の実戦データから、カード勝率・環境レポート・ドラフト補助が使えます。` : `Card win rates, a format report and the draft assistant, built from ${games.toLocaleString()} games.`,
     ""
   ];
-  if(top.length){ lines.push(L ? "~いまのレア以上トップ3：" : "~Top rares so far:"); top.forEach(c => lines.push(`~・${short(cardName(ctx, lang, c.name), L ? 14 : 30)} ${pct(c.gih)}`)); lines.push(""); }
+  if(top.length){ lines.push(L ? "~いまのレア以上トップ3：" : "~Top rares so far:"); top.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); lines.push(""); }
   lines.push(url, TAGS[lang]);
   return fit(lines);
 }

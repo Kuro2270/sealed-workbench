@@ -118,7 +118,7 @@ async function setNamesJa(){
 }
 async function setInfo(code, cache){
   // 英語名と発売日は Scryfall から。取れたら data/names に残す
-  if(cache.set && cache.released_at) return cache;
+  if(cache.set && cache.set !== code && cache.released_at) return cache;   // コードのまま保存されたものは取り直す
   try{
     const r = await fetch(`${SCRY}/sets/${code.toLowerCase()}`, { headers: SCRY_HEADERS });
     if(r.ok){ const j = await r.json(); return { set: j.name, released_at: j.released_at }; }
