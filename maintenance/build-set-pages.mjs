@@ -191,9 +191,10 @@ async function cardNamesJa(code){
 }
 
 /* ---------- HTML ---------- */
-function shell(lang, code, head, body){
+function shell(lang, code, head, body, ogImage){
   const T = L[lang];
   const other = T.otherHref(code);
+  const og = ogImage || `${SITE}/ogp-${lang}.png`;
   const nav = Object.entries({ guide:"../guide.html", sealed:"../", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", privacy:"../privacy.html" })
     .map(([k, href]) => `<a href="${href}">${esc(T.nav[k])}</a>`).join("\n      ");
   return `<!DOCTYPE html>
@@ -204,7 +205,10 @@ function shell(lang, code, head, body){
 ${head}
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
-<meta property="og:image" content="${SITE}/ogp-${lang}.png">
+<meta property="og:image" content="${og}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:image" content="${og}">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -380,7 +384,7 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names){
   <li><a href="index${lang === "en" ? ".en" : ""}.html">${esc(T.linkIndex)}</a></li>
 </ul></section>
 <p class="source">${esc(T.source)}</p>`;
-  return shell(lang, code, head, { header, main: body + "\n" + links });
+  return shell(lang, code, head, { header, main: body + "\n" + links }, `${SITE}/${OUT}/og/${code}-${lang}.png`);
 }
 
 function indexPage(lang, rows){
