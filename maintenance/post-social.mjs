@@ -88,7 +88,7 @@ async function fetchJaNames(code){
     if(!jaByName[c.name]) jaByName[c.name] = p;
     if(!jaByName[front(c.name)]) jaByName[front(c.name)] = p;
   });
-  const names = {}, images = {};
+  const names = {}, images = {}, imagesEn = {};
   const put = (key, p) => { if(key && p && !names[key]) names[key] = p; };
   const imgOf = c => (c.image_uris && c.image_uris.normal) || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris && c.card_faces[0].image_uris.normal) || "";
   const jaImgByCn = {};
@@ -96,12 +96,15 @@ async function fetchJaNames(code){
   en.forEach(c => {
     const p = jaByCn[c.collector_number] || jaByName[c.name] || jaByName[front(c.name)];
     put(c.name, p); put(front(c.name), p);
-    // 画像は日本語版があればそれ、無ければ英語版。通常版（最初に出てくる版）を優先する
-    const u = jaImgByCn[c.collector_number] || imgOf(c);
-    if(u){ if(!images[c.name]) images[c.name] = u; if(!images[front(c.name)]) images[front(c.name)] = u; }
+    // 画像は日本語版と英語版を別々に持つ（投稿の言語に合わせて使い分ける）。通常版（最初に出てくる版）を優先
+    const ue = imgOf(c), uj = jaImgByCn[c.collector_number] || ue;
+    for(const key of [c.name, front(c.name)]){
+      if(uj && !images[key]) images[key] = uj;
+      if(ue && !imagesEn[key]) imagesEn[key] = ue;
+    }
   });
   Object.keys(jaByName).forEach(n => put(n, jaByName[n]));
-  return { names, images };
+  return { names, images, imagesEn };
 }
 
 async function ensureNames(code){
@@ -111,10 +114,10 @@ async function ensureNames(code){
   if(!cur.set || cur.set === code){
     try{ const r = await fetch(`https://api.scryfall.com/sets/${code.toLowerCase()}`, { headers: SCRY_HEADERS }); if(r.ok){ const j = await r.json(); cur.set = j.name; cur.released_at = j.released_at; changed = true; } }catch(e){}
   }
-  if(!cur.names || !Object.keys(cur.names).length || cur.v !== 3){
-    const { names, images } = await fetchJaNames(code);
-    cur.v = 3;
-    if(Object.keys(names).length){ cur.names = names; cur.images = images; changed = true; }
+  if(!cur.names || !Object.keys(cur.names).length || cur.v !== 4){
+    const { names, images, imagesEn } = await fetchJaNames(code);
+    cur.v = 4;
+    if(Object.keys(names).length){ cur.names = names; cur.images = images; cur.imagesEn = imagesEn; changed = true; }
   }
   if(changed){ try{ await (await import("node:fs/promises")).mkdir("data/names", { recursive: true }); await writeFile(path, JSON.stringify(cur), "utf8"); }catch(e){} }
   console.log(`${code}: 日本語名 ${Object.keys(cur.names || {}).length}件 / セット名 ${cur.set || "(不明)"}`);
@@ -130,7 +133,7 @@ async function setContext(code){
     code,
     name: { ja: ja[code.toLowerCase()] || names.set || code, en: names.set || code },
     cardJa: names.names || {},
-    cardImg: names.images || {},
+    cardImg: { ja: names.images || {}, en: names.imagesEn || names.images || {} },
     draft, sealed,
     url: lang => `${SITE}/sets/${code}${lang === "en" ? ".en" : ""}.html`
   };
@@ -183,7 +186,7 @@ function weeklyPost(ctx, lang, theme, track){
     const head = L ? `【${nm} ドラフト】今週の${theme === 0 ? "コモン" : "アンコモン"}勝率トップ5`
                    : `${nm} Draft — top 5 ${rar}s this week (GIH win rate)`;
     lines = [head, ""];
-    picCards = topBy(d, rar, 3);
+    picCards = topBy(d, rar, 5);
     topBy(d, rar, 5).forEach((c, i) => lines.push(`~${i + 1}. ${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`));
     lines.push("", L ? "~GIH勝率＝そのカードが手札か戦場にあった試合の勝率（17Lands公開データを集計）" : "~GIH = games-in-hand win rate, from 17Lands public data");
   }else if(theme === 2){
@@ -238,18 +241,20 @@ function announcePost(ctx, lang, track){
 }
 
 /* ---------- 画像：上位3枚のカードを横に並べる ---------- */
-async function composeImage(ctx, cards){
-  const urls = cards.map(c => ctx.cardImg[c.name] || ctx.cardImg[String(c.name).split(" // ")[0]]).filter(Boolean).slice(0, 3);
+async function composeImage(ctx, cards, lang){
+  const bank = ctx.cardImg[lang] || ctx.cardImg.en || {};
+  const urls = cards.map(c => bank[c.name] || bank[String(c.name).split(" // ")[0]]).filter(Boolean).slice(0, 5);
   if(!urls.length) return null;
   let sharp;
   try{ sharp = (await import("sharp")).default; }catch(e){ console.log("画像: sharp が無いので添付しません"); return null; }
-  const W = 1200, H = 675, pad = 24;                      // X で切れにくい 16:9
+  const W = 1600, pad = 24, maxH = 900;
   const n = urls.length;
-  // 高さと幅の両方に収まる大きさにして、余白を均等に配る
-  const cardW = Math.min(Math.round((H - pad * 2) * 488 / 680), Math.floor((W - pad * (n + 1)) / n));
+  // 枚数に応じてカードの大きさを決め、画像の高さはカードに合わせる（余白が広くならないように）
+  const cardW = Math.min(Math.round((maxH - pad * 2) * 488 / 680), Math.floor((W - pad * (n + 1)) / n));
   const cardH = Math.round(cardW * 680 / 488);
+  const H = cardH + pad * 2;
   const gap = Math.round((W - cardW * n) / (n + 1));
-  const top = Math.round((H - cardH) / 2);
+  const top = pad;
   const layers = [];
   for(let i = 0; i < urls.length; i++){
     try{
@@ -378,15 +383,14 @@ async function main(){
   const theme = process.env.THEME && THEMES[process.env.THEME] !== undefined ? THEMES[process.env.THEME] : week % 4;
   for(const code of sets){
     const ctx = await setContext(code);
-    let image = null, imageCards = null;
     for(const lang of LANGS){
       let px, pb;
       if(mode === "weekly"){ px = weeklyPost(ctx, lang, theme, "x"); pb = weeklyPost(ctx, lang, theme, "bsky"); }
       else if(mode === "monthly"){ px = monthlyPost(ctx, lang, "x"); pb = monthlyPost(ctx, lang, "bsky"); }
       else { px = announcePost(ctx, lang, "x"); pb = announcePost(ctx, lang, "bsky"); }
       if(!px){ console.log(`${code}/${lang}: データが無いので飛ばしました`); continue; }
-      // 画像は言語に関係なく同じなので、1回だけ作って使い回す
-      if(imageCards === null){ imageCards = px.cards || []; image = imageCards.length ? await composeImage(ctx, imageCards) : null; }
+      // 画像は投稿の言語に合わせる（日本語版・英語版のカード画像）。枚数は本文のリストと同じ
+      const image = (px.cards || []).length ? await composeImage(ctx, px.cards, lang) : null;
       await send(`${mode} ${code} ${lang}`, px.text, pb.text, image);
     }
   }
