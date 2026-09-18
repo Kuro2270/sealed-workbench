@@ -166,6 +166,9 @@ const short = (s, n) => s.length > n ? s.slice(0, n - 1) + "…" : s;
 /* ---------- 投稿文 ---------- */
 const COLOR = { ja: {W:"白",U:"青",B:"黒",R:"赤",G:"緑"}, en: {W:"W",U:"U",B:"B",R:"R",G:"G"} };
 const TAGS = { ja: "#MTGアリーナ #MTGA", en: "#MTGArena #MTGLimited" };
+/* Bluesky は X より文字数に余裕があり、話題別のフィードがハッシュタグで投稿を拾うので、英語は #MTG も付ける */
+const TAGS_BSKY = { ja: "#MTGアリーナ #MTGA", en: "#MTGArena #MTGLimited #MTG" };
+const tagsFor = (lang, track) => (track === "bsky" ? TAGS_BSKY : TAGS)[lang];
 
 function topBy(d, rarity, n){ return ((d.top || {})[rarity] || []).slice(0, n); }
 function cardName(ctx, lang, name){ return lang === "ja" ? (ctx.cardJa[name] || name) : name; }
@@ -205,7 +208,7 @@ function weeklyPost(ctx, lang, theme, track){
     picCards = rares;
     if(rares.length){ lines.push("", L ? "~レア・神話レアの勝率トップ3" : "~Top 3 rares & mythics by win rate"); rares.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); }
   }
-  lines.push("", url, TAGS[lang]);
+  lines.push("", url, tagsFor(lang, track));
   return { text: fit(lines), cards: picCards };
 }
 
@@ -218,7 +221,7 @@ function monthlyPost(ctx, lang, track){
     "",
     L ? `ドラフト・シールドあわせて ${games.toLocaleString()}試合分（17Lands公開データ）。カード勝率一覧と環境レポート、ドラフト補助に反映済みです。`
       : `${games.toLocaleString()} games across Draft and Sealed (17Lands public data). Card win rates, set reports and the draft assistant are all updated.`,
-    "", url, TAGS[lang]
+    "", url, tagsFor(lang, track)
   ];
   return { text: fit(lines), cards: [] };
 }
@@ -236,7 +239,7 @@ function announcePost(ctx, lang, track){
     ""
   ];
   if(top.length){ lines.push(L ? "~いまのレア・神話レアのトップ3：" : "~Top rares & mythics so far:"); top.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); lines.push(""); }
-  lines.push(url, TAGS[lang]);
+  lines.push(url, tagsFor(lang, track));
   return { text: fit(lines), cards: top };
 }
 
@@ -358,6 +361,7 @@ async function postBsky(text, image){
 async function send(label, textX, textBsky, image){
   console.log(`\n--- ${label} ---`);
   console.log(textX);
+  if(textBsky && textBsky !== textX) console.log(`（Bluesky 版）\n${textBsky}`);
   console.log(`（X換算 ${xLength(textX)} 文字／画像 ${image ? Math.round(image.length / 1024) + "KB" : "なし"}）`);
   if(DRY){
     if(image){ await writeFile(`social-preview-${label.replace(/\s+/g, "-")}.jpg`, image); console.log("画像を social-preview-*.jpg に保存しました"); }
