@@ -201,9 +201,9 @@ function weeklyPost(ctx, lang, theme, track){
     const head = L ? `【${nm} ドラフト】環境の速さ` : `${nm} Draft — format speed`;
     lines = [head, ""];
     if(best) lines.push(L ? `最も勝率の高いデッキは${label}で ${pct(best.wr)}` : `Best-performing decks are ${label} at ${pct(best.wr)}`);
-    const rares = topBy(d, "rare", 3).concat(topBy(d, "mythic", 2)).sort((a, b) => b.gih - a.gih).slice(0, 3);
+    const rares = topBy(d, "rare", 10).concat(topBy(d, "mythic", 10)).sort((a, b) => b.gih - a.gih).slice(0, 3);
     picCards = rares;
-    if(rares.length){ lines.push("", L ? "~レア以上の勝率トップ3" : "~Top rares/mythics"); rares.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); }
+    if(rares.length){ lines.push("", L ? "~レア・神話レアの勝率トップ3" : "~Top 3 rares & mythics by win rate"); rares.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); }
   }
   lines.push("", url, TAGS[lang]);
   return { text: fit(lines), cards: picCards };
@@ -228,14 +228,14 @@ function announcePost(ctx, lang, track){
   const L = lang === "ja";
   const d = ctx.draft || ctx.sealed;
   const games = (ctx.draft?.total_games || 0) + (ctx.sealed?.total_games || 0);
-  const top = d ? topBy(d, "rare", 2).concat(topBy(d, "mythic", 1)).sort((a, b) => b.gih - a.gih).slice(0, 3) : [];
+  const top = d ? topBy(d, "rare", 10).concat(topBy(d, "mythic", 10)).sort((a, b) => b.gih - a.gih).slice(0, 3) : [];
   const lines = [
     L ? `【${nm}】リミテッドの勝率データを公開しました` : `${nm} Limited data is live`,
     "",
     L ? `${games.toLocaleString()}試合分の実戦データから、カード勝率・環境レポート・ドラフト補助が使えます。` : `Card win rates, a format report and the draft assistant, built from ${games.toLocaleString()} games.`,
     ""
   ];
-  if(top.length){ lines.push(L ? "~いまのレア以上トップ3：" : "~Top rares so far:"); top.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); lines.push(""); }
+  if(top.length){ lines.push(L ? "~いまのレア・神話レアのトップ3：" : "~Top rares & mythics so far:"); top.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); lines.push(""); }
   lines.push(url, TAGS[lang]);
   return { text: fit(lines), cards: top };
 }
