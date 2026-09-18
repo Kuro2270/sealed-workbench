@@ -182,9 +182,10 @@ async function fetchJaNames(code){
 async function cardNamesJa(code){
   const path = `${NAMES}/${code}.json`;
   const cached = await readJson(path, null);
-  if(cached && cached.names && Object.keys(cached.names).length && cached.v === 4) return cached;   // 空や古い形式のものは取り直す
-  const { names, images } = await fetchJaNames(code);
-  const out = { v: 4, set: (cached && cached.set) || "", released_at: (cached && cached.released_at) || "", names, images, fetched_at: new Date().toISOString() };
+  // 空や古い形式のもの、英語版の画像が無いものは取り直す（v5 から英語版カード画像も必ず保存する）
+  if(cached && cached.names && Object.keys(cached.names).length && cached.v === 5 && cached.imagesEn && Object.keys(cached.imagesEn).length) return cached;
+  const { names, images, imagesEn } = await fetchJaNames(code);
+  const out = { v: 5, set: (cached && cached.set) || "", released_at: (cached && cached.released_at) || "", names, images, imagesEn, fetched_at: new Date().toISOString() };
   await mkdir(NAMES, { recursive: true });
   await writeFile(path, JSON.stringify(out), "utf8");
   return out;

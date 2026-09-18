@@ -116,9 +116,10 @@ async function ensureNames(code){
   if(!cur.set || cur.set === code){
     try{ const r = await fetch(`https://api.scryfall.com/sets/${code.toLowerCase()}`, { headers: SCRY_HEADERS }); if(r.ok){ const j = await r.json(); cur.set = j.name; cur.released_at = j.released_at; changed = true; } }catch(e){}
   }
-  if(!cur.names || !Object.keys(cur.names).length || cur.v !== 4){
+  // 英語版のカード画像が無い古い保存データは取り直す（英語の投稿に日本語版の画像が出てしまうため）
+  if(!cur.names || !Object.keys(cur.names).length || cur.v !== 5 || !cur.imagesEn || !Object.keys(cur.imagesEn).length){
     const { names, images, imagesEn } = await fetchJaNames(code);
-    cur.v = 4;
+    cur.v = 5;
     if(Object.keys(names).length){ cur.names = names; cur.images = images; cur.imagesEn = imagesEn; changed = true; }
   }
   if(changed){ try{ await (await import("node:fs/promises")).mkdir("data/names", { recursive: true }); await writeFile(path, JSON.stringify(cur), "utf8"); }catch(e){} }
@@ -135,7 +136,7 @@ async function setContext(code){
     code,
     name: { ja: ja[code.toLowerCase()] || names.set || code, en: names.set || code },
     cardJa: names.names || {},
-    cardImg: { ja: names.images || {}, en: names.imagesEn || names.images || {} },
+    cardImg: { ja: names.images || {}, en: names.imagesEn || {} },   // 英語は英語版の画像だけを使う（無ければ画像なしで投稿）
     draft, sealed,
     url: lang => `${SITE}/sets/${code}${lang === "en" ? ".en" : ""}.html`
   };

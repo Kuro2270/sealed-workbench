@@ -131,7 +131,7 @@ async function main(){
     const top = mythics.concat(rares).slice(0, 3);
     for(const lang of ["ja", "en"]){
       const name = lang === "ja" ? (ja[code.toLowerCase()] || names.set || code) : (names.set || code);
-      const bank = lang === "ja" ? (names.images || {}) : (names.imagesEn || names.images || {});
+      const bank = lang === "ja" ? (names.images || {}) : (names.imagesEn || {});   // 英語版に日本語版の画像を使わない
       const urls = top.map(c => bank[c.name] || bank[String(c.name).split(" // ")[0]]).filter(Boolean);
       const svg = svgFor(lang, name, d, urls);
       const out = `${OUT}/${code}-${lang}`;
