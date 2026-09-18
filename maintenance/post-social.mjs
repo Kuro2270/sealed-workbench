@@ -12,6 +12,7 @@
  *   BSKY_HANDLE, BSKY_APP_PASSWORD                              … Bluesky に投稿する（無ければ飛ばす）
  *   DRY_RUN=1                                                   … 投稿せず文面だけ表示する
  *   LANGS=ja,en                                                 … 投稿する言語（既定は両方）
+ *   TARGETS=both / bsky / x                                     … 投稿先（既定は両方。見た目の確認は bsky だけにすると X の課金がかからない）
  *
  * 投稿の考え方
  *   ・自分のアカウントに、自分のデータから作った内容を、決まった頻度で出すだけ。返信や他人への働きかけはしない。
@@ -29,6 +30,7 @@ const SITE = process.env.SITE_URL || "https://sealed-workbench.com";
 const DRY = process.env.DRY_RUN === "1";
 const LANGS = (process.env.LANGS || "ja,en").split(",").map(s => s.trim()).filter(Boolean);
 const mode = process.argv[2] || "weekly";
+const TARGETS = (process.env.TARGETS || "both").trim();
 
 async function readJson(path, fallback){ try{ return JSON.parse(await readFile(path, "utf8")); }catch(e){ return fallback; } }
 const pct = v => (v * 100).toFixed(1) + "%";
@@ -368,6 +370,8 @@ async function send(label, textX, textBsky, image){
     console.log("DRY_RUN のため投稿しません"); return;
   }
   for(const [name, fn, text] of [["X", postX, textX], ["Bluesky", postBsky, textBsky]]){
+    if(TARGETS === "bsky" && name === "X"){ console.log("X: 投稿先の指定により飛ばしました"); continue; }
+    if(TARGETS === "x" && name === "Bluesky"){ console.log("Bluesky: 投稿先の指定により飛ばしました"); continue; }
     try{ console.log(await fn(text, image)); }
     catch(e){ console.error(`${name}: 失敗 — ${e.message}`); process.exitCode = 1; }
   }
