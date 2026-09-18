@@ -153,6 +153,9 @@ async function build(set, format, metaCache){
   let cmcOf = [], isLand = []; // カードごとのマナ総量と土地かどうか
   let gihGames, gihWins, gpGames, gpWins, gnsGames, gnsWins;
   let rows = 0, wins = 0, turnSum = 0, turnCount = 0;
+  // 2色のデッキごとのカード勝率（シナジーの見える化に使う）。pair → { g: Int32Array, w: Int32Array }
+  const PAIR_KEYS = ["WU","WB","WR","WG","UB","UR","UG","BR","BG","RG"];
+  const pairStats = new Map();
 
   const arche = new Map();                                        // 色の組み合わせ → {g, w}
   const speed = new Map(SPEED_BUCKETS.map(b => [b.key, { g: 0, w: 0 }]));
@@ -210,6 +213,7 @@ async function build(set, format, metaCache){
       gihGames = new Int32Array(n); gihWins = new Int32Array(n);
       gpGames  = new Int32Array(n); gpWins  = new Int32Array(n);
       gnsGames = new Int32Array(n); gnsWins = new Int32Array(n);
+      PAIR_KEYS.forEach(k => pairStats.set(k, { g: new Int32Array(n), w: new Int32Array(n) }));
       process.stderr.write(`  対象カード: ${n}種\n`);
       continue;
     }
@@ -233,6 +237,14 @@ async function build(set, format, metaCache){
     }
 
     let deckCmcSum = 0, deckSpells = 0;
+    // このデッキの2色（W/U/B/R/G の並びに正規化）。2色でなければ null
+    let pairKey = null;
+    if(colorsIdx >= 0){
+      const mc = String(f[colorsIdx] || "").replace(/[^WUBRG]/g, "");
+      if(mc.length === 2){ const k = "WUBRG".split("").filter(x => mc.includes(x)).join(""); if(pairStats.has(k)) pairKey = k; }
+    }
+    const ps = pairKey ? pairStats.get(pairKey) : null;
+
     for(let i = 0; i < names.length; i++){
       const n = +f[deckCol[i]] || 0;
       if(!n) continue;
@@ -244,7 +256,7 @@ async function build(set, format, metaCache){
       const cols = gihCols[i];
       for(let k = 0; k < cols.length; k++) seen += +f[cols[k]] || 0;
 
-      if(seen > 0){ gihGames[i]++; gihWins[i] += won; }
+      if(seen > 0){ gihGames[i]++; gihWins[i] += won; if(ps){ ps.g[i]++; ps.w[i] += won; } }
       else { gnsGames[i]++; gnsWins[i] += won; }
     }
 
@@ -274,7 +286,11 @@ async function build(set, format, metaCache){
       gns,
       iwd: (gih != null && gns != null) ? gih - gns : null,
       games:    gihGames[i],
-      gp_games: gpGames[i]
+      gp_games: gpGames[i],
+      // 2色のデッキごとの GIH 勝率と試合数（母数200以上のみ）。{ "BG": [0.583, 1234], ... }
+      by_pair: Object.fromEntries(PAIR_KEYS.map(k => {
+        const ps = pairStats.get(k); return [k, ps.g[i] >= 200 ? [Math.round(ps.w[i] / ps.g[i] * 10000) / 10000, ps.g[i]] : null];
+      }).filter(([, v]) => v))
     };
   }).filter(c => c.gp_games > 0)
     .sort((a, b) => (b.gih ?? -1) - (a.gih ?? -1));

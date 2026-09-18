@@ -62,10 +62,16 @@ function mergeSources(list){
   list.forEach(d => (d.cards || []).forEach(c => {
     if(!byName.has(c.name)) byName.set(c.name, {
       name: c.name, cmc: c.cmc, rarity: c.rarity, color: c.color, land: c.land,
-      gihG: 0, gihW: 0, iwdG: 0, iwdW: 0, gpG: 0, gpW: 0
+      gihG: 0, gihW: 0, iwdG: 0, iwdW: 0, gpG: 0, gpW: 0, pair: {}
     });
     const e = byName.get(c.name);
     if(c.gih != null && c.games){ e.gihG += c.games; e.gihW += c.gih * c.games; }
+    // 2色のデッキごとの勝率も試合数で重みづけして統合する
+    Object.entries(c.by_pair || {}).forEach(([k, v]) => {
+      if(!Array.isArray(v)) return;
+      if(!e.pair[k]) e.pair[k] = { g: 0, w: 0 };
+      e.pair[k].g += v[1]; e.pair[k].w += v[0] * v[1];
+    });
     if(c.iwd != null && c.games){ e.iwdG += c.games; e.iwdW += c.iwd * c.games; }
     if(c.gp  != null && c.gp_games){ e.gpG += c.gp_games; e.gpW += c.gp * c.gp_games; }
     if(c.cmc != null && e.cmc == null) e.cmc = c.cmc;
@@ -78,7 +84,8 @@ function mergeSources(list){
     gih: e.gihG ? e.gihW / e.gihG : null,
     iwd: e.iwdG ? e.iwdW / e.iwdG : null,
     gp:  e.gpG  ? e.gpW  / e.gpG  : null,
-    games: e.gihG, gp_games: e.gpG
+    games: e.gihG, gp_games: e.gpG,
+    by_pair: Object.fromEntries(Object.entries(e.pair).filter(([, v]) => v.g >= 200).map(([k, v]) => [k, [Math.round(v.w / v.g * 10000) / 10000, v.g]]))
   })).sort((a, b) => (b.gih ?? -1) - (a.gih ?? -1));
 
   // 色の組み合わせ
