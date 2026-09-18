@@ -21,6 +21,11 @@ on:
         type: choice
         options: [auto, commons, uncommons, pairs, speed]
         default: auto
+      targets:
+        description: "投稿先（both=両方 / bsky=Blueskyだけ / x=Xだけ）"
+        type: choice
+        options: [both, bsky, x]
+        default: both
       dry_run:
         description: "文面の確認だけ（投稿しない）"
         type: boolean
@@ -49,6 +54,7 @@ jobs:
           LANGS: ${{ inputs.langs || 'ja,en' }}
           THEME: ${{ inputs.theme != 'auto' && inputs.theme || '' }}
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
+          TARGETS: ${{ inputs.targets || 'both' }}
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
