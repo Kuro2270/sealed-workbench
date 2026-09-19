@@ -13,7 +13,9 @@
  *   BSKY_HANDLE, BSKY_APP_PASSWORD                              … Bluesky に投稿する（無ければ飛ばす）
  *   DRY_RUN=1                                                   … 投稿せず文面だけ表示する
  *   LANGS=ja,en                                                 … 投稿する言語（既定は両方）
- *   TARGETS=both / bsky / x                                     … 投稿先（既定は両方。見た目の確認は bsky だけにすると X の課金がかからない）
+ *   TARGETS=both / bsky / x / x-media                           … 投稿先（既定は両方）
+ *        bsky    … Bluesky だけ（無料）
+ *        x-media … X に動画を送るところまで試し、投稿はしない（投稿しなければ課金されない想定の確認用）
  *
  * 投稿の考え方
  *   ・自分のアカウントに、自分のデータから作った内容を、決まった頻度で出すだけ。返信や他人への働きかけはしない。
@@ -32,6 +34,7 @@ const DRY = process.env.DRY_RUN === "1";
 const LANGS = (process.env.LANGS || "ja,en").split(",").map(s => s.trim()).filter(Boolean);
 const mode = process.argv[2] || "weekly";
 const TARGETS = (process.env.TARGETS || "both").trim();
+const X_MEDIA_ONLY = TARGETS === "x-media";   // X は添付の送信だけ試して、投稿はしない
 
 async function readJson(path, fallback){ try{ return JSON.parse(await readFile(path, "utf8")); }catch(e){ return fallback; } }
 const pct = v => (v * 100).toFixed(1) + "%";
@@ -424,6 +427,7 @@ async function postX(text, image){
     else id = await uploadXImage(image);
     if(id) payload.media = { media_ids: [String(id)] };
     else console.log("X: 画像は添付せずに投稿します");
+    if(X_MEDIA_ONLY) return `X: 添付の送信まで成功しました（media_id ${id}）。投稿はしていません`;
   }
   const r = await fetch(url, { method: "POST", headers: { Authorization: oauthHeader("POST", url), "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   const body = await r.text();
@@ -541,7 +545,7 @@ async function send(label, textX, textBsky, image, lang){
   }
   for(const [name, fn, text] of [["X", postX, textX], ["Bluesky", postBsky, textBsky]]){
     if(TARGETS === "bsky" && name === "X"){ console.log("X: 投稿先の指定により飛ばしました"); continue; }
-    if(TARGETS === "x" && name === "Bluesky"){ console.log("Bluesky: 投稿先の指定により飛ばしました"); continue; }
+    if((TARGETS === "x" || X_MEDIA_ONLY) && name === "Bluesky"){ console.log("Bluesky: 投稿先の指定により飛ばしました"); continue; }
     try{ console.log(await fn(text, image, lang)); }
     catch(e){ console.error(`${name}: 失敗 — ${e.message}`); process.exitCode = 1; }
   }
