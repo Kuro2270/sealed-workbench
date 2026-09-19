@@ -276,12 +276,24 @@ async function promoPost(lang, track){
   const lines = [...PROMO.text[lang], tagsFor(lang, track)];
   return { text: fit(lines), cards: [] };
 }
+/* 毎月同じファイルを送ると「同じ動画がもう有る」と断られることがあるので、
+   MP4 の末尾に「free」箱（読み飛ばされる余白）を足して、実行ごとに別のファイルにする。
+   映像や音声には一切触れないので、見え方は変わらない。 */
+function stampVideo(buf){
+  const note = Buffer.from(`sealed-workbench ${new Date().toISOString()}`, "utf8");
+  const box = Buffer.alloc(8 + note.length);
+  box.writeUInt32BE(box.length, 0);
+  box.write("free", 4, "ascii");
+  note.copy(box, 8);
+  return Buffer.concat([buf, box]);
+}
 /* 紹介用の動画を読み込む。無ければ null（文面だけの投稿はしない） */
 async function loadPromoVideo(lang){
   const path = PROMO.file(lang);
-  let buf;
-  try{ buf = await readFile(path); }
+  let raw;
+  try{ raw = await readFile(path); }
   catch(e){ console.log(`動画 ${path} が見つかりません`); return null; }
+  const buf = stampVideo(raw);
   buf.meta = { kind: "video", name: `pick-support-${lang}.mp4`, width: PROMO.size.width, height: PROMO.size.height, alt: PROMO.alt[lang] };
   return buf;
 }
@@ -459,15 +471,23 @@ async function uploadBskyVideo(session, buf, name){
     { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "video/mp4", "Content-Length": String(buf.length) }, body: buf });
   const upBody = await up.text();
   if(!up.ok) throw new Error(`動画の送信 HTTP ${up.status}: ${upBody.slice(0, 300)}`);
-  let job = JSON.parse(upBody).jobStatus || {};
+  // 送信したときは中身がそのまま、確認したときは jobStatus に包まれて返ってくるので、どちらでも読めるようにする
+  const readJob = (body) => { const j = JSON.parse(body); return j.jobStatus || j; };
+  let job = readJob(upBody);
+  if(job.error) throw new Error(`動画の受け付けで断られました: ${job.error}${job.message ? " — " + job.message : ""}`);
+  if(!job.blob && !job.jobId) throw new Error("受け付け番号が取れませんでした: " + upBody.slice(0, 300));
+
   // 変換待ち
   for(let n = 0; !job.blob && n < 60; n++){
     if(job.state === "JOB_STATE_FAILED") throw new Error("変換に失敗しました: " + (job.error || JSON.stringify(job).slice(0, 200)));
     await sleep(2000);
     const r = await fetch(`${vbase}/app.bsky.video.getJobStatus?jobId=${encodeURIComponent(job.jobId)}`, { headers: { Authorization: `Bearer ${token}` } });
-    if(!r.ok) throw new Error(`変換の確認 HTTP ${r.status}: ${(await r.text()).slice(0, 200)}`);
-    job = (await r.json()).jobStatus || {};
-    console.log(`Bluesky 動画: ${job.state || "変換中"}`);
+    const body = await r.text();
+    if(!r.ok) throw new Error(`変換の確認 HTTP ${r.status}: ${body.slice(0, 200)}`);
+    const next = readJob(body);
+    if(!next.jobId && job.jobId) next.jobId = job.jobId;   // 番号が省かれて返ることがあるので引き継ぐ
+    job = next;
+    console.log(`Bluesky 動画: ${job.state || "変換中"}${job.progress != null ? " " + job.progress + "%" : ""}`);
   }
   if(!job.blob) throw new Error("変換が終わりませんでした");
   return job.blob;
