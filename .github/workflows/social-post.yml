@@ -24,9 +24,9 @@ on:
         options: [auto, commons, uncommons, pairs, speed]
         default: auto
       targets:
-        description: "投稿先（both=両方 / bsky=Blueskyだけ / x=Xだけ）"
+        description: "投稿先（both=両方 / bsky=Blueskyだけ / x=Xだけ / x-media=Xへの添付だけ試す・投稿しない）"
         type: choice
-        options: [both, bsky, x]
+        options: [both, bsky, x, x-media]
         default: both
       dry_run:
         description: "文面の確認だけ（投稿しない）"
