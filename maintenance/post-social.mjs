@@ -5,6 +5,7 @@
  *   node maintenance/post-social.mjs weekly    今週の定型投稿（週替わりで話題を回す）
  *   node maintenance/post-social.mjs monthly   月次のデータ更新の告知
  *   node maintenance/post-social.mjs announce  新セットの告知（ANNOUNCE_SETS="HOB MSH" のように渡す）
+ *   node maintenance/post-social.mjs promo     ドラフト補助の紹介（動画つき・月1回を想定）
  *   node maintenance/post-social.mjs test      動作確認（短い文、URLなし）
  *
  * 環境変数
@@ -246,6 +247,45 @@ function announcePost(ctx, lang, track){
   return { text: fit(lines), cards: top };
 }
 
+/* ---------- 紹介投稿（ドラフト補助の動画つき） ---------- */
+const PROMO = {
+  file: lang => `media/pick-support-${lang}.mp4`,
+  size: { width: 1920, height: 1080 },
+  text: {
+    ja: [
+      "MTGアリーナのドラフト中に、17Landsの勝率データから次のピックを理由つきで提案する「ドラフト補助」です。",
+      "",
+      "いま向かっている色、環境で強い2色、部族シナジーも見て選びます。無料・登録不要、ブラウザだけで動きます。",
+      "",
+      `${SITE}/assistant.html?from=promo`
+    ],
+    en: [
+      "Draft pick support for MTG Arena: it suggests your next pick from 17Lands win-rate data, and tells you why.",
+      "",
+      "It weighs your current colours, the format's best pairs and tribal synergies. Free, no sign-up.",
+      "",
+      `${SITE}/assistant.html?from=promo`
+    ]
+  },
+  alt: {
+    ja: "MTGアリーナのドラフト画面の横に、次のピックのおすすめと勝率、選んだ理由が表示されている様子",
+    en: "An MTG Arena draft screen with a side panel showing the recommended pick, its win rate and the reasoning behind it"
+  }
+};
+async function promoPost(lang, track){
+  const lines = [...PROMO.text[lang], tagsFor(lang, track)];
+  return { text: fit(lines), cards: [] };
+}
+/* 紹介用の動画を読み込む。無ければ null（文面だけの投稿はしない） */
+async function loadPromoVideo(lang){
+  const path = PROMO.file(lang);
+  let buf;
+  try{ buf = await readFile(path); }
+  catch(e){ console.log(`動画 ${path} が見つかりません`); return null; }
+  buf.meta = { kind: "video", name: `pick-support-${lang}.mp4`, width: PROMO.size.width, height: PROMO.size.height, alt: PROMO.alt[lang] };
+  return buf;
+}
+
 /* ---------- 画像：上位3枚のカードを横に並べる ---------- */
 async function composeImage(ctx, cards, lang){
   const bank = ctx.cardImg[lang] || ctx.cardImg.en || {};
@@ -281,7 +321,7 @@ async function composeImage(ctx, cards, lang){
   // Bluesky は縦横比を伝えないと、縦長の枠に収めようとして上下に大きな余白が付く。
   // 実際に並んだカードから画像の説明文（代替テキスト）も作る。
   out.meta = {
-    width: W, height: H,
+    kind: "image", width: W, height: H,
     alt: (lang === "ja" ? "カード：" : "Cards: ") + shown.map(c => cardName(ctx, lang, c.name)).join(lang === "ja" ? "／" : ", ")
   };
   return out;
@@ -293,8 +333,13 @@ function oauthHeader(method, url){
   const K = process.env.X_API_KEY, S = process.env.X_API_SECRET, T = process.env.X_ACCESS_TOKEN, TS = process.env.X_ACCESS_SECRET;
   const p = { oauth_consumer_key: K, oauth_nonce: crypto.randomBytes(16).toString("hex"), oauth_signature_method: "HMAC-SHA1",
               oauth_timestamp: Math.floor(Date.now() / 1000).toString(), oauth_token: T, oauth_version: "1.0" };
-  const norm = Object.keys(p).sort().map(k => `${enc(k)}=${enc(p[k])}`).join("&");
-  const base = [method, enc(url), enc(norm)].join("&");
+  // 署名は「クエリを外したURL」と「クエリ＋oauth項目をまとめて並べたもの」から作る決まり。
+  // 見出しに入れるのは oauth 項目だけ。
+  const u = new URL(url);
+  const all = { ...p };
+  u.searchParams.forEach((v, k) => { all[k] = v; });
+  const norm = Object.keys(all).sort().map(k => `${enc(k)}=${enc(all[k])}`).join("&");
+  const base = [method, enc(u.origin + u.pathname), enc(norm)].join("&");
   p.oauth_signature = crypto.createHmac("sha1", `${enc(S)}&${enc(TS)}`).update(base).digest("base64");
   return "OAuth " + Object.keys(p).sort().map(k => `${enc(k)}="${enc(p[k])}"`).join(", ");
 }
@@ -316,13 +361,57 @@ async function uploadXImage(buf){
   catch(e){ console.log("X 画像(v1.1): " + e.message); }
   return null;
 }
+/* 動画は一度に送れないので、初期化 → 分割送信 → 確定 → 変換待ち、の順で進める */
+async function uploadXVideo(buf){
+  const root = "https://api.x.com/2/media/upload";
+  const call = async (url, opt = {}) => {
+    const r = await fetch(url, { ...opt, headers: { Authorization: oauthHeader(opt.method || "GET", url), ...(opt.headers || {}) } });
+    const body = await r.text();
+    if(!r.ok) throw new Error(`HTTP ${r.status}: ${body.slice(0, 300)}`);
+    return body ? JSON.parse(body) : {};
+  };
+  // 初期化
+  const init = await call(`${root}/initialize`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ media_type: "video/mp4", total_bytes: buf.length, media_category: "tweet_video" })
+  });
+  const id = init.data?.id || init.data?.media_id_string || init.id || init.media_id_string;
+  if(!id) throw new Error("media_id が返りませんでした: " + JSON.stringify(init).slice(0, 200));
+  // 分割して送る（1片 4MB）
+  const CHUNK = 4 * 1024 * 1024;
+  for(let i = 0, off = 0; off < buf.length; i++, off += CHUNK){
+    const part = buf.subarray(off, Math.min(off + CHUNK, buf.length));
+    const form = new FormData();
+    form.append("segment_index", String(i));
+    form.append("media", new Blob([part], { type: "application/octet-stream" }), "chunk");
+    await call(`${root}/${id}/append`, { method: "POST", body: form });
+    console.log(`X 動画: ${Math.min(off + CHUNK, buf.length)} / ${buf.length} バイト送信`);
+  }
+  // 確定
+  let info = (await call(`${root}/${id}/finalize`, { method: "POST" }));
+  let st = info.data?.processing_info || info.processing_info;
+  // 変換待ち
+  for(let n = 0; st && st.state !== "succeeded" && n < 40; n++){
+    if(st.state === "failed") throw new Error("変換に失敗しました: " + JSON.stringify(st).slice(0, 200));
+    await sleep((st.check_after_secs || 3) * 1000);
+    const s2 = await call(`${root}?command=STATUS&media_id=${encodeURIComponent(id)}`);
+    st = s2.data?.processing_info || s2.processing_info;
+    console.log(`X 動画: 変換 ${st ? st.state : "完了"}`);
+  }
+  if(st && st.state !== "succeeded") throw new Error("変換が終わりませんでした");
+  return id;
+}
 async function postX(text, image){
   if(!process.env.X_API_KEY || !process.env.X_ACCESS_TOKEN) return "X: 鍵が無いので飛ばしました";
   const url = "https://api.x.com/2/tweets";
   const payload = { text };
   if(image){
-    const id = await uploadXImage(image);
-    if(id) payload.media = { media_ids: [String(id)] }; else console.log("X: 画像は添付せずに投稿します");
+    const isVideo = image.meta && image.meta.kind === "video";
+    let id = null;
+    if(isVideo){ id = await uploadXVideo(image); }   // 動画は失敗したら投稿ごと中止する（文面だけ出ても意味がないため）
+    else id = await uploadXImage(image);
+    if(id) payload.media = { media_ids: [String(id)] };
+    else console.log("X: 画像は添付せずに投稿します");
   }
   const r = await fetch(url, { method: "POST", headers: { Authorization: oauthHeader("POST", url), "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   const body = await r.text();
@@ -349,6 +438,40 @@ function bskyFacets(text){
   }
   return facets;
 }
+/* Bluesky の動画は、専用の受け口に預けてから変換の完了を待つ */
+async function uploadBskyVideo(session, buf, name){
+  const base = "https://bsky.social/xrpc";
+  // 預け先（自分のデータの置き場所）を調べる
+  let pds = "bsky.social";
+  try{
+    const svc = (session.didDoc?.service || []).find(x => String(x.id).endsWith("atproto_pds"));
+    if(svc?.serviceEndpoint) pds = new URL(svc.serviceEndpoint).hostname;
+  }catch(e){}
+  // 動画の受け口に渡すための、期限つきの合い鍵をもらう
+  const exp = Math.floor(Date.now() / 1000) + 60 * 30;
+  const sa = await fetch(`${base}/com.atproto.server.getServiceAuth?aud=${encodeURIComponent("did:web:" + pds)}&lxm=com.atproto.repo.uploadBlob&exp=${exp}`,
+    { headers: { Authorization: `Bearer ${session.accessJwt}` } });
+  if(!sa.ok) throw new Error(`合い鍵の取得 HTTP ${sa.status}: ${(await sa.text()).slice(0, 200)}`);
+  const token = (await sa.json()).token;
+
+  const vbase = "https://video.bsky.app/xrpc";
+  const up = await fetch(`${vbase}/app.bsky.video.uploadVideo?did=${encodeURIComponent(session.did)}&name=${encodeURIComponent(name)}`,
+    { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "video/mp4", "Content-Length": String(buf.length) }, body: buf });
+  const upBody = await up.text();
+  if(!up.ok) throw new Error(`動画の送信 HTTP ${up.status}: ${upBody.slice(0, 300)}`);
+  let job = JSON.parse(upBody).jobStatus || {};
+  // 変換待ち
+  for(let n = 0; !job.blob && n < 60; n++){
+    if(job.state === "JOB_STATE_FAILED") throw new Error("変換に失敗しました: " + (job.error || JSON.stringify(job).slice(0, 200)));
+    await sleep(2000);
+    const r = await fetch(`${vbase}/app.bsky.video.getJobStatus?jobId=${encodeURIComponent(job.jobId)}`, { headers: { Authorization: `Bearer ${token}` } });
+    if(!r.ok) throw new Error(`変換の確認 HTTP ${r.status}: ${(await r.text()).slice(0, 200)}`);
+    job = (await r.json()).jobStatus || {};
+    console.log(`Bluesky 動画: ${job.state || "変換中"}`);
+  }
+  if(!job.blob) throw new Error("変換が終わりませんでした");
+  return job.blob;
+}
 async function postBsky(text, image, lang){
   const H = process.env.BSKY_HANDLE, P = process.env.BSKY_APP_PASSWORD;
   if(!H || !P) return "Bluesky: 鍵が無いので飛ばしました";
@@ -360,12 +483,17 @@ async function postBsky(text, image, lang){
   // 組み立てたときの言語を使い、渡されていないときだけ文面から判断する。
   const detected = /[\u3040-\u309F\u30A1-\u30FA\u4E00-\u9FFF]/.test(text) ? "ja" : "en";
   const record = { $type: "app.bsky.feed.post", text, facets: bskyFacets(text), createdAt: new Date().toISOString(), langs: [lang || detected] };
-  if(image){
+  const m = (image && image.meta) || {};
+  if(image && m.kind === "video"){
+    // 動画は添付できなければ投稿ごと中止する（文面だけ流れても宣伝にならないため）
+    const blob = await uploadBskyVideo(session, image, m.name || "video.mp4");
+    record.embed = { $type: "app.bsky.embed.video", video: blob, alt: m.alt || "" };
+    if(m.width && m.height) record.embed.aspectRatio = { width: m.width, height: m.height };
+  }else if(image){
     try{
       const up = await fetch(`${base}/com.atproto.repo.uploadBlob`, { method: "POST", headers: { "Content-Type": "image/jpeg", Authorization: `Bearer ${session.accessJwt}` }, body: image });
       if(up.ok){
         const blob = (await up.json()).blob;
-        const m = image.meta || {};
         const img = { image: blob, alt: m.alt || "" };
         if(m.width && m.height) img.aspectRatio = { width: m.width, height: m.height };
         record.embed = { $type: "app.bsky.embed.images", images: [img] };
@@ -384,9 +512,11 @@ async function send(label, textX, textBsky, image, lang){
   console.log(`\n--- ${label} ---`);
   console.log(textX);
   if(textBsky && textBsky !== textX) console.log(`（Bluesky 版）\n${textBsky}`);
-  console.log(`（X換算 ${xLength(textX)} 文字／画像 ${image ? Math.round(image.length / 1024) + "KB" : "なし"}）`);
+  const kind = image && image.meta && image.meta.kind === "video" ? "動画" : "画像";
+  console.log(`（X換算 ${xLength(textX)} 文字／${kind} ${image ? Math.round(image.length / 1024) + "KB" : "なし"}）`);
   if(DRY){
-    if(image){ await writeFile(`social-preview-${label.replace(/\s+/g, "-")}.jpg`, image); console.log("画像を social-preview-*.jpg に保存しました"); }
+    if(image && kind === "画像"){ await writeFile(`social-preview-${label.replace(/\s+/g, "-")}.jpg`, image); console.log("画像を social-preview-*.jpg に保存しました"); }
+    if(image && kind === "動画") console.log(`動画 ${image.meta.name} を添付します（説明文：${image.meta.alt}）`);
     console.log("DRY_RUN のため投稿しません"); return;
   }
   for(const [name, fn, text] of [["X", postX, textX], ["Bluesky", postBsky, textBsky]]){
@@ -398,6 +528,15 @@ async function send(label, textX, textBsky, image, lang){
 }
 
 async function main(){
+  if(mode === "promo"){
+    for(const lang of LANGS){
+      const video = await loadPromoVideo(lang);
+      if(!video){ console.log(`${lang}: 動画が無いので飛ばしました`); continue; }
+      const px = await promoPost(lang, "x"), pb = await promoPost(lang, "bsky");
+      await send(`promo ${lang}`, px.text, pb.text, video, lang);
+    }
+    return;
+  }
   if(mode === "test"){
     const text = "テスト投稿です。自動投稿の動作確認をしています。";
     await send("test", text, text);
