@@ -249,7 +249,9 @@ function announcePost(ctx, lang, track){
 /* ---------- 画像：上位3枚のカードを横に並べる ---------- */
 async function composeImage(ctx, cards, lang){
   const bank = ctx.cardImg[lang] || ctx.cardImg.en || {};
-  const urls = cards.map(c => bank[c.name] || bank[String(c.name).split(" // ")[0]]).filter(Boolean).slice(0, 5);
+  const picked = cards.map(c => ({ card: c, url: bank[c.name] || bank[String(c.name).split(" // ")[0]] }))
+                      .filter(x => x.url).slice(0, 5);
+  const urls = picked.map(x => x.url);
   if(!urls.length) return null;
   let sharp;
   try{ sharp = (await import("sharp")).default; }catch(e){ console.log("画像: sharp が無いので添付しません"); return null; }
@@ -261,7 +263,7 @@ async function composeImage(ctx, cards, lang){
   const H = cardH + pad * 2;
   const gap = Math.round((W - cardW * n) / (n + 1));
   const top = pad;
-  const layers = [];
+  const layers = [], shown = [];
   for(let i = 0; i < urls.length; i++){
     try{
       const r = await fetch(urls[i], { headers: SCRY_HEADERS });
@@ -269,12 +271,20 @@ async function composeImage(ctx, cards, lang){
       const buf = Buffer.from(await r.arrayBuffer());
       const img = await sharp(buf).resize(cardW, cardH, { fit: "cover" }).png().toBuffer();
       layers.push({ input: img, left: gap + i * (cardW + gap), top });
+      shown.push(picked[i].card);
     }catch(e){}
     await sleep(120);
   }
   if(!layers.length) return null;
-  return sharp({ create: { width: W, height: H, channels: 3, background: "#23342E" } })
+  const out = await sharp({ create: { width: W, height: H, channels: 3, background: "#23342E" } })
     .composite(layers).jpeg({ quality: 88 }).toBuffer();
+  // Bluesky は縦横比を伝えないと、縦長の枠に収めようとして上下に大きな余白が付く。
+  // 実際に並んだカードから画像の説明文（代替テキスト）も作る。
+  out.meta = {
+    width: W, height: H,
+    alt: (lang === "ja" ? "カード：" : "Cards: ") + shown.map(c => cardName(ctx, lang, c.name)).join(lang === "ja" ? "／" : ", ")
+  };
+  return out;
 }
 
 /* ---------- X ---------- */
@@ -339,18 +349,27 @@ function bskyFacets(text){
   }
   return facets;
 }
-async function postBsky(text, image){
+async function postBsky(text, image, lang){
   const H = process.env.BSKY_HANDLE, P = process.env.BSKY_APP_PASSWORD;
   if(!H || !P) return "Bluesky: 鍵が無いので飛ばしました";
   const base = "https://bsky.social/xrpc";
   const s = await fetch(`${base}/com.atproto.server.createSession`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ identifier: H, password: P }) });
   if(!s.ok) throw new Error(`Bluesky login HTTP ${s.status}: ${await s.text()}`);
   const session = await s.json();
-  const record = { $type: "app.bsky.feed.post", text, facets: bskyFacets(text), createdAt: new Date().toISOString(), langs: [/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text) ? "ja" : "en"] };
+  // 箇条書きの「・」は片仮名の記号なので、文面から言語を当てると英語の投稿まで日本語になってしまう。
+  // 組み立てたときの言語を使い、渡されていないときだけ文面から判断する。
+  const detected = /[\u3040-\u309F\u30A1-\u30FA\u4E00-\u9FFF]/.test(text) ? "ja" : "en";
+  const record = { $type: "app.bsky.feed.post", text, facets: bskyFacets(text), createdAt: new Date().toISOString(), langs: [lang || detected] };
   if(image){
     try{
       const up = await fetch(`${base}/com.atproto.repo.uploadBlob`, { method: "POST", headers: { "Content-Type": "image/jpeg", Authorization: `Bearer ${session.accessJwt}` }, body: image });
-      if(up.ok){ const blob = (await up.json()).blob; record.embed = { $type: "app.bsky.embed.images", images: [{ image: blob, alt: "Top cards" }] }; }
+      if(up.ok){
+        const blob = (await up.json()).blob;
+        const m = image.meta || {};
+        const img = { image: blob, alt: m.alt || "" };
+        if(m.width && m.height) img.aspectRatio = { width: m.width, height: m.height };
+        record.embed = { $type: "app.bsky.embed.images", images: [img] };
+      }
       else console.log("Bluesky: 画像は添付せずに投稿します");
     }catch(e){ console.log("Bluesky 画像: " + e.message); }
   }
@@ -361,7 +380,7 @@ async function postBsky(text, image){
 }
 
 /* ---------- 本体 ---------- */
-async function send(label, textX, textBsky, image){
+async function send(label, textX, textBsky, image, lang){
   console.log(`\n--- ${label} ---`);
   console.log(textX);
   if(textBsky && textBsky !== textX) console.log(`（Bluesky 版）\n${textBsky}`);
@@ -373,7 +392,7 @@ async function send(label, textX, textBsky, image){
   for(const [name, fn, text] of [["X", postX, textX], ["Bluesky", postBsky, textBsky]]){
     if(TARGETS === "bsky" && name === "X"){ console.log("X: 投稿先の指定により飛ばしました"); continue; }
     if(TARGETS === "x" && name === "Bluesky"){ console.log("Bluesky: 投稿先の指定により飛ばしました"); continue; }
-    try{ console.log(await fn(text, image)); }
+    try{ console.log(await fn(text, image, lang)); }
     catch(e){ console.error(`${name}: 失敗 — ${e.message}`); process.exitCode = 1; }
   }
 }
@@ -400,7 +419,7 @@ async function main(){
       if(!px){ console.log(`${code}/${lang}: データが無いので飛ばしました`); continue; }
       // 画像は投稿の言語に合わせる（日本語版・英語版のカード画像）。枚数は本文のリストと同じ
       const image = (px.cards || []).length ? await composeImage(ctx, px.cards, lang) : null;
-      await send(`${mode} ${code} ${lang}`, px.text, pb.text, image);
+      await send(`${mode} ${code} ${lang}`, px.text, pb.text, image, lang);
     }
   }
 }
