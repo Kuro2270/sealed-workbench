@@ -72,6 +72,10 @@
   body.playing header p{display:none}
   body.playing main{max-width:min(1780px,97vw);padding-top:12px}
 
+  /* 2画面テストに埋め込むときは、見出しと脚注を隠して卓だけにする */
+  body.embed header,body.embed footer{display:none}
+  body.embed main{max-width:none;padding:8px 10px 12px}
+
   #board{display:grid;grid-template-columns:1fr 264px;gap:12px;align-items:start}
   .table{background:var(--felt);border:1px solid var(--felt-line);border-radius:6px;overflow:hidden;color:#DCE6E0}
   .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;background:var(--felt-2);border-bottom:1px solid var(--felt-line);font-size:13px}
@@ -224,7 +228,7 @@
         <label class="f" style="margin-top:8px;max-width:520px"><span id="s_server">同期サーバー</span>
           <input id="server" placeholder="wss://..." autocomplete="off"></label>
         <p class="hint" id="s_serverHint">通常は変更不要です。自分で建てたサーバーを使うときだけ書き換えてください。</p>
-        <p class="hint" id="s_soloHint">一人で動きを確かめたいときは、このページを2つのタブで開き、片方のURLの末尾に <code>?as=b</code> を付けてください。同じ合言葉でも別の席として着けます。</p>
+        <p class="hint" id="s_soloHint">一人で動きを確かめたいときは、<a href='./table-test.html'>2画面テスト</a>を使うと、同じ卓の2つの席を左右に並べて開けます。手で試すときは、このページを2つのタブで開き、片方のURLの末尾に <code>?as=b</code> を付けてください。</p>
       </details>
     </div>
 
@@ -297,7 +301,7 @@ const L = {
     room: "合言葉（英数字）", name: "あなたの名前", sit: "卓に着く", makeRoom: "合言葉を作る",
     roomPh: "例: aoi-tori-2468", namePh: "例: プレイヤー1", tokNamePh: "例: 兵士",
     adv: "うまくつながらないとき", server: "同期サーバー", serverHint: "通常は変更不要です。自分で建てたサーバーを使うときだけ書き換えてください。",
-    soloHint: "一人で動きを確かめたいときは、このページを2つのタブで開き、片方のURLの末尾に <code>?as=b</code> を付けてください。同じ合言葉でも別の席として着けます。",
+    soloHint: "一人で動きを確かめたいときは、<a href='./table-test.html'>2画面テスト</a>を使うと、同じ卓の2つの席を左右に並べて開けます。手で試すときは、このページを2つのタブで開き、片方のURLの末尾に <code>?as=b</code> を付けてください。",
     deck: "デッキ", deckHint: "MTGアリーナ形式の並び（「4 Lightning Bolt (M10) 146」など）を貼り付けてください。当サイトのシールド構築・ドラフト構築が書き出す形式がそのまま使えます。サイドボードは読み込みません。",
     load: "デッキを読み込む", jaImg: "日本語版の画像を使う", life: "開始ライフ",
     preview: "カード", log: "記録",
@@ -329,7 +333,7 @@ const L = {
     room: "Passphrase (letters and numbers)", name: "Your name", sit: "Sit down", makeRoom: "Make one up",
     roomPh: "e.g. blue-bird-2468", namePh: "e.g. Player 1", tokNamePh: "e.g. Soldier",
     adv: "If it will not connect", server: "Sync server", serverHint: "Normally leave this alone. Change it only to use a server of your own.",
-    soloHint: "To try both sides yourself, open this page in two tabs and add <code>?as=b</code> to the end of the address in one of them. The two tabs then take separate seats at the same table.",
+    soloHint: "To try both sides yourself, the <a href='./table-test.html'>two-seat test page</a> opens both seats of one table side by side. By hand: open this page in two tabs and add <code>?as=b</code> to the address in one of them.",
     deck: "Deck", deckHint: "Paste an MTG Arena decklist (e.g. “4 Lightning Bolt (M10) 146”). The lists this site exports work as they are. Sideboards are ignored.",
     load: "Load deck", jaImg: "Use Japanese card images", life: "Starting life",
     preview: "Card", log: "Log",
@@ -474,7 +478,11 @@ function connect(room, name) {
   ws.onopen = () => { retry = 0; setConn(tt("connected"), "good"); };
   ws.onmessage = ev => {
     let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
-    if (m.type === "state") { view = m.view; render(); }
+    if (m.type === "state") {
+      view = m.view; render();
+      // go=1 で入ったときだけ、まだデッキが無ければ一度だけ読み込む
+      if (autoDeck && view.me && !view.me.ready) { autoDeck = false; $("loadBtn").click(); }
+    }
     if (m.type === "error") setConn(m.message, "bad");
   };
   ws.onclose = () => {
@@ -932,8 +940,13 @@ try {
   $("server").value = localStorage.getItem("sw.table.server") || "";
   $("deckText").value = localStorage.getItem("sw.table.deck") || "";
 } catch (e) {}
-const qRoom = new URLSearchParams(location.search).get("room");
-if (qRoom) $("room").value = qRoom;
+/* URL で合言葉・名前を渡せる。go=1 を付けるとそのまま卓に着く（動作確認用） */
+const QS = new URLSearchParams(location.search);
+if (QS.get("room")) $("room").value = QS.get("room");
+if (QS.get("name")) $("pname").value = QS.get("name").slice(0, 20);
+const autoGo = QS.get("go") === "1";
+if (QS.get("embed") === "1") document.body.classList.add("embed");
+let autoDeck = autoGo && !!$("deckText").value.trim();
 
 /* 文言の貼り替え（言語を切り替えたとき） */
 function applyLocal() {
@@ -958,6 +971,8 @@ if (window.I18N) {
   I18N.onChange(() => { sel.value = I18N.lang; applyLocal(); });
 }
 applyLocal();
+
+if (autoGo && $("room").value.trim()) $("joinBtn").click();
 </script>
 </body>
 </html>
