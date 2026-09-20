@@ -216,7 +216,7 @@ function apply(g, me, m) {
     }
     case "shuffle": {
       p.library = shuffle(p.library);
-      log(g, `${nm} が山札を切りました`);
+      log(g, `${nm} が山札をシャッフルしました`);
       break;
     }
     case "mill": {
@@ -348,8 +348,8 @@ function apply(g, me, m) {
     case "turn": {
       g.active = other(g.active);
       if (g.active === "a") g.turn++;
+      // アンタップは勝手にしない。卓の上と同じく「全部アンタップ」を自分で押してもらう
       const np = g.players[g.active];
-      if (np) np.field.forEach(c => { c.tapped = false; });
       log(g, `ターン ${g.turn}：${np ? np.name : ""} の番`);
       break;
     }

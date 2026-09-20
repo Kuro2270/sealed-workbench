@@ -313,9 +313,9 @@ const L = {
     deckDone: "{n}枚を読み込みました", deckFail: "カード情報を取れませんでした：{e}",
     oppNone: "相手はまだ来ていません", oppOff: "（接続が切れています）",
     fieldEmpty: "ここにカードを置きます", handEmpty: "手札はありません",
-    draw: "引く", draw7: "7枚", shuffle: "切る", library: "山札", grave: "墓地", exile: "追放",
+    draw: "引く", drawX: "{n}枚 引く", shuffle: "シャッフル", library: "山札", grave: "墓地", exile: "追放",
     hand: "手札", untapAll: "全部アンタップ", tidy: "整列", turn: "ターンを渡す", mull: "マリガン",
-    token: "トークン", dice: "ダイス", coin: "コイン", poison: "毒", reset: "片付ける",
+    token: "トークンを作る", dice: "ダイス", coin: "コイン", tools: "道具", poison: "毒", reset: "片付ける",
     toField: "戦場に出す", toHand: "手札に戻す", toGrave: "墓地へ", toExile: "追放へ",
     toTop: "山札の上へ", toBottom: "山札の下へ", tapIt: "タップ／アンタップ", flipIt: "裏返す",
     ctPlus: "カウンター +1", ctMinus: "カウンター −1", ctClear: "カウンターを消す",
@@ -345,9 +345,9 @@ const L = {
     deckDone: "Loaded {n} cards", deckFail: "Could not fetch card data: {e}",
     oppNone: "No opponent yet", oppOff: "(disconnected)",
     fieldEmpty: "Cards you play land here", handEmpty: "Your hand is empty",
-    draw: "Draw", draw7: "7 cards", shuffle: "Shuffle", library: "Library", grave: "Graveyard", exile: "Exile",
+    draw: "Draw", drawX: "Draw {n}", shuffle: "Shuffle", library: "Library", grave: "Graveyard", exile: "Exile",
     hand: "Hand", untapAll: "Untap all", tidy: "Tidy up", turn: "Pass the turn", mull: "Mulligan",
-    token: "Token", dice: "Dice", coin: "Coin", poison: "Poison", reset: "Clear my side",
+    token: "Make a token", dice: "Dice", coin: "Coin", tools: "Tools", poison: "Poison", reset: "Clear my side",
     toField: "Put onto the battlefield", toHand: "Return to hand", toGrave: "Put into graveyard", toExile: "Exile",
     toTop: "Put on top of library", toBottom: "Put on the bottom", tapIt: "Tap / untap", flipIt: "Turn over",
     ctPlus: "Counter +1", ctMinus: "Counter −1", ctClear: "Remove counters",
@@ -538,15 +538,11 @@ function renderBar(el, p, mine) {
       ${p.poison ? `<button class="pill" data-a="poisonMinus">${esc(tt("poison"))} <b>${p.poison}</b></button>` : `<button class="pill" data-a="poison">${esc(tt("poison"))}</button>`}
       ${zones}
       <span class="sp"></span>
-      <button data-a="draw">${esc(tt("draw"))}</button>
-      <button data-a="drawMenu" title="${esc(tt("drawN"))}">${esc(tt("draw"))} …</button>
+      <button data-a="draw" title="${esc(tt("drawN"))}">${esc(tt("draw"))} ▾</button>
       <button data-a="shuffle">${esc(tt("shuffle"))}</button>
       <button data-a="untapAll">${esc(tt("untapAll"))}</button>
       <button data-a="tidy">${esc(tt("tidy"))}</button>
-      <button data-a="token">${esc(tt("token"))}</button>
-      <button data-a="dice">d6</button>
-      <button data-a="dice20">d20</button>
-      <button data-a="coin">${esc(tt("coin"))}</button>
+      <button data-a="tools" title="${esc(tt("tools"))}">🎲 ${esc(tt("tools"))} ▾</button>
       <button data-a="turn">${esc(tt("turn"))}</button>`;
   } else {
     el.innerHTML = `<span class="who">${esc(p.name)}</span>${off}
@@ -762,10 +758,7 @@ const cardTile = c => `<div class="zc${c.img ? " hasimg" : ""}" data-c="${c.id}"
 function openLibraryMenu(x, y) {
   const n = view.me.libraryCount;
   openMenu(x ?? (innerWidth / 2 - 90), y ?? 140, [
-    { label: tt("draw") + " 1", run: () => send({ type: "draw", n: 1 }) },
-    { label: tt("draw") + " 2", run: () => send({ type: "draw", n: 2 }) },
-    { label: tt("draw") + " 3", run: () => send({ type: "draw", n: 3 }) },
-    { label: tt("draw") + " " + tt("draw7"), run: () => send({ type: "draw", n: 7 }) },
+    ...[1, 2, 3, 7].map(n => ({ label: tt("drawX", { n }), run: () => send({ type: "draw", n }) })),
     { label: tt("draw") + " …", run: () => { const v = parseInt(prompt(tt("drawN"), "2") || "", 10); if (v > 0) send({ type: "draw", n: v }); } },
     "-",
     { label: tt("shuffle"), run: () => send({ type: "shuffle" }) },
@@ -773,6 +766,19 @@ function openLibraryMenu(x, y) {
     "-",
     { label: tt("toGrave") + " …", run: () => { const v = parseInt(prompt(tt("millN"), "1") || "", 10); if (v > 0) send({ type: "mill", n: v }); } }
   ], tt("libTitle") + "（" + n + "）");
+}
+
+/* トークン・ダイス・コインはまとめて「道具」に入れる */
+function openToolsMenu(x, y) {
+  openMenu(x, y, [
+    { label: tt("token"), run: () => openTokenDialog() },
+    "-",
+    { label: "d6", run: () => send({ type: "roll", faces: 6 }) },
+    { label: "d20", run: () => send({ type: "roll", faces: 20 }) },
+    { label: tt("dice") + " …", run: () => { const v = parseInt(prompt(tt("diceAsk"), "6") || "", 10); if (v > 1) send({ type: "roll", faces: v }); } },
+    "-",
+    { label: tt("coin"), run: () => send({ type: "coin" }) }
+  ], tt("tools"));
 }
 
 let overlayEl = null;
@@ -827,15 +833,11 @@ function onBarClick(e, mine) {
       { label: "−1", run: () => send({ type: "poison", d: -1 }) }
     ], tt("poison"));
   }
-  else if (a === "draw") send({ type: "draw", n: 1 });
-  else if (a === "drawMenu") { const r = b.getBoundingClientRect(); openLibraryMenu(r.left, r.bottom + 4); }
+  else if (a === "draw") { const r = b.getBoundingClientRect(); openLibraryMenu(r.left, r.bottom + 4); }
   else if (a === "shuffle") send({ type: "shuffle" });
   else if (a === "untapAll") send({ type: "tapAll", tapped: false });
   else if (a === "tidy") tidy();
-  else if (a === "token") openTokenDialog();
-  else if (a === "dice") send({ type: "roll", faces: 6 });
-  else if (a === "dice20") send({ type: "roll", faces: 20 });
-  else if (a === "coin") send({ type: "coin" });
+  else if (a === "tools") { const r = b.getBoundingClientRect(); openToolsMenu(r.left, r.bottom + 4); }
   else if (a === "turn") send({ type: "turn" });
 }
 $("oppBar").addEventListener("click", e => onBarClick(e, false));
