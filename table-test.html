@@ -39,7 +39,11 @@
   .note code{background:var(--paper-2);padding:1px 4px;border-radius:3px}
   details.deck{flex:0 0 auto;background:#fff;border-bottom:1px solid var(--line);padding:8px 16px}
   details.deck summary{cursor:pointer;font-size:13px}
-  details.deck textarea{width:100%;max-width:720px;min-height:120px;margin-top:8px;font-size:12.5px;line-height:1.5}
+  details.deck .decks{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+  details.deck .dk{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+  details.deck .dk > b{font-size:12.5px;color:var(--ink)}
+  details.deck textarea{width:100%;min-height:150px;font-size:12.5px;line-height:1.5}
+  @media (max-width:900px){ details.deck .decks{grid-template-columns:1fr} }
 
   .pair{flex:1 1 auto;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;min-height:0}
   .pane{display:flex;flex-direction:column;min-width:0;min-height:0;background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
@@ -82,13 +86,22 @@
 
 <div class="note" id="s_note"></div>
 
-<details class="deck">
-  <summary id="s_deckSum">デッキ（両方の席で同じものを使います）</summary>
-  <textarea id="deck" spellcheck="false"></textarea>
-  <div class="bar" style="margin-top:8px">
-    <button id="sampleBtn">サンプルを入れる</button>
-    <span class="lbl" id="s_deckHint" style="color:var(--muted)"></span>
+<details class="deck" id="deckFold">
+  <summary id="s_deckSum">デッキ（席ごとに別のものを使えます）</summary>
+  <div class="decks">
+    <label class="dk"><b id="s_dkA">席A のデッキ</b>
+      <textarea id="deckA" spellcheck="false"></textarea>
+      <div class="bar" style="margin-top:6px"><button data-sample="A" id="s_sampA">サンプル（赤青）</button></div>
+    </label>
+    <label class="dk"><b id="s_dkB">席B のデッキ</b>
+      <textarea id="deckB" spellcheck="false"></textarea>
+      <div class="bar" style="margin-top:6px">
+        <button data-sample="B" id="s_sampB">サンプル（緑白）</button>
+        <button id="copyBtn">席Aと同じにする</button>
+      </div>
+    </label>
   </div>
+  <p class="lbl" id="s_deckHint" style="color:var(--muted);margin:10px 0 0"></p>
 </details>
 
 <div class="pair">
@@ -111,9 +124,10 @@ const L = {
     ttl: "対戦卓 2画面テスト", room: "合言葉", open: "開く", reload: "読み込み直す",
     zoom: "倍率", back: "対戦卓へ戻る", rand: "合言葉を作り直す",
     note: "同じ合言葉の2つの席を左右に並べて開きます。相手を待たずに、一人で両側を操作して動きを確かめられます。ここで使う席は普段の席とは別扱いなので、実際の対戦には影響しません。",
-    deckSum: "デッキ（両方の席で同じものを使います）",
-    deckHint: "空のままでも開けます。その場合は各席でデッキを貼り付けてください。",
-    sample: "サンプルを入れる",
+    deckSum: "デッキ（席ごとに別のものを使えます）",
+    deckHint: "空のままでも開けます。その場合は各席でデッキを貼り付けてください。入れた内容はこのブラウザに残るので、次に開いたときもそのまま使えます。",
+    dkA: "席A のデッキ", dkB: "席B のデッキ",
+    sampA: "サンプル（赤青）", sampB: "サンプル（緑白）", copyAB: "席Aと同じにする",
     seatA: "席A（プレイヤー1）", seatB: "席B（プレイヤー2）", win: "別ウィンドウ",
     empty: "「開く」を押すと、ここに卓が出ます",
     bad: "合言葉は英数字とハイフン、3〜32文字で入れてください"
@@ -122,9 +136,10 @@ const L = {
     ttl: "Play table — two-seat test", room: "Passphrase", open: "Open", reload: "Reload",
     zoom: "Zoom", back: "Back to the table", rand: "Make a new passphrase",
     note: "Opens two seats at the same table side by side, so you can work both sides yourself without waiting for an opponent. These seats are kept separate from your normal one, so real games are unaffected.",
-    deckSum: "Deck (both seats use the same list)",
-    deckHint: "You can leave this empty and paste a list in each seat instead.",
-    sample: "Use a sample deck",
+    deckSum: "Decks (each seat can use its own)",
+    deckHint: "You can leave these empty and paste a list in each seat instead. What you type here stays in this browser for next time.",
+    dkA: "Seat A deck", dkB: "Seat B deck",
+    sampA: "Sample (red-blue)", sampB: "Sample (green-white)", copyAB: "Same as seat A",
     seatA: "Seat A (Player 1)", seatB: "Seat B (Player 2)", win: "New window",
     empty: "Press Open and the table appears here",
     bad: "Use 3–32 letters, numbers or hyphens"
@@ -133,8 +148,9 @@ const L = {
 const lang = () => (window.I18N && I18N.lang === "en") ? "en" : "ja";
 const tt = k => L[lang()][k];
 
-// リミテッドと同じ40枚（土地17／呪文23）にしてある
-const SAMPLE = `Deck
+// どちらもリミテッドと同じ40枚（土地17／呪文23）。色を分けてあるので、左右どちらの盤面か見分けやすい
+const SAMPLE = {
+  A: `Deck
 9 Mountain
 8 Island
 4 Lightning Bolt
@@ -143,7 +159,18 @@ const SAMPLE = `Deck
 4 Goblin Piker
 4 Wind Drake
 2 Air Elemental
-1 Mahamoti Djinn`;
+1 Mahamoti Djinn`,
+  B: `Deck
+9 Forest
+8 Plains
+4 Llanowar Elves
+4 Grizzly Bears
+4 Pacifism
+4 Giant Growth
+3 Serra Angel
+2 Craw Wurm
+2 Healing Salve`
+};
 
 function newRoom() { return "test-" + Math.random().toString(36).slice(2, 7); }
 
@@ -159,8 +186,7 @@ function seatUrl(as, name, embed) {
 function openBoth() {
   const room = $("room").value.trim().toLowerCase();
   if (!/^[a-z0-9-]{3,32}$/.test(room)) { alert(tt("bad")); return; }
-  // デッキは保存場所を共有しているので、先に書いておけば両方の席が読み込む
-  try { localStorage.setItem("sw.table.deck", $("deck").value); } catch (e) {}
+  saveDecks();
   for (const [id, as, nm] of [["fa", "a", "プレイヤー1"], ["fb", "b", "プレイヤー2"]]) {
     const f = $(id);
     f.hidden = false;
@@ -169,15 +195,32 @@ function openBoth() {
   $("e_a").hidden = true; $("e_b").hidden = true;
 }
 
+/* 席ごとの置き場所に書いておくと、開いた卓がそれぞれ自分のぶんを読み込む */
+function saveDecks() {
+  try {
+    localStorage.setItem("sw.table.deck.a", $("deckA").value);
+    localStorage.setItem("sw.table.deck.b", $("deckB").value);
+  } catch (e) {}
+}
+
 $("openBtn").addEventListener("click", openBoth);
 $("reloadBtn").addEventListener("click", () => { if (!$("fa").hidden) openBoth(); });
-$("randBtn").addEventListener("click", () => { $("room").value = newRoom(); });
-$("sampleBtn").addEventListener("click", () => { $("deck").value = SAMPLE; });
+$("randBtn").addEventListener("click", () => { try {
+  $("deckA").value = localStorage.getItem("sw.table.deck.a") || "";
+  $("deckB").value = localStorage.getItem("sw.table.deck.b") || "";
+} catch (e) {}
+// まだデッキを入れていなければ、最初から開いておく
+$("deckFold").open = !($("deckA").value.trim() || $("deckB").value.trim());
+$("room").value = newRoom(); });
+document.querySelectorAll("[data-sample]").forEach(b => b.addEventListener("click", () => {
+  $("deck" + b.dataset.sample).value = SAMPLE[b.dataset.sample];
+}));
+$("copyBtn").addEventListener("click", () => { $("deckB").value = $("deckA").value; });
 
 document.querySelectorAll("[data-win]").forEach(b => b.addEventListener("click", () => {
   const room = $("room").value.trim().toLowerCase();
   if (!/^[a-z0-9-]{3,32}$/.test(room)) { alert(tt("bad")); return; }
-  try { localStorage.setItem("sw.table.deck", $("deck").value); } catch (e) {}
+  saveDecks();
   const as = b.dataset.win;
   const nm = lang() === "en" ? (as === "a" ? "Player 1" : "Player 2") : (as === "a" ? "プレイヤー1" : "プレイヤー2");
   window.open(seatUrl(as, nm), "_blank", "width=1280,height=900");
@@ -193,10 +236,13 @@ function applyLocal() {
   set("s_ttl", "ttl"); set("s_room", "room"); set("s_zoom", "zoom"); set("s_back", "back");
   set("s_note", "note"); set("s_deckSum", "deckSum"); set("s_deckHint", "deckHint");
   set("s_seatA", "seatA"); set("s_seatB", "seatB");
+  set("s_dkA", "dkA"); set("s_dkB", "dkB");
+  $("s_sampA").textContent = tt("sampA");
+  $("s_sampB").textContent = tt("sampB");
+  $("copyBtn").textContent = tt("copyAB");
   set("e_a", "empty"); set("e_b", "empty");
   $("openBtn").textContent = tt("open");
   $("reloadBtn").textContent = tt("reload");
-  $("sampleBtn").textContent = tt("sample");
   $("randBtn").title = tt("rand");
   $("s_winA").textContent = tt("win");
   $("s_winB").textContent = tt("win");

@@ -486,6 +486,8 @@ const SEAT_SUFFIX = (() => {
   return /^[a-z0-9]{1,8}$/.test(v) ? "." + v : "";
 })();
 const seatKey = room => "sw.table.seat." + room + SEAT_SUFFIX;
+// デッキも席ごとに覚える。?as= が無いときは今までどおりの置き場所を使う
+const DECK_KEY = "sw.table.deck" + SEAT_SUFFIX;
 
 function serverUrl() {
   const fromField = $("server").value.trim();
@@ -973,7 +975,7 @@ $("loadBtn").addEventListener("click", async () => {
       }
     }
     if (!cards.length) { st.textContent = tt("deckEmpty"); st.className = "status bad"; return; }
-    try { localStorage.setItem("sw.table.deck", $("deckText").value); } catch (e) {}
+    try { localStorage.setItem(DECK_KEY, $("deckText").value); } catch (e) {}
     st.textContent = tt("deckDone", { n: cards.length }); st.className = "status good";
     send({ type: "deck", cards, life: parseInt($("startLife").value, 10) || 20 });
     if (!ws || ws.readyState !== 1) {
@@ -996,7 +998,7 @@ try {
   $("room").value = localStorage.getItem("sw.table.room") || "";
   $("pname").value = localStorage.getItem("sw.table.name") || "";
   $("server").value = localStorage.getItem("sw.table.server") || "";
-  $("deckText").value = localStorage.getItem("sw.table.deck") || "";
+  $("deckText").value = localStorage.getItem(DECK_KEY) || localStorage.getItem("sw.table.deck") || "";
 } catch (e) {}
 /* URL で合言葉・名前を渡せる。go=1 を付けるとそのまま卓に着く（動作確認用） */
 const QS = new URLSearchParams(location.search);
