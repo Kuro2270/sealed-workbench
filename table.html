@@ -20,8 +20,8 @@
     --gold:#B8912F; --line:#CBD3CA;
     --felt:#1C2B24; --felt-2:#16221D; --felt-line:#2F4239;
     --radius:3px;
-    --cw:72px; --ch:100px;        /* 戦場のカードの大きさ */
-    --hw:88px; --hh:123px;        /* 手札のカードの大きさ */
+    --cw:80px; --ch:112px;        /* 戦場のカードの大きさ */
+    --hw:96px; --hh:134px;        /* 手札のカードの大きさ */
   }
   *{box-sizing:border-box}
   [hidden]{display:none !important}
@@ -67,7 +67,12 @@
   .status.good{color:#3F7A4A}
 
   /* ---------- 盤面 ---------- */
-  #board{display:grid;grid-template-columns:1fr 300px;gap:12px;align-items:start}
+  /* 対戦中は卓をできるだけ広く使う（見出しの説明文をたたみ、左右の余白を詰める） */
+  body.playing header{padding:14px 24px 10px}
+  body.playing header p{display:none}
+  body.playing main{max-width:min(1780px,97vw);padding-top:12px}
+
+  #board{display:grid;grid-template-columns:1fr 264px;gap:12px;align-items:start}
   .table{background:var(--felt);border:1px solid var(--felt-line);border-radius:6px;overflow:hidden;color:#DCE6E0}
   .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;background:var(--felt-2);border-bottom:1px solid var(--felt-line);font-size:13px}
   .bar.mine{border-bottom:none;border-top:1px solid var(--felt-line)}
@@ -82,7 +87,7 @@
   .pill b{font-variant-numeric:tabular-nums}
   .off{opacity:.5}
 
-  .field{position:relative;min-height:224px;background:
+  .field{position:relative;min-height:clamp(240px,33vh,380px);background:
       repeating-linear-gradient(0deg,transparent 0 27px,rgba(255,255,255,.025) 27px 28px);
       overflow:hidden}
   .field.opp{border-bottom:2px dashed var(--felt-line)}
@@ -103,6 +108,10 @@
   .c .dots{position:absolute;right:1px;top:1px;width:17px;height:15px;border-radius:3px;background:rgba(0,0,0,.6);color:#fff;
            font-size:11px;line-height:15px;text-align:center;opacity:0;border:none;padding:0}
   .c:hover .dots{opacity:1}
+  .c.facedown{background:
+      radial-gradient(ellipse 40% 30% at 50% 42%,#7A6130 0 60%,transparent 62%),
+      linear-gradient(150deg,#4A3A1C,#241C0E 60%,#3A2E17);
+      border:1px solid #6E560F}
   .c.tok{border:1px solid var(--gold)}
   .c.tok::after{content:"";position:absolute;inset:0;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(184,145,47,.5)}
 
@@ -121,7 +130,7 @@
   .panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
   .panel h3{font-size:14px;margin:0 0 8px}
   #preview{width:100%;aspect-ratio:488/680;border-radius:6px;background:#E6EAE3 center/contain no-repeat;border:1px solid var(--line)}
-  #logList{list-style:none;margin:0;padding:0;font-size:12.5px;max-height:260px;overflow-y:auto}
+  #logList{list-style:none;margin:0;padding:0;font-size:12.5px;max-height:min(48vh,440px);overflow-y:auto}
   #logList li{padding:3px 0;border-bottom:1px solid var(--paper-2);color:#2E3D37}
   #logList li:last-child{border-bottom:none}
 
@@ -249,12 +258,8 @@
         <div id="preview"></div>
       </div>
       <div class="panel">
-        <h3 id="s_log">やりとり</h3>
+        <h3 id="s_log">記録</h3>
         <ul id="logList"></ul>
-        <div class="row" style="margin-top:8px">
-          <input id="sayText" maxlength="120" style="flex:1;min-width:120px" placeholder="ひとこと">
-          <button id="sayBtn">送る</button>
-        </div>
       </div>
     </aside>
   </div>
@@ -292,7 +297,7 @@ const L = {
     soloHint: "一人で動きを確かめたいときは、このページを2つのタブで開き、片方のURLの末尾に <code>?as=b</code> を付けてください。同じ合言葉でも別の席として着けます。",
     deck: "デッキ", deckHint: "MTGアリーナ形式の並び（「4 Lightning Bolt (M10) 146」など）を貼り付けてください。当サイトのシールド構築・ドラフト構築が書き出す形式がそのまま使えます。サイドボードは読み込みません。",
     load: "デッキを読み込む", jaImg: "日本語版の画像を使う", life: "開始ライフ",
-    preview: "カード", log: "やりとり", say: "送る", sayPh: "ひとこと",
+    preview: "カード", log: "記録",
     connecting: "つないでいます…", connected: "つながりました", waiting: "相手を待っています",
     lost: "切れました。つなぎ直しています…", needRoom: "合言葉を入れてください",
     roomBad: "合言葉は英数字とハイフン、3〜32文字で入れてください",
@@ -324,7 +329,7 @@ const L = {
     soloHint: "To try both sides yourself, open this page in two tabs and add <code>?as=b</code> to the end of the address in one of them. The two tabs then take separate seats at the same table.",
     deck: "Deck", deckHint: "Paste an MTG Arena decklist (e.g. “4 Lightning Bolt (M10) 146”). The lists this site exports work as they are. Sideboards are ignored.",
     load: "Load deck", jaImg: "Use Japanese card images", life: "Starting life",
-    preview: "Card", log: "Table talk", say: "Send", sayPh: "Say something",
+    preview: "Card", log: "Log",
     connecting: "Connecting…", connected: "Connected", waiting: "Waiting for your opponent",
     lost: "Disconnected. Reconnecting…", needRoom: "Enter a passphrase",
     roomBad: "Use 3–32 letters, numbers or hyphens",
@@ -495,6 +500,7 @@ function render() {
   if (!view) return;
   $("setup").hidden = true;
   $("board").hidden = false;
+  document.body.classList.add("playing");
   renderBar($("oppBar"), view.opp, false);
   renderBar($("myBar"), view.me, true);
   renderField($("oppField"), view.opp ? view.opp.field : [], false);
@@ -522,6 +528,7 @@ function renderBar(el, p, mine) {
       ${zones}
       <span class="sp"></span>
       <button data-a="draw">${esc(tt("draw"))}</button>
+      <button data-a="drawMenu" title="${esc(tt("drawN"))}">${esc(tt("draw"))} …</button>
       <button data-a="shuffle">${esc(tt("shuffle"))}</button>
       <button data-a="untapAll">${esc(tt("untapAll"))}</button>
       <button data-a="tidy">${esc(tt("tidy"))}</button>
@@ -560,14 +567,18 @@ function renderField(el, cards, mine) {
       if (mine) attachDrag(n);
       n.addEventListener("mouseenter", () => showPreview(c));
     }
-    const img = c.flipped && c.back ? c.back : c.img;
-    n.style.backgroundImage = img ? `url("${img}")` : "none";
-    n.className = "c" + (mine ? " mine" : "") + (c.tapped ? " tapped" : "") + (img ? " hasimg" : "") + (c.token ? " tok" : "") + (dragging === c.id ? " drag" : "");
+    // 両面カードは裏面の絵、ふつうのカードは裏向き（絵はなく、裏のデザインだけ）
+    const down = c.flipped && !c.back;
+    const img = down ? "" : (c.flipped && c.back ? c.back : c.img);
+    // 裏向きのときは指定を外して、CSS の裏面デザインを出す
+    n.style.backgroundImage = img ? `url("${img}")` : "";
+    n.className = "c" + (mine ? " mine" : "") + (c.tapped ? " tapped" : "") + (img ? " hasimg" : "") +
+      (down ? " facedown" : "") + (c.token ? " tok" : "") + (dragging === c.id ? " drag" : "");
     if (dragging !== c.id) { n.style.left = c.x + "px"; n.style.top = c.y + "px"; }
-    n.innerHTML = `${img ? "" : `<span class="nm">${esc(c.name)}</span>`}
+    n.innerHTML = `${img || (down && c.hidden) ? "" : `<span class="nm">${esc(c.name)}</span>`}
       ${c.counters ? `<span class="ct">${c.counters > 0 ? "+" : ""}${c.counters}</span>` : ""}
       ${c.note ? `<span class="note">${esc(c.note)}</span>` : ""}
-      ${mine ? `<button class="dots" data-menu="${c.id}">⋯</button>` : ""}`;
+      <button class="dots" data-menu="${c.id}">⋯</button>`;
     n._card = c;
   }
   for (const [id, n] of map) if (!seen.has(id)) { n.remove(); map.delete(id); }
@@ -594,7 +605,7 @@ function renderLog() {
 }
 
 function showPreview(c) {
-  const img = c.flipped && c.back ? c.back : c.img;
+  const img = c.flipped && !c.back ? "" : (c.flipped && c.back ? c.back : c.img);
   $("preview").style.backgroundImage = img ? `url("${img}")` : "none";
 }
 
@@ -654,15 +665,21 @@ document.addEventListener("pointerdown", e => {
   if (!$("menu").hidden && !e.target.closest("#menu")) $("menu").hidden = true;
 }, true);
 
-function openCardMenu(c, x, y) {
+/* opp を付けると相手の戦場のカードへの操作になる（動かせるのはタップ・裏返し・カウンター・メモまで） */
+function openCardMenu(c, x, y, opp) {
+  const o = opp ? { opp: true } : {};
   const mv = (to, extra) => () => send({ type: "move", from: "field", to, id: c.id, ...(extra || {}) });
+  const head = [
+    { label: tt("tapIt"), run: () => send({ type: "tap", id: c.id, ...o }) },
+    { label: tt("flipIt"), run: () => send({ type: "flip", id: c.id, ...o }) },
+    { label: tt("ctPlus"), run: () => send({ type: "counter", id: c.id, d: 1, ...o }) },
+    { label: tt("ctMinus"), run: () => send({ type: "counter", id: c.id, d: -1, ...o }) },
+    ...(c.counters ? [{ label: tt("ctClear"), run: () => send({ type: "counter", id: c.id, d: -c.counters, ...o }) }] : []),
+    { label: tt("noteSet"), run: () => { const v = prompt(tt("noteAsk"), c.note || ""); if (v !== null) send({ type: "note", id: c.id, note: v, ...o }); } }
+  ];
+  if (opp) { openMenu(x, y, head, c.name); return; }
   openMenu(x, y, [
-    { label: tt("tapIt"), run: () => send({ type: "tap", id: c.id }) },
-    ...(c.back ? [{ label: tt("flipIt"), run: () => send({ type: "flip", id: c.id }) }] : []),
-    { label: tt("ctPlus"), run: () => send({ type: "counter", id: c.id, d: 1 }) },
-    { label: tt("ctMinus"), run: () => send({ type: "counter", id: c.id, d: -1 }) },
-    ...(c.counters ? [{ label: tt("ctClear"), run: () => send({ type: "counter", id: c.id, d: -c.counters }) }] : []),
-    { label: tt("noteSet"), run: () => { const v = prompt(tt("noteAsk"), c.note || ""); if (v !== null) send({ type: "note", id: c.id, note: v }); } },
+    ...head,
     "-",
     { label: tt("copyTok"), run: () => send({ type: "token", name: c.name, img: c.img, x: c.x + 16, y: c.y + 12, n: 1 }) },
     "-",
@@ -737,10 +754,12 @@ function openZone(zone, own) {
 const cardTile = c => `<div class="zc${c.img ? " hasimg" : ""}" data-c="${c.id}"${c.img ? ` style="background-image:url('${c.img}')"` : ""}><span>${esc(c.name)}</span></div>`;
 
 /* 山札は枚数しか配られないので、見るときはその場で「上から n 枚」を扱う操作だけ出す */
-function openLibraryMenu() {
+function openLibraryMenu(x, y) {
   const n = view.me.libraryCount;
-  openMenu(innerWidth / 2 - 90, 140, [
+  openMenu(x ?? (innerWidth / 2 - 90), y ?? 140, [
     { label: tt("draw") + " 1", run: () => send({ type: "draw", n: 1 }) },
+    { label: tt("draw") + " 2", run: () => send({ type: "draw", n: 2 }) },
+    { label: tt("draw") + " 3", run: () => send({ type: "draw", n: 3 }) },
     { label: tt("draw") + " " + tt("draw7"), run: () => send({ type: "draw", n: 7 }) },
     { label: tt("draw") + " …", run: () => { const v = parseInt(prompt(tt("drawN"), "2") || "", 10); if (v > 0) send({ type: "draw", n: v }); } },
     "-",
@@ -804,6 +823,7 @@ function onBarClick(e, mine) {
     ], tt("poison"));
   }
   else if (a === "draw") send({ type: "draw", n: 1 });
+  else if (a === "drawMenu") { const r = b.getBoundingClientRect(); openLibraryMenu(r.left, r.bottom + 4); }
   else if (a === "shuffle") send({ type: "shuffle" });
   else if (a === "untapAll") send({ type: "tapAll", tapped: false });
   else if (a === "tidy") tidy();
@@ -832,6 +852,21 @@ $("myField").addEventListener("click", e => {
   const d = e.target.closest("[data-menu]");
   if (d) { const c = fieldNodes.mine.get(d.dataset.menu)._card; openCardMenu(c, e.clientX, e.clientY); }
 });
+/* 相手の戦場のカードにも触れるようにする（⋯ ボタンか右クリック） */
+const oppMenu = (e, id) => {
+  const n = fieldNodes.opp.get(id);
+  if (n) openCardMenu(n._card, e.clientX, e.clientY, true);
+};
+$("oppField").addEventListener("click", e => {
+  const d = e.target.closest("[data-menu]");
+  if (d) oppMenu(e, d.dataset.menu);
+});
+$("oppField").addEventListener("contextmenu", e => {
+  const n = e.target.closest(".c");
+  if (!n) return;
+  e.preventDefault();
+  oppMenu(e, n.dataset.id);
+});
 $("hand").addEventListener("click", e => {
   const n = e.target.closest("[data-hand]");
   if (!n) return;
@@ -845,11 +880,6 @@ $("hand").addEventListener("contextmenu", e => {
   const c = (view.me.hand || []).find(x => x.id === n.dataset.hand);
   if (c) openHandMenu(c, e.clientX, e.clientY);
 });
-$("sayBtn").addEventListener("click", () => {
-  const v = $("sayText").value.trim();
-  if (v) { send({ type: "say", text: v }); $("sayText").value = ""; }
-});
-$("sayText").addEventListener("keydown", e => { if (e.key === "Enter") $("sayBtn").click(); });
 
 /* =======================================================================
    準備の画面
@@ -935,8 +965,6 @@ function applyLocal() {
   $("joinBtn").textContent = tt("sit");
   $("randBtn").textContent = tt("makeRoom");
   $("loadBtn").textContent = tt("load");
-  $("sayBtn").textContent = tt("say");
-  $("sayText").placeholder = tt("sayPh");
   $("room").placeholder = tt("roomPh");
   $("pname").placeholder = tt("namePh");
   if (view) render();

@@ -12,11 +12,5 @@ class_name = "Room"
 tag = "v1"
 new_sqlite_classes = ["Room"]
 
-# 自分のドメインで受ける。こうしておくと、ページ側の設定を書き換えなくて済む。
-# （うまくいかないときはこの2行を消して、workers.dev のURLをページの「同期サーバー」欄に入れる）
-routes = [
-  { pattern = "sealed-workbench.com/table-api/*", zone_name = "sealed-workbench.com" }
-]
-
 [observability]
 enabled = true

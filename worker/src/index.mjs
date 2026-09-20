@@ -24,9 +24,8 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     if (req.method === "OPTIONS") return new Response(null, { headers: cors() });
-    // 独自ドメインで /table-api/ws として受けることもあるので、末尾で判定する
-    if (url.pathname.endsWith("/health")) return json({ ok: true });
-    if (!url.pathname.endsWith("/ws")) return json({ error: "not found" }, 404);
+    if (url.pathname === "/health") return json({ ok: true });
+    if (url.pathname !== "/ws") return json({ error: "not found" }, 404);
 
     const room = (url.searchParams.get("room") || "").trim().toLowerCase();
     if (!/^[a-z0-9-]{3,32}$/.test(room)) return json({ error: "合言葉は英数字とハイフン 3〜32 文字にしてください" }, 400);
@@ -155,9 +154,15 @@ function viewFor(g, me, online) {
     libraryCount: p.library.length, handCount: p.hand.length,
     field: p.field, grave: p.grave, exile: p.exile, ready: p.ready
   });
+  // 裏向きにしたカード（両面カードではないもの）は、相手には中身を見せない
+  const veil = c => (c.flipped && !c.back)
+    ? { id: c.id, name: "", img: "", back: "", land: false, token: c.token,
+        tapped: c.tapped, flipped: true, counters: c.counters, note: c.note,
+        x: c.x, y: c.y, hidden: true }
+    : c;
   return {
     me: mine && { ...pub(mine), hand: mine.hand, seat: me },
-    opp: theirs && { ...pub(theirs), seat: opp, online: online.has(opp) },
+    opp: theirs && { ...pub(theirs), field: theirs.field.map(veil), seat: opp, online: online.has(opp) },
     // 相手の手札は枚数だけ。中身は送らない
     turn: g.turn, active: g.active, log: g.log.slice(-60), youAre: me
   };
@@ -174,6 +179,19 @@ function apply(g, me, m) {
   };
   const pull = (zone, id) => p[zone].splice(find(zone, id), 1)[0];
   const zoneName = { hand: "手札", field: "戦場", grave: "墓地", exile: "追放", library: "山札" };
+
+  // 卓の上では相手の場のカードにも手を出せる（タップ・裏返し・カウンター・メモだけ）。
+  // m.opp が付いているときは相手の戦場から探す。
+  const onField = () => {
+    const h = m.opp ? g.players[other(me)] : p;
+    if (!h) throw new Error("相手がいません");
+    const c = h.field.find(x => x.id === m.id);
+    if (!c) throw new Error("そのカードが見つかりません");
+    return c;
+  };
+  // 裏向きのカードは名前を記録に残さない（記録から中身が分かってしまうため）
+  const shown = c => (c.flipped && !c.back) ? "裏向きのカード" : (c.name || "カード");
+  const oppLog = text => { if (m.opp) log(g, `${nm} が${text}`); };
 
   switch (m.type) {
     /* ---- 準備 ---- */
@@ -271,8 +289,9 @@ function apply(g, me, m) {
       break;
     }
     case "tap": {
-      const c = p.field[find("field", m.id)];
+      const c = onField();
       c.tapped = m.tapped ?? !c.tapped;
+      oppLog(`相手の ${shown(c)} を${c.tapped ? "タップ" : "アンタップ"}しました`);
       break;
     }
     case "tapAll": {
@@ -281,18 +300,21 @@ function apply(g, me, m) {
       break;
     }
     case "flip": {
-      const c = p.field[find("field", m.id)];
+      const c = onField();
       c.flipped = !c.flipped;
+      oppLog(c.flipped ? "相手のカードを1枚 裏返しました" : `相手の ${shown(c)} を表に戻しました`);
       break;
     }
     case "counter": {
-      const c = p.field[find("field", m.id)];
+      const c = onField();
       c.counters = clamp((c.counters || 0) + (m.d || 0), -99, 99);
+      oppLog(`相手の ${shown(c)} のカウンターを ${c.counters} にしました`);
       break;
     }
     case "note": {
-      const c = p.field[find("field", m.id)];
+      const c = onField();
       c.note = String(m.note || "").slice(0, 40);
+      oppLog(`相手の ${shown(c)} にメモを付けました`);
       break;
     }
     case "token": {
