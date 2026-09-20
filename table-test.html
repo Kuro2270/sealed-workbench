@@ -133,14 +133,17 @@ const L = {
 const lang = () => (window.I18N && I18N.lang === "en") ? "en" : "ja";
 const tt = k => L[lang()][k];
 
+// リミテッドと同じ40枚（土地17／呪文23）にしてある
 const SAMPLE = `Deck
-8 Mountain
+9 Mountain
 8 Island
 4 Lightning Bolt
 4 Shock
 4 Opt
-4 Grizzly Bears
-2 Serra Angel`;
+4 Goblin Piker
+4 Wind Drake
+2 Air Elemental
+1 Mahamoti Djinn`;
 
 function newRoom() { return "test-" + Math.random().toString(36).slice(2, 7); }
 
