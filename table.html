@@ -212,6 +212,7 @@
         <label class="f" style="margin-top:8px;max-width:520px"><span id="s_server">同期サーバー</span>
           <input id="server" placeholder="wss://..." autocomplete="off"></label>
         <p class="hint" id="s_serverHint">通常は変更不要です。自分で建てたサーバーを使うときだけ書き換えてください。</p>
+        <p class="hint" id="s_soloHint">一人で動きを確かめたいときは、このページを2つのタブで開き、片方のURLの末尾に <code>?as=b</code> を付けてください。同じ合言葉でも別の席として着けます。</p>
       </details>
     </div>
 
@@ -288,6 +289,7 @@ const L = {
     room: "合言葉（英数字）", name: "あなたの名前", sit: "卓に着く", makeRoom: "合言葉を作る",
     roomPh: "例: aoi-tori-2468", namePh: "例: プレイヤー1", tokNamePh: "例: 兵士",
     adv: "うまくつながらないとき", server: "同期サーバー", serverHint: "通常は変更不要です。自分で建てたサーバーを使うときだけ書き換えてください。",
+    soloHint: "一人で動きを確かめたいときは、このページを2つのタブで開き、片方のURLの末尾に <code>?as=b</code> を付けてください。同じ合言葉でも別の席として着けます。",
     deck: "デッキ", deckHint: "MTGアリーナ形式の並び（「4 Lightning Bolt (M10) 146」など）を貼り付けてください。当サイトのシールド構築・ドラフト構築が書き出す形式がそのまま使えます。サイドボードは読み込みません。",
     load: "デッキを読み込む", jaImg: "日本語版の画像を使う", life: "開始ライフ",
     preview: "カード", log: "やりとり", say: "送る", sayPh: "ひとこと",
@@ -319,6 +321,7 @@ const L = {
     room: "Passphrase (letters and numbers)", name: "Your name", sit: "Sit down", makeRoom: "Make one up",
     roomPh: "e.g. blue-bird-2468", namePh: "e.g. Player 1", tokNamePh: "e.g. Soldier",
     adv: "If it will not connect", server: "Sync server", serverHint: "Normally leave this alone. Change it only to use a server of your own.",
+    soloHint: "To try both sides yourself, open this page in two tabs and add <code>?as=b</code> to the end of the address in one of them. The two tabs then take separate seats at the same table.",
     deck: "Deck", deckHint: "Paste an MTG Arena decklist (e.g. “4 Lightning Bolt (M10) 146”). The lists this site exports work as they are. Sideboards are ignored.",
     load: "Load deck", jaImg: "Use Japanese card images", life: "Starting life",
     preview: "Card", log: "Table talk", say: "Send", sayPh: "Say something",
@@ -434,7 +437,13 @@ async function addJapanese(entries, onStep) {
    サーバーとのやりとり
    ======================================================================= */
 let ws = null, view = null, myRoom = "", retry = 0, closedByUs = false;
-const seatKey = room => "sw.table.seat." + room;
+// 席はブラウザごとに覚える。同じブラウザで2人分を試したいときは
+// URL の末尾に ?as=b のように付けると、別の席として扱われる。
+const SEAT_SUFFIX = (() => {
+  const v = (new URLSearchParams(location.search).get("as") || "").trim().toLowerCase();
+  return /^[a-z0-9]{1,8}$/.test(v) ? "." + v : "";
+})();
+const seatKey = room => "sw.table.seat." + room + SEAT_SUFFIX;
 
 function serverUrl() {
   const fromField = $("server").value.trim();
@@ -920,6 +929,7 @@ function applyLocal() {
   set("h1", "h1"); set("lead", "lead");
   set("s_join", "join"); set("s_joinHint", "joinHint"); set("s_room", "room"); set("s_name", "name");
   set("s_adv", "adv"); set("s_server", "server"); set("s_serverHint", "serverHint");
+  $("s_soloHint").innerHTML = tt("soloHint"); // <code> を含むので innerHTML で入れる（文言は自前の辞書のみ）
   set("s_deck", "deck"); set("s_deckHint", "deckHint"); set("s_jaImg", "jaImg"); set("s_life", "life");
   set("s_preview", "preview"); set("s_log", "log");
   $("joinBtn").textContent = tt("sit");
