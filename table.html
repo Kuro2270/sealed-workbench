@@ -66,6 +66,19 @@
   .status.bad{color:#B3462F}
   .status.good{color:#3F7A4A}
 
+  /* デッキの読み込み状態を、たたんだ見出しでいつでも分かるようにする */
+  .deckbox{padding:12px 20px}
+  .deckbox[open]{padding:18px 20px}
+  .deckbox > summary{cursor:pointer;display:flex;align-items:center;gap:10px;list-style:none}
+  .deckbox > summary::-webkit-details-marker{display:none}
+  .deckbox > summary::after{content:"▾";color:var(--muted);font-size:12px;margin-left:2px}
+  .deckbox[open] > summary::after{content:"▴"}
+  .deckbox .dttl{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;font-size:17px}
+  .deckbox .dnum{color:var(--muted);font-size:13px}
+  .dbadge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 11px;font-size:12px;font-weight:700;
+          background:#8A4A33;color:#fff}
+  .dbadge.ok{background:#3F7A4A}
+
   /* ---------- 盤面 ---------- */
   /* 対戦中は卓をできるだけ広く使う（見出しの説明文をたたみ、左右の余白を詰める） */
   body.playing header{padding:14px 24px 10px}
@@ -95,7 +108,14 @@
       repeating-linear-gradient(0deg,transparent 0 27px,rgba(255,255,255,.025) 27px 28px);
       overflow:hidden}
   .field.opp{border-bottom:2px dashed var(--felt-line)}
-  .field .empty{position:absolute;inset:0;display:grid;place-items:center;color:#5E7469;font-size:13px;pointer-events:none}
+  .field .empty{position:absolute;inset:0;display:grid;place-items:center;color:#5E7469;font-size:13px;pointer-events:none;text-align:center;padding:0 20px}
+  /* デッキがまだ無い側は、斜めの縞で「準備中」と分かるようにする */
+  .field.waiting::after{content:"";position:absolute;inset:0;pointer-events:none;
+      background:repeating-linear-gradient(45deg,rgba(184,145,47,.055) 0 12px,transparent 12px 24px)}
+  .field.waiting .empty{color:#8B9B93}
+  .pill.nodeck{background:#3A2A22;border-color:#6B4A38;color:#E8C9BA}
+  .bar button.need{background:var(--gold);color:#1A1405;border-color:var(--gold);font-weight:700}
+  .bar button.need:hover{background:#CFA338}
 
   /* カード */
   .c{position:absolute;width:var(--cw);height:var(--ch);border-radius:4px;background:#0D1512 center/cover no-repeat;
@@ -209,7 +229,7 @@
 <main>
   <!-- ================= 準備 ================= -->
   <div id="setup">
-    <div class="card-box">
+    <div class="card-box" id="joinBox">
       <h2 id="s_join">部屋に入る</h2>
       <p class="hint" id="s_joinHint">同じ合言葉を入れた2人が同じ卓に着きます。相手に合言葉を伝えてください。</p>
       <div class="grid2" style="margin-top:12px">
@@ -232,8 +252,12 @@
       </details>
     </div>
 
-    <div class="card-box">
-      <h2 id="s_deck">デッキ</h2>
+    <details class="card-box deckbox" id="deckBox" open>
+      <summary>
+        <span class="dbadge" id="deckBadge">未読込</span>
+        <span class="dttl" id="s_deck">デッキ</span>
+        <span class="dnum" id="deckCount"></span>
+      </summary>
       <p class="hint" id="s_deckHint">MTGアリーナ形式の並び（「4 Lightning Bolt (M10) 146」など）を貼り付けてください。当サイトのシールド構築・ドラフト構築が書き出す形式がそのまま使えます。サイドボードは読み込みません。</p>
       <textarea id="deckText" spellcheck="false" placeholder="Deck&#10;4 Lightning Bolt (M10) 146&#10;24 Mountain (ANB) 115"></textarea>
       <div class="row" style="margin-top:10px">
@@ -242,7 +266,7 @@
         <label class="f" style="max-width:120px"><span id="s_life">開始ライフ</span><input type="number" id="startLife" value="20" min="1" max="999"></label>
         <span class="status" id="deckStatus"></span>
       </div>
-    </div>
+    </details>
   </div>
 
   <!-- ================= 盤面 ================= -->
@@ -305,6 +329,9 @@ const L = {
     deck: "デッキ", deckHint: "MTGアリーナ形式の並び（「4 Lightning Bolt (M10) 146」など）を貼り付けてください。当サイトのシールド構築・ドラフト構築が書き出す形式がそのまま使えます。サイドボードは読み込みません。",
     load: "デッキを読み込む", jaImg: "日本語版の画像を使う", life: "開始ライフ",
     preview: "カード", log: "記録",
+    deckNo: "未読込", deckOk: "読込済", deckN: "{n}枚",
+    needDeck: "デッキがありません", oppNoDeck: "相手はデッキを用意しています",
+    fieldNoDeck: "デッキを読み込むと、ここから始まります",
     connecting: "つないでいます…", connected: "つながりました", waiting: "相手を待っています",
     lost: "切れました。つなぎ直しています…", needRoom: "合言葉を入れてください",
     roomBad: "合言葉は英数字とハイフン、3〜32文字で入れてください",
@@ -337,6 +364,9 @@ const L = {
     deck: "Deck", deckHint: "Paste an MTG Arena decklist (e.g. “4 Lightning Bolt (M10) 146”). The lists this site exports work as they are. Sideboards are ignored.",
     load: "Load deck", jaImg: "Use Japanese card images", life: "Starting life",
     preview: "Card", log: "Log",
+    deckNo: "Not loaded", deckOk: "Loaded", deckN: "{n} cards",
+    needDeck: "No deck yet", oppNoDeck: "Your opponent is setting up a deck",
+    fieldNoDeck: "Load a deck and your side starts here",
     connecting: "Connecting…", connected: "Connected", waiting: "Waiting for your opponent",
     lost: "Disconnected. Reconnecting…", needRoom: "Enter a passphrase",
     roomBad: "Use 3–32 letters, numbers or hyphens",
@@ -509,13 +539,14 @@ let dragging = null;
 
 function render() {
   if (!view) return;
-  $("setup").hidden = true;
+  $("joinBox").hidden = true;          // 部屋の欄は用が済んだので隠す
   $("board").hidden = false;
   document.body.classList.add("playing");
+  refreshDeckState();
   renderBar($("oppBar"), view.opp, false);
   renderBar($("myBar"), view.me, true);
-  renderField($("oppField"), view.opp ? view.opp.field : [], false);
-  renderField($("myField"), view.me ? view.me.field : [], true);
+  renderField($("oppField"), view.opp ? view.opp.field : [], false, !!(view.opp && view.opp.ready));
+  renderField($("myField"), view.me ? view.me.field : [], true, !!(view.me && view.me.ready));
   renderHand();
   renderLog();
 }
@@ -523,7 +554,7 @@ function render() {
 function renderBar(el, p, mine) {
   if (!p) { el.innerHTML = `<span class="who">${esc(tt("oppNone"))}</span>`; return; }
   const off = (!mine && p.online === false) ? ` <span class="off">${esc(tt("oppOff"))}</span>` : "";
-  const zones = `
+  const zones = !p.ready ? `<span class="pill nodeck">${esc(mine ? tt("needDeck") : tt("oppNoDeck"))}</span>` : `
     <button class="pill" data-z="library">${esc(tt("library"))} <b>${p.libraryCount}</b></button>
     <button class="pill" data-z="grave">${esc(tt("grave"))} <b>${p.grave.length}</b></button>
     <button class="pill" data-z="exile">${esc(tt("exile"))} <b>${p.exile.length}</b></button>
@@ -537,6 +568,7 @@ function renderBar(el, p, mine) {
         <button data-a="lifeSet" title="${esc(tt("lifeSet"))}">…</button></span>
       ${p.poison ? `<button class="pill" data-a="poisonMinus">${esc(tt("poison"))} <b>${p.poison}</b></button>` : `<button class="pill" data-a="poison">${esc(tt("poison"))}</button>`}
       ${zones}
+      ${p.ready ? "" : `<button data-a="deckOpen" class="need">${esc(tt("load"))}</button>`}
       <span class="sp"></span>
       <button data-a="draw" title="${esc(tt("drawN"))}">${esc(tt("draw"))} ▾</button>
       <button data-a="shuffle">${esc(tt("shuffle"))}</button>
@@ -555,13 +587,32 @@ function renderBar(el, p, mine) {
 }
 
 /* 戦場は「今ある札だけ位置を直す」方式。作り直すと引きずっている最中に飛んでしまうため */
-function renderField(el, cards, mine) {
+/* デッキを読み込んだかどうかを、たたんだ見出しの札で示す */
+function refreshDeckState() {
+  const me = view && view.me;
+  const ready = !!(me && me.ready);
+  const n = ready ? (me.libraryCount + me.handCount + me.field.length + me.grave.length + me.exile.length) : 0;
+  const badge = $("deckBadge");
+  badge.textContent = ready ? tt("deckOk") : tt("deckNo");
+  badge.className = "dbadge" + (ready ? " ok" : "");
+  $("deckCount").textContent = ready ? tt("deckN", { n }) : "";
+  // 読み込めたら、その場でたたんで卓を広く使う
+  if (ready && !deckWasReady) $("deckBox").open = false;
+  if (!ready && deckWasReady) $("deckBox").open = true;
+  deckWasReady = ready;
+}
+let deckWasReady = false;
+
+function renderField(el, cards, mine, ready) {
   const key = mine ? "mine" : "opp";
   const map = fieldNodes[key];
   const seen = new Set();
   let empty = el.querySelector(".empty");
   if (!empty) { empty = document.createElement("div"); empty.className = "empty"; el.appendChild(empty); }
-  empty.textContent = cards.length ? "" : (mine ? tt("fieldEmpty") : "");
+  el.classList.toggle("waiting", !ready);
+  empty.textContent = cards.length ? ""
+    : !ready ? (mine ? tt("fieldNoDeck") : tt("oppNoDeck"))
+    : (mine ? tt("fieldEmpty") : "");
   for (const c of cards) {
     seen.add(c.id);
     let n = map.get(c.id);
@@ -833,6 +884,11 @@ function onBarClick(e, mine) {
       { label: "−1", run: () => send({ type: "poison", d: -1 }) }
     ], tt("poison"));
   }
+  else if (a === "deckOpen") {
+    $("deckBox").open = true;
+    $("deckBox").scrollIntoView({ behavior: "smooth", block: "center" });
+    $("deckText").focus();
+  }
   else if (a === "draw") { const r = b.getBoundingClientRect(); openLibraryMenu(r.left, r.bottom + 4); }
   else if (a === "shuffle") send({ type: "shuffle" });
   else if (a === "untapAll") send({ type: "tapAll", tapped: false });
@@ -964,6 +1020,7 @@ function applyLocal() {
   $("loadBtn").textContent = tt("load");
   $("room").placeholder = tt("roomPh");
   $("pname").placeholder = tt("namePh");
+  refreshDeckState();
   if (view) render();
 }
 if (window.I18N) {
