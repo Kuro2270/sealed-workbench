@@ -1,0 +1,22 @@
+name = "sealed-workbench-table"
+main = "src/index.mjs"
+compatibility_date = "2026-09-01"
+
+# 部屋ごとに1つできる入れ物。盤面の正本をここが持つ。
+[[durable_objects.bindings]]
+name = "ROOM"
+class_name = "Room"
+
+# 無料プランで使えるのは SQLite 方式だけなので、必ず new_sqlite_classes で登録する
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]
+
+# 自分のドメインで受ける。こうしておくと、ページ側の設定を書き換えなくて済む。
+# （うまくいかないときはこの2行を消して、workers.dev のURLをページの「同期サーバー」欄に入れる）
+routes = [
+  { pattern = "sealed-workbench.com/table-api/*", zone_name = "sealed-workbench.com" }
+]
+
+[observability]
+enabled = true

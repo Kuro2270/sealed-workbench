@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="ja" data-title="page.table.title" data-desc="desc.table">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>対戦卓 — MTGアリーナ リミテッド・ワークベンチ</title>
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="./i18n.js"></script>
+<style>
+  :root{
+    --pine:#23342E; --pine-deep:#18241F;
+    --paper:#F3F5F1; --paper-2:#E6EAE3;
+    --ink:#0F1C17; --muted:#63736C;
+    --gold:#B8912F; --line:#CBD3CA;
+    --felt:#1C2B24; --felt-2:#16221D; --felt-line:#2F4239;
+    --radius:3px;
+    --cw:72px; --ch:100px;        /* 戦場のカードの大きさ */
+    --hw:88px; --hh:123px;        /* 手札のカードの大きさ */
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+
+  header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
+  .wrap{max-width:1400px;margin:0 auto}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
+  .brand a{color:inherit;text-decoration:none}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;font-size:13px;font-weight:500;
+        line-height:1;white-space:nowrap;color:#CBD8D2;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #3D544B}
+  nav a:hover{background:#31473E;color:var(--paper)}
+  nav a.on{background:var(--gold);color:#1A1405;border-color:var(--gold);font-weight:700}
+  .head-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+
+  main{max-width:1400px;margin:0 auto;padding:18px 20px 60px}
+  button,select,input,textarea{font:inherit;font-family:inherit}
+  button{cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:var(--radius);padding:7px 13px}
+  button:hover{border-color:var(--gold)}
+  button.primary{background:var(--pine);color:var(--paper);border-color:var(--pine);font-weight:700}
+  button.primary:hover{background:#31473E}
+  button:disabled{opacity:.45;cursor:default}
+  input,select,textarea{border:1px solid var(--line);border-radius:var(--radius);padding:7px 9px;background:#fff;color:var(--ink)}
+  textarea{width:100%;min-height:150px;font-size:13px;line-height:1.5;resize:vertical}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .hint{color:var(--muted);font-size:12.5px;margin:4px 0 0}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+  /* ---------- 準備 ---------- */
+  .card-box{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+  .card-box h2{font-size:19px;margin:0 0 4px}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+  label.f{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted)}
+  label.f input,label.f select{width:100%}
+  .status{font-size:13px;color:var(--muted);min-height:20px}
+  .status.bad{color:#B3462F}
+  .status.good{color:#3F7A4A}
+
+  /* ---------- 盤面 ---------- */
+  #board{display:grid;grid-template-columns:1fr 300px;gap:12px;align-items:start}
+  .table{background:var(--felt);border:1px solid var(--felt-line);border-radius:6px;overflow:hidden;color:#DCE6E0}
+  .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;background:var(--felt-2);border-bottom:1px solid var(--felt-line);font-size:13px}
+  .bar.mine{border-bottom:none;border-top:1px solid var(--felt-line)}
+  .bar .who{font-weight:700;color:var(--gold);margin-right:2px}
+  .bar .sp{flex:1}
+  .bar button{background:#2B3C34;color:#DCE6E0;border-color:#3D544B;padding:4px 9px;font-size:13px}
+  .bar button:hover{background:#384C42;border-color:var(--gold)}
+  .life{display:inline-flex;align-items:center;gap:4px}
+  .life b{font-size:20px;min-width:38px;text-align:center;font-variant-numeric:tabular-nums}
+  .pill{display:inline-flex;align-items:center;gap:5px;background:#2B3C34;border:1px solid #3D544B;border-radius:999px;padding:3px 10px;font-size:12.5px}
+  .pill:hover{border-color:var(--gold)}
+  .pill b{font-variant-numeric:tabular-nums}
+  .off{opacity:.5}
+
+  .field{position:relative;min-height:224px;background:
+      repeating-linear-gradient(0deg,transparent 0 27px,rgba(255,255,255,.025) 27px 28px);
+      overflow:hidden}
+  .field.opp{border-bottom:2px dashed var(--felt-line)}
+  .field .empty{position:absolute;inset:0;display:grid;place-items:center;color:#5E7469;font-size:13px;pointer-events:none}
+
+  /* カード */
+  .c{position:absolute;width:var(--cw);height:var(--ch);border-radius:4px;background:#0D1512 center/cover no-repeat;
+     box-shadow:0 2px 5px rgba(0,0,0,.45);border:1px solid #000;transition:transform .12s ease;touch-action:none;user-select:none}
+  .c.mine{cursor:grab}
+  .c.drag{cursor:grabbing;z-index:50;box-shadow:0 8px 20px rgba(0,0,0,.6)}
+  .c.tapped{transform:rotate(90deg)}
+  .c .nm{position:absolute;left:0;right:0;bottom:0;font-size:9px;line-height:1.25;padding:2px 3px;background:rgba(0,0,0,.72);
+         color:#E7EFEA;border-radius:0 0 3px 3px;max-height:26px;overflow:hidden}
+  .c.hasimg .nm{display:none}
+  .c .ct{position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;border-radius:999px;background:var(--gold);color:#1A1405;
+         font-size:11px;font-weight:700;display:grid;place-items:center;border:1px solid #6E560F;padding:0 4px}
+  .c .note{position:absolute;top:-7px;left:-5px;background:#26405A;color:#D6E6F5;font-size:10px;padding:0 4px;border-radius:3px;border:1px solid #3E6488}
+  .c .dots{position:absolute;right:1px;top:1px;width:17px;height:15px;border-radius:3px;background:rgba(0,0,0,.6);color:#fff;
+           font-size:11px;line-height:15px;text-align:center;opacity:0;border:none;padding:0}
+  .c:hover .dots{opacity:1}
+  .c.tok{border:1px solid var(--gold)}
+  .c.tok::after{content:"";position:absolute;inset:0;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(184,145,47,.5)}
+
+  /* 手札 */
+  .hand{display:flex;gap:6px;padding:10px 12px;background:var(--felt-2);border-top:1px solid var(--felt-line);min-height:calc(var(--hh) + 20px);
+        overflow-x:auto;align-items:flex-start}
+  .hc{position:relative;flex:0 0 auto;width:var(--hw);height:var(--hh);border-radius:5px;background:#0D1512 center/cover no-repeat;
+      border:1px solid #000;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer}
+  .hc:hover{transform:translateY(-6px);transition:transform .1s}
+  .hc .nm{position:absolute;left:0;right:0;bottom:0;font-size:9.5px;line-height:1.25;padding:2px 3px;background:rgba(0,0,0,.72);color:#E7EFEA}
+  .hc.hasimg .nm{display:none}
+  .hand .none{color:#5E7469;font-size:13px;padding:6px 2px}
+
+  /* 右側 */
+  .side{display:flex;flex-direction:column;gap:12px}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+  .panel h3{font-size:14px;margin:0 0 8px}
+  #preview{width:100%;aspect-ratio:488/680;border-radius:6px;background:#E6EAE3 center/contain no-repeat;border:1px solid var(--line)}
+  #logList{list-style:none;margin:0;padding:0;font-size:12.5px;max-height:260px;overflow-y:auto}
+  #logList li{padding:3px 0;border-bottom:1px solid var(--paper-2);color:#2E3D37}
+  #logList li:last-child{border-bottom:none}
+
+  /* 覆い（山札・墓地の中身、トークン作成） */
+  .ov{position:fixed;inset:0;background:rgba(15,28,23,.6);display:grid;place-items:center;z-index:100;padding:20px}
+  .ov .inner{background:var(--paper);border-radius:6px;max-width:960px;width:100%;max-height:86vh;overflow:auto;padding:18px 20px;border:1px solid var(--line)}
+  .ov h3{font-size:17px;margin:0 0 10px}
+  .zlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin-top:10px}
+  .zc{position:relative;border-radius:5px;overflow:hidden;border:1px solid var(--line);background:#DDE3DC center/cover no-repeat;aspect-ratio:488/680;cursor:pointer}
+  .zc span{position:absolute;left:0;right:0;bottom:0;font-size:10px;line-height:1.3;padding:2px 3px;background:rgba(0,0,0,.7);color:#fff}
+  .zc.hasimg span{display:none}
+  .zc.sel{outline:3px solid var(--gold);outline-offset:-3px}
+
+  /* 手元の小さなメニュー */
+  #menu{position:fixed;z-index:120;background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+        box-shadow:0 8px 24px rgba(0,0,0,.2);padding:5px;min-width:186px}
+  #menu button{display:block;width:100%;text-align:left;border:none;background:none;padding:6px 10px;font-size:13px;border-radius:2px}
+  #menu button:hover{background:var(--paper-2)}
+  #menu hr{border:none;border-top:1px solid var(--paper-2);margin:4px 0}
+  #menu .head{font-size:12px;color:var(--muted);padding:3px 10px 5px}
+
+  footer{max-width:1400px;margin:0 auto;padding:0 20px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+
+  @media (max-width:1100px){
+    #board{grid-template-columns:1fr}
+    .side{flex-direction:row;flex-wrap:wrap}
+    .panel{flex:1 1 260px}
+    #preview{max-width:220px}
+  }
+  @media (max-width:720px){
+    header{padding:16px 14px 12px} main{padding:14px 12px 40px}
+    :root{--cw:56px;--ch:78px;--hw:70px;--hh:98px}
+    nav{gap:6px;font-size:12px}
+    .card-box{padding:14px 12px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand"><a href="./" data-i18n="site.name">MTGアリーナ リミテッド・ワークベンチ</a></div>
+    <nav>
+      <a href="./guide.html" data-i18n="nav.guide">使い方</a>
+      <a href="./" data-i18n="nav.sealed">シールド構築</a>
+      <a href="./draft.html" data-i18n="nav.draft">ドラフト構築</a>
+      <a href="./ratings.html" data-i18n="nav.ratings">カード勝率一覧</a>
+      <a href="./reports.html" data-i18n="nav.reports">環境レポート</a>
+      <a href="./swiss.html" data-i18n="nav.swiss">スイスドロー</a>
+      <a href="./assistant.html" data-i18n="nav.assist">ドラフト補助</a>
+      <a href="./table.html" class="on" data-i18n="nav.table">対戦卓</a>
+      <a href="./privacy.html" data-i18n="nav.privacy">プライバシー</a>
+    </nav>
+    <div class="head-top">
+      <div>
+        <h1 id="h1">対戦卓</h1>
+        <p id="lead">組んだデッキで友人と対戦できます。ルールの判定はしません。カードを動かす・タップする・ライフを増減する、といった卓上の操作をそのまま画面で行う道具です。</p>
+      </div>
+      <div>
+        <select id="langSelect" data-i18n-label="lang.label">
+          <option value="ja">日本語</option><option value="en">English</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ================= 準備 ================= -->
+  <div id="setup">
+    <div class="card-box">
+      <h2 id="s_join">部屋に入る</h2>
+      <p class="hint" id="s_joinHint">同じ合言葉を入れた2人が同じ卓に着きます。相手に合言葉を伝えてください。</p>
+      <div class="grid2" style="margin-top:12px">
+        <label class="f"><span id="s_room">合言葉（英数字）</span>
+          <input id="room" maxlength="32" placeholder="例: itou-vs-monji" autocomplete="off"></label>
+        <label class="f"><span id="s_name">あなたの名前</span>
+          <input id="pname" maxlength="20" placeholder="例: 伊藤" autocomplete="off"></label>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="primary" id="joinBtn">卓に着く</button>
+        <button id="randBtn">合言葉を作る</button>
+        <span class="status" id="connStatus"></span>
+      </div>
+      <details style="margin-top:10px">
+        <summary class="hint" style="cursor:pointer" id="s_adv">うまくつながらないとき</summary>
+        <label class="f" style="margin-top:8px;max-width:520px"><span id="s_server">同期サーバー</span>
+          <input id="server" placeholder="wss://..." autocomplete="off"></label>
+        <p class="hint" id="s_serverHint">通常は変更不要です。自分で建てたサーバーを使うときだけ書き換えてください。</p>
+      </details>
+    </div>
+
+    <div class="card-box">
+      <h2 id="s_deck">デッキ</h2>
+      <p class="hint" id="s_deckHint">MTGアリーナ形式の並び（「4 Lightning Bolt (M10) 146」など）を貼り付けてください。当サイトのシールド構築・ドラフト構築が書き出す形式がそのまま使えます。サイドボードは読み込みません。</p>
+      <textarea id="deckText" spellcheck="false" placeholder="Deck&#10;4 Lightning Bolt (M10) 146&#10;24 Mountain (ANB) 115"></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="primary" id="loadBtn">デッキを読み込む</button>
+        <label class="row" style="gap:5px;font-size:13px"><input type="checkbox" id="jaImg" checked><span id="s_jaImg">日本語版の画像を使う</span></label>
+        <label class="f" style="max-width:120px"><span id="s_life">開始ライフ</span><input type="number" id="startLife" value="20" min="1" max="999"></label>
+        <span class="status" id="deckStatus"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 盤面 ================= -->
+  <div id="board" hidden>
+    <div>
+      <div class="table">
+        <!-- 相手 -->
+        <div class="bar" id="oppBar"></div>
+        <div class="field opp" id="oppField"></div>
+        <!-- 自分 -->
+        <div class="field mine" id="myField"></div>
+        <div class="bar mine" id="myBar"></div>
+        <div class="hand" id="hand"></div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="panel">
+        <h3 id="s_preview">カード</h3>
+        <div id="preview"></div>
+      </div>
+      <div class="panel">
+        <h3 id="s_log">やりとり</h3>
+        <ul id="logList"></ul>
+        <div class="row" style="margin-top:8px">
+          <input id="sayText" maxlength="120" style="flex:1;min-width:120px" placeholder="ひとこと">
+          <button id="sayBtn">送る</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer>
+  <span data-i18n-html="foot.short">データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="./privacy.html">プライバシーポリシー</a>にまとめています。</span>
+</footer>
+
+<div id="menu" hidden></div>
+
+<script>
+"use strict";
+/* =======================================================================
+   対戦卓
+   ・ルールの判定はしない。カードを動かす道具に徹する。
+   ・山札を混ぜる／引くはサーバー側で行う（二人の画面で順番がずれないように）。
+   ======================================================================= */
+
+/* 同期サーバーの場所。worker/wrangler.toml の routes でこの道筋を受けるようにしてある。
+   別の場所に建てたときは、準備画面の「同期サーバー」欄に入れれば切り替わる。 */
+const DEFAULT_SERVER = location.protocol === "https:"
+  ? `wss://${location.host}/table-api`
+  : "wss://sealed-workbench.com/table-api";
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ---------- このページだけの文言 ---------- */
+const L = {
+  ja: {
+    h1: "対戦卓", lead: "組んだデッキで友人と対戦できます。ルールの判定はしません。カードを動かす・タップする・ライフを増減する、といった卓上の操作をそのまま画面で行う道具です。",
+    join: "部屋に入る", joinHint: "同じ合言葉を入れた2人が同じ卓に着きます。相手に合言葉を伝えてください。",
+    room: "合言葉（英数字）", name: "あなたの名前", sit: "卓に着く", makeRoom: "合言葉を作る",
+    adv: "うまくつながらないとき", server: "同期サーバー", serverHint: "通常は変更不要です。自分で建てたサーバーを使うときだけ書き換えてください。",
+    deck: "デッキ", deckHint: "MTGアリーナ形式の並び（「4 Lightning Bolt (M10) 146」など）を貼り付けてください。当サイトのシールド構築・ドラフト構築が書き出す形式がそのまま使えます。サイドボードは読み込みません。",
+    load: "デッキを読み込む", jaImg: "日本語版の画像を使う", life: "開始ライフ",
+    preview: "カード", log: "やりとり", say: "送る", sayPh: "ひとこと",
+    connecting: "つないでいます…", connected: "つながりました", waiting: "相手を待っています",
+    lost: "切れました。つなぎ直しています…", needRoom: "合言葉を入れてください",
+    roomBad: "合言葉は英数字とハイフン、3〜32文字で入れてください",
+    resolving: "カードを調べています {i}/{n}", jaLooking: "日本語版を探しています {i}/{n}",
+    deckEmpty: "デッキが読み取れませんでした。アリーナ形式の並びを貼り付けてください。",
+    deckDone: "{n}枚を読み込みました", deckFail: "カード情報を取れませんでした：{e}",
+    oppNone: "相手はまだ来ていません", oppOff: "（接続が切れています）",
+    fieldEmpty: "ここにカードを置きます", handEmpty: "手札はありません",
+    draw: "引く", draw7: "7枚", shuffle: "切る", library: "山札", grave: "墓地", exile: "追放",
+    hand: "手札", untapAll: "全部アンタップ", tidy: "整列", turn: "ターンを渡す", mull: "マリガン",
+    token: "トークン", dice: "ダイス", coin: "コイン", poison: "毒", reset: "片付ける",
+    toField: "戦場に出す", toHand: "手札に戻す", toGrave: "墓地へ", toExile: "追放へ",
+    toTop: "山札の上へ", toBottom: "山札の下へ", tapIt: "タップ／アンタップ", flipIt: "裏返す",
+    ctPlus: "カウンター +1", ctMinus: "カウンター −1", ctClear: "カウンターを消す",
+    noteSet: "メモを付ける", copyTok: "このカードのトークンを作る", close: "閉じる",
+    viewLib: "山札を見る（自分だけ）", libTitle: "山札（上から）", graveTitle: "墓地", exileTitle: "追放",
+    libHint: "自分だけに見えています。選ぶと動かせます。",
+    tokTitle: "トークンを作る", tokName: "名前", tokNote: "メモ（2/2 など）", tokCount: "個数", tokMake: "作る",
+    millN: "何枚 墓地に置きますか？", drawN: "何枚 引きますか？", lifeSet: "ライフをいくつにしますか？",
+    mullN: "何枚 引き直しますか？", noteAsk: "メモ（空にすると消えます）", diceAsk: "何面のダイスですか？",
+    resetAsk: "自分の盤面を片付けます。よろしいですか？", land: "土地"
+  },
+  en: {
+    h1: "Play table", lead: "Play a friend with the deck you built. There is no rules engine — this is a table you move cards on: play, tap, change life totals, roll dice.",
+    join: "Join a table", joinHint: "Two people who enter the same passphrase sit at the same table. Share it with your opponent.",
+    room: "Passphrase (letters and numbers)", name: "Your name", sit: "Sit down", makeRoom: "Make one up",
+    adv: "If it will not connect", server: "Sync server", serverHint: "Normally leave this alone. Change it only to use a server of your own.",
+    deck: "Deck", deckHint: "Paste an MTG Arena decklist (e.g. “4 Lightning Bolt (M10) 146”). The lists this site exports work as they are. Sideboards are ignored.",
+    load: "Load deck", jaImg: "Use Japanese card images", life: "Starting life",
+    preview: "Card", log: "Table talk", say: "Send", sayPh: "Say something",
+    connecting: "Connecting…", connected: "Connected", waiting: "Waiting for your opponent",
+    lost: "Disconnected. Reconnecting…", needRoom: "Enter a passphrase",
+    roomBad: "Use 3–32 letters, numbers or hyphens",
+    resolving: "Looking up cards {i}/{n}", jaLooking: "Looking for Japanese printings {i}/{n}",
+    deckEmpty: "Could not read a decklist. Paste one in Arena format.",
+    deckDone: "Loaded {n} cards", deckFail: "Could not fetch card data: {e}",
+    oppNone: "No opponent yet", oppOff: "(disconnected)",
+    fieldEmpty: "Cards you play land here", handEmpty: "Your hand is empty",
+    draw: "Draw", draw7: "7 cards", shuffle: "Shuffle", library: "Library", grave: "Graveyard", exile: "Exile",
+    hand: "Hand", untapAll: "Untap all", tidy: "Tidy up", turn: "Pass the turn", mull: "Mulligan",
+    token: "Token", dice: "Dice", coin: "Coin", poison: "Poison", reset: "Clear my side",
+    toField: "Put onto the battlefield", toHand: "Return to hand", toGrave: "Put into graveyard", toExile: "Exile",
+    toTop: "Put on top of library", toBottom: "Put on the bottom", tapIt: "Tap / untap", flipIt: "Turn over",
+    ctPlus: "Counter +1", ctMinus: "Counter −1", ctClear: "Remove counters",
+    noteSet: "Add a note", copyTok: "Make a token copy", close: "Close",
+    viewLib: "Look at your library", libTitle: "Library (top first)", graveTitle: "Graveyard", exileTitle: "Exile",
+    libHint: "Only you can see this. Click a card to move it.",
+    tokTitle: "Make a token", tokName: "Name", tokNote: "Note (e.g. 2/2)", tokCount: "How many", tokMake: "Make",
+    millN: "How many cards into the graveyard?", drawN: "How many cards?", lifeSet: "Set life to what?",
+    mullN: "How many cards to draw?", noteAsk: "Note (empty removes it)", diceAsk: "How many sides?",
+    resetAsk: "Clear your side of the table. Are you sure?", land: "Land"
+  }
+};
+const lang = () => (window.I18N && I18N.lang === "en") ? "en" : "ja";
+function tt(k, v) {
+  let s = (L[lang()] && L[lang()][k]) ?? L.ja[k] ?? k;
+  if (v) for (const n in v) s = s.split("{" + n + "}").join(v[n]);
+  return s;
+}
+
+/* =======================================================================
+   デッキの読み取りとカード画像
+   ======================================================================= */
+/* 「4 Lightning Bolt (M10) 146」「4 Lightning Bolt」どちらも読む */
+function parseDeck(text) {
+  const out = [];
+  let stop = false;
+  for (const raw of String(text).split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (/^(sideboard|サイドボード)/i.test(line)) { stop = true; continue; }
+    if (/^(deck|companion|commander|デッキ)\b/i.test(line)) continue;
+    if (stop) continue;
+    const m = line.match(/^(\d+)\s+(.+?)(?:\s+\(([A-Za-z0-9_]+)\)\s*([A-Za-z0-9\-★]+)?)?\s*$/);
+    if (!m) continue;
+    const n = parseInt(m[1], 10);
+    if (!n || n > 60) continue;
+    out.push({ n, name: m[2].trim(), set: (m[3] || "").toLowerCase(), cn: m[4] || "" });
+  }
+  return out;
+}
+
+const CACHE_KEY = "sw.table.cards.v1";
+let cardCache = {};
+try { cardCache = JSON.parse(localStorage.getItem(CACHE_KEY) || "{}"); } catch (e) {}
+const saveCache = () => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(cardCache)); } catch (e) {} };
+
+const imgOf = c => (c.image_uris && c.image_uris.normal)
+  || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris && c.card_faces[0].image_uris.normal) || "";
+const backOf = c => (c.card_faces && c.card_faces[1] && c.card_faces[1].image_uris && c.card_faces[1].image_uris.normal) || "";
+
+/* Scryfall はまとめ問い合わせが 75 件までなので、分けて聞く */
+async function resolveCards(entries, onStep) {
+  const need = entries.filter(e => !cardCache[e.name]);
+  const uniq = [...new Map(need.map(e => [e.name, e])).values()];
+  for (let i = 0; i < uniq.length; i += 75) {
+    const chunk = uniq.slice(i, i + 75);
+    onStep(Math.min(i + 75, uniq.length), uniq.length);
+    const r = await fetch("https://api.scryfall.com/cards/collection", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifiers: chunk.map(e => (e.set && e.cn) ? { set: e.set, collector_number: e.cn } : { name: e.name }) })
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    for (const c of (d.data || [])) {
+      const rec = { name: c.name, img: imgOf(c), back: backOf(c), land: /Land/.test(c.type_line || ""), set: c.set, cn: c.collector_number };
+      cardCache[c.name] = rec;
+      // 貼り付けた名前が英語の別表記でも引けるようにしておく
+      const front = String(c.name).split(" // ")[0];
+      if (!cardCache[front]) cardCache[front] = rec;
+    }
+    if (i + 75 < uniq.length) await sleep(120);
+  }
+  saveCache();
+}
+
+/* 日本語版の絵を探す。無ければ英語版のまま */
+async function addJapanese(entries, onStep) {
+  const uniq = [...new Set(entries.map(e => e.name))].filter(n => cardCache[n] && cardCache[n].jaTried !== true);
+  let i = 0;
+  for (const name of uniq) {
+    const rec = cardCache[name];
+    i++; onStep(i, uniq.length);
+    rec.jaTried = true;
+    if (!rec.set || !rec.cn) continue;
+    try {
+      const r = await fetch(`https://api.scryfall.com/cards/${rec.set}/${rec.cn}/ja`);
+      if (r.ok) {
+        const c = await r.json();
+        const ja = imgOf(c);
+        if (ja) { rec.jaImg = ja; rec.jaBack = backOf(c); }
+      }
+    } catch (e) {}
+    await sleep(110);
+  }
+  saveCache();
+}
+
+/* =======================================================================
+   サーバーとのやりとり
+   ======================================================================= */
+let ws = null, view = null, myRoom = "", retry = 0, closedByUs = false;
+const seatKey = room => "sw.table.seat." + room;
+
+function serverUrl() {
+  const fromField = $("server").value.trim();
+  if (fromField) return fromField;
+  const q = new URLSearchParams(location.search).get("server");
+  return q || DEFAULT_SERVER;
+}
+
+function connect(room, name) {
+  closedByUs = false;
+  let seat = "";
+  try { seat = localStorage.getItem(seatKey(room)) || ""; } catch (e) {}
+  if (!seat) {
+    seat = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2)) + "";
+    try { localStorage.setItem(seatKey(room), seat); } catch (e) {}
+  }
+  const url = `${serverUrl().replace(/\/$/, "")}/ws?room=${encodeURIComponent(room)}&seat=${encodeURIComponent(seat)}&name=${encodeURIComponent(name)}`;
+  setConn(tt("connecting"));
+  ws = new WebSocket(url);
+  ws.onopen = () => { retry = 0; setConn(tt("connected"), "good"); };
+  ws.onmessage = ev => {
+    let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+    if (m.type === "state") { view = m.view; render(); }
+    if (m.type === "error") setConn(m.message, "bad");
+  };
+  ws.onclose = () => {
+    if (closedByUs) return;
+    setConn(tt("lost"), "bad");
+    retry = Math.min(retry + 1, 6);
+    setTimeout(() => connect(room, name), 400 * retry);
+  };
+  ws.onerror = () => {};
+}
+function send(msg) {
+  if (ws && ws.readyState === 1) ws.send(JSON.stringify(msg));
+}
+function setConn(text, cls) {
+  const el = $("connStatus");
+  el.textContent = text; el.className = "status" + (cls ? " " + cls : "");
+}
+
+/* =======================================================================
+   画面
+   ======================================================================= */
+const fieldNodes = { mine: new Map(), opp: new Map() };
+let dragging = null;
+
+function render() {
+  if (!view) return;
+  $("setup").hidden = true;
+  $("board").hidden = false;
+  renderBar($("oppBar"), view.opp, false);
+  renderBar($("myBar"), view.me, true);
+  renderField($("oppField"), view.opp ? view.opp.field : [], false);
+  renderField($("myField"), view.me ? view.me.field : [], true);
+  renderHand();
+  renderLog();
+}
+
+function renderBar(el, p, mine) {
+  if (!p) { el.innerHTML = `<span class="who">${esc(tt("oppNone"))}</span>`; return; }
+  const off = (!mine && p.online === false) ? ` <span class="off">${esc(tt("oppOff"))}</span>` : "";
+  const zones = `
+    <button class="pill" data-z="library">${esc(tt("library"))} <b>${p.libraryCount}</b></button>
+    <button class="pill" data-z="grave">${esc(tt("grave"))} <b>${p.grave.length}</b></button>
+    <button class="pill" data-z="exile">${esc(tt("exile"))} <b>${p.exile.length}</b></button>
+    <span class="pill">${esc(tt("hand"))} <b>${p.handCount}</b></span>`;
+  if (mine) {
+    el.innerHTML = `
+      <span class="who">${esc(p.name)}</span>
+      <span class="life"><button data-a="life" data-d="-5">−5</button><button data-a="life" data-d="-1">−1</button>
+        <b id="myLife">${p.life}</b>
+        <button data-a="life" data-d="1">+1</button><button data-a="life" data-d="5">+5</button>
+        <button data-a="lifeSet" title="${esc(tt("lifeSet"))}">…</button></span>
+      ${p.poison ? `<button class="pill" data-a="poisonMinus">${esc(tt("poison"))} <b>${p.poison}</b></button>` : `<button class="pill" data-a="poison">${esc(tt("poison"))}</button>`}
+      ${zones}
+      <span class="sp"></span>
+      <button data-a="draw">${esc(tt("draw"))}</button>
+      <button data-a="shuffle">${esc(tt("shuffle"))}</button>
+      <button data-a="untapAll">${esc(tt("untapAll"))}</button>
+      <button data-a="tidy">${esc(tt("tidy"))}</button>
+      <button data-a="token">${esc(tt("token"))}</button>
+      <button data-a="dice">d6</button>
+      <button data-a="dice20">d20</button>
+      <button data-a="coin">${esc(tt("coin"))}</button>
+      <button data-a="turn">${esc(tt("turn"))}</button>`;
+  } else {
+    el.innerHTML = `<span class="who">${esc(p.name)}</span>${off}
+      <span class="life"><b>${p.life}</b></span>
+      ${p.poison ? `<span class="pill">${esc(tt("poison"))} <b>${p.poison}</b></span>` : ""}
+      ${zones}
+      <span class="sp"></span>
+      <span class="pill">T${view.turn}${view.active === p.seat ? " ●" : ""}</span>`;
+  }
+}
+
+/* 戦場は「今ある札だけ位置を直す」方式。作り直すと引きずっている最中に飛んでしまうため */
+function renderField(el, cards, mine) {
+  const key = mine ? "mine" : "opp";
+  const map = fieldNodes[key];
+  const seen = new Set();
+  let empty = el.querySelector(".empty");
+  if (!empty) { empty = document.createElement("div"); empty.className = "empty"; el.appendChild(empty); }
+  empty.textContent = cards.length ? "" : (mine ? tt("fieldEmpty") : "");
+  for (const c of cards) {
+    seen.add(c.id);
+    let n = map.get(c.id);
+    if (!n) {
+      n = document.createElement("div");
+      n.className = "c";
+      n.dataset.id = c.id;
+      el.appendChild(n);
+      map.set(c.id, n);
+      if (mine) attachDrag(n);
+      n.addEventListener("mouseenter", () => showPreview(c));
+    }
+    const img = c.flipped && c.back ? c.back : c.img;
+    n.style.backgroundImage = img ? `url("${img}")` : "none";
+    n.className = "c" + (mine ? " mine" : "") + (c.tapped ? " tapped" : "") + (img ? " hasimg" : "") + (c.token ? " tok" : "") + (dragging === c.id ? " drag" : "");
+    if (dragging !== c.id) { n.style.left = c.x + "px"; n.style.top = c.y + "px"; }
+    n.innerHTML = `${img ? "" : `<span class="nm">${esc(c.name)}</span>`}
+      ${c.counters ? `<span class="ct">${c.counters > 0 ? "+" : ""}${c.counters}</span>` : ""}
+      ${c.note ? `<span class="note">${esc(c.note)}</span>` : ""}
+      ${mine ? `<button class="dots" data-menu="${c.id}">⋯</button>` : ""}`;
+    n._card = c;
+  }
+  for (const [id, n] of map) if (!seen.has(id)) { n.remove(); map.delete(id); }
+}
+
+function renderHand() {
+  const el = $("hand");
+  const cards = (view.me && view.me.hand) || [];
+  if (!cards.length) { el.innerHTML = `<span class="none">${esc(tt("handEmpty"))}</span>`; return; }
+  el.innerHTML = cards.map(c => {
+    const img = c.img;
+    return `<div class="hc${img ? " hasimg" : ""}" data-hand="${c.id}"${img ? ` style="background-image:url('${img}')"` : ""}>
+      ${img ? "" : `<span class="nm">${esc(c.name)}</span>`}</div>`;
+  }).join("");
+  [...el.querySelectorAll(".hc")].forEach((n, i) => {
+    n.addEventListener("mouseenter", () => showPreview(cards[i]));
+  });
+}
+
+function renderLog() {
+  const el = $("logList");
+  el.innerHTML = (view.log || []).slice(-40).map(e => `<li>${esc(e.text)}</li>`).join("");
+  el.scrollTop = el.scrollHeight;
+}
+
+function showPreview(c) {
+  const img = c.flipped && c.back ? c.back : c.img;
+  $("preview").style.backgroundImage = img ? `url("${img}")` : "none";
+}
+
+/* ---------- 引きずって動かす ---------- */
+function attachDrag(node) {
+  let sx = 0, sy = 0, ox = 0, oy = 0, moved = false, id = null;
+  node.addEventListener("pointerdown", e => {
+    if (e.target.dataset.menu) return;
+    if (e.button === 2) return;
+    id = node.dataset.id;
+    const c = node._card;
+    sx = e.clientX; sy = e.clientY; ox = c.x; oy = c.y; moved = false;
+    dragging = id;
+    node.setPointerCapture(e.pointerId);
+    node.classList.add("drag");
+  });
+  node.addEventListener("pointermove", e => {
+    if (dragging !== node.dataset.id) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (!moved && Math.abs(dx) + Math.abs(dy) < 5) return;
+    moved = true;
+    const par = node.parentElement.getBoundingClientRect();
+    const nx = Math.max(0, Math.min(par.width - node.offsetWidth, ox + dx));
+    const ny = Math.max(0, Math.min(par.height - node.offsetHeight, oy + dy));
+    node.style.left = nx + "px"; node.style.top = ny + "px";
+  });
+  const finish = e => {
+    if (dragging !== node.dataset.id) return;
+    node.classList.remove("drag");
+    dragging = null;
+    if (moved) send({ type: "pos", id: node.dataset.id, x: parseInt(node.style.left, 10), y: parseInt(node.style.top, 10) });
+    else send({ type: "tap", id: node.dataset.id });
+  };
+  node.addEventListener("pointerup", finish);
+  node.addEventListener("pointercancel", finish);
+  node.addEventListener("contextmenu", e => { e.preventDefault(); openCardMenu(node._card, e.clientX, e.clientY); });
+}
+
+/* ---------- 小さなメニュー ---------- */
+function openMenu(x, y, items, head) {
+  const m = $("menu");
+  m.innerHTML = (head ? `<div class="head">${esc(head)}</div>` : "") +
+    items.map((it, i) => it === "-" ? "<hr>" : `<button data-i="${i}">${esc(it.label)}</button>`).join("");
+  m.hidden = false;
+  const w = m.offsetWidth, h = m.offsetHeight;
+  m.style.left = Math.min(x, innerWidth - w - 8) + "px";
+  m.style.top = Math.min(y, innerHeight - h - 8) + "px";
+  m.onclick = e => {
+    const b = e.target.closest("button[data-i]");
+    if (!b) return;
+    m.hidden = true;
+    const it = items[+b.dataset.i];
+    if (it && it.run) it.run();
+  };
+}
+document.addEventListener("pointerdown", e => {
+  if (!$("menu").hidden && !e.target.closest("#menu")) $("menu").hidden = true;
+}, true);
+
+function openCardMenu(c, x, y) {
+  const mv = (to, extra) => () => send({ type: "move", from: "field", to, id: c.id, ...(extra || {}) });
+  openMenu(x, y, [
+    { label: tt("tapIt"), run: () => send({ type: "tap", id: c.id }) },
+    ...(c.back ? [{ label: tt("flipIt"), run: () => send({ type: "flip", id: c.id }) }] : []),
+    { label: tt("ctPlus"), run: () => send({ type: "counter", id: c.id, d: 1 }) },
+    { label: tt("ctMinus"), run: () => send({ type: "counter", id: c.id, d: -1 }) },
+    ...(c.counters ? [{ label: tt("ctClear"), run: () => send({ type: "counter", id: c.id, d: -c.counters }) }] : []),
+    { label: tt("noteSet"), run: () => { const v = prompt(tt("noteAsk"), c.note || ""); if (v !== null) send({ type: "note", id: c.id, note: v }); } },
+    "-",
+    { label: tt("copyTok"), run: () => send({ type: "token", name: c.name, img: c.img, x: c.x + 16, y: c.y + 12, n: 1 }) },
+    "-",
+    { label: tt("toHand"), run: mv("hand") },
+    { label: tt("toGrave"), run: mv("grave") },
+    { label: tt("toExile"), run: mv("exile") },
+    { label: tt("toTop"), run: mv("library") },
+    { label: tt("toBottom"), run: mv("library", { bottom: true }) }
+  ], c.name);
+}
+
+function openHandMenu(c, x, y) {
+  const mv = (to, extra) => () => send({ type: "move", from: "hand", to, id: c.id, ...(extra || {}) });
+  openMenu(x, y, [
+    { label: tt("toField"), run: () => playFromHand(c) },
+    { label: tt("toGrave"), run: mv("grave") },
+    { label: tt("toExile"), run: mv("exile") },
+    { label: tt("toTop"), run: mv("library") },
+    { label: tt("toBottom"), run: mv("library", { bottom: true }) }
+  ], c.name);
+}
+
+/* カードの大きさは画面幅で変わるので、並べる間隔もそこから決める。
+   タップすると横向きになり、左右に (高さ-幅)/2 ずつはみ出すぶんの余裕も見ておく */
+function metrics() {
+  const cs = getComputedStyle(document.documentElement);
+  const w = parseInt(cs.getPropertyValue("--cw"), 10) || 72;
+  const h = parseInt(cs.getPropertyValue("--ch"), 10) || 100;
+  return { w, h, step: w + Math.ceil((h - w) / 2) + 4, landY: h + 24, spellY: 8 };
+}
+/* 手札から場に出す。土地は下の段、それ以外は上の段に置く */
+function playFromHand(c) {
+  const el = $("myField");
+  const W = el.clientWidth || 800;
+  const { step, landY, spellY } = metrics();
+  const row = (view.me.field || []).filter(f => (f.land === c.land));
+  const per = Math.max(2, Math.floor((W - 20) / step));
+  const i = row.length;
+  const x = 10 + (i % per) * step;
+  const y = (c.land ? landY : spellY) + Math.floor(i / per) * 20;
+  send({ type: "move", from: "hand", to: "field", id: c.id, x, y });
+}
+
+/* ---------- 覆い（山札・墓地・追放の中身） ---------- */
+function openZone(zone, own) {
+  const p = own ? view.me : view.opp;
+  if (!p) return;
+  let cards = zone === "grave" ? p.grave : zone === "exile" ? p.exile : null;
+  if (zone === "library") {
+    if (!own) return;                      // 相手の山札は見られない
+    openLibraryMenu();
+    return;
+  }
+  const title = zone === "grave" ? tt("graveTitle") : tt("exileTitle");
+  showOverlay(`<h3>${esc(p.name)} ${esc(title)}（${cards.length}）</h3>
+    <div class="zlist">${cards.map(c => cardTile(c)).join("")}</div>`, root => {
+    root.querySelectorAll("[data-c]").forEach(n => {
+      n.addEventListener("click", e => {
+        if (!own) return;
+        const id = n.dataset.c;
+        const c = cards.find(x => x.id === id);
+        openMenu(e.clientX, e.clientY, [
+          { label: tt("toHand"), run: () => { send({ type: "move", from: zone, to: "hand", id }); closeOverlay(); } },
+          { label: tt("toField"), run: () => { send({ type: "move", from: zone, to: "field", id, x: 20, y: metrics().spellY }); closeOverlay(); } },
+          { label: zone === "grave" ? tt("toExile") : tt("toGrave"), run: () => { send({ type: "move", from: zone, to: zone === "grave" ? "exile" : "grave", id }); closeOverlay(); } },
+          { label: tt("toTop"), run: () => { send({ type: "move", from: zone, to: "library", id }); closeOverlay(); } }
+        ], c ? c.name : "");
+      });
+    });
+  });
+}
+const cardTile = c => `<div class="zc${c.img ? " hasimg" : ""}" data-c="${c.id}"${c.img ? ` style="background-image:url('${c.img}')"` : ""}><span>${esc(c.name)}</span></div>`;
+
+/* 山札は枚数しか配られないので、見るときはその場で「上から n 枚」を扱う操作だけ出す */
+function openLibraryMenu() {
+  const n = view.me.libraryCount;
+  openMenu(innerWidth / 2 - 90, 140, [
+    { label: tt("draw") + " 1", run: () => send({ type: "draw", n: 1 }) },
+    { label: tt("draw") + " " + tt("draw7"), run: () => send({ type: "draw", n: 7 }) },
+    { label: tt("draw") + " …", run: () => { const v = parseInt(prompt(tt("drawN"), "2") || "", 10); if (v > 0) send({ type: "draw", n: v }); } },
+    "-",
+    { label: tt("shuffle"), run: () => send({ type: "shuffle" }) },
+    { label: tt("mull"), run: () => { const v = parseInt(prompt(tt("mullN"), String(Math.max(0, (view.me.hand || []).length - 1))) || "", 10); if (v >= 0) send({ type: "mulligan", n: v }); } },
+    "-",
+    { label: tt("toGrave") + " …", run: () => { const v = parseInt(prompt(tt("millN"), "1") || "", 10); if (v > 0) send({ type: "mill", n: v }); } }
+  ], tt("libTitle") + "（" + n + "）");
+}
+
+let overlayEl = null;
+function showOverlay(html, after) {
+  closeOverlay();
+  overlayEl = document.createElement("div");
+  overlayEl.className = "ov";
+  overlayEl.innerHTML = `<div class="inner">${html}<div class="row" style="margin-top:14px"><button class="close">${esc(tt("close"))}</button></div></div>`;
+  document.body.appendChild(overlayEl);
+  overlayEl.addEventListener("click", e => { if (e.target === overlayEl || e.target.classList.contains("close")) closeOverlay(); });
+  if (after) after(overlayEl);
+}
+function closeOverlay() { if (overlayEl) { overlayEl.remove(); overlayEl = null; } }
+document.addEventListener("keydown", e => { if (e.key === "Escape") { closeOverlay(); $("menu").hidden = true; } });
+
+/* トークン作成 */
+function openTokenDialog() {
+  showOverlay(`<h3>${esc(tt("tokTitle"))}</h3>
+    <div class="grid2" style="margin-top:10px">
+      <label class="f"><span>${esc(tt("tokName"))}</span><input id="tkName" maxlength="60" placeholder="Soldier"></label>
+      <label class="f"><span>${esc(tt("tokNote"))}</span><input id="tkNote" maxlength="40" placeholder="1/1"></label>
+      <label class="f"><span>${esc(tt("tokCount"))}</span><input id="tkN" type="number" value="1" min="1" max="20"></label>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="primary" id="tkGo">${esc(tt("tokMake"))}</button></div>`, root => {
+    root.querySelector("#tkName").focus();
+    const go = () => {
+      const name = root.querySelector("#tkName").value.trim() || "Token";
+      const note = root.querySelector("#tkNote").value.trim();
+      const n = Math.max(1, Math.min(20, parseInt(root.querySelector("#tkN").value, 10) || 1));
+      send({ type: "token", name, note, n, x: 20, y: 8 });
+      closeOverlay();
+    };
+    root.querySelector("#tkGo").addEventListener("click", go);
+    root.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+  });
+}
+
+/* ---------- 盤面のボタン ---------- */
+function onBarClick(e, mine) {
+  const z = e.target.closest("[data-z]");
+  if (z) { openZone(z.dataset.z, mine); return; }
+  if (!mine) return;
+  const b = e.target.closest("[data-a]");
+  if (!b) return;
+  const a = b.dataset.a;
+  if (a === "life") send({ type: "life", d: parseInt(b.dataset.d, 10) });
+  else if (a === "lifeSet") { const v = parseInt(prompt(tt("lifeSet"), String(view.me.life)) || "", 10); if (!isNaN(v)) send({ type: "lifeSet", v }); }
+  else if (a === "poison") send({ type: "poison", d: 1 });
+  else if (a === "poisonMinus") {
+    openMenu(b.getBoundingClientRect().left, b.getBoundingClientRect().bottom, [
+      { label: "+1", run: () => send({ type: "poison", d: 1 }) },
+      { label: "−1", run: () => send({ type: "poison", d: -1 }) }
+    ], tt("poison"));
+  }
+  else if (a === "draw") send({ type: "draw", n: 1 });
+  else if (a === "shuffle") send({ type: "shuffle" });
+  else if (a === "untapAll") send({ type: "tapAll", tapped: false });
+  else if (a === "tidy") tidy();
+  else if (a === "token") openTokenDialog();
+  else if (a === "dice") send({ type: "roll", faces: 6 });
+  else if (a === "dice20") send({ type: "roll", faces: 20 });
+  else if (a === "coin") send({ type: "coin" });
+  else if (a === "turn") send({ type: "turn" });
+}
+$("oppBar").addEventListener("click", e => onBarClick(e, false));
+$("myBar").addEventListener("click", e => onBarClick(e, true));
+
+/* 土地を下の段、それ以外を上の段にきれいに並べ直す */
+function tidy() {
+  const el = $("myField");
+  const W = el.clientWidth || 800;
+  const { step, landY, spellY } = metrics();
+  const per = Math.max(2, Math.floor((W - 20) / step));
+  const lands = view.me.field.filter(c => c.land);
+  const rest = view.me.field.filter(c => !c.land);
+  rest.forEach((c, i) => send({ type: "pos", id: c.id, x: 10 + (i % per) * step, y: spellY + Math.floor(i / per) * 20 }));
+  lands.forEach((c, i) => send({ type: "pos", id: c.id, x: 10 + (i % per) * step, y: landY + Math.floor(i / per) * 20 }));
+}
+
+$("myField").addEventListener("click", e => {
+  const d = e.target.closest("[data-menu]");
+  if (d) { const c = fieldNodes.mine.get(d.dataset.menu)._card; openCardMenu(c, e.clientX, e.clientY); }
+});
+$("hand").addEventListener("click", e => {
+  const n = e.target.closest("[data-hand]");
+  if (!n) return;
+  const c = (view.me.hand || []).find(x => x.id === n.dataset.hand);
+  if (c) playFromHand(c);
+});
+$("hand").addEventListener("contextmenu", e => {
+  const n = e.target.closest("[data-hand]");
+  if (!n) return;
+  e.preventDefault();
+  const c = (view.me.hand || []).find(x => x.id === n.dataset.hand);
+  if (c) openHandMenu(c, e.clientX, e.clientY);
+});
+$("sayBtn").addEventListener("click", () => {
+  const v = $("sayText").value.trim();
+  if (v) { send({ type: "say", text: v }); $("sayText").value = ""; }
+});
+$("sayText").addEventListener("keydown", e => { if (e.key === "Enter") $("sayBtn").click(); });
+
+/* =======================================================================
+   準備の画面
+   ======================================================================= */
+$("randBtn").addEventListener("click", () => {
+  const w = ["mizu", "hono", "kaze", "tsuchi", "hikari", "yami", "mori", "umi", "sora", "iwa"];
+  $("room").value = w[Math.floor(Math.random() * w.length)] + "-" + Math.random().toString(36).slice(2, 6);
+});
+$("joinBtn").addEventListener("click", () => {
+  const room = $("room").value.trim().toLowerCase();
+  const name = $("pname").value.trim();
+  if (!room) return setConn(tt("needRoom"), "bad");
+  if (!/^[a-z0-9-]{3,32}$/.test(room)) return setConn(tt("roomBad"), "bad");
+  myRoom = room;
+  try {
+    localStorage.setItem("sw.table.room", room);
+    localStorage.setItem("sw.table.name", name);
+    const sv = $("server").value.trim();
+    if (sv) localStorage.setItem("sw.table.server", sv);
+  } catch (e) {}
+  connect(room, name);
+});
+
+$("loadBtn").addEventListener("click", async () => {
+  const st = $("deckStatus");
+  const entries = parseDeck($("deckText").value);
+  if (!entries.length) { st.textContent = tt("deckEmpty"); st.className = "status bad"; return; }
+  $("loadBtn").disabled = true;
+  try {
+    st.className = "status";
+    await resolveCards(entries, (i, n) => { st.textContent = tt("resolving", { i, n }); });
+    if ($("jaImg").checked) await addJapanese(entries, (i, n) => { st.textContent = tt("jaLooking", { i, n }); });
+    const cards = [];
+    for (const e of entries) {
+      const rec = cardCache[e.name];
+      if (!rec) continue;
+      const useJa = $("jaImg").checked && rec.jaImg;
+      for (let i = 0; i < e.n; i++) {
+        cards.push({ name: rec.name, img: useJa ? rec.jaImg : rec.img, back: useJa ? (rec.jaBack || rec.back) : rec.back, land: rec.land });
+      }
+    }
+    if (!cards.length) { st.textContent = tt("deckEmpty"); st.className = "status bad"; return; }
+    try { localStorage.setItem("sw.table.deck", $("deckText").value); } catch (e) {}
+    st.textContent = tt("deckDone", { n: cards.length }); st.className = "status good";
+    send({ type: "deck", cards, life: parseInt($("startLife").value, 10) || 20 });
+    if (!ws || ws.readyState !== 1) {
+      // まだ卓に着いていなければ、着いた直後に送れるよう覚えておく
+      pendingDeck = { cards, life: parseInt($("startLife").value, 10) || 20 };
+    }
+  } catch (err) {
+    st.textContent = tt("deckFail", { e: err.message }); st.className = "status bad";
+  } finally {
+    $("loadBtn").disabled = false;
+  }
+});
+let pendingDeck = null;
+setInterval(() => {
+  if (pendingDeck && ws && ws.readyState === 1) { send({ type: "deck", ...pendingDeck }); pendingDeck = null; }
+}, 500);
+
+/* 前回の内容を戻す */
+try {
+  $("room").value = localStorage.getItem("sw.table.room") || "";
+  $("pname").value = localStorage.getItem("sw.table.name") || "";
+  $("server").value = localStorage.getItem("sw.table.server") || "";
+  $("deckText").value = localStorage.getItem("sw.table.deck") || "";
+} catch (e) {}
+const qRoom = new URLSearchParams(location.search).get("room");
+if (qRoom) $("room").value = qRoom;
+
+/* 文言の貼り替え（言語を切り替えたとき） */
+function applyLocal() {
+  const set = (id, k) => { const el = $(id); if (el) el.textContent = tt(k); };
+  set("h1", "h1"); set("lead", "lead");
+  set("s_join", "join"); set("s_joinHint", "joinHint"); set("s_room", "room"); set("s_name", "name");
+  set("s_adv", "adv"); set("s_server", "server"); set("s_serverHint", "serverHint");
+  set("s_deck", "deck"); set("s_deckHint", "deckHint"); set("s_jaImg", "jaImg"); set("s_life", "life");
+  set("s_preview", "preview"); set("s_log", "log");
+  $("joinBtn").textContent = tt("sit");
+  $("randBtn").textContent = tt("makeRoom");
+  $("loadBtn").textContent = tt("load");
+  $("sayBtn").textContent = tt("say");
+  $("sayText").placeholder = tt("sayPh");
+  if (view) render();
+}
+if (window.I18N) {
+  const sel = $("langSelect");
+  sel.value = I18N.lang;
+  sel.onchange = e => I18N.set(e.target.value);
+  I18N.onChange(() => { sel.value = I18N.lang; applyLocal(); });
+}
+applyLocal();
+</script>
+</body>
+</html>

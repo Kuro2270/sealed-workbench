@@ -24,6 +24,7 @@ const PRIORITY = {
   "draft.html": "0.8",
   "swiss.html": "0.7",
   "assistant.html": "0.7",
+  "table.html": "0.7",
   "privacy.html": "0.3"
 };
 

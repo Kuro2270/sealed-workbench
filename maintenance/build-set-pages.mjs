@@ -67,7 +67,7 @@ const L = {
     indexLead: "セットを選ぶと、ドラフトとシールドの環境レポートが開きます。発売日の新しい順です。",
     source: "出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。",
     none: "このセットのデータはまだありません。",
-    nav: { guide:"使い方", sealed:"シールド構築", draft:"ドラフト構築", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", privacy:"プライバシー" },
+    nav: { guide:"使い方", sealed:"シールド構築", draft:"ドラフト構築", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", table:"対戦卓", privacy:"プライバシー" },
     foot: 'データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。',
     otherLang: "English", otherHref: c => `${c}.en.html`
   },
@@ -100,7 +100,7 @@ const L = {
     indexLead: "Pick a set to open its Draft and Sealed report. Newest first.",
     source: "Source: 17Lands Public Data (CC BY 4.0), aggregated by this site. Card data via Scryfall.",
     none: "No data for this set yet.",
-    nav: { guide:"Guide", sealed:"Sealed", draft:"Draft", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", privacy:"Privacy" },
+    nav: { guide:"Guide", sealed:"Sealed", draft:"Draft", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", table:"Play table", privacy:"Privacy" },
     foot: 'Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.',
     otherLang: "日本語", otherHref: c => `${c}.html`
   }
@@ -182,10 +182,9 @@ async function fetchJaNames(code){
 async function cardNamesJa(code){
   const path = `${NAMES}/${code}.json`;
   const cached = await readJson(path, null);
-  // 空や古い形式のもの、英語版の画像が無いものは取り直す（v5 から英語版カード画像も必ず保存する）
-  if(cached && cached.names && Object.keys(cached.names).length && cached.v === 5 && cached.imagesEn && Object.keys(cached.imagesEn).length) return cached;
-  const { names, images, imagesEn } = await fetchJaNames(code);
-  const out = { v: 5, set: (cached && cached.set) || "", released_at: (cached && cached.released_at) || "", names, images, imagesEn, fetched_at: new Date().toISOString() };
+  if(cached && cached.names && Object.keys(cached.names).length && cached.v === 4) return cached;   // 空や古い形式のものは取り直す
+  const { names, images } = await fetchJaNames(code);
+  const out = { v: 4, set: (cached && cached.set) || "", released_at: (cached && cached.released_at) || "", names, images, fetched_at: new Date().toISOString() };
   await mkdir(NAMES, { recursive: true });
   await writeFile(path, JSON.stringify(out), "utf8");
   return out;
@@ -196,7 +195,7 @@ function shell(lang, code, head, body, ogImage){
   const T = L[lang];
   const other = T.otherHref(code);
   const og = ogImage || `${SITE}/ogp-${lang}.png`;
-  const nav = Object.entries({ guide:"../guide.html", sealed:"../", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", privacy:"../privacy.html" })
+  const nav = Object.entries({ guide:"../guide.html", sealed:"../", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", table:"../table.html", privacy:"../privacy.html" })
     .map(([k, href]) => `<a href="${href}">${esc(T.nav[k])}</a>`).join("\n      ");
   return `<!DOCTYPE html>
 <html lang="${lang}">

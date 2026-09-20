@@ -141,6 +141,10 @@
                           en:"Draft complete. Build a 40-card deck from your {n}-card pool." },
 
     /* ---- 勝率一覧 ---- */
+    "page.table.title": { ja:"対戦卓｜MTGアリーナで組んだデッキをブラウザで対戦",
+                          en:"Play table | Play the deck you built, in your browser" },
+    "desc.table":       { ja:"マジック：ザ・ギャザリングの対戦を、ブラウザ上の卓で行う無料ツール。ルールの判定はせず、カードを並べる・タップする・ライフを増減する・山札を切る・ダイスを振る・トークンを作るといった卓上の操作をそのまま画面で行えます。アリーナ形式のデッキをそのまま読み込めます。",
+                          en:"A free browser table for playing Magic with a friend. There is no rules engine: you play cards, tap them, change life totals, shuffle, roll dice and make tokens yourself, just as you would at a real table. Arena decklists load as they are." },
     "page.ratings.title":{ ja:"カード勝率一覧｜MTGアリーナのリミテッド実戦データ",
                           en:"Card win rates — MTG Arena Limited game data" },
     "desc.ratings":     { ja:"マジック：ザ・ギャザリング アリーナのリミテッドにおけるカードごとの実戦勝率を、色別・数値順に並べ替えて確認できます。17Landsの公開データを独自に集計。日本語カード名・カード画像に対応。",
@@ -244,6 +248,7 @@
 
     "nav.swiss":        { ja:"スイスドロー",     en:"Swiss pairings" },
     "nav.assist":       { ja:"ドラフト補助",     en:"Draft assistant" },
+    "nav.table":        { ja:"対戦卓",       en:"Play table" },
     "nav.privacy":      { ja:"プライバシー", en:"Privacy" },
 
     "page.privacy.title":{ ja:"プライバシーポリシー｜リミテッド・ワークベンチ",
