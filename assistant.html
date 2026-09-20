@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <script src="./i18n.js"></script>
+<script src="./analytics.js"></script>
 <style>
   :root{
     --pine:#23342E; --pine-deep:#18241F;
@@ -245,6 +246,16 @@
         </select>
       </label>
       <span class="hint" style="margin:0" data-i18n="assist.weightHint">ピック済みの上位2色を自分の色とみなし、合うカードを持ち上げ、違うカードを下げます。標準では1パック目で最大±4、2パック目で±6、3パック目で±8ポイントです。</span>
+    </div>
+    <div class="row">
+      <label style="font-size:13.5px"><span data-i18n="assist.syn">部族シナジーの効き</span>
+        <select id="synSel" style="margin-left:6px">
+          <option value="weak" data-i18n="assist.synWeak">弱め（勝率を重視）</option>
+          <option value="mid" data-i18n="assist.synMid">標準</option>
+          <option value="strong" data-i18n="assist.synStrong">強め（部族を重視）</option>
+        </select>
+      </label>
+      <span class="hint" style="margin:0" data-i18n="assist.synHint">ピック済みのクリーチャー・タイプと、それを参照するカード（受け皿）の噛み合いを見て持ち上げます。標準では最大＋6ポイント、強めでは＋10ポイントほどになります。</span>
     </div>
   </section>
 
@@ -717,18 +728,27 @@ function synergyState(){
   });
   return { count, payoff };
 }
-/* 候補カードのシナジー補正。受け皿なら仲間の枚数に応じて、仲間なら受け皿の枚数に応じて上げる（最大3） */
+/* シナジーの効き。色へのこだわりと同じように、設定で選べる */
+const SYN_WEIGHTS = { weak: 0.55, mid: 1, strong: 1.7 };
+function synWeight(){
+  try{ return SYN_WEIGHTS[localStorage.getItem("assist.syn") || "mid"] ?? 1; }catch(e){ return 1; }
+}
+/* 候補カードのシナジー補正。
+   受け皿（そのタイプを参照するカード）なら、手元の仲間の枚数に応じて上げる。
+   仲間（そのタイプのクリーチャー）なら、手元の受け皿の枚数に応じて上げる。
+   部族デッキは噛み合ったときの伸びが大きいので、色の補正（最大±4〜±8）と比べても
+   見劣りしない幅にしてある。 */
 function synergyFor(c, st){
   let adj = 0; const why = [];
   mentionedTypes(c).forEach(t => {
     const n = (st.count[t] || 0);
-    if(n >= 2){ const v = Math.min(3, (n - 1) * 0.75); adj += v; why.push({ type: t, n, kind: "payoff" }); }
+    if(n >= 1){ const v = Math.min(5, n * 0.9); adj += v; why.push({ type: t, n, kind: "payoff" }); }
   });
   typesOf(c).forEach(t => {
     const n = (st.payoff[t] || 0);
-    if(n >= 1){ const v = Math.min(2, n * 1.0); adj += v; why.push({ type: t, n, kind: "member" }); }
+    if(n >= 1){ const v = Math.min(3.5, n * 1.3); adj += v; why.push({ type: t, n, kind: "member" }); }
   });
-  return { adj: Math.min(3, adj), why };
+  return { adj: Math.min(6, adj) * synWeight(), why };
 }
 function recomputeColors(){
   D.colorScore = {W:0,U:0,B:0,R:0,G:0};
@@ -1292,6 +1312,8 @@ $("demoBtn").onclick = runDemo;
 $("pipBtn").onclick = openPip;
 $("weightSel").value = localStorage.getItem("assist.weight") || "mid";
 $("weightSel").onchange = () => { try{ localStorage.setItem("assist.weight", $("weightSel").value); }catch(e){} render(); };
+$("synSel").value = localStorage.getItem("assist.syn") || "mid";
+$("synSel").onchange = () => { try{ localStorage.setItem("assist.syn", $("synSel").value); }catch(e){} render(); };
 const sel = $("langSelect");
 sel.value = I18N.lang;
 sel.onchange = e => I18N.set(e.target.value);
