@@ -198,9 +198,9 @@
       <p class="hint" id="s_joinHint">同じ合言葉を入れた2人が同じ卓に着きます。相手に合言葉を伝えてください。</p>
       <div class="grid2" style="margin-top:12px">
         <label class="f"><span id="s_room">合言葉（英数字）</span>
-          <input id="room" maxlength="32" placeholder="例: itou-vs-monji" autocomplete="off"></label>
+          <input id="room" maxlength="32" placeholder="例: aoi-tori-2468" autocomplete="off"></label>
         <label class="f"><span id="s_name">あなたの名前</span>
-          <input id="pname" maxlength="20" placeholder="例: 伊藤" autocomplete="off"></label>
+          <input id="pname" maxlength="20" placeholder="例: プレイヤー1" autocomplete="off"></label>
       </div>
       <div class="row" style="margin-top:12px">
         <button class="primary" id="joinBtn">卓に着く</button>
@@ -273,11 +273,8 @@
    ・山札を混ぜる／引くはサーバー側で行う（二人の画面で順番がずれないように）。
    ======================================================================= */
 
-/* 同期サーバーの場所。worker/wrangler.toml の routes でこの道筋を受けるようにしてある。
-   別の場所に建てたときは、準備画面の「同期サーバー」欄に入れれば切り替わる。 */
-const DEFAULT_SERVER = location.protocol === "https:"
-  ? `wss://${location.host}/table-api`
-  : "wss://sealed-workbench.com/table-api";
+/* 同期サーバーの場所。自分の Cloudflare に配置したら、ここを書き換える。 */
+const DEFAULT_SERVER = "wss://sealed-workbench-table.kuro2270.workers.dev";
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
@@ -289,6 +286,7 @@ const L = {
     h1: "対戦卓", lead: "組んだデッキで友人と対戦できます。ルールの判定はしません。カードを動かす・タップする・ライフを増減する、といった卓上の操作をそのまま画面で行う道具です。",
     join: "部屋に入る", joinHint: "同じ合言葉を入れた2人が同じ卓に着きます。相手に合言葉を伝えてください。",
     room: "合言葉（英数字）", name: "あなたの名前", sit: "卓に着く", makeRoom: "合言葉を作る",
+    roomPh: "例: aoi-tori-2468", namePh: "例: プレイヤー1", tokNamePh: "例: 兵士",
     adv: "うまくつながらないとき", server: "同期サーバー", serverHint: "通常は変更不要です。自分で建てたサーバーを使うときだけ書き換えてください。",
     deck: "デッキ", deckHint: "MTGアリーナ形式の並び（「4 Lightning Bolt (M10) 146」など）を貼り付けてください。当サイトのシールド構築・ドラフト構築が書き出す形式がそのまま使えます。サイドボードは読み込みません。",
     load: "デッキを読み込む", jaImg: "日本語版の画像を使う", life: "開始ライフ",
@@ -319,6 +317,7 @@ const L = {
     h1: "Play table", lead: "Play a friend with the deck you built. There is no rules engine — this is a table you move cards on: play, tap, change life totals, roll dice.",
     join: "Join a table", joinHint: "Two people who enter the same passphrase sit at the same table. Share it with your opponent.",
     room: "Passphrase (letters and numbers)", name: "Your name", sit: "Sit down", makeRoom: "Make one up",
+    roomPh: "e.g. blue-bird-2468", namePh: "e.g. Player 1", tokNamePh: "e.g. Soldier",
     adv: "If it will not connect", server: "Sync server", serverHint: "Normally leave this alone. Change it only to use a server of your own.",
     deck: "Deck", deckHint: "Paste an MTG Arena decklist (e.g. “4 Lightning Bolt (M10) 146”). The lists this site exports work as they are. Sideboards are ignored.",
     load: "Load deck", jaImg: "Use Japanese card images", life: "Starting life",
@@ -760,7 +759,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") { closeOverl
 function openTokenDialog() {
   showOverlay(`<h3>${esc(tt("tokTitle"))}</h3>
     <div class="grid2" style="margin-top:10px">
-      <label class="f"><span>${esc(tt("tokName"))}</span><input id="tkName" maxlength="60" placeholder="Soldier"></label>
+      <label class="f"><span>${esc(tt("tokName"))}</span><input id="tkName" maxlength="60" placeholder="${esc(tt("tokNamePh"))}"></label>
       <label class="f"><span>${esc(tt("tokNote"))}</span><input id="tkNote" maxlength="40" placeholder="1/1"></label>
       <label class="f"><span>${esc(tt("tokCount"))}</span><input id="tkN" type="number" value="1" min="1" max="20"></label>
     </div>
@@ -847,7 +846,10 @@ $("sayText").addEventListener("keydown", e => { if (e.key === "Enter") $("sayBtn
    準備の画面
    ======================================================================= */
 $("randBtn").addEventListener("click", () => {
-  const w = ["mizu", "hono", "kaze", "tsuchi", "hikari", "yami", "mori", "umi", "sora", "iwa"];
+  // 言語に合わせて読みやすい単語を使う（合言葉は英数字とハイフンのみ）
+  const w = (window.I18N && I18N.lang === "en")
+    ? ["water", "flame", "wind", "earth", "light", "shadow", "forest", "ocean", "sky", "stone"]
+    : ["mizu", "hono", "kaze", "tsuchi", "hikari", "yami", "mori", "umi", "sora", "iwa"];
   $("room").value = w[Math.floor(Math.random() * w.length)] + "-" + Math.random().toString(36).slice(2, 6);
 });
 $("joinBtn").addEventListener("click", () => {
@@ -925,6 +927,8 @@ function applyLocal() {
   $("loadBtn").textContent = tt("load");
   $("sayBtn").textContent = tt("say");
   $("sayText").placeholder = tt("sayPh");
+  $("room").placeholder = tt("roomPh");
+  $("pname").placeholder = tt("namePh");
   if (view) render();
 }
 if (window.I18N) {
