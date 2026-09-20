@@ -1,0 +1,37 @@
+name: 対戦卓サーバーを配置
+
+# 対戦卓の同期サーバー（Cloudflare Workers）を配置する。
+# worker/ の中身を変えて main に上げたときと、手動実行したときに動く。
+#
+# 事前に GitHub Secrets へ次の2つを登録しておくこと
+#   CLOUDFLARE_API_TOKEN   … Workers を配置できる権限のトークン
+#   CLOUDFLARE_ACCOUNT_ID  … Cloudflare のアカウントID
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "worker/**"
+      - ".github/workflows/deploy-table.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 配置
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker
