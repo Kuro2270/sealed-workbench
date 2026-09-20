@@ -72,6 +72,32 @@
 
   /* パック表示（この部分を小窓にも出す） */
   .panel{background:#fff}
+  /* 小窓の案内。金の縁と大きめのボタンで、設定の中に埋もれないようにする */
+  .pipbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+          background:linear-gradient(#FFFBF0,#FFF6E4);border:1px solid #E3C77C;border-left:5px solid var(--gold);
+          border-radius:var(--radius);padding:14px 16px;margin:0 0 16px}
+  .pipbar .pipicon{color:var(--gold);display:flex;flex:0 0 auto}
+  .pipbar .piptext{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .pipbar .piptext b{font-size:15px}
+  .pipbar .piptext span{font-size:13px;color:#4A5A53}
+  .pipbar .piptext .hint{margin:0;font-size:12px}
+  .pipbar .pipgo{background:var(--gold);color:#1A1405;border:1px solid var(--gold);font-weight:700;
+                 padding:10px 18px;font-size:14.5px;flex:0 0 auto}
+  .pipbar .pipgo:hover{background:#CFA338;border-color:#CFA338}
+  .pipbar .pipno{flex:1 1 100%;margin:0}
+  .pipbar.on{background:linear-gradient(#F1F8F2,#E8F2EA);border-color:#9DC2A6;border-left-color:#3F7A4A}
+  .pipbar.on .pipicon{color:#3F7A4A}
+  .pipbar.on .pipgo{background:#fff;color:var(--ink);border-color:var(--line);font-weight:600}
+  .pipbar.off .pipgo{display:none}
+
+  /* 準備の手順は、一度うまくいったらたたんでおく */
+  #setupSteps > summary{cursor:pointer;color:var(--ink);font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;
+                        font-weight:800;font-size:17px;list-style:none;display:flex;align-items:center;gap:8px}
+  #setupSteps > summary::-webkit-details-marker{display:none}
+  #setupSteps > summary::after{content:"▾";font-size:12px;color:var(--muted);font-weight:400}
+  #setupSteps[open] > summary::after{content:"▴"}
+  #setupSteps[open]{margin-bottom:12px}
+
   .pick-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
   .pick-head h2{margin:0;font-size:17px}
   .pick-head .sub{color:var(--muted);font-size:13px}
@@ -192,13 +218,15 @@
   <div id="unsupported" class="status bad" hidden data-i18n="assist.unsupported">このブラウザでは動きません。PCのChromeまたはEdgeで開いてください。</div>
 
   <section class="card" id="setup">
-    <h2 data-i18n="assist.setupH">準備（初回だけ）</h2>
+    <details id="setupSteps">
+      <summary><span data-i18n="assist.setupH">準備（初回だけ）</span></summary>
     <ol class="steps" data-i18n-html="assist.steps"><li>マジック：ザ・ギャザリング アリーナを起動し、右上の歯車から設定を開き、「アカウント」→「詳細ログ（プラグインのサポート）」にチェックを入れる</li><li>アリーナを再起動する</li><li>下の「Player.log を選ぶ」を押すとファイル選択の画面が開くので、上部のアドレス欄に次を貼り付けてEnterを押し、開いたフォルダの中の <b>Player.log</b> を選ぶ<br>Windows：<code>%USERPROFILE%\AppData\LocalLow\Wizards Of The Coast\MTGA</code><br>Mac：<code>~/Library/Logs/Wizards Of The Coast/MTGA</code></li></ol>
     <figure class="shot">
       <img src="./img/arena-detailed-log.jpg" alt="" loading="lazy" width="1165" height="910">
       <figcaption data-i18n="assist.shotCap">設定 →「アカウント」の画面。「詳細ログ（プラグインのサポート）」にチェックを入れます。</figcaption>
     </figure>
     <p class="hint" data-i18n="assist.setupHint">ファイルはこのブラウザの中でだけ読み取ります。内容がどこかに送られることはありません。上のパスはユーザー名を打たなくても自分のフォルダに置き換わります。</p>
+    </details>
     <div class="row">
       <button id="pickBtn" data-i18n="assist.pick">Player.log を選ぶ</button>
       <button id="resumeBtn" class="ghost" hidden data-i18n="assist.resume">前回のファイルで再開</button>
@@ -218,14 +246,26 @@
       </label>
       <span class="hint" style="margin:0" data-i18n="assist.weightHint">ピック済みの上位2色を自分の色とみなし、合うカードを持ち上げ、違うカードを下げます。標準では1パック目で最大±4、2パック目で±6、3パック目で±8ポイントです。</span>
     </div>
-    <div class="row">
-      <span style="font-size:13.5px" data-i18n="assist.pipLabel">小窓表示</span>
-      <button id="pipBtn" class="ghost" data-i18n="assist.pip">常に前面の小窓で表示</button>
-      <span class="hint" style="margin:0" data-i18n="assist.pipHint">アリーナを全画面ではなくウィンドウ表示にしておくと、小窓を横に置けます。</span>
-    </div>
   </section>
 
   <div id="statusBox" class="status" data-i18n="assist.idle">ログファイルを選ぶと監視を始めます。</div>
+
+  <!-- 小窓は一番よく使う機能なので、盤面の手前に大きく出す -->
+  <section class="pipbar" id="pipBar">
+    <div class="pipicon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+        <rect x="2.2" y="4.2" width="19.6" height="15.6" rx="2"></rect>
+        <rect x="12" y="11.4" width="8.4" height="7" rx="1.2" fill="currentColor" stroke="none"></rect>
+      </svg>
+    </div>
+    <div class="piptext">
+      <b data-i18n="assist.pipLabel">小窓表示</b>
+      <span data-i18n="assist.pipWhy">アリーナの横に置いたまま、いまのパックの評価とデッキ案を見られます。ドラフト中はこれが一番使いやすい形です。</span>
+      <span class="hint" data-i18n="assist.pipHint">アリーナを全画面ではなくウィンドウ表示にしておくと、小窓を横に置けます。</span>
+    </div>
+    <button id="pipBtn" class="pipgo" data-i18n="assist.pip">常に前面の小窓で表示</button>
+    <p class="hint pipno" id="pipNo" hidden data-i18n="assist.pipUnsupported">この機能はChrome／Edgeの新しい版でのみ使えます。</p>
+  </section>
 
   <section class="card panel" id="panel">
     <div class="pick-head">
@@ -444,7 +484,13 @@ async function pickFile(){
     await startWatch();
   }catch(e){ /* キャンセル */ }
 }
+/* 一度うまく動いたら、次からは手順をたたんでおく */
+function markSetupDone(){
+  try{ localStorage.setItem("sw.assist.setupDone", "1"); }catch(e){}
+  $("setupSteps").open = false;
+}
 async function startWatch(){
+  markSetupDone();
   stopWatch();
   demo = false;
   D.set = ""; D.event = ""; D.pack = []; D.picked = []; D.packNo = 0; D.pickNo = 0; D.done = false; view = "pack"; recomputeColors();
@@ -1171,6 +1217,11 @@ document.querySelectorAll("#viewTabs .tab").forEach(b => { b.onclick = () => { v
 
 /* ================= 常に前面の小窓 ================= */
 let pip = null;
+function setPipUi(on){
+  $("pipBtn").textContent = on ? t("assist.pipClose") : t("assist.pip");
+  $("pipBar").classList.toggle("on", on);
+  $("pipBar").querySelector(".piptext b").textContent = on ? t("assist.pipOpen") : t("assist.pipLabel");
+}
 async function openPip(){
   if(!("documentPictureInPicture" in window)){ setStatus(t("assist.pipUnsupported"), "bad"); return; }
   if(pip){ pip.close(); return; }
@@ -1182,7 +1233,7 @@ async function openPip(){
   const box = pip.document.createElement("div");
   box.id = "pipBox"; box.style.padding = "10px 12px";
   pip.document.body.appendChild(box);
-  pip.addEventListener("pagehide", () => { pip = null; $("pipBtn").textContent = t("assist.pip"); });
+  pip.addEventListener("pagehide", () => { pip = null; setPipUi(false); });
   pip.document.addEventListener("click", async ev => {
     const b = ev.target.closest("button");
     if(!b) return;
@@ -1197,7 +1248,7 @@ async function openPip(){
       setTimeout(() => { if(pip){ const x = pip.document.getElementById("deckCopyBtn"); if(x) x.textContent = t("assist.deckCopy"); } }, 2000);
     }
   });
-  $("pipBtn").textContent = t("assist.pipClose");
+  setPipUi(true);
   syncPip();
 }
 function syncPip(){
@@ -1244,9 +1295,15 @@ $("weightSel").onchange = () => { try{ localStorage.setItem("assist.weight", $("
 const sel = $("langSelect");
 sel.value = I18N.lang;
 sel.onchange = e => I18N.set(e.target.value);
-I18N.onChange(() => render());
+I18N.onChange(() => { render(); setPipUi(!!pip); });
 
 (async () => {
+  // 2回目以降は手順をたたんでおく（見出しを押せばいつでも開ける）
+  try{ $("setupSteps").open = !localStorage.getItem("sw.assist.setupDone"); }catch(e){ $("setupSteps").open = true; }
+  if(!("documentPictureInPicture" in window)){
+    $("pipBar").classList.add("off");
+    $("pipNo").hidden = false;
+  }
   if(!supported){
     $("unsupported").hidden = false;
     $("pickBtn").disabled = true;
