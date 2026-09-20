@@ -99,6 +99,9 @@
   .c.mine{cursor:grab}
   .c.drag{cursor:grabbing;z-index:50;box-shadow:0 8px 20px rgba(0,0,0,.6)}
   .c.tapped{transform:rotate(90deg)}
+  /* 相手側は実際の卓と同じように向かい合わせ（180度）で置く。自分の札と一目で見分けがつく */
+  .field.opp .c{transform:rotate(180deg)}
+  .field.opp .c.tapped{transform:rotate(270deg)}
   .c .nm{position:absolute;left:0;right:0;bottom:0;font-size:9px;line-height:1.25;padding:2px 3px;background:rgba(0,0,0,.72);
          color:#E7EFEA;border-radius:0 0 3px 3px;max-height:26px;overflow:hidden}
   .c.hasimg .nm{display:none}
@@ -578,7 +581,7 @@ function renderField(el, cards, mine) {
     n.innerHTML = `${img || (down && c.hidden) ? "" : `<span class="nm">${esc(c.name)}</span>`}
       ${c.counters ? `<span class="ct">${c.counters > 0 ? "+" : ""}${c.counters}</span>` : ""}
       ${c.note ? `<span class="note">${esc(c.note)}</span>` : ""}
-      <button class="dots" data-menu="${c.id}">⋯</button>`;
+      ${mine ? `<button class="dots" data-menu="${c.id}">⋯</button>` : ""}`;
     n._card = c;
   }
   for (const [id, n] of map) if (!seen.has(id)) { n.remove(); map.delete(id); }
@@ -665,21 +668,15 @@ document.addEventListener("pointerdown", e => {
   if (!$("menu").hidden && !e.target.closest("#menu")) $("menu").hidden = true;
 }, true);
 
-/* opp を付けると相手の戦場のカードへの操作になる（動かせるのはタップ・裏返し・カウンター・メモまで） */
-function openCardMenu(c, x, y, opp) {
-  const o = opp ? { opp: true } : {};
+function openCardMenu(c, x, y) {
   const mv = (to, extra) => () => send({ type: "move", from: "field", to, id: c.id, ...(extra || {}) });
-  const head = [
-    { label: tt("tapIt"), run: () => send({ type: "tap", id: c.id, ...o }) },
-    { label: tt("flipIt"), run: () => send({ type: "flip", id: c.id, ...o }) },
-    { label: tt("ctPlus"), run: () => send({ type: "counter", id: c.id, d: 1, ...o }) },
-    { label: tt("ctMinus"), run: () => send({ type: "counter", id: c.id, d: -1, ...o }) },
-    ...(c.counters ? [{ label: tt("ctClear"), run: () => send({ type: "counter", id: c.id, d: -c.counters, ...o }) }] : []),
-    { label: tt("noteSet"), run: () => { const v = prompt(tt("noteAsk"), c.note || ""); if (v !== null) send({ type: "note", id: c.id, note: v, ...o }); } }
-  ];
-  if (opp) { openMenu(x, y, head, c.name); return; }
   openMenu(x, y, [
-    ...head,
+    { label: tt("tapIt"), run: () => send({ type: "tap", id: c.id }) },
+    { label: tt("flipIt"), run: () => send({ type: "flip", id: c.id }) },
+    { label: tt("ctPlus"), run: () => send({ type: "counter", id: c.id, d: 1 }) },
+    { label: tt("ctMinus"), run: () => send({ type: "counter", id: c.id, d: -1 }) },
+    ...(c.counters ? [{ label: tt("ctClear"), run: () => send({ type: "counter", id: c.id, d: -c.counters }) }] : []),
+    { label: tt("noteSet"), run: () => { const v = prompt(tt("noteAsk"), c.note || ""); if (v !== null) send({ type: "note", id: c.id, note: v }); } },
     "-",
     { label: tt("copyTok"), run: () => send({ type: "token", name: c.name, img: c.img, x: c.x + 16, y: c.y + 12, n: 1 }) },
     "-",
@@ -851,21 +848,6 @@ function tidy() {
 $("myField").addEventListener("click", e => {
   const d = e.target.closest("[data-menu]");
   if (d) { const c = fieldNodes.mine.get(d.dataset.menu)._card; openCardMenu(c, e.clientX, e.clientY); }
-});
-/* 相手の戦場のカードにも触れるようにする（⋯ ボタンか右クリック） */
-const oppMenu = (e, id) => {
-  const n = fieldNodes.opp.get(id);
-  if (n) openCardMenu(n._card, e.clientX, e.clientY, true);
-};
-$("oppField").addEventListener("click", e => {
-  const d = e.target.closest("[data-menu]");
-  if (d) oppMenu(e, d.dataset.menu);
-});
-$("oppField").addEventListener("contextmenu", e => {
-  const n = e.target.closest(".c");
-  if (!n) return;
-  e.preventDefault();
-  oppMenu(e, n.dataset.id);
 });
 $("hand").addEventListener("click", e => {
   const n = e.target.closest("[data-hand]");

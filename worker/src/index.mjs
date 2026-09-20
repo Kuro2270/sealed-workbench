@@ -180,18 +180,8 @@ function apply(g, me, m) {
   const pull = (zone, id) => p[zone].splice(find(zone, id), 1)[0];
   const zoneName = { hand: "手札", field: "戦場", grave: "墓地", exile: "追放", library: "山札" };
 
-  // 卓の上では相手の場のカードにも手を出せる（タップ・裏返し・カウンター・メモだけ）。
-  // m.opp が付いているときは相手の戦場から探す。
-  const onField = () => {
-    const h = m.opp ? g.players[other(me)] : p;
-    if (!h) throw new Error("相手がいません");
-    const c = h.field.find(x => x.id === m.id);
-    if (!c) throw new Error("そのカードが見つかりません");
-    return c;
-  };
-  // 裏向きのカードは名前を記録に残さない（記録から中身が分かってしまうため）
-  const shown = c => (c.flipped && !c.back) ? "裏向きのカード" : (c.name || "カード");
-  const oppLog = text => { if (m.opp) log(g, `${nm} が${text}`); };
+  // 触れるのは自分の場のカードだけ。相手の場には手を出せない
+  const onField = () => p.field[find("field", m.id)];
 
   switch (m.type) {
     /* ---- 準備 ---- */
@@ -291,7 +281,6 @@ function apply(g, me, m) {
     case "tap": {
       const c = onField();
       c.tapped = m.tapped ?? !c.tapped;
-      oppLog(`相手の ${shown(c)} を${c.tapped ? "タップ" : "アンタップ"}しました`);
       break;
     }
     case "tapAll": {
@@ -302,19 +291,16 @@ function apply(g, me, m) {
     case "flip": {
       const c = onField();
       c.flipped = !c.flipped;
-      oppLog(c.flipped ? "相手のカードを1枚 裏返しました" : `相手の ${shown(c)} を表に戻しました`);
       break;
     }
     case "counter": {
       const c = onField();
       c.counters = clamp((c.counters || 0) + (m.d || 0), -99, 99);
-      oppLog(`相手の ${shown(c)} のカウンターを ${c.counters} にしました`);
       break;
     }
     case "note": {
       const c = onField();
       c.note = String(m.note || "").slice(0, 40);
-      oppLog(`相手の ${shown(c)} にメモを付けました`);
       break;
     }
     case "token": {
