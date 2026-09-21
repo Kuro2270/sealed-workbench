@@ -17,7 +17,7 @@
 
   // ← Cloudflare Web Analytics のトークン（32文字の英数字）をここに貼る。
   //    空のままなら、計測タグは一切読み込まない。
-  var TOKEN = "";
+  var TOKEN = "32d21160c1494016aa4395040bf744b5";
 
   var KEY = "sw.noanalytics";
 
