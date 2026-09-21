@@ -70,6 +70,13 @@
   if (flag() === "1") return;   // 自分の端末なので、計測タグは読み込まない
   if (!/^[0-9a-f]{20,64}$/i.test(TOKEN)) return;
 
+  // 以前の「EUの訪問者は計測しない」設定を引き継ぐ。
+  // ブラウザからは国が分からないので、時間帯がヨーロッパのものなら読み込まない（EU外の欧州も外れるが、控えめな側に倒す）
+  try {
+    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+    if (/^Europe\//.test(tz) || /^Atlantic\/(Canary|Madeira|Azores)$/.test(tz)) return;
+  } catch (e) {}
+
   var s = document.createElement("script");
   s.defer = true;
   s.src = "https://static.cloudflareinsights.com/beacon.min.js";
