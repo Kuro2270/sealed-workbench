@@ -907,6 +907,12 @@ function scorePack(){
     return { id, c, base, fit, adjColor, adjSlot, adjPace, adjLegend, adjSyn, synWhy: syn.why, usePair, owned, score, commit, basic, kind };
   }).sort((a, b) => b.score - a.score);
 }
+/* おすすめ欄に出す勝率。目標の2色が決まっていれば、その2色での勝率を出す */
+function bestWrText(e, wrE){
+  const pr = e.usePair ? pairRating(e.id, e.usePair) : null;
+  if(pr) return esc(t("assist.bestWrPair", {c: e.usePair.split("").map(colorName).join(""), p: (pr.gih * 100).toFixed(1)}));
+  return wrE && wrE.gih != null ? esc(t("assist.bestWr", {p: (wrE.gih * 100).toFixed(1)})) : "";
+}
 function reasonFor(e){
   const tp = targetPair();
   const ranked = tp ? tp.pair.split("").map(colorName) : [];
@@ -930,7 +936,6 @@ function reasonFor(e){
     const head = t(w.type === "Legendary" ? "assist.synLegend" : "assist.synTribe");
     extra.push(head + t(w.kind === "payoff" ? "assist.reasonSynPayoff" : "assist.reasonSynMember", {t: typeLabel(w.type), n: w.n}));
   }
-  if(e.usePair && pairRating(e.id, e.usePair)) extra.push(t("assist.reasonPairWr", {c: e.usePair.split("").map(colorName).join(""), p: (pairRating(e.id, e.usePair).gih * 100).toFixed(1)}));
   if(e.adjLegend < 0) extra.push(t("assist.reasonLegend", {n: e.owned}));
   if(e.adjSlot >= 1) extra.push(t(e.kind === "creature" ? "assist.reasonNeedCreature" : "assist.reasonNeedSpell"));
   if(e.adjPace >= 1) extra.push(t("assist.reasonPace", {p: t("assist.pace." + pace)}));
@@ -1159,7 +1164,7 @@ function render(){
           `<div class="best-txt">` +
             `<div class="best-lbl">${esc(shown.length === 2 ? t("assist.bestN", {n: i + 1}) : t("assist.best"))}</div>` +
             `<div class="best-nm">${esc(displayName(c))}</div>` +
-            `<div class="best-wr">${wrE && wrE.gih != null ? esc(t("assist.bestWr", {p: (wrE.gih * 100).toFixed(1)})) : ""}</div>` +
+            `<div class="best-wr">${bestWrText(e, wrE)}</div>` +
             `<div class="best-why">${esc(reasonFor(e))}</div>` +
           `</div>`;
         box.appendChild(el);
@@ -1179,7 +1184,8 @@ function render(){
       const dotColor = cols.length === 0 ? "var(--c)" : cols.length > 1 ? "var(--m)" : `var(--${cols[0].toLowerCase()})`;
       const wrE = c ? (wr[c.name] || wr[c.name.split(" // ")[0]]) : null;
       const pr = e.usePair ? pairRating(e.id, e.usePair) : null;
-      const wrTxt = e.basic ? "—" : (pr ? `<b>${(pr.gih * 100).toFixed(1)}%</b><small style="color:var(--muted);font-weight:400"> /${(wrE.gih * 100).toFixed(1)}</small>` : (wrE && wrE.gih != null ? (wrE.gih * 100).toFixed(1) + "%" : "—"));
+      // 並べ替えに使っている勝率だけを出す。2つ並ぶと、どちらを見ればよいのか分からなくなる
+      const wrTxt = e.basic ? "—" : (pr ? (pr.gih * 100).toFixed(1) + "%" : (wrE && wrE.gih != null ? (wrE.gih * 100).toFixed(1) + "%" : "—"));
       const anyColor = Object.values(D.colorScore).some(v => v > 0);
       const fitCls = !c || !cols.length || e.basic || e.commit < 0.5 || !anyColor ? "" : (e.fit >= 0.75 ? " on" : (e.fit <= 0.25 ? " off" : ""));
       const fitTxt = e.adjLegend < 0 ? t("assist.legendTag", {n: e.owned}) : (e.adjSyn >= 0.75 ? t("assist.synTag") : (fitCls === " on" ? t("assist.onColor") : fitCls === " off" ? t("assist.offColor") : ""));
