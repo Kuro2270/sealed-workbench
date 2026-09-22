@@ -816,20 +816,38 @@ function pickedCounts(){
   D.picked.forEach(id => {
     const c = cards[id]; if(!c) return;
     const k = kindOf(c); if(k === "land") return;
-    const on = !c.colors.length || c.colors.every(x => bonus[x] >= 1);
+    // 無色はどのデッキにも入る。ハイブリッド（例：白か青で払える）は、どちらか1色が合えば入る
+    const on = !c.colors.length
+            || (c.pureHybrid ? c.colors.some(x => bonus[x] >= 1) : c.colors.every(x => bonus[x] >= 1));
     if(on) n[k]++;
   });
   return n;
 }
-/* 枠の過不足：+1 ならクリーチャーが大きく足りない、-1 ならスペルが大きく足りない */
+/* クリーチャーの「この時点での目安」。
+   最終的な17枚をいきなり求めるのではなく、各パックの終わりまでに
+   1パック目 4枚・2パック目 10枚・3パック目 17枚 あればよい、として途中は直線でつなぐ。
+   1パック目は色も決まっておらず、良いカードを取るほうが大事なので目安を低くしてある。 */
+const CREATURE_BY_PACK = [4, 10, 17];
+const PICKS_PER_PACK = 14;
+function creatureGoalNow(pickIndex){
+  const pk = Math.min(2, Math.floor(pickIndex / PICKS_PER_PACK));
+  const start = pk === 0 ? 0 : CREATURE_BY_PACK[pk - 1];
+  const within = Math.min(PICKS_PER_PACK, pickIndex - pk * PICKS_PER_PACK) / PICKS_PER_PACK;
+  return start + (CREATURE_BY_PACK[pk] - start) * within;
+}
+/* 枠の過不足：+1 ならクリーチャーが目安より大きく足りない、負ならクリーチャーが足りていてスペルに寄せてよい。
+   許容する幅は後半ほど狭くする（1パック目は4枚の差まで大目に見る） */
+const SLOT_TOLERANCE = [4, 3, 2];
 function slotNeed(){
   const n = pickedCounts();
-  const total = n.creature + n.spell;
-  if(total < 3) return 0;                                  // 数枚では判断しない
-  const target = DECK_TARGET.creature / (DECK_TARGET.creature + DECK_TARGET.spell);   // 0.74
-  const ratio = n.creature / total;
-  return Math.max(-1, Math.min(1, (target - ratio) / 0.25));
+  const pickIndex = D.picked.length;
+  const pk = Math.min(2, Math.floor(pickIndex / PICKS_PER_PACK));
+  const short = creatureGoalNow(pickIndex) - n.creature;
+  // 足りているときは、スペルを少しだけ持ち上げる程度にとどめる
+  return Math.max(-0.5, Math.min(1, short / SLOT_TOLERANCE[pk]));
 }
+/* 枠の補正の最大幅（勝率ポイント）。パックが進むほど、枚数合わせの重みを上げる */
+const SLOT_WEIGHT = [1.5, 3, 4];
 /* 環境の速さに応じた、マナ総量ごとの上げ下げ（勝率ポイント） */
 const PACE_ADJ = {
   fast:   {0:0, 1:1.5, 2:1.5, 3:0.5, 4:-0.5, 5:-1.5, 6:-2,   7:-2},
@@ -858,15 +876,18 @@ function scorePack(){
     const kind = kindOf(c);
     // 1) 色
     let fit;
-    if(!cols.length) fit = 0.5;
+    if(!cols.length) fit = kind === "land" ? 0.5 : 1;   // 無色の呪文はどの色のデッキにも入る
     else if(c && c.pureHybrid) fit = Math.max(...cols.map(k => bonus[k]));   // ハイブリッドはどれか1色が合えばよい
     else fit = cols.reduce((n, k) => n + bonus[k], 0) / cols.length;
-    if(cols.length > 1 && !(c && c.pureHybrid)) fit *= 0.9;
+    // 多色は、目標の色から外れる色が混じっているときだけ少し割り引く。
+    // 目標の2色ちょうどの多色（白赤のデッキに白赤のカードなど）は、単色と同じく完全に色が合っている
+    if(cols.length > 1 && !(c && c.pureHybrid) && !cols.every(k => bonus[k] >= 1)) fit *= 0.9;
     const adjColor = commit * w * (fit - 0.5);
     // 2) 枠（クリーチャーが足りなければクリーチャーを、スペルが足りなければスペルを）
     let adjSlot = 0;
-    if(kind === "creature") adjSlot = ramp * 3 * need;
-    else if(kind === "spell") adjSlot = -ramp * 3 * need;
+    const slotW = SLOT_WEIGHT[Math.min(2, packIdx)];
+    if(kind === "creature") adjSlot = slotW * need;
+    else if(kind === "spell") adjSlot = -slotW * need;
     // 3) 環境の速さ（土地は対象外）
     // 序盤は勝率そのもので選ぶ。環境の速さの補正は枠と同じく8手目で最大にする（初手は補正なし）
     let adjPace = 0;
@@ -1086,7 +1107,7 @@ function render(){
   if(D.picked.length){
     const n = pickedCounts();
     const s = document.createElement("span"); s.className = "cb";
-    s.textContent = t("assist.slots", {c: n.creature, s: n.spell, tc: DECK_TARGET.creature, ts: DECK_TARGET.spell});
+    s.textContent = t("assist.slotsNow", {c: n.creature, s: n.spell, e: creatureGoalNow(D.picked.length).toFixed(1), tc: DECK_TARGET.creature});
     s.title = t("assist.slotsTip");
     cb.appendChild(s);
   }
