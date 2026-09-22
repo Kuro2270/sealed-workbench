@@ -2,7 +2,7 @@ name: 勝率データ集計
 
 on:
   schedule:
-    - cron: "0 18 5 * *"      # 毎月6日 03:00（日本時間）
+    - cron: "0 18 5,20 * *"   # 毎月6日・21日 03:00（日本時間）
   workflow_dispatch:
     inputs:
       set:
