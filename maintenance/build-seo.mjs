@@ -19,7 +19,6 @@ const ROOT = ".";
 const PRIORITY = {
   "index.html": "1.0",
   "guide.html": "0.9",
-  "ratings.html": "0.8",
   "reports.html": "0.9",
   "draft.html": "0.8",
   "swiss.html": "0.7",
@@ -40,7 +39,7 @@ async function lastUpdated(){
 
 async function main(){
   // 404 と動作確認用のページは検索結果に載せないので、サイトマップからも外す
-  const SKIP = new Set(["404.html", "table-test.html"]);
+  const SKIP = new Set(["404.html", "table-test.html", "ratings.html"]);
   const files = (await readdir(ROOT))
     .filter(f => f.endsWith(".html") && !SKIP.has(f))
     .sort((a, b) => (PRIORITY[b] || "0.5").localeCompare(PRIORITY[a] || "0.5"));

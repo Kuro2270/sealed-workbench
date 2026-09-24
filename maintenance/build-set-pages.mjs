@@ -205,7 +205,7 @@ function shell(lang, code, head, body, ogImage){
   const nav = [
     navGroup("start", ["guide"]),
     navGroup("build", ["sealed", "draft", "assist"]),
-    navGroup("data", ["ratings", "reports"]),
+    navGroup("data", ["reports"]),
     navGroup("play", ["table", "swiss"])
   ].join("\n      ");
   return `<!DOCTYPE html>
@@ -395,7 +395,6 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names){
     ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay)).join("\n")
     : `<p>${esc(T.none)}</p>`;
   const links = `<section class="links"><h3>${esc(T.links)}</h3><ul>
-  <li><a href="../ratings.html?set=${code}">${esc(T.linkRatings)}</a></li>
   <li><a href="../reports.html?set=${code}">${esc(T.linkReports)}</a></li>
   <li><a href="../">${esc(T.linkSealed)}</a>／<a href="../draft.html">${esc(T.linkDraft)}</a>／<a href="../assistant.html">${esc(T.linkAssist)}</a></li>
   <li><a href="index${lang === "en" ? ".en" : ""}.html">${esc(T.linkIndex)}</a></li>

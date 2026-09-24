@@ -91,6 +91,13 @@
   h2{font-size:19px;margin:0 0 6px;padding-bottom:6px;border-bottom:1px solid var(--line)}
   .lead{font-size:13.5px;color:var(--muted);margin:0 0 14px}
   .verdict{background:#fff;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:var(--radius);padding:13px 16px;margin-bottom:14px;font-size:14.5px}
+  /* 表示件数の切り替え */
+  .chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 12px}
+  .chips .lbl{font-size:12.5px;color:var(--muted);margin-right:4px}
+  .chip{font:inherit;font-size:12.5px;line-height:1;padding:7px 13px;border-radius:999px;cursor:pointer;
+        background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .chip:hover{border-color:var(--gold)}
+  .chip[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
   .verdict .gap{display:block;font-size:12.5px;color:var(--muted);margin-top:5px}
 
   /* 横棒グラフ */
@@ -166,7 +173,6 @@
         <a href="./draft.html" data-i18n="nav.draft">ドラフト構築</a>
         <a href="./assistant.html" data-i18n="nav.assist">ドラフト補助</a></div>
       <div class="ng"><span class="ngl" data-i18n="navgrp.data">データを見る</span>
-        <a href="./ratings.html" data-i18n="nav.ratings">カード勝率一覧</a>
         <a href="./reports.html" class="on" data-i18n="nav.reports">環境レポート</a></div>
       <div class="ng"><span class="ngl" data-i18n="navgrp.play">対戦する</span>
         <a href="./table.html" data-i18n="nav.table">対戦卓</a>
@@ -217,6 +223,10 @@ const RARITIES = ["mythic", "rare", "uncommon", "common"];
 const MIN_GAMES = 500;
 
 let index = [], speedIndex = null, report = null, jaMap = {}, nameMap = {};
+/* レアリティごとに何枚まで出すか。0 はすべて。選んだ値はこのブラウザに残す */
+let topN = 10;
+try{ const v = parseInt(localStorage.getItem("sw.reports.topn"), 10); if(v === 10 || v === 30 || v === 0) topN = v; }catch(e){}
+const fullCache = {};        // セット×形式ごとの全カード（上位30・すべてのときだけ読む）
 let mode = "draft";         // 表示中の形式（ドラフト／シールド）
 const repCache = {};         // セット×形式ごとの記事。タブの切り替えを即時にする
 let mapsFor = null;          // 日本語名・画像の取得済みセット（言語つき）
@@ -413,6 +423,27 @@ async function load(){
   }
 }
 
+/* 上位30・すべてを出すときは、全カードの勝率ファイルを読む（トップ10は記事の中に入っている） */
+async function loadFull(){
+  const key = $("setSelect").value + "_" + mode;
+  if(fullCache[key]) return fullCache[key];
+  const res = await fetch(`./data/ratings/${key}.json`, {cache:"no-cache"});
+  if(!res.ok) throw new Error("no data");
+  const d = await res.json();
+  // 記事のトップ10と同じ条件でそろえる（土地を除き、試合数が少ないものは外す）
+  const list = (d.cards || []).filter(c => !c.land && c.gih != null && c.games >= MIN_GAMES)
+                              .sort((a, b) => b.gih - a.gih);
+  fullCache[key] = list;
+  return list;
+}
+/* そのレアリティで出すカードの一覧 */
+function cardsOf(rarity){
+  if(topN === 10) return report.top?.[rarity] || [];
+  const key = $("setSelect").value + "_" + mode;
+  const all = (fullCache[key] || []).filter(c => c.rarity === rarity);
+  return topN === 0 ? all : all.slice(0, topN);
+}
+
 /* ---------- 描画 ---------- */
 /* 直近セットと比べた速さを、数字なしで1文にする */
 function paceLine(){
@@ -509,7 +540,7 @@ function render(){
   const hasCards = RARITIES.some(r => (d.top?.[r] || []).length);
   if(hasCards){
     const groups = RARITIES.map(r => {
-      const list = d.top[r] || [];
+      const list = cardsOf(r);
       if(!list.length) return "";
       return `<div class="rar-group">
         <h3>${t("rarity." + r)}</h3>
@@ -533,9 +564,13 @@ function render(){
       </div>`;
     }).join("");
 
+    const chip = (n, key) =>
+      `<button type="button" class="chip" data-n="${n}" aria-pressed="${topN === n}">${t(key)}</button>`;
     out.push(`<section>
       <h2>${t("reports.cards.h")}</h2>
       <p class="lead">${t("reports.cards.lead", {n: MIN_GAMES.toLocaleString()})}</p>
+      <div class="chips"><span class="lbl">${t("reports.show")}</span>
+        ${chip(10, "reports.show10")}${chip(30, "reports.show30")}${chip(0, "reports.showAll")}</div>
       ${groups}
       ${d.notes?.cards ? `<div class="notes"><p>${esc(d.notes.cards[I18N.lang] || "")}</p></div>` : ""}
     </section>`);
@@ -551,6 +586,22 @@ function render(){
 
   $("body").innerHTML = out.join("");
   $("body").hidden = false;
+
+  // 表示件数の切り替え
+  $("body").querySelectorAll(".chips [data-n]").forEach(b => {
+    b.onclick = async () => {
+      const n = parseInt(b.dataset.n, 10);
+      if(n === topN) return;
+      if(n !== 10){
+        b.textContent = "…";
+        try{ await loadFull(); }
+        catch(e){ setStatus(t("reports.none"), true); render(); return; }
+      }
+      topN = n;
+      try{ localStorage.setItem("sw.reports.topn", String(n)); }catch(e){}
+      render();
+    };
+  });
 
   // カード名にカーソルを合わせたら画像を出す
   $("body").querySelectorAll("tr[data-card]").forEach(tr => {
