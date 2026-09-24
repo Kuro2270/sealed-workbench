@@ -33,6 +33,11 @@
   .wrap{max-width:1180px;margin:0 auto}
   .head-top{display:block}
   .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:#9CC8FF;line-height:24px;margin:0 0 12px}
+
+  /* 言語の切り替えは、どのページでも見出しの右上に置く */
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+  .brandrow .brand{margin:0}
+  select.langsel{min-width:112px;padding:6px 10px;font-size:13px}
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
@@ -98,7 +103,10 @@
 
 <header>
   <div class="wrap">
-    <div class="brand" data-i18n="site.name">MTGアリーナ リミテッド・ワークベンチ</div>
+    <div class="brandrow">
+      <div class="brand" data-i18n="site.name">MTGアリーナ リミテッド・ワークベンチ</div>
+      <select id="langSelect" class="langsel" data-i18n-label="lang.label"><option value="ja">日本語</option><option value="en">English</option></select>
+    </div>
     <nav>
       <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span>
         <a href="./guide.html" data-i18n="nav.guide">使い方</a></div>
@@ -118,9 +126,6 @@
         <p data-i18n="privacy.lead">取得する情報とその使い道、データの出典と権利表示をまとめます。</p>
       </div>
       <div class="controls">
-        <select id="langSelect" data-i18n-label="lang.label">
-          <option value="ja">日本語</option><option value="en">English</option>
-        </select>
       </div>
     </div>
   </div>

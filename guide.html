@@ -33,6 +33,11 @@
   .wrap{max-width:1180px;margin:0 auto}
   .head-top{display:block}
   .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:#9CC8FF;line-height:24px;margin:0 0 12px}
+
+  /* 言語の切り替えは、どのページでも見出しの右上に置く */
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+  .brandrow .brand{margin:0}
+  select.langsel{min-width:112px;padding:6px 10px;font-size:13px}
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
@@ -65,6 +70,26 @@
   ol li{margin-bottom:5px}
   a{color:#1E7A52}
 
+  h3.cat{font-size:15px;margin:22px 0 4px;color:var(--pine)}
+  h3.cat:first-of-type{margin-top:14px}
+  .catlead{margin:0 0 10px;color:var(--muted);font-size:13px}
+  .tools{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 6px}
+  .tool{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+  .tool h4{margin:0 0 6px;font-size:15px;font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif}
+  .tool h4 a{color:var(--gold);text-decoration:none}
+  .tool h4 a:hover{text-decoration:underline}
+  .tool p{margin:0 0 8px;font-size:13px;line-height:1.75}
+  .tool p:last-child{margin:0}
+  .tool .who{color:var(--muted);font-size:12.5px}
+  .tool .who b{color:var(--ink);margin-right:6px}
+  /* 語句の補足。ふだんは隠しておき、カーソルを合わせたとき（スマホでは押したとき）だけ出す */
+  .term{position:relative;border-bottom:1px dashed var(--gold);cursor:help;outline:none;white-space:nowrap}
+  .term .pop{position:absolute;left:0;top:calc(100% + 8px);z-index:30;width:min(420px,78vw);white-space:normal;
+             background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 14px;
+             box-shadow:0 14px 34px -14px rgba(13,27,42,.45);font-size:12.5px;line-height:1.75;color:var(--ink);
+             opacity:0;visibility:hidden;transition:opacity .12s}
+  .term:hover .pop,.term:focus .pop,.term:focus-within .pop{opacity:1;visibility:visible}
+  @media (max-width:720px){ .tools{grid-template-columns:1fr} .term .pop{left:auto;right:0} }
   .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
   .cta a{
     display:inline-block;background:var(--gold);color:#FFFFFF;font-weight:700;
@@ -97,7 +122,10 @@
 
 <header>
   <div class="wrap">
-    <div class="brand" data-i18n="site.name">MTGアリーナ リミテッド・ワークベンチ</div>
+    <div class="brandrow">
+      <div class="brand" data-i18n="site.name">MTGアリーナ リミテッド・ワークベンチ</div>
+      <select id="langSelect" class="langsel" data-i18n-label="lang.label"><option value="ja">日本語</option><option value="en">English</option></select>
+    </div>
     <nav>
       <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span>
         <a href="./guide.html" class="on" data-i18n="nav.guide">使い方</a></div>
@@ -117,9 +145,6 @@
         <p data-i18n="guide.lead">このサイトで何ができるのか、実際にアリーナで遊ぶまでの流れをまとめます。</p>
       </div>
       <div class="controls">
-        <select id="langSelect" data-i18n-label="lang.label">
-          <option value="ja">日本語</option><option value="en">English</option>
-        </select>
       </div>
     </div>
   </div>
@@ -128,49 +153,66 @@
 <main>
   <section>
     <h2 data-i18n="guide.s0.h">このサイトの目的</h2>
-    <div data-i18n-html="guide.s0.body"><p>マジック：ザ・ギャザリング アリーナのリミテッドを、もっと楽しんでもらうためのサイトです。目指していることは2つあります。</p><p><b>アリーナに接続しなくても、練習や友人との対戦ができるようにすること。</b>有料イベントに入らなくても、シールドとドラフトを何度でも試せます。組んだデッキはアリーナにそのまま取り込めるので、そのまま友人との対戦にも使えます。</p><p><b>客観的なデータで強いデッキを組めるようにすること。</b>カードの強弱は感覚で語られがちですが、実際には何万試合もの結果が公開されています。それを日本語で、並べ替えて読める形にしました。感覚に頼らず、数字を見てデッキを組めます。</p></div>
+    <div data-i18n-html="guide.s0.body"></div>
   </section>
 
   <section>
-    <h2 data-i18n="guide.s1.h">このサイトでできること</h2>
-    <div data-i18n-html="guide.s1.body"><p>できることは6つです。練習するための2つ、調べるための2つ、対戦会を運営するための1つ、そして本番のドラフトを助ける1つです。</p><p><b>シールド構築</b>と<b>ドラフト構築</b>は、パックの開封から40枚デッキを組むところまでをブラウザ上で行います。組んだデッキは、アリーナにそのまま取り込めるテキストとして書き出せます。</p><p><b>カード勝率一覧</b>では、カード1枚ごとの実戦勝率を並べ替えて確認できます。<b>環境レポート</b>は、そのセットの環境全体を文章と図でまとめたものです。勝率はいずれも、17Landsの公開データを集計した数字です。</p><p><b>スイスドロー対戦表</b>は、組んだデッキで友人と対戦会を開くときの組み合わせと順位表です。</p><p><b>ドラフト補助</b>は、アリーナで実際にドラフトしている最中に、いま見ているパックのカードを勝率・自分の色・デッキの枠・環境の速さから並べ替え、おすすめの1枚（評価が近ければ2枚）をカード画像つきで示します。ピックが終わると、そのプールからのデッキ案も出ます。PCのChromeまたはEdge専用で、スマートフォンでは使えません。</p><p>6つとも無料で、アカウント登録はいりません。カード名とカード画像は日本語に対応しています。</p></div>
-    <div class="cta">
-      <a href="./" data-i18n="nav.sealed">シールド構築</a>
-      <a href="./draft.html" data-i18n="nav.draft">ドラフト構築</a>
-      <a href="./reports.html" data-i18n="nav.reports">環境レポート</a>
-      <a href="./swiss.html" data-i18n="nav.swiss">スイスドロー</a>
-      <a href="./assistant.html" data-i18n="nav.assist">ドラフト補助</a>
+    <h2 data-i18n="guide.tools.h">できること</h2>
+
+    <h3 class="cat" data-i18n="navgrp.build">デッキを作る</h3>
+    <p class="catlead" data-i18n-html="guide.cat.build"></p>
+    <div class="tools">
+      <div class="tool">
+        <h4><a href="./" data-i18n="nav.sealed">シールド構築</a></h4>
+        <p data-i18n="guide.t.sealed"></p>
+        <p class="who"><b data-i18n="guide.who">向いている人</b><span data-i18n="guide.w.sealed"></span></p>
+      </div>
+      <div class="tool">
+        <h4><a href="./draft.html" data-i18n="nav.draft">ドラフト構築</a></h4>
+        <p data-i18n="guide.t.draft"></p>
+        <p class="who"><b data-i18n="guide.who">向いている人</b><span data-i18n="guide.w.draft"></span></p>
+      </div>
+      <div class="tool">
+        <h4><a href="./assistant.html" data-i18n="nav.assist">ドラフト補助</a></h4>
+        <p data-i18n="guide.t.assist"></p>
+        <p class="who"><b data-i18n="guide.who">向いている人</b><span data-i18n="guide.w.assist"></span></p>
+      </div>
+    </div>
+
+    <h3 class="cat" data-i18n="navgrp.data">データを見る</h3>
+    <p class="catlead" data-i18n-html="guide.cat.data"></p>
+    <div class="tools">
+      <div class="tool">
+        <h4><a href="./reports.html" data-i18n="nav.reports">環境レポート</a></h4>
+        <p data-i18n-html="guide.t.reports"></p>
+        <p class="who"><b data-i18n="guide.who">向いている人</b><span data-i18n="guide.w.reports"></span></p>
+      </div>
+    </div>
+
+    <h3 class="cat" data-i18n="navgrp.play">対戦する</h3>
+    <p class="catlead" data-i18n-html="guide.cat.play"></p>
+    <div class="tools">
+      <div class="tool">
+        <h4><a href="./table.html" data-i18n="nav.table">対戦卓</a></h4>
+        <p data-i18n="guide.t.table"></p>
+        <p class="who"><b data-i18n="guide.who">向いている人</b><span data-i18n="guide.w.table"></span></p>
+      </div>
+      <div class="tool">
+        <h4><a href="./swiss.html" data-i18n="nav.swiss">スイスドロー</a></h4>
+        <p data-i18n="guide.t.swiss"></p>
+        <p class="who"><b data-i18n="guide.who">向いている人</b><span data-i18n="guide.w.swiss"></span></p>
+      </div>
     </div>
   </section>
 
   <section>
-    <h2 data-i18n="guide.s2.h">こんな人に向いています</h2>
-    <div data-i18n-html="guide.s2.body"><p><b>1. ワイルドカードが余っている人</b><br>リミテッドを中心に遊んでいると、ワイルドカードは使い道がないまま貯まっていきます。リミテッド用の40枚デッキを作って、フレンド戦で遊ぶという使い道があります。</p><p><b>2. カードがほとんど揃っている人</b><br>すでに該当セットのカードを持っているなら、ワイルドカードを使わずに組めます。開封の運に左右されない、公平なリミテッド対戦ができます。</p><p><b>3. 本番前に練習したい人</b><br>有料イベントに入る前に、そのセットのシールドやドラフトの感触を掴めます。何度でも無料です。</p><p><b>4. 環境を知りたい人</b><br>構築ツールを使わず、データだけを見に来るのも歓迎です。どのカードが強いのか、どの色の組み合わせが勝っているのか、環境は速いのか遅いのか。セット全体の傾向まで日本語で読めるサイトは多くありません。</p><p><b>5. 本番のドラフトで迷いたくない人</b><br>ピックの場面で「勝率は高いが色が違う」「色は合うが弱い」と迷うことは多いものです。ドラフト補助は、その判断の材料を理由つきで並べます。最後に決めるのは自分ですが、数字を見ながら選べます。</p></div>
-  </section>
-
-  <section>
     <h2 data-i18n="guide.s3.h">アリーナで遊ぶまでの流れ</h2>
-    <div data-i18n-html="guide.s3.body"><ol><li>このサイトでプールを生成し、40枚のデッキを組む</li><li>「アリーナ用テキストをコピー」を押す</li><li>マジック：ザ・ギャザリング アリーナのデッキ画面で「インポート」を選ぶ</li><li>対戦相手とダイレクトチャレンジ（フレンド対戦）で対戦する</li></ol><p><b>大切な注意点</b>：40枚のデッキは、イベント外では<b>ダイレクトチャレンジでしか使えません</b>。通常のマッチングでは60枚以上が必要です。友人と遊ぶ前提のツールだとお考えください。</p><p><b>サイドボードについて</b>：構築画面で追加先を「サイド」にすると、サイドボードにも入れられます。アリーナに取り込むと、そのままサイドボードとして登録されます。フレンド対戦を2本先取で行うときにお使いください。上限は15枚です。</p><p><b>ワイルドカードについて</b>：持っていないカードは作成が必要です。構築画面に「作成に必要なワイルドカード」を表示しているので、組む前に確認できます。集め方は次の節にまとめました。</p></div>
-  </section>
-
-  <section>
-    <h2 data-i18n="guide.s7.h">ワイルドカードの集め方</h2>
-    <div data-i18n-html="guide.s7.body"><p>このサイトで組んだデッキをアリーナで使うには、持っていないカードをワイルドカードで作る必要があります。集める方法は主に4つです。</p><p><b>1. パックから直接出る</b><br>パックの中のカードが、同じレアリティのワイルドカードに置き換わることがあります。レア・神話レアが出る確率は低めで、目安は24パックに1枚ほどです。</p><p><b>2. ワイルドカード トラック</b><br>パック画面の右上にある2つの輪です。パックを6個開けるごとに、小さい輪からアンコモン1枚、大きい輪からレア1枚が出ます。大きい輪は5回に1回、レアではなく神話レアになります。</p><p><b>3. 保管庫（ヴォールト）</b><br>すでに4枚持っているコモン・アンコモンを引くと、その分が保管庫に貯まります。100%になったところで開けると、アンコモン3枚・レア2枚・神話レア1枚がまとめて手に入ります。</p><p><b>4. ゴールデンパック</b><br>ストアでパックを10個<b>購入</b>するごとに1つもらえます。中身はレアと神話レアだけの6枚で、開けるとトラックも進みます。報酬やコードで受け取ったパックは、この数に入りません。</p><p>なお、ドラフトやシールドで使うパックは、ワイルドカードが出ることもトラックが進むこともありません。ワイルドカード目当てなら、ストアのパックを開ける必要があります。</p><p>40枚デッキで作ることになるのは、土地を除いて20枚強です。その多くはコモンとアンコモンなので、上の1〜3で貯まる分でおおむね足ります。レアと神話レアをどこまで作るかが、実際の負担を決めます。</p><p>アリーナの仕組みは変わることがあります。最新の内容は公式のヘルプでご確認ください。</div>
-  </section>
-
-  <section>
-    <h2 data-i18n="guide.s4.h">6つのツール</h2>
-    <div data-i18n-html="guide.s4.body"><p><b>シールド構築</b>：6パック分のプールを生成して40枚デッキを組みます。カードを押すとデッキに入り、もう一度押すと戻ります。基本土地は＋−で増減します。</p><p><b>ドラフト構築</b>：8人卓を再現します。14枚のパックから1枚選ぶと残りが隣に流れ、同時に他の7人もピックします。他の7人はカードの勝率を基本に、ピックが進むほど自分の色を優先するように動きます。3パック42手を終えると構築画面に移ります。</p><p>パックの中身は、現在のプレイ・ブースターに合わせています。コモン7枚・アンコモン3枚・レアまたは神話レア1枚・土地1枚、そしてどのレアリティも出る特殊枠が2枚の計14枚です。特殊枠があるため、1パックに2枚以上のレアが入ることがあります。</p><p><b>カード勝率一覧</b>：セットを選ぶと自動で読み込まれ、シールドとドラフトはタブで切り替えられます。色・レアリティ・試合数で絞り込み、どの列でも並べ替えられます。</p><p><b>環境レポート</b>：そのセットがどんな環境かを文章と図でまとめます。環境の速さ、色ごとの勝率、強いアーキタイプ（色の組み合わせ）、マナカーブ、レアリティ別の上位カードを一度に見渡せます。こちらもシールドとドラフトをタブで切り替えられます。</p><p><b>スイスドロー対戦表</b>：友人との対戦会の運営用です。参加者を登録して大会を始めると、各ラウンドの組み合わせと順位表が出ます。参加者の名簿はブラウザに残るので、次回はチェックを入れるだけで呼び出せます。遅れて来る人が分かっているときは、初戦のバイをその人に指定できます。</p><p><b>ドラフト補助</b>：アリーナで実際にドラフトしているときに使います。準備は初回だけで、アリーナの設定で「詳細ログ（プラグインのサポート）」をオンにし、ページの案内に従ってログファイルを一度選びます。以降はパックを開くたびに、カードが次の考え方で並び替わります。</p><p>基本は<b>GIH勝率</b>です。そこに、ピックが進むほど強まる<b>自分の色</b>との合い具合（上位2色を自分の色とみなし、ハイブリッド・マナはどちらか1色が合えば合う扱い）、クリーチャー17枚・スペル6枚を目安にした<b>デッキの枠</b>、環境レポートと同じデータによる<b>環境の速さ</b>に応じたマナ域の調整を加えます。同じ伝説のカードを重ねて取らないようにも働きます。初手は勝率だけで並びます。</p><p>一番上に<b>おすすめの1枚</b>をカード画像と理由つきで示し、評価が近いときは2枚を並べて選択を委ねます。各行にカーソルを乗せると「勝率／色／枠／速さ」の内訳が見えます。「色へのこだわり」は設定で3段階から選べます。</p><p><b>常に前面の小窓</b>を開くと、アリーナの画面の横に置いて使えます。ピックが終わると<b>デッキ案</b>に切り替わり、勝率の高い順にクリーチャー17枚・スペル6枚を目安に選び、土地はマナ・シンボルの比率で配分します（ダブルシンボルのある色は多めに、色の合う特殊土地も含めます）。デッキリストはアリーナ形式でコピーできます。</p><p>プレミア・ドラフトとクイック・ドラフトの両方に対応しています。画面を読み取ったりゲームに手を加えたりはせず、ウィザーズ社が第三者ツール向けに用意しているログだけを使います。ログはブラウザの中でだけ読み、どこにも送りません。</p></div>
-  </section>
-
-  <section>
-    <h2 data-i18n="guide.s5.h">数値の読み方</h2>
-    <div data-i18n-html="guide.s5.body"><p><b>GIH勝率</b>が最も重要な指標です。そのカードが手札か戦場にあった試合の勝率で、「引いたときに勝てるカードか」を表します。同じセット内で比べるのが基本で、平均より3ポイント高ければ強いカード、低ければ弱いカードと考えられます。</p><p><b>IWD</b>は、引いた試合と引かなかった試合の勝率差です。GIH勝率が高くても、そもそも強いデッキにしか入らないカードは数値が膨らみます。IWDを併せて見ると、そのカード自体の貢献度がわかります。</p><p><b>試合数</b>は、その勝率がどれだけの試合から出た数字かを表します。試合数が少ないと勝率は偶然で動くため、初期状態では500試合以上のカードだけを表示しています。絞り込みを「すべて」にすると、試合数の少ないカードも並びます。</p><p>なお17Landsのデータは、自分の成績を記録している熱心なプレイヤーが中心です。全体の平均より勝率がやや高めに出ます。絶対値ではなく、カード同士の比較にお使いください。</p></div>
+    <div data-i18n-html="guide.s3.body"></div>
   </section>
 
   <section>
     <h2 data-i18n="guide.s6.h">よくある質問</h2>
-    <div data-i18n-html="guide.s6.body"><p><b>無料ですか</b><br>はい。アカウント登録も不要です。</p><p><b>データはいつ更新されますか</b><br>毎月1回、自動で最新の集計に入れ替わります。新しいセットも、発売から12日後以降に自動で追加されます（17Landsの規約に従っています）。</p><p><b>クイックドラフトのデータがないのはなぜですか</b><br>17Landsが公開しているデータにクイックドラフトが含まれていないためです。公開されれば自動で追加されます。</p><p><b>パックの中身は本物と同じですか</b><br>おおむね寄せています。現在のプレイ・ブースターに合わせ、コモン7枚・アンコモン3枚・レアまたは神話レア1枚・土地1枚・特殊枠2枚の14枚で構成しています。特殊枠はどのレアリティも出るため、1パックに2枚以上のレアが入ることがあります。ただしThe ListやSpecial Guests、セット固有のボーナスシートは再現していません。</p><p><b>日本語と英語を切り替えられますか</b><br>画面右上の言語選択で切り替わります。カード名や画像も連動します。</p><p><b>ドラフト補助はスマートフォンで使えますか</b><br>使えません。スマホ版アリーナは他のアプリからログを読めない作りのためです。PCのChromeまたはEdgeでお使いください。</p><p><b>ドラフト補助を使うのは規約上問題ありませんか</b><br>アリーナの「詳細ログ」は、ウィザーズ社が第三者ツール向けに公開している機能で、17Landsなどの既存ツールも同じ仕組みを使っています。当サイトは画面を読み取ったりゲームに手を加えたりはしません。</p><p><b>おすすめどおりにピックすれば勝てますか</b><br>おすすめは、実戦データから機械的に出した判断材料です。相手の動きや自分の好みまでは見ていません。迷ったときの拠りどころとして使い、最後はご自身で決めてください。</p></div>
+    <div data-i18n-html="guide.s6.body"></div>
   </section>
 </main>
 
@@ -182,6 +224,20 @@
 const sel = document.getElementById("langSelect");
 sel.value = I18N.lang;
 sel.onchange = e => I18N.set(e.target.value);
+
+/* 語句の補足を差し込む。言語を切り替えたときは入れ直す */
+function fillPops(){
+  document.querySelectorAll("[data-pop]").forEach(el => {
+    const old = el.querySelector(".pop");
+    if(old) old.remove();
+    const box = document.createElement("span");
+    box.className = "pop";
+    box.innerHTML = t("guide.pop." + el.dataset.pop);
+    el.appendChild(box);
+  });
+}
+document.addEventListener("DOMContentLoaded", fillPops);
+I18N.onChange(() => { sel.value = I18N.lang; fillPops(); });
 </script>
 </body>
 </html>
