@@ -203,9 +203,9 @@
     "guide.lead":       { ja:"MTGアリーナのリミテッド（シールド戦・ドラフト）専用のサイトです。できることと、よくある質問をまとめます。",
                           en:"A site just for Limited — Sealed and Draft — on MTG Arena. What it does, and the questions that come up most." },
 
-    "guide.s0.h":       { ja:"このサイトの目的", en:"Why this site exists" },
+    "guide.s0.h":       { ja:"このサイトの目的", en:"What this site is for" },
     "guide.s0.body":    { ja:"<p><b>マジック：ザ・ギャザリング アリーナのリミテッド（シールド戦・ドラフト）で遊ぶ方に向けたサイトです。</b></p><p>パックを開けてデッキを組む。実戦データでカードや環境を調べる。組んだデッキで友人と対戦する。リミテッドを遊ぶうえで必要になるものを、ブラウザだけでひととおり使えるようにしました。</p><p>すべて無料で、アカウント登録はいりません。カード名と画像は日本語に対応しています。</p>",
-                          en:"<p><b>This site is for people who play Limited \u2014 Sealed and Draft \u2014 on Magic: The Gathering Arena.</b></p><p>Open packs and build a deck. Look up how cards and colour pairs actually perform. Play the finished deck against a friend. Everything Limited asks of you, in the browser.</p><p>All of it is free and needs no account. Japanese card names and images are supported.</p>" },
+                          en:"<p><b>This site is for people who play Limited — Sealed and Draft — on Magic: The Gathering Arena.</b></p><p>Open packs and build a deck. Check how cards and colour pairs actually perform. Play the finished deck against a friend. Everything you need for Limited, in one place in your browser.</p><p>It is all free, and no account is required. Japanese card names and images are supported.</p>" },
 
     "guide.tools.h":    { ja:"できること", en:"What you can do" },
     "guide.cat.build":  { ja:"パックの開封から、アリーナに取り込めるデッキの書き出しまで、ブラウザだけで行えます。",
