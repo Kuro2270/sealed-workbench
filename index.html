@@ -12,6 +12,7 @@
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
 <meta name="twitter:card" content="summary">
 <script src="./i18n.js"></script>
+<script src="./cardzoom.js"></script>
 <script src="./analytics.js"></script>
 <style>
   :root{
@@ -660,6 +661,7 @@ function cardRow(entry, where){
     if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); li.click(); }
   };
   if(inDeck) li.appendChild(moveBtn(c, where));
+  li._card = c;                                    // 長押しで拡大するときに使う
   li.onclick = () => { hidePreview(); inDeck ? removeCard(c, where) : addCard(c); };
   return li;
 }
@@ -746,6 +748,7 @@ function cardTile(entry, where){
   const li = document.createElement("li");
   li.className = "tile";
   li.tabIndex = 0;
+  li._card = c;                                    // 長押しで拡大するときに使う
   const name = displayName(c);
   li.title = name + (c.type_line ? "\n" + c.type_line : "");
 
@@ -1006,6 +1009,18 @@ $("imgToggle").onchange = () => {
 };
 $("textToggle").onchange = () => { hidePreview(); render(); };
 window.addEventListener("scroll", hidePreview, {passive:true});
+
+/* 指で長押ししたら、カードを画面いっぱいに出す（スマホで文章が読めないため）。
+   画像・名前・その下に出す説明は、ページごとに持っているものを渡す。 */
+CardZoom.setup({
+  images: imageUrls,
+  name: displayName,
+  sub: c => {
+    const w = wrOf(c);
+    return [c.type_line || "", w ? "GIH " + (w.gih * 100).toFixed(1) + "%" : ""].filter(Boolean).join("　");
+  }
+});
+CardZoom.hint();
 loadSets();
 renderDeck();
 </script>
