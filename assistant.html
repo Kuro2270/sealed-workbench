@@ -273,6 +273,15 @@
       </label>
       <span class="hint" style="margin:0" data-i18n="assist.synHint">ピック済みのクリーチャー・タイプと、それを参照するカード（受け皿）の噛み合いを見て持ち上げます。標準では最大＋6ポイント、強めでは＋10ポイントほどになります。</span>
     </div>
+    <div class="row">
+      <label style="font-size:13.5px"><span data-i18n="assist.curve">マナカーブの補正</span>
+        <select id="curveSel" style="margin-left:6px">
+          <option value="new" data-i18n="assist.curveNew">デッキのカーブを見る</option>
+          <option value="old" data-i18n="assist.curveOld">マナ域で一律（旧方式）</option>
+        </select>
+      </label>
+      <span class="hint" style="margin:0" data-i18n="assist.curveHint">環境の速さごとに「土地以外23枚のカーブ」の目安を持ち、いま足りていないマナ域を持ち上げます（最大±2ポイント）。旧方式は、デッキの中身に関係なくマナ域だけで一律に上げ下げします。</span>
+    </div>
   </section>
 
   <div id="statusBox" class="status" data-i18n="assist.idle">ログファイルを選ぶと監視を始めます。</div>
@@ -749,6 +758,10 @@ const SYN_WEIGHTS = { weak: 0.55, mid: 1, strong: 1.7 };
 function synWeight(){
   try{ return SYN_WEIGHTS[localStorage.getItem("assist.syn") || "mid"] ?? 1; }catch(e){ return 1; }
 }
+/* マナカーブの補正の方式。new = デッキのカーブを見る、old = マナ域で一律 */
+function curveMode(){
+  try{ return localStorage.getItem("assist.curve") === "old" ? "old" : "new"; }catch(e){ return "new"; }
+}
 /* 候補カードのシナジー補正。
    受け皿（そのタイプを参照するカード）なら、手元の仲間の枚数に応じて上げる。
    仲間（そのタイプのクリーチャー）なら、手元の受け皿の枚数に応じて上げる。
@@ -825,17 +838,21 @@ function kindOf(c){
   if(ty.includes("Land")) return "land";
   return ty.includes("Creature") ? "creature" : "spell";
 }
+/* マナ域は 1〜6以上 の6段階でまとめる。0マナは1マナ扱い */
+const MV_MIN = 1, MV_MAX = 6;
+const mvBucket = c => Math.max(MV_MIN, Math.min(MV_MAX, Math.round((c && c.cmc) || 0)));
+
 /* 自分の色のカードだけを数える（デッキに入る見込みのある分） */
 function pickedCounts(){
   const bonus = colorBonus();
-  const n = { creature: 0, spell: 0 };
+  const n = { creature: 0, spell: 0, play: 0, mv: {1:0,2:0,3:0,4:0,5:0,6:0} };
   D.picked.forEach(id => {
     const c = cards[id]; if(!c) return;
     const k = kindOf(c); if(k === "land") return;
     // 無色はどのデッキにも入る。ハイブリッド（例：白か青で払える）は、どちらか1色が合えば入る
     const on = !c.colors.length
             || (c.pureHybrid ? c.colors.some(x => bonus[x] >= 1) : c.colors.every(x => bonus[x] >= 1));
-    if(on) n[k]++;
+    if(on){ n[k]++; n.play++; n.mv[mvBucket(c)]++; }
   });
   return n;
 }
@@ -864,7 +881,31 @@ function slotNeed(){
 }
 /* 枠の補正の最大幅（勝率ポイント）。パックが進むほど、枚数合わせの重みを上げる */
 const SLOT_WEIGHT = [1.5, 3, 4];
-/* 環境の速さに応じた、マナ総量ごとの上げ下げ（勝率ポイント） */
+/* ---------- マナカーブ ----------
+   環境の速さごとの「土地以外23枚のカーブ」の目安。
+   速い環境ほど軽いほうに寄る。合計はどれも23枚。 */
+const CURVE_TARGET = {
+  fast:   {1:2, 2:7, 3:6, 4:4, 5:2, 6:2},
+  mid:    {1:1, 2:6, 3:6, 4:5, 5:3, 6:2},
+  slow:   {1:1, 2:5, 3:5, 4:5, 5:4, 6:3},
+  slower: {1:0, 2:4, 3:5, 4:5, 5:5, 6:4}
+};
+/* カーブ補正の最大幅（勝率ポイント） */
+const CURVE_WEIGHT = 2;
+/* そのマナ域が今の手持ちに対して足りているか。
+   23枚ぶんの目安を、いま持っている枚数ぶんに割り戻して比べる。
+   +1 なら大きく足りない、−1 なら取りすぎ。
+   「速い環境だから重いカードは一律で下げる」のをやめ、
+   自分のデッキに何が足りないかで決める。環境の速さは目安のカーブ自体に入っている。 */
+function curveNeed(mv, n){
+  const tgt = CURVE_TARGET[pace] || CURVE_TARGET.mid;
+  const full = tgt[mv] || 0;
+  const goal = Math.min(full, full * (n.play / 23));   // 序盤は目安も比例して小さい
+  const have = n.mv[mv] || 0;
+  const tol = Math.max(1.5, full * 0.6);               // 枠が大きいほど、ずれは大目に見る
+  return { need: Math.max(-1, Math.min(1, (goal - have) / tol)), goal, have, full };
+}
+/* 旧方式（マナ域で一律に上げ下げ）。見比べられるよう残してある */
 const PACE_ADJ = {
   fast:   {0:0, 1:1.5, 2:1.5, 3:0.5, 4:-0.5, 5:-1.5, 6:-2,   7:-2},
   mid:    {0:0, 1:0,   2:0.5, 3:0.5, 4:0,    5:-0.5, 6:-1.5, 7:-2},
@@ -885,6 +926,8 @@ function scorePack(){
   const tp = targetPair();
   const usePair = tp && commit >= 0.5 ? tp.pair : null;     // 色が決まってきたら、その色での勝率で見る
   const st = synergyState();
+  const counts = pickedCounts();
+  const cMode = curveMode();
   return D.pack.map(id => {
     const c = cards[id];
     const base = ratingOf(id, usePair);
@@ -904,10 +947,19 @@ function scorePack(){
     const slotW = SLOT_WEIGHT[Math.min(2, packIdx)];
     if(kind === "creature") adjSlot = slotW * need;
     else if(kind === "spell") adjSlot = -slotW * need;
-    // 3) 環境の速さ（土地は対象外）
-    // 序盤は勝率そのもので選ぶ。環境の速さの補正は枠と同じく8手目で最大にする（初手は補正なし）
-    let adjPace = 0;
-    if(c && kind !== "land" && pace && PACE_ADJ[pace]) adjPace = ramp * (PACE_ADJ[pace][Math.min(7, Math.round(c.cmc || 0))] || 0);
+    // 3) マナカーブ（土地は対象外）
+    // 序盤は勝率そのもので選ぶ。補正は枠と同じく8手目で最大にする（初手は補正なし）
+    let adjPace = 0, curve = null;
+    if(c && kind !== "land" && pace){
+      if(cMode === "old"){
+        adjPace = ramp * ((PACE_ADJ[pace] || {})[Math.min(7, Math.round(c.cmc || 0))] || 0);
+      }else{
+        const mv = mvBucket(c);
+        curve = curveNeed(mv, counts);
+        curve.mv = mv;
+        adjPace = ramp * CURVE_WEIGHT * curve.need;
+      }
+    }
     // 4) 伝説のカード：同じものは場に1枚しか置けないので、2枚目は大きく、3枚目以降はほぼ取らない
     let adjLegend = 0, owned = 0;
     if(c && c.legendary){
@@ -920,7 +972,7 @@ function scorePack(){
     const adjSyn = ramp * syn.adj;
     const basic = !!(c && c.basic);
     const score = basic ? -1 : base + adjColor + adjSlot + adjPace + adjLegend + adjSyn;
-    return { id, c, base, fit, adjColor, adjSlot, adjPace, adjLegend, adjSyn, synWhy: syn.why, usePair, owned, score, commit, basic, kind };
+    return { id, c, base, fit, adjColor, adjSlot, adjPace, adjLegend, adjSyn, synWhy: syn.why, usePair, owned, score, commit, basic, kind, curve };
   }).sort((a, b) => b.score - a.score);
 }
 /* おすすめ欄に出す勝率。目標の2色が決まっていれば、その2色での勝率を出す */
@@ -954,7 +1006,12 @@ function reasonFor(e){
   }
   if(e.adjLegend < 0) extra.push(t("assist.reasonLegend", {n: e.owned}));
   if(e.adjSlot >= 1) extra.push(t(e.kind === "creature" ? "assist.reasonNeedCreature" : "assist.reasonNeedSpell"));
-  if(e.adjPace >= 1) extra.push(t("assist.reasonPace", {p: t("assist.pace." + pace)}));
+  if(e.curve){
+    const m = e.curve.mv >= MV_MAX ? t("assist.mv6") : t("assist.mv", {n: e.curve.mv});
+    const g = e.curve.goal.toFixed(1);
+    if(e.adjPace >= 1) extra.push(t("assist.reasonCurveShort", {m, h: e.curve.have, g}));
+    else if(e.adjPace <= -1) extra.push(t("assist.reasonCurveOver", {m, h: e.curve.have, g}));
+  }else if(e.adjPace >= 1) extra.push(t("assist.reasonPace", {p: t("assist.pace." + pace)}));
   return main + (extra.length ? " " + extra.join(" ") : "");
 }
 /* 一覧の各行に、内訳を出す */
@@ -1357,6 +1414,8 @@ $("weightSel").value = localStorage.getItem("assist.weight") || "mid";
 $("weightSel").onchange = () => { try{ localStorage.setItem("assist.weight", $("weightSel").value); }catch(e){} render(); };
 $("synSel").value = localStorage.getItem("assist.syn") || "mid";
 $("synSel").onchange = () => { try{ localStorage.setItem("assist.syn", $("synSel").value); }catch(e){} render(); };
+$("curveSel").value = curveMode();
+$("curveSel").onchange = () => { try{ localStorage.setItem("assist.curve", $("curveSel").value); }catch(e){} render(); };
 const sel = $("langSelect");
 sel.value = I18N.lang;
 sel.onchange = e => I18N.set(e.target.value);
