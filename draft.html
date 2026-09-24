@@ -15,13 +15,13 @@
 <script src="./analytics.js"></script>
 <style>
   :root{
-    --pine:#23342E; --pine-deep:#18241F;
-    --paper:#F3F5F1; --paper-2:#E6EAE3;
-    --ink:#0F1C17; --muted:#63736C;
-    --gold:#B8912F; --line:#CBD3CA;
+    --pine:#10304F; --pine-deep:#0A2038;
+    --paper:#F5F8FC; --paper-2:#E8EEF6;
+    --ink:#0D1B2A; --muted:#5C7185;
+    --gold:#2F7DF6; --line:#D3DFEB;
     --w:#FAF4E2; --u:#7FB4D8; --b:#2C2833; --r:#DB8068; --g:#79A87F; --m:#C3A03B; --c:#C6CCC9;
-    --hot:#2F6B47; --cold:#A24B32;
-    --radius:3px;
+    --hot:#1E7A52; --cold:#A24B32;
+    --radius:8px;
   }
   *{box-sizing:border-box}
   [hidden]{display:none !important}
@@ -31,28 +31,37 @@
   body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
   h1,h2,h3,h4{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.15}
 
-  header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
+  header{background:linear-gradient(135deg,var(--pine-deep) 0%,var(--pine) 55%,#17466F 100%);color:var(--paper);padding:24px 24px 16px;border-bottom:3px solid var(--gold);box-shadow:0 10px 30px -18px rgba(8,26,48,.9)}
   .wrap{max-width:1180px;margin:0 auto}
   .head-top{display:block}
-  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:#9CC8FF;line-height:24px;margin:0 0 12px}
   header h1{font-size:24px;margin:0}
-  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
   nav a{
-    display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;
+    display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;
     font-size:13px;font-weight:500;line-height:1;white-space:nowrap;
-    color:#CBD8D2;text-decoration:none;background:rgba(255,255,255,.05);
-    border:1px solid #3D544B;transition:background .12s,color .12s;
+    color:#C6D9EE;text-decoration:none;background:rgba(255,255,255,.05);
+    border:1px solid #2C4D74;transition:background .12s,color .12s;
   }
-  nav a:hover{background:#31473E;color:var(--paper);border-color:#547064}
-  nav a.on{background:var(--gold);border-color:var(--gold);color:#1A1405;font-weight:700}
+  nav a:hover{background:#1A4A79;color:var(--paper);border-color:#2F5E8F}
+  nav a.on{background:var(--gold);border-color:var(--gold);color:#FFFFFF;font-weight:700}
+
+  /* ナビはカテゴリごとにまとめる。小さな見出しを付けて、探す場所を分かりやすくする */
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end}
+  .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
+  .ng:first-of-type{padding-left:0;border-left:none}
+  .ngl{width:100%;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6;margin:0 0 1px;text-transform:uppercase}
+  @media (max-width:760px){
+    .ng{padding-left:0;border-left:none;width:100%}
+  }
 
   .controls{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   select,button{font-family:inherit;font-size:14px}
-  select{background:var(--pine-deep);color:var(--paper);border:1px solid #3D544B;padding:9px 12px;border-radius:var(--radius);min-width:210px}
-  button{border:none;border-radius:var(--radius);padding:10px 18px;cursor:pointer;background:var(--gold);color:#1A1405;font-weight:700}
-  button:hover:not(:disabled){background:#CBA33B}
-  button:disabled{background:#6E7772;color:#C6CCC9;cursor:not-allowed}
+  select{background:var(--pine-deep);color:var(--paper);border:1px solid #2C4D74;padding:9px 12px;border-radius:var(--radius);min-width:210px}
+  button{border:none;border-radius:var(--radius);padding:10px 18px;cursor:pointer;background:var(--gold);color:#FFFFFF;font-weight:700}
+  button:hover:not(:disabled){background:#1F6AE0}
+  button:disabled{background:#8FA3B5;color:#C6CCC9;cursor:not-allowed}
   button.ghost{background:transparent;color:var(--paper);border:1px solid #4A6157;font-weight:500}
   button.ghost:hover{background:#2E4239}
   label.toggle{display:flex;align-items:center;gap:7px;color:var(--paper);font-size:13px;cursor:pointer;user-select:none}
@@ -91,7 +100,7 @@
   .tile:hover img,.tile:focus-visible img{outline:2px solid var(--gold);outline-offset:2px}
   .tile .wrbadge{
     position:absolute;left:50%;transform:translateX(-50%);bottom:6px;
-    background:rgba(24,36,31,.92);color:#F3F5F1;font-size:12px;font-weight:700;line-height:1;
+    background:rgba(24,36,31,.92);color:#F5F8FC;font-size:12px;font-weight:700;line-height:1;
     padding:4px 9px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.3);
   }
   .tile .noimg{
@@ -136,8 +145,8 @@
   .card-row:hover{background:var(--paper-2)}
   .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
   .wr{font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);text-align:right}
-  .rar{width:6px;height:14px;border-radius:1px;background:#2B3833}
-  .rar.uncommon{background:#AEBDC4}.rar.rare{background:var(--gold)}.rar.mythic{background:#C4552C}
+  .rar{width:6px;height:14px;border-radius:1px;background:#2A3B4C}
+  .rar.uncommon{background:#9FB3C4}.rar.rare{background:var(--gold)}.rar.mythic{background:#C4552C}
 
   .lands{padding:10px 16px;border-top:1px solid var(--line)}
   .lands-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
@@ -147,7 +156,7 @@
   .land-item .l-num{text-align:center;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
   .step{width:28px;height:28px;padding:0;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:17px;font-weight:700;line-height:1;border-radius:var(--radius)}
   .step:hover:not(:disabled){background:var(--paper-2)}
-  .step:disabled{color:#C3CAC6;background:#fff;cursor:not-allowed}
+  .step:disabled{color:#CFDAE5;background:#fff;cursor:not-allowed}
 
   .export{padding:12px 16px;border-top:1px solid var(--line)}
   textarea{width:100%;height:100px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:12px;border:1px solid var(--line);border-radius:var(--radius);padding:8px;resize:vertical;background:var(--paper)}
@@ -207,15 +216,18 @@
   <div class="wrap">
     <div class="brand" data-i18n="site.name">MTGアリーナ リミテッド・ワークベンチ</div>
     <nav>
-      <a href="./guide.html" data-i18n="nav.guide">使い方</a>
-      <a href="./" data-i18n="nav.sealed">シールド構築</a>
-      <a href="./draft.html" class="on" data-i18n="nav.draft">ドラフト構築</a>
-      <a href="./ratings.html" data-i18n="nav.ratings">カード勝率一覧</a>
-      <a href="./reports.html" data-i18n="nav.reports">環境レポート</a>
-      <a href="./swiss.html" data-i18n="nav.swiss">スイスドロー</a>
-      <a href="./assistant.html" data-i18n="nav.assist">ドラフト補助</a>
-      <a href="./table.html" data-i18n="nav.table">対戦卓</a>
-      <a href="./privacy.html" data-i18n="nav.privacy">プライバシー</a>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span>
+        <a href="./guide.html" data-i18n="nav.guide">使い方</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.build">デッキを作る</span>
+        <a href="./" data-i18n="nav.sealed">シールド構築</a>
+        <a href="./draft.html" class="on" data-i18n="nav.draft">ドラフト構築</a>
+        <a href="./assistant.html" data-i18n="nav.assist">ドラフト補助</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.data">データを見る</span>
+        <a href="./ratings.html" data-i18n="nav.ratings">カード勝率一覧</a>
+        <a href="./reports.html" data-i18n="nav.reports">環境レポート</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.play">対戦する</span>
+        <a href="./table.html" data-i18n="nav.table">対戦卓</a>
+        <a href="./swiss.html" data-i18n="nav.swiss">スイスドロー</a></div>
     </nav>
     <div class="head-top">
       <div>

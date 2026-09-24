@@ -14,7 +14,7 @@ import { writeFile, unlink } from "node:fs/promises";
 
 const W = 1200, H = 630;
 
-const PINE = "#23342E", PINE_DEEP = "#18241F", GOLD = "#B8912F", PAPER = "#F3F5F1", MUTED = "#B9C7C0";
+const PINE = "#10304F", PINE_DEEP = "#0A2038", GOLD = "#2F7DF6", PAPER = "#F5F8FC", MUTED = "#A9C2DE";
 const MANA = ["#E7CF86", "#7FB4D8", "#7A7480", "#DB8068", "#79A87F"];
 
 const TEXT = {

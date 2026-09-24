@@ -189,6 +189,10 @@
     "ev.PickTwoDraft":  { ja:"2枚ピックドラフト",           en:"Pick Two Draft" },
 
     /* ---- フッター ---- */
+    "navgrp.start":     { ja:"はじめに", en:"Start" },
+    "navgrp.build":     { ja:"デッキを作る", en:"Build" },
+    "navgrp.data":      { ja:"データを見る", en:"Data" },
+    "navgrp.play":      { ja:"対戦する", en:"Play" },
     "nav.guide":        { ja:"使い方",  en:"Guide" },
 
     "page.guide.title": { ja:"使い方｜MTGアリーナのリミテッドを無料で練習する",

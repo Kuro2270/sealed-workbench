@@ -68,6 +68,7 @@ const L = {
     source: "出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。",
     none: "このセットのデータはまだありません。",
     nav: { guide:"使い方", sealed:"シールド構築", draft:"ドラフト構築", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", table:"対戦卓", privacy:"プライバシー" },
+    navgrp: { start:"はじめに", build:"デッキを作る", data:"データを見る", play:"対戦する" },
     foot: 'データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。',
     otherLang: "English", otherHref: c => `${c}.en.html`
   },
@@ -101,6 +102,7 @@ const L = {
     source: "Source: 17Lands Public Data (CC BY 4.0), aggregated by this site. Card data via Scryfall.",
     none: "No data for this set yet.",
     nav: { guide:"Guide", sealed:"Sealed", draft:"Draft", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", table:"Play table", privacy:"Privacy" },
+    navgrp: { start:"Start", build:"Build", data:"Data", play:"Play" },
     foot: 'Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.',
     otherLang: "日本語", otherHref: c => `${c}.html`
   }
@@ -195,8 +197,17 @@ function shell(lang, code, head, body, ogImage){
   const T = L[lang];
   const other = T.otherHref(code);
   const og = ogImage || `${SITE}/ogp-${lang}.png`;
-  const nav = Object.entries({ guide:"../guide.html", sealed:"../", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", table:"../table.html", privacy:"../privacy.html" })
-    .map(([k, href]) => `<a href="${href}">${esc(T.nav[k])}</a>`).join("\n      ");
+  // ナビはカテゴリごとにまとめる（本体のページと同じ並び）
+  const HREF = { guide:"../guide.html", sealed:"../", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", table:"../table.html" };
+  const navGroup = (label, keys) =>
+    `<div class="ng"><span class="ngl">${esc(T.navgrp[label])}</span>` +
+    keys.map(k => `<a href="${HREF[k]}">${esc(T.nav[k])}</a>`).join("") + `</div>`;
+  const nav = [
+    navGroup("start", ["guide"]),
+    navGroup("build", ["sealed", "draft", "assist"]),
+    navGroup("data", ["ratings", "reports"]),
+    navGroup("play", ["table", "swiss"])
+  ].join("\n      ");
   return `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
@@ -215,24 +226,29 @@ ${head}
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <script src="../analytics.js"></script>
 <style>
-  :root{--pine:#23342E;--pine-deep:#18241F;--paper:#F3F5F1;--paper-2:#E6EAE3;--ink:#0F1C17;--muted:#63736C;--gold:#B8912F;--line:#CBD3CA;
-        --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:3px}
+  :root{--pine:#10304F;--pine-deep:#0A2038;--paper:#F5F8FC;--paper-2:#E8EEF6;--ink:#0D1B2A;--muted:#5C7185;--gold:#2F7DF6;--line:#D3DFEB;
+        --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:8px}
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   html{overflow-y:scroll;scrollbar-gutter:stable}
   body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
   h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
-  header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
+  header{background:linear-gradient(135deg,var(--pine-deep) 0%,var(--pine) 55%,#17466F 100%);color:var(--paper);padding:24px 24px 16px;border-bottom:3px solid var(--gold);box-shadow:0 10px 30px -18px rgba(8,26,48,.9)}
   .wrap{max-width:1180px;margin:0 auto}
-  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:#9CC8FF;line-height:24px;margin:0 0 12px}
   .brand a{color:inherit;text-decoration:none}
   nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
-  nav a{display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;color:#CBD8D2;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #3D544B}
-  nav a:hover{background:#31473E;color:var(--paper)}
+  nav a{display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;color:#C6D9EE;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #2C4D74}
+  nav a:hover{background:#1A4A79;color:var(--paper)}
+  nav{gap:10px 16px;align-items:flex-end}
+  .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
+  .ng:first-of-type{padding-left:0;border-left:none}
+  .ngl{width:100%;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6;margin:0 0 1px}
+  @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} }
   header h1{font-size:24px;margin:0}
-  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   .lang{margin-top:12px;font-size:13px}
-  .lang a{color:#CBD8D2}
+  .lang a{color:#C6D9EE}
   main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
   .mode{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:22px}
   .mode > h2{font-size:22px;margin:0 0 4px;display:flex;align-items:baseline;gap:12px}
@@ -248,8 +264,8 @@ ${head}
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
-  .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2B3833;margin-right:6px}
-  .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#1A1405}.rar.mythic{background:#C4552C}
+  .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
+  .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#FFFFFF}.rar.mythic{background:#C4552C}
   .links ul{margin:6px 0 0;padding-left:1.2em}
   .links a{color:var(--pine)}
   .source{color:var(--muted);font-size:12px;margin-top:20px}

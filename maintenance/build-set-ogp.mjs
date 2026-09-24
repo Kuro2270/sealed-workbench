@@ -16,7 +16,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 
 const SCRY_HEADERS = { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)", Accept: "application/json" };
 const W = 1200, H = 630;
-const PINE = "#23342E", PINE_DEEP = "#18241F", GOLD = "#B8912F", PAPER = "#F3F5F1", MUTED = "#B9C7C0";
+const PINE = "#10304F", PINE_DEEP = "#0A2038", GOLD = "#2F7DF6", PAPER = "#F5F8FC", MUTED = "#A9C2DE";
 const ARTICLES = "data/articles", NAMES = "data/names", OUT = "sets/og";
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -131,7 +131,7 @@ async function main(){
     const top = mythics.concat(rares).slice(0, 3);
     for(const lang of ["ja", "en"]){
       const name = lang === "ja" ? (ja[code.toLowerCase()] || names.set || code) : (names.set || code);
-      const bank = lang === "ja" ? (names.images || {}) : (names.imagesEn || {});   // 英語版に日本語版の画像を使わない
+      const bank = lang === "ja" ? (names.images || {}) : (names.imagesEn || names.images || {});
       const urls = top.map(c => bank[c.name] || bank[String(c.name).split(" // ")[0]]).filter(Boolean);
       const svg = svgFor(lang, name, d, urls);
       const out = `${OUT}/${code}-${lang}`;

@@ -15,11 +15,11 @@
 <script src="./analytics.js"></script>
 <style>
   :root{
-    --pine:#23342E; --pine-deep:#18241F;
-    --paper:#F3F5F1; --paper-2:#E6EAE3;
-    --ink:#0F1C17; --muted:#63736C;
-    --gold:#B8912F; --line:#CBD3CA;
-    --radius:3px;
+    --pine:#10304F; --pine-deep:#0A2038;
+    --paper:#F5F8FC; --paper-2:#E8EEF6;
+    --ink:#0D1B2A; --muted:#5C7185;
+    --gold:#2F7DF6; --line:#D3DFEB;
+    --radius:8px;
   }
   *{box-sizing:border-box}
   [hidden]{display:none !important}
@@ -29,23 +29,32 @@
   body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
   h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
 
-  header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
+  header{background:linear-gradient(135deg,var(--pine-deep) 0%,var(--pine) 55%,#17466F 100%);color:var(--paper);padding:24px 24px 16px;border-bottom:3px solid var(--gold);box-shadow:0 10px 30px -18px rgba(8,26,48,.9)}
   .wrap{max-width:1180px;margin:0 auto}
   .head-top{display:block}
-  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:#9CC8FF;line-height:24px;margin:0 0 12px}
   header h1{font-size:24px;margin:0}
-  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
   nav a{
-    display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;
+    display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;
     font-size:13px;font-weight:500;line-height:1;white-space:nowrap;
-    color:#CBD8D2;text-decoration:none;background:rgba(255,255,255,.05);
-    border:1px solid #3D544B;transition:background .12s,color .12s;
+    color:#C6D9EE;text-decoration:none;background:rgba(255,255,255,.05);
+    border:1px solid #2C4D74;transition:background .12s,color .12s;
   }
-  nav a:hover{background:#31473E;color:var(--paper);border-color:#547064}
-  nav a.on{background:var(--gold);border-color:var(--gold);color:#1A1405;font-weight:700}
+  nav a:hover{background:#1A4A79;color:var(--paper);border-color:#2F5E8F}
+  nav a.on{background:var(--gold);border-color:var(--gold);color:#FFFFFF;font-weight:700}
+
+  /* ナビはカテゴリごとにまとめる。小さな見出しを付けて、探す場所を分かりやすくする */
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end}
+  .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
+  .ng:first-of-type{padding-left:0;border-left:none}
+  .ngl{width:100%;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6;margin:0 0 1px;text-transform:uppercase}
+  @media (max-width:760px){
+    .ng{padding-left:0;border-left:none;width:100%}
+  }
   .controls{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  header select{background:var(--pine-deep);color:var(--paper);border:1px solid #3D544B;padding:9px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px;min-width:120px}
+  header select{background:var(--pine-deep);color:var(--paper);border:1px solid #2C4D74;padding:9px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px;min-width:120px}
   :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
   main{max-width:1000px;margin:0 auto;padding:22px 24px 70px}
@@ -58,9 +67,9 @@
     font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;color:var(--ink)
   }
   input[type=number]{width:72px}
-  button{border:none;border-radius:var(--radius);padding:9px 16px;cursor:pointer;background:var(--gold);color:#1A1405;font-weight:700;font-family:inherit;font-size:14px}
-  button:hover{background:#CBA33B}
-  button:disabled{background:#B9C1BC;color:#F3F5F1;cursor:not-allowed}
+  button{border:none;border-radius:var(--radius);padding:9px 16px;cursor:pointer;background:var(--gold);color:#FFFFFF;font-weight:700;font-family:inherit;font-size:14px}
+  button:hover{background:#1F6AE0}
+  button:disabled{background:#B9C1BC;color:#F5F8FC;cursor:not-allowed}
   button.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);font-weight:600}
   button.ghost:hover{background:var(--paper-2)}
   button.danger{background:#fff;color:#A24B32;border:1px solid #D8B4AA;font-weight:600}
@@ -99,7 +108,7 @@
   td.tbl{width:38px;color:var(--muted);font-variant-numeric:tabular-nums}
   tr.done td{background:#F7F9F5}
   .who{font-weight:600}
-  .who.win{color:#2F6B47}
+  .who.win{color:#1E7A52}
   .res{display:inline-flex;gap:3px;flex-wrap:wrap}
   .res button{padding:5px 8px;font-size:12.5px;background:#fff;color:var(--ink);border:1px solid var(--line);font-weight:600;min-width:38px}
   .res button:hover{background:var(--paper-2)}
@@ -113,14 +122,14 @@
   #standings tr.top td.rank{color:var(--gold);font-weight:700}
   #standings tr.champ td{background:#FBF6E3}
   #standings tr.champ td.rank{font-size:16px}
-  .champ-tag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:var(--gold);color:#1A1405;font-size:11px;font-weight:700;vertical-align:1px}
+  .champ-tag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:var(--gold);color:#FFFFFF;font-size:11px;font-weight:700;vertical-align:1px}
   .pct{color:var(--muted);font-size:12.5px}
 
   details summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--muted);padding:4px 0}
   .hist h3{font-size:13px;margin:12px 0 4px;color:var(--muted)}
   .hist table{font-size:13px}
   .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
-  .status{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;margin:0 0 14px;font-size:13.5px;color:#3B4A44}
+  .status{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;margin:0 0 14px;font-size:13.5px;color:#33506B}
   .status.share{border-left-color:var(--gold);background:#FBF6E3}
   body.view .edit-only{display:none !important}
 
@@ -156,15 +165,18 @@
   <div class="wrap">
     <div class="brand" data-i18n="site.name">MTGアリーナ リミテッド・ワークベンチ</div>
     <nav>
-      <a href="./guide.html" data-i18n="nav.guide">使い方</a>
-      <a href="./" data-i18n="nav.sealed">シールド構築</a>
-      <a href="./draft.html" data-i18n="nav.draft">ドラフト構築</a>
-      <a href="./ratings.html" data-i18n="nav.ratings">カード勝率一覧</a>
-      <a href="./reports.html" data-i18n="nav.reports">環境レポート</a>
-      <a href="./swiss.html" class="on" data-i18n="nav.swiss">スイスドロー</a>
-      <a href="./assistant.html" data-i18n="nav.assist">ドラフト補助</a>
-      <a href="./table.html" data-i18n="nav.table">対戦卓</a>
-      <a href="./privacy.html" data-i18n="nav.privacy">プライバシー</a>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span>
+        <a href="./guide.html" data-i18n="nav.guide">使い方</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.build">デッキを作る</span>
+        <a href="./" data-i18n="nav.sealed">シールド構築</a>
+        <a href="./draft.html" data-i18n="nav.draft">ドラフト構築</a>
+        <a href="./assistant.html" data-i18n="nav.assist">ドラフト補助</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.data">データを見る</span>
+        <a href="./ratings.html" data-i18n="nav.ratings">カード勝率一覧</a>
+        <a href="./reports.html" data-i18n="nav.reports">環境レポート</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.play">対戦する</span>
+        <a href="./table.html" data-i18n="nav.table">対戦卓</a>
+        <a href="./swiss.html" class="on" data-i18n="nav.swiss">スイスドロー</a></div>
     </nav>
     <div class="head-top">
       <div>
@@ -834,21 +846,21 @@ function standingsImage(){
   const font = '"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif';
 
   // 背景と見出し
-  g.fillStyle = "#F3F5F1"; g.fillRect(0, 0, W, H);
-  g.fillStyle = "#23342E"; g.fillRect(0, 0, W, headH);
-  g.fillStyle = "#B8912F"; g.fillRect(0, headH - 4, W, 4);
-  g.fillStyle = "#B8912F"; g.font = "700 13px " + font;
+  g.fillStyle = "#F5F8FC"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#10304F"; g.fillRect(0, 0, W, headH);
+  g.fillStyle = "#2F7DF6"; g.fillRect(0, headH - 4, W, 4);
+  g.fillStyle = "#2F7DF6"; g.font = "700 13px " + font;
   g.fillText(t("site.name"), 24, 30);
-  g.fillStyle = "#F3F5F1"; g.font = "800 24px " + font;
+  g.fillStyle = "#F5F8FC"; g.font = "800 24px " + font;
   g.fillText(T.done ? t("swiss.final") : t("swiss.copyTitle", {n: T.rounds.length}), 24, 62);
-  g.fillStyle = "#B9C7C0"; g.font = "400 12px " + font;
+  g.fillStyle = "#A9C2DE"; g.font = "400 12px " + font;
   const started = T.startedAt ? new Date(T.startedAt).toLocaleDateString(I18N.lang === "ja" ? "ja-JP" : "en-US") : "";
   g.fillText(started + (started ? "　" : "") + t("swiss.roundOf", {n: T.rounds.length, total: T.total}), 24, 82);
 
   // 列見出し
   const colX = { rank: 24, name: 72, rec: 470, pt: 560, omw: 680 };
   let y = headH + 24;
-  g.fillStyle = "#63736C"; g.font = "500 12px " + font;
+  g.fillStyle = "#5C7185"; g.font = "500 12px " + font;
   g.fillText("#", colX.rank, y);
   g.fillText(t("swiss.name"), colX.name, y);
   g.textAlign = "right";
@@ -857,7 +869,7 @@ function standingsImage(){
   g.fillText("OMW%", colX.omw, y);
   g.textAlign = "left";
   y += 10;
-  g.strokeStyle = "#CBD3CA"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
+  g.strokeStyle = "#D3DFEB"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
 
   // 行
   rows.forEach((s, i) => {
@@ -865,9 +877,9 @@ function standingsImage(){
     const champ = T.done && i === 0;
     if(champ){ g.fillStyle = "#FBF6E3"; g.fillRect(16, top + 2, W - 32, rowH - 4); }
     const base = top + rowH / 2 + 5;
-    g.fillStyle = i === 0 ? "#B8912F" : "#63736C"; g.font = "700 14px " + font;
+    g.fillStyle = i === 0 ? "#2F7DF6" : "#5C7185"; g.font = "700 14px " + font;
     g.fillText(champ ? "🏆" : String(i + 1), colX.rank, base);
-    g.fillStyle = "#0F1C17"; g.font = (champ ? "700 " : "500 ") + "15px " + font;
+    g.fillStyle = "#0D1B2A"; g.font = (champ ? "700 " : "500 ") + "15px " + font;
     let nameX = colX.name;
     g.fillText(s.name, nameX, base);
     if(champ){
@@ -875,23 +887,23 @@ function standingsImage(){
       const label = t("swiss.champion");
       g.font = "700 11px " + font;
       const lw = g.measureText(label).width + 14;
-      g.fillStyle = "#B8912F"; roundRect(g, nameX + w + 8, base - 12, lw, 17, 8); g.fill();
-      g.fillStyle = "#1A1405"; g.fillText(label, nameX + w + 15, base);
+      g.fillStyle = "#2F7DF6"; roundRect(g, nameX + w + 8, base - 12, lw, 17, 8); g.fill();
+      g.fillStyle = "#FFFFFF"; g.fillText(label, nameX + w + 15, base);
     }
     g.textAlign = "right";
-    g.fillStyle = "#0F1C17"; g.font = "500 14px " + font;
+    g.fillStyle = "#0D1B2A"; g.font = "500 14px " + font;
     g.fillText(`${s.w}-${s.l}-${s.d}`, colX.rec, base);
     g.font = "700 15px " + font;
     g.fillText(String(s.mp), colX.pt, base);
-    g.fillStyle = "#63736C"; g.font = "400 12px " + font;
+    g.fillStyle = "#5C7185"; g.font = "400 12px " + font;
     g.fillText(s.omwp == null ? "—" : (s.omwp * 100).toFixed(1) + "%", colX.omw, base);
     g.textAlign = "left";
     y += rowH;
-    g.strokeStyle = "#E6EAE3"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
+    g.strokeStyle = "#E8EEF6"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
   });
 
   // 脚注
-  g.fillStyle = "#63736C"; g.font = "400 11px " + font;
+  g.fillStyle = "#5C7185"; g.font = "400 11px " + font;
   g.fillText("sealed-workbench.com", 24, H - 14);
   return cv;
 }
@@ -911,56 +923,56 @@ function roundImage(){
   g.scale(scale, scale);
   const font = '"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif';
 
-  g.fillStyle = "#F3F5F1"; g.fillRect(0, 0, W, H);
-  g.fillStyle = "#23342E"; g.fillRect(0, 0, W, headH);
-  g.fillStyle = "#B8912F"; g.fillRect(0, headH - 4, W, 4);
-  g.fillStyle = "#B8912F"; g.font = "700 13px " + font;
+  g.fillStyle = "#F5F8FC"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#10304F"; g.fillRect(0, 0, W, headH);
+  g.fillStyle = "#2F7DF6"; g.fillRect(0, headH - 4, W, 4);
+  g.fillStyle = "#2F7DF6"; g.font = "700 13px " + font;
   g.fillText(t("site.name"), 24, 30);
-  g.fillStyle = "#F3F5F1"; g.font = "800 24px " + font;
+  g.fillStyle = "#F5F8FC"; g.font = "800 24px " + font;
   g.fillText(t("swiss.round", {n: no}), 24, 62);
-  g.fillStyle = "#B9C7C0"; g.font = "400 12px " + font;
+  g.fillStyle = "#A9C2DE"; g.font = "400 12px " + font;
   const started = T.startedAt ? new Date(T.startedAt).toLocaleDateString(I18N.lang === "ja" ? "ja-JP" : "en-US") : "";
   g.fillText(started + (started ? "　" : "") + t("swiss.roundOf", {n: no, total: T.total}), 24, 82);
 
   // 列見出し：卓／左／結果／右
   const cx = { tbl: 24, a: 70, res: W / 2, b: W - 24 };
   let y = headH + 24;
-  g.fillStyle = "#63736C"; g.font = "500 12px " + font;
+  g.fillStyle = "#5C7185"; g.font = "500 12px " + font;
   g.fillText(t("swiss.table"), cx.tbl, y);
   g.fillText(t("swiss.playerA"), cx.a, y);
   g.textAlign = "center"; g.fillText(t("swiss.resultShort"), cx.res, y);
   g.textAlign = "right";  g.fillText(t("swiss.playerB"), cx.b, y);
   g.textAlign = "left";
   y += 10;
-  g.strokeStyle = "#CBD3CA"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
+  g.strokeStyle = "#D3DFEB"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
 
   r.matches.forEach((m, i) => {
     const base = y + rowH / 2 + 5;
     const done = m.b == null || (m.ga != null && m.gb != null);
     if(done){ g.fillStyle = "#F7F9F5"; g.fillRect(16, y + 2, W - 32, rowH - 4); }
-    g.fillStyle = "#63736C"; g.font = "500 13px " + font;
+    g.fillStyle = "#5C7185"; g.font = "500 13px " + font;
     g.fillText(m.b == null ? "—" : String(i + 1), cx.tbl, base);
     if(m.b == null){
-      g.fillStyle = "#0F1C17"; g.font = "700 15px " + font;
+      g.fillStyle = "#0D1B2A"; g.font = "700 15px " + font;
       g.fillText(nameOf(m.a), cx.a, base);
-      g.fillStyle = "#63736C"; g.font = "400 13px " + font;
+      g.fillStyle = "#5C7185"; g.font = "400 13px " + font;
       g.textAlign = "center"; g.fillText(t("swiss.byeRow"), cx.res, base); g.textAlign = "left";
     }else{
       const aw = m.ga != null && m.ga > m.gb, bw = m.gb != null && m.gb > m.ga;
-      g.fillStyle = aw ? "#2F6B47" : "#0F1C17"; g.font = "700 15px " + font;
+      g.fillStyle = aw ? "#1E7A52" : "#0D1B2A"; g.font = "700 15px " + font;
       g.fillText(nameOf(m.a), cx.a, base);
-      g.fillStyle = bw ? "#2F6B47" : "#0F1C17";
+      g.fillStyle = bw ? "#1E7A52" : "#0D1B2A";
       g.textAlign = "right"; g.fillText(nameOf(m.b), cx.b, base);
       g.textAlign = "center";
-      g.fillStyle = m.ga == null ? "#B9C1BC" : "#0F1C17"; g.font = "700 16px " + font;
+      g.fillStyle = m.ga == null ? "#B9C1BC" : "#0D1B2A"; g.font = "700 16px " + font;
       g.fillText(m.ga == null ? "vs" : `${m.ga} - ${m.gb}`, cx.res, base);
       g.textAlign = "left";
     }
     y += rowH;
-    g.strokeStyle = "#E6EAE3"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
+    g.strokeStyle = "#E8EEF6"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
   });
 
-  g.fillStyle = "#63736C"; g.font = "400 11px " + font;
+  g.fillStyle = "#5C7185"; g.font = "400 11px " + font;
   g.fillText("sealed-workbench.com", 24, H - 14);
   return cv;
 }

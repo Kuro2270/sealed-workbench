@@ -24,24 +24,29 @@
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <script src="../analytics.js"></script>
 <style>
-  :root{--pine:#23342E;--pine-deep:#18241F;--paper:#F3F5F1;--paper-2:#E6EAE3;--ink:#0F1C17;--muted:#63736C;--gold:#B8912F;--line:#CBD3CA;
-        --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:3px}
+  :root{--pine:#10304F;--pine-deep:#0A2038;--paper:#F5F8FC;--paper-2:#E8EEF6;--ink:#0D1B2A;--muted:#5C7185;--gold:#2F7DF6;--line:#D3DFEB;
+        --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:8px}
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   html{overflow-y:scroll;scrollbar-gutter:stable}
   body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
   h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
-  header{background:var(--pine);color:var(--paper);padding:24px 24px 16px;border-bottom:4px solid var(--gold)}
+  header{background:linear-gradient(135deg,var(--pine-deep) 0%,var(--pine) 55%,#17466F 100%);color:var(--paper);padding:24px 24px 16px;border-bottom:3px solid var(--gold);box-shadow:0 10px 30px -18px rgba(8,26,48,.9)}
   .wrap{max-width:1180px;margin:0 auto}
-  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--gold);line-height:24px;margin:0 0 12px}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:#9CC8FF;line-height:24px;margin:0 0 12px}
   .brand a{color:inherit;text-decoration:none}
   nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
-  nav a{display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;color:#CBD8D2;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #3D544B}
-  nav a:hover{background:#31473E;color:var(--paper)}
+  nav a{display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;color:#C6D9EE;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #2C4D74}
+  nav a:hover{background:#1A4A79;color:var(--paper)}
+  nav{gap:10px 16px;align-items:flex-end}
+  .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
+  .ng:first-of-type{padding-left:0;border-left:none}
+  .ngl{width:100%;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6;margin:0 0 1px}
+  @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} }
   header h1{font-size:24px;margin:0}
-  header p{margin:6px 0 0;color:#B9C7C0;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   .lang{margin-top:12px;font-size:13px}
-  .lang a{color:#CBD8D2}
+  .lang a{color:#C6D9EE}
   main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
   .mode{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:22px}
   .mode > h2{font-size:22px;margin:0 0 4px;display:flex;align-items:baseline;gap:12px}
@@ -57,8 +62,8 @@
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
-  .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2B3833;margin-right:6px}
-  .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#1A1405}.rar.mythic{background:#C4552C}
+  .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
+  .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#FFFFFF}.rar.mythic{background:#C4552C}
   .links ul{margin:6px 0 0;padding-left:1.2em}
   .links a{color:var(--pine)}
   .source{color:var(--muted);font-size:12px;margin-top:20px}
@@ -76,15 +81,10 @@
   <div class="wrap">
     <div class="brand"><a href="../">MTGアリーナ リミテッド・ワークベンチ</a></div>
     <nav>
-      <a href="../guide.html">使い方</a>
-      <a href="../">シールド構築</a>
-      <a href="../draft.html">ドラフト構築</a>
-      <a href="../ratings.html">カード勝率一覧</a>
-      <a href="../reports.html">環境レポート</a>
-      <a href="../swiss.html">スイスドロー</a>
-      <a href="../assistant.html">ドラフト補助</a>
-      <a href="../table.html">対戦卓</a>
-      <a href="../privacy.html">プライバシー</a>
+      <div class="ng"><span class="ngl">はじめに</span><a href="../guide.html">使い方</a></div>
+      <div class="ng"><span class="ngl">デッキを作る</span><a href="../">シールド構築</a><a href="../draft.html">ドラフト構築</a><a href="../assistant.html">ドラフト補助</a></div>
+      <div class="ng"><span class="ngl">データを見る</span><a href="../ratings.html">カード勝率一覧</a><a href="../reports.html">環境レポート</a></div>
+      <div class="ng"><span class="ngl">対戦する</span><a href="../table.html">対戦卓</a><a href="../swiss.html">スイスドロー</a></div>
     </nav>
     <h1>ダスクモーン：戦慄の館｜リミテッド環境レポート</h1>
     <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。　発売 2024-09-27</p>
@@ -94,7 +94,7 @@
 <main>
 <article class="mode">
   <h2>ドラフト <small>総試合数 1,209,337／全体勝率 55.0%</small></h2>
-  <p class="built">集計 2026-09-22</p>
+  <p class="built">集計 2026-09-18</p>
   <section><h3>環境の速さ</h3>
     <div class="verdict">平均マナ総量2.9未満の速いデッキが最も勝率が高く、56.7%です。 直近8セットと比べると、速い環境です。</div>
   </section>
@@ -191,7 +191,7 @@
 </article>
 <article class="mode">
   <h2>シールド <small>総試合数 63,024／全体勝率 56.1%</small></h2>
-  <p class="built">集計 2026-09-22</p>
+  <p class="built">集計 2026-09-18</p>
   <section><h3>環境の速さ</h3>
     <div class="verdict">平均マナ総量3.2未満の中速デッキが最も勝率が高く、56.8%です。 直近8セットと比べると、速さは同じくらいです。</div>
   </section>
