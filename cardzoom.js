@@ -11,13 +11,15 @@
 (function () {
   "use strict";
 
-  var HOLD = 450;                 // これだけ押し続けたら「長押し」とみなす（ミリ秒）
+  var HOLD = 1100;                // これだけ押し続けたら「長押し」とみなす（ミリ秒）
+  var PRESS = 260;                // これだけ押されたら、カードを沈ませて手応えを出す（ミリ秒）
   var MOVE = 12;                  // これ以上指が動いたらスクロールとみなして取り消す（px）
   var SEL = ".card-row, .tile";
   var SEEN = "sw.zoomHint";       // 使い方の案内を一度出したかどうか
 
   var api = { images: function () { return []; }, name: function () { return ""; }, sub: function () { return ""; } };
-  var box = null, timer = null, startX = 0, startY = 0, fired = false, pushed = false;
+  var box = null, timer = null, pressTimer = null, pressed = null;
+  var startX = 0, startY = 0, fired = false, pushed = false;
 
   function tr(key, fallback) {
     try { var s = window.t && window.t(key); return s && s !== key ? s : fallback; }
@@ -55,7 +57,11 @@
       "  display:flex;align-items:center;justify-content:center;font-family:inherit}",
       ".czfoot{position:fixed;left:0;right:0;bottom:14px;text-align:center;color:#9FB3C4;font-size:11.5px}",
       /* 長押しでブラウザの選択メニューが出ないようにする */
-      ".card-row,.tile{-webkit-touch-callout:none}",
+      ".card-row,.tile{-webkit-touch-callout:none;transition:transform .12s ease-out,filter .12s ease-out}",
+      /* 押している間の手応え。開くまでの残り時間をかけて、じわりと沈む */
+      ".card-row.czpress,.tile.czpress{transform:scale(.94);filter:brightness(.68) saturate(.85);",
+      "  transition:transform " + (HOLD - PRESS) + "ms ease-out," + " filter " + (HOLD - PRESS) + "ms ease-out}",
+      "@media (prefers-reduced-motion:reduce){.card-row,.tile,.card-row.czpress,.tile.czpress{transition:none}}",
       /* 初回の案内 */
       ".cztoast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:180;",
       "  max-width:88vw;background:rgba(13,27,42,.94);color:#EAF1F9;font-size:12.5px;line-height:1.6;",
@@ -129,7 +135,22 @@
   }
 
   /* ---------- 長押しの判定 ---------- */
-  function cancel() { if (timer) { clearTimeout(timer); timer = null; } }
+  /* 押している最中の見た目 */
+  function press(el) {
+    if (pressed === el) return;
+    unpress();
+    pressed = el;
+    el.classList.add("czpress");
+  }
+  function unpress() {
+    if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+    if (pressed) { pressed.classList.remove("czpress"); pressed = null; }
+  }
+
+  function cancel() {
+    if (timer) { clearTimeout(timer); timer = null; }
+    unpress();
+  }
 
   function onDown(ev) {
     if (ev.pointerType === "mouse") return;          // パソコンはカーソルを乗せれば出る
@@ -140,8 +161,12 @@
     if (!el || !el._card) return;
     startX = ev.clientX; startY = ev.clientY;
     var card = el._card;
+    addStyle();
+    pressTimer = setTimeout(function () { pressTimer = null; press(el); }, PRESS);
     timer = setTimeout(function () {
       timer = null; fired = true;
+      unpress();
+      try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) {}   // 開いた合図（対応端末のみ）
       open(card);
       // 離したときの click が来ないブラウザ向けの保険
       setTimeout(function () { fired = false; }, 800);
