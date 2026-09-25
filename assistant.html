@@ -714,18 +714,49 @@ function pairRating(id, pair){   // 表示用：その2色での勝率（無け�
    「伝説」もタイプと同じ扱いにする（伝説を参照するカードがあるセット向け）。 */
 const PLURAL = { Elf:"Elves", Dwarf:"Dwarves", Wolf:"Wolves", Werewolf:"Werewolves", Mouse:"Mice", Ox:"Oxen", Fox:"Foxes", Fish:"Fish", Sheep:"Sheep", Moose:"Moose", Elk:"Elk", Serf:"Serfs" };
 const TYPE_STOP = new Set(["Creature","Legendary","Token"]);
+const pluralOf = ty => PLURAL[ty] || (ty.endsWith("y") ? ty.slice(0, -1) + "ies" : ty.endsWith("s") ? ty : ty + "s");
+/* 破壊・追放するだけの呪文は、その種族の受け皿ではない */
+const SYN_BAD = /\b(destroy|exile|sacrifice)\b/i;
+/*
+ * このカードが、その種族の「受け皿」かどうか。
+ *
+ * 以前は種族名がテキストに出てくるだけで受け皿として数えていた。しかしそれだと
+ * 「兵士トークンを1体作る」「ドワーフ1体を対象とする」のような、同じ種族を
+ * 集めても強くならないカードまで数に入り、ただ枚数が多いだけで点が上がっていた。
+ * そこで、その種族を《まとめて》扱っている言い回しに限って受け皿とみなす。
+ *
+ *   ・複数形で出てくる          … 「Soldiers you control get +1/+1」
+ *   ・each / all / another / other を伴う … 「each other Dwarf」
+ *   ・その種族が出る・攻撃する・死亡するたびに誘発する
+ *   ・その種族の呪文のコストが下がる
+ *
+ * 逆に、単数形で1回出てくるだけ（トークン1体を作る、1体を対象にする）は受け皿にしない。
+ */
+function isPayoffFor(text, ty){
+  const plural = pluralOf(ty);
+  const T = ty === "Legendary" ? "legendary" : `(?:${ty}|${plural})`;
+  const has = new RegExp(`\\b${T}\\b`, "i");
+  // 文ごとに見る。1つの文の中で完結している言い回しだけを拾う
+  for(const s of String(text).split(/[.;]\s*/)){
+    if(!has.test(s)) continue;
+    if(SYN_BAD.test(s.split(has)[0] || "")) continue;
+    // トークンを作るだけの文は、複数形で書かれていても受け皿ではない
+    const makesToken = /\bcreates?\b[^]*\btokens?\b/i.test(s);
+    if(!makesToken && plural !== ty && new RegExp(`\\b${plural}\\b`, "i").test(s)) return true;
+    if(new RegExp(`\\b(?:each|all|another|other)\\s+(?:\\w+\\s+){0,2}?${T}\\b`, "i").test(s)) return true;
+    if(new RegExp(`\\bwhenever\\b.*?\\b${T}\\b.*?\\b(?:enters|attacks|dies)\\b`, "i").test(s)) return true;
+    if(new RegExp(`\\b${T}\\s+spells?\\b.*?\\bcost\\b`, "i").test(s)) return true;
+  }
+  return false;
+}
 function mentionedTypes(c){
-  // テキストに出てくるタイプ。セット内のカードのサブタイプを候補にし、単数形・複数形の両方で探す
+  // このカードが受け皿になっているタイプ。セット内のカードのサブタイプを候補にする
   if(c._mentions) return c._mentions;
   const text = c.oracle || "";
-  const out = new Set();
-  for(const ty of allSubtypes()){
-    const plural = PLURAL[ty] || (ty.endsWith("y") ? ty.slice(0, -1) + "ies" : ty.endsWith("s") ? ty : ty + "s");
-    const re = new RegExp(`\\b(${ty}|${plural})\\b`, "i");
-    if(re.test(text)) out.add(ty);
-  }
-  if(/\blegendary\b/i.test(text)) out.add("Legendary");
-  c._mentions = [...out];
+  const out = [];
+  for(const ty of allSubtypes()) if(isPayoffFor(text, ty)) out.push(ty);
+  if(isPayoffFor(text, "Legendary")) out.push("Legendary");
+  c._mentions = out;
   return c._mentions;
 }
 let _subtypesCache = null, _subtypesCount = 0;
@@ -1143,7 +1174,7 @@ function setStatus(msg, cls){
   el.className = "status" + (cls ? " " + cls : "");
 }
 function colorName(k){ return t("color." + k); }
-const TYPE_JA = { Elf:"エルフ", Dwarf:"ドワーフ", Goblin:"ゴブリン", Human:"人間", Orc:"オーク", Wolf:"狼", Bird:"鳥", Spirit:"スピリット", Zombie:"ゾンビ", Vampire:"吸血鬼", Knight:"騎士", Soldier:"兵士", Warrior:"戦士", Wizard:"ウィザード", Cleric:"クレリック", Rogue:"ならず者", Dragon:"ドラゴン", Beast:"ビースト", Elemental:"エレメンタル", Angel:"天使", Demon:"デーモン", Merfolk:"マーフォーク", Halfling:"ハーフリング", Troll:"トロール", Giant:"巨人", Cat:"猫", Dog:"犬", Rat:"ネズミ", Bat:"コウモリ", Frog:"カエル", Lizard:"トカゲ", Snake:"蛇", Insect:"昆虫", Spider:"蜘蛛", Scout:"スカウト", Ranger:"レインジャー", Bard:"バード", Noble:"貴族", Artificer:"工匠", Pirate:"海賊", Ninja:"忍者", Samurai:"侍", Legendary:"伝説" };
+const TYPE_JA = { Elf:"エルフ", Dwarf:"ドワーフ", Goblin:"ゴブリン", Human:"人間", Orc:"オーク", Wolf:"狼", Bird:"鳥", Spirit:"スピリット", Zombie:"ゾンビ", Vampire:"吸血鬼", Knight:"騎士", Soldier:"兵士", Warrior:"戦士", Wizard:"ウィザード", Cleric:"クレリック", Rogue:"ならず者", Dragon:"ドラゴン", Beast:"ビースト", Elemental:"エレメンタル", Angel:"天使", Demon:"デーモン", Merfolk:"マーフォーク", Halfling:"ハーフリング", Troll:"トロール", Giant:"巨人", Cat:"猫", Dog:"犬", Rat:"ネズミ", Bat:"コウモリ", Frog:"カエル", Lizard:"トカゲ", Snake:"蛇", Insect:"昆虫", Spider:"蜘蛛", Scout:"スカウト", Ranger:"レインジャー", Bard:"バード", Noble:"貴族", Artificer:"工匠", Pirate:"海賊", Ninja:"忍者", Samurai:"侍", Citizen:"市民", Peasant:"農民", Archer:"射手", Shaman:"シャーマン", Druid:"ドルイド", Monk:"モンク", Mercenary:"傭兵", Assassin:"暗殺者", Berserker:"狂戦士", Barbarian:"バーバリアン", Skeleton:"スケルトン", Golem:"ゴーレム", Construct:"構築物", Horse:"馬", Bear:"熊", Boar:"猪", Ox:"雄牛", Elephant:"象", Griffin:"グリフィン", Phoenix:"不死鳥", Hydra:"ハイドラ", Sphinx:"スフィンクス", Treefolk:"ツリーフォーク", Fungus:"菌類", Squirrel:"リス", Otter:"カワウソ", Crab:"カニ", Turtle:"海亀", Fox:"狐", Mouse:"ネズミ", Rabbit:"兎", Goat:"山羊", Sheep:"羊", Nightmare:"ナイトメア", Shapeshifter:"多相の戦士", Avatar:"アバター", Wraith:"レイス", Werewolf:"人狼", Advisor:"助言者", Mount:"騎乗獣", Employee:"従業員", Performer:"パフォーマー", Detective:"探偵", Legendary:"伝説" };
 function typeLabel(ty){ return I18N.lang === "ja" ? (TYPE_JA[ty] || ty) : ty; }
 function displayName(c){ return I18N.lang === "ja" && c.ja ? c.ja : c.name; }
 
