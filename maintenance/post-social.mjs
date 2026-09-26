@@ -107,6 +107,11 @@ async function fetchJaNames(code){
   return { names, images, imagesEn };
 }
 
+/* data/names/<SET>.json の形式の版。中身を増やしたら必ず上げる。
+   上げ忘れても取り直せるよう、下の hasAll でも足りない項目を見ている。 */
+const NAMES_V = 5;
+const filled = o => !!o && Object.keys(o).length > 0;
+
 async function ensureNames(code){
   const path = `data/names/${code}.json`;
   let cur = await readJson(path, null) || { names: {}, set: "", released_at: "" };
@@ -114,15 +119,23 @@ async function ensureNames(code){
   if(!cur.set || cur.set === code){
     try{ const r = await fetch(`https://api.scryfall.com/sets/${code.toLowerCase()}`, { headers: SCRY_HEADERS }); if(r.ok){ const j = await r.json(); cur.set = j.name; cur.released_at = j.released_at; changed = true; } }catch(e){}
   }
-  if(!cur.names || !Object.keys(cur.names).length || cur.v !== 4){
+  // 版が古い、名前が無い、英語版の画像が無い（英語投稿に日本語のカードが出る）のいずれかなら取り直す
+  const hasAll = filled(cur.names) && filled(cur.images) && filled(cur.imagesEn);
+  if(cur.v !== NAMES_V || !hasAll){
     const { names, images, imagesEn } = await fetchJaNames(code);
-    cur.v = 4;
-    if(Object.keys(names).length){ cur.names = names; cur.images = images; cur.imagesEn = imagesEn; changed = true; }
+    // 取れたものだけ入れ替える。取れなかった分は、前の中身を残す
+    if(filled(names)){ cur.names = names; changed = true; }
+    if(filled(images)){ cur.images = images; changed = true; }
+    if(filled(imagesEn)){ cur.imagesEn = imagesEn; changed = true; }
+    if(changed) cur.v = NAMES_V;
   }
   if(changed){ try{ await (await import("node:fs/promises")).mkdir("data/names", { recursive: true }); await writeFile(path, JSON.stringify(cur), "utf8"); }catch(e){} }
-  console.log(`${code}: 日本語名 ${Object.keys(cur.names || {}).length}件 / セット名 ${cur.set || "(不明)"}`);
+  console.log(`${code}: 日本語名 ${Object.keys(cur.names || {}).length}件 / カード画像 日本語 ${Object.keys(cur.images || {}).length}件・英語 ${Object.keys(cur.imagesEn || {}).length}件 / セット名 ${cur.set || "(不明)"}`);
   return cur;
 }
+
+/* 中身のある方を選ぶ。空のオブジェクトも「無い」とみなす（|| では拾えないため） */
+const pickMap = (...maps) => maps.find(filled) || {};
 
 async function setContext(code){
   const ja = await setNamesJa();
@@ -133,7 +146,8 @@ async function setContext(code){
     code,
     name: { ja: ja[code.toLowerCase()] || names.set || code, en: names.set || code },
     cardJa: names.names || {},
-    cardImg: { ja: names.images || {}, en: names.imagesEn || names.images || {} },
+    // 投稿の言語に合う画像を使う。片方しか無いときだけ、もう片方で代用する
+    cardImg: { ja: pickMap(names.images, names.imagesEn), en: pickMap(names.imagesEn, names.images) },
     draft, sealed,
     url: lang => `${SITE}/sets/${code}${lang === "en" ? ".en" : ""}.html`
   };
