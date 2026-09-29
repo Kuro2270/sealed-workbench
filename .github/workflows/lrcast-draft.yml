@@ -1,0 +1,87 @@
+name: r/lrcast 下書き
+
+# 集計済みのデータから、r/lrcast 用の投稿文と図を作り直す。
+# 勝率データ集計のほうにも同じ処理が入っているので、ふだんはそちらで自動的に作られる。
+# こちらは「文面を直したので作り直したい」「過去のセットで作りたい」ときに押す。
+# 集計はやり直さないので 2 分ほどで終わる。投稿はいつも手動。
+
+on:
+  workflow_dispatch:
+    inputs:
+      set:
+        description: "セットコード（例: HOB）。複数なら空白で区切る"
+        required: true
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 画像合成ライブラリを入れる
+        run: npm install --no-save sharp
+
+      - name: 下書きを作る
+        id: draft
+        env:
+          SITE_URL: https://sealed-workbench.com
+          # 入力はいちど環境変数に移す（コマンド行に直接埋め込まない）
+          SETS: ${{ inputs.set }}
+        run: |
+          node maintenance/build-lrcast.mjs $SETS
+          if [ -f lrcast.md ]; then echo "has=1" >> "$GITHUB_OUTPUT"; fi
+
+      - name: 変更をコミット
+        if: steps.draft.outputs.has == '1'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lrcast || true
+          if git diff --staged --quiet; then
+            echo "変更はありませんでした。"
+            exit 0
+          fi
+          git commit -m "r/lrcast の下書きを更新"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin main && exit 0
+            echo "再試行 $i"
+            sleep 5
+          done
+          echo "プッシュに失敗しました。"
+          exit 1
+
+      - name: Issue にする
+        if: steps.draft.outputs.has == '1'
+        uses: actions/github-script@v7
+        env:
+          SETS: ${{ inputs.set }}
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('lrcast.md', 'utf8');
+            const want = String(process.env.SETS || '').split(/\s+/).filter(Boolean);
+            const imgs = fs.readdirSync('lrcast')
+              .filter(f => f.endsWith('.png') && want.includes(f.replace(/\.png$/, '')));
+            const base = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/blob/main/lrcast`;
+            const links = imgs.map(f => `- [${f}](${base}/${f})`).join('\n');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `r/lrcast 下書き ${want.join(", ")} ${new Date().toISOString().slice(0,10)}`,
+              body: `${body}\n\n## 画像\n\n${links}\n`,
+              labels: ['announce']
+            });
+
+      - name: データが無かったとき
+        if: steps.draft.outputs.has != '1'
+        run: |
+          echo "::warning::下書きは作られませんでした。指定したセットの data/articles/<SET>_draft.json があるか確認してください。"

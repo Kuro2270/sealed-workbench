@@ -83,12 +83,22 @@ jobs:
           node maintenance/build-announce.mjs
           if [ -f announce.md ]; then echo "has=1" >> "$GITHUB_OUTPUT"; fi
 
+      # 新しいセットが入ったときだけ、r/lrcast 用の下書きと図を作る。投稿は手動。
+      - name: r/lrcast の下書きを作る
+        id: lrcast
+        if: steps.announce.outputs.has == '1'
+        env:
+          SITE_URL: https://sealed-workbench.com
+        run: |
+          node maintenance/build-lrcast.mjs
+          if [ -f lrcast.md ]; then echo "has=1" >> "$GITHUB_OUTPUT"; fi
+
       - name: 変更をコミット
         if: steps.build.outputs.status == '0'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/ratings data/articles data/names sets sitemap.xml robots.txt ogp-ja.png ogp-en.png data/announced.json || true
+          git add data/ratings data/articles data/names sets lrcast sitemap.xml robots.txt ogp-ja.png ogp-en.png data/announced.json || true
           if git diff --staged --quiet; then
             echo "変更はありませんでした。"
             exit 0
@@ -141,6 +151,24 @@ jobs:
               repo: context.repo.repo,
               title: `告知文案 ${new Date().toISOString().slice(0,10)}`,
               body,
+              labels: ['announce']
+            });
+
+      - name: r/lrcast の下書きを Issue にする
+        if: steps.lrcast.outputs.has == '1'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('lrcast.md', 'utf8');
+            const imgs = fs.readdirSync('lrcast').filter(f => f.endsWith('.png'));
+            const base = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/blob/main/lrcast`;
+            const links = imgs.map(f => `- [${f}](${base}/${f})`).join('\n');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `r/lrcast 下書き ${new Date().toISOString().slice(0,10)}`,
+              body: `${body}\n\n## 画像\n\n${links}\n`,
               labels: ['announce']
             });
 
