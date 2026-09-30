@@ -540,6 +540,20 @@ async function loadLogFile(file){
   if(!hit){ setStatus(t("sassist.notFound"), "bad"); return; }
   D.set = hit.code; D.event = hit.event; D.pack = []; D.packNo = 0; D.pickNo = 0;
   D.picked = hit.ids.slice(); D.done = true; view = "deck"; deckChoice = 0;
+  // 提出済みのデッキ（あれば）。プールの手前にある CourseDeck の MainDeck
+  D.submitted = null;
+  try{
+    const before = text.slice(Math.max(0, hit.at - 6000), hit.at);
+    const j = before.lastIndexOf('"CourseDeck":{');
+    if(j >= 0){
+      const md = before.slice(j).match(/"MainDeck"\s*:\s*\[(.*?)\]/);
+      if(md){
+        const list = [...md[1].matchAll(/"cardId"\s*:\s*(\d+)\s*,\s*"quantity"\s*:\s*(\d+)/g)].map(x => ({ id: x[1], n: +x[2] }));
+        if(list.length) D.submitted = list;
+      }
+    }
+  }catch(e){}
+  if(D.submitted) log(`submitted deck: ${D.submitted.reduce((a, x) => a + x.n, 0)} cards`);
   recomputeColors();
   log(`pool: ${hit.event} ${hit.ids.length} cards, set ${hit.code || "?"}`);
   setStatus(t("sassist.loaded", {n: hit.ids.length, set: hit.code || "?"}), "live");
@@ -578,8 +592,11 @@ async function ensureSet(code){
         .forEach(a => { archetypes[[...a.colors].sort().join("")] = { wr: a.wr, diff: (a.wr - avgWR) * 100 }; });
     }
   }catch(e){}
-  // カード情報（英語）
-  await scryAll(`set:${code.toLowerCase()} unique:prints`, c => addCard(c));
+  // カード情報（英語）。Arena ID が付いていないカード（発売直後のセットで起こる）は数に入らない
+  let seen = 0, withArena = 0;
+  await scryAll(`set:${code.toLowerCase()} unique:prints`, c => { seen++; if(c.arena_id) withArena++; addCard(c); });
+  log(`scryfall: set ${code} ${seen} printings, ${withArena} with arena_id`);
+  if(seen && !withArena) setStatus(t("sassist.noArena", {set: code}), "bad");
   // 日本語名
   await scryAll(`set:${code.toLowerCase()} lang:ja unique:prints`, c => {
     const en = Object.values(cards).find(x => x.name === c.name)
@@ -652,7 +669,9 @@ async function ensureCards(ids){
     fetching.delete(id);
     await sleep(110);
   }
-  if(missing.length) render();
+  const still = ids.filter(id => !cards[id]).length;
+  if(missing.length){ log(`lookup by arena id: ${missing.length} tried, ${missing.filter(id => cards[id]).length} found`); render(); }
+  if(still && ids.length && still === ids.length) setStatus(t("sassist.noArena", {set: D.set || "?"}), "bad");
 }
 
 /* ================= 推奨 =================
@@ -1160,8 +1179,7 @@ function render(){
 
 
   const has = D.pack.length > 0;
-  $("pickTitle").textContent = has ? t("assist.packPick", {p: D.packNo || "?", k: D.pickNo || "?"})
-                             : (D.done ? t("assist.doneTitle") : (D.picked.length ? t("assist.waitingNext") : t("assist.waiting")));
+  $("pickTitle").textContent = D.picked.length ? t("sassist.loadedTitle", {n: D.picked.length}) : t("sassist.waiting");
   $("pickSub").textContent = D.set ? (t("assist.setLabel", {set: D.set}) + (D.event ? "　" + D.event : "")) : "";
   $("packEmpty").hidden = has;
   $("packEmpty").textContent = D.picked.length && !D.done ? t("assist.packEmptyNext") : t("assist.packEmpty");
