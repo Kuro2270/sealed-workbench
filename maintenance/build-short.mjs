@@ -206,11 +206,27 @@ function symbol(c, x, y, size){
 function pairSymbols(pair, x, y, size){
   return [...pair].map((c, i) => symbol(c, x + i * (size + 12) + size / 2, y, size)).join("");
 }
-/* 画面の枠。サイト名やドメインは常時表示しない（締めの場面で音声つきで案内するので、それ以外はうるさくなる） */
-function frame(inner, say){
+/* 画面の枠。サイト名やドメインは常時表示しない（締めの場面で音声つきで案内するので、それ以外はうるさくなる）。
+   代わりに、冒頭以外の場面では上部にセットのロゴ（無ければセット名）と「リミテッド環境分析」を常に出し、
+   途中から見た人にも何のセットの話か分かるようにする */
+const HEADER = { logo: null, title: "" };
+function header(){
+  const band = HAS_BG ? `<rect x="40" y="30" width="${W - 80}" height="146" rx="24" fill="${DEEP}" opacity="0.6"/>` : "";
+  if(HEADER.logo){
+    return band +
+      `<image href="${HEADER.logo}" x="64" y="44" width="330" height="118" preserveAspectRatio="xMinYMid meet"/>` +
+      T(424, 122, "リミテッド環境分析", { size: 40, fill: MUTED, weight: 700 });
+  }
+  const n = [...HEADER.title].length;
+  return band +
+    T(64, 122, HEADER.title, { size: n <= 6 ? 56 : n <= 9 ? 46 : 38, fill: BLUE, weight: 900 }) +
+    T(W - 64, 122, "リミテッド環境分析", { size: 36, fill: MUTED, weight: 700, anchor: "end" });
+}
+function frame(inner, say, opts = {}){
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W * SCALE}" height="${H * SCALE}" viewBox="0 0 ${W} ${H}" font-family="${FONT}">
   <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${PINE}"/><stop offset="1" stop-color="${DEEP}"/></linearGradient></defs>
   ${HAS_BG ? "" : `<rect width="${W}" height="${H}" fill="url(#bg)"/>`}
+  ${opts.header === false ? "" : header()}
   ${inner}
   ${say ? caption(say) : ""}
 </svg>`;
@@ -234,7 +250,7 @@ function sceneSvg(sc){
         `<rect x="${W / 2 - 200}" y="640" width="400" height="6" fill="${BLUE}"/>` +
         title +
         T(W / 2, sc.logo ? 1210 : 1090, sc.games + "試合", { size: 92, weight: 900, anchor: "middle" }) +
-        T(W / 2, sc.logo ? 1290 : 1170, "のデータが1分でわかる", { size: 44, fill: MUTED, anchor: "middle" }), sc.say);
+        T(W / 2, sc.logo ? 1290 : 1170, "のデータが1分でわかる", { size: 44, fill: MUTED, anchor: "middle" }), sc.say, { header: false });
     }
     case "intro": {
       const box = (x, label, on) =>
@@ -284,8 +300,8 @@ function sceneSvg(sc){
     }
     case "top": {
       // カードを大きく見せる。字幕の枠（下から 300+40+118）にかからない範囲で、3枚を縦に並べる
-      const CW = 266, CH = 372, ROW = 405, Y0 = 190, TX = 390;
-      let s = T(80, 150, `${sc.label} 勝率トップ3`, { size: 40, fill: MUTED });
+      const CW = 266, CH = 372, ROW = 380, Y0 = 250, TX = 390;
+      let s = T(80, 222, `${sc.label} 勝率トップ3`, { size: 40, fill: MUTED });
       sc.cards.forEach((c, i) => {
         const y = Y0 + i * ROW, col = COLOR[c.color] || MUTED;
         // カード画像が入る枠。取れたときは実画像、取れなければ色付きの札に名前
@@ -395,6 +411,8 @@ async function main(){
     if(buf && hook){ hook.logo = "data:image/png;base64," + buf.toString("base64"); console.error(`ロゴ: short/logo/${SET}.png`); }
     else console.error("ロゴ: 無し（セット名を文字で出す）");
     // MTGアリーナのロゴ画像（short/logo/arena.png）。あれば冒頭の「MTGアリーナ」の文字の代わりに
+    HEADER.logo = hook && hook.logo || null;
+    HEADER.title = nameJa;
     const ab = await readFile("short/logo/arena.png").catch(() => null);
     if(ab && hook){ hook.arenaLogo = "data:image/png;base64," + ab.toString("base64"); console.error("アリーナのロゴ: short/logo/arena.png"); }
   }
