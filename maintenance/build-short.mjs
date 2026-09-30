@@ -121,7 +121,7 @@ function buildScript(d, nameJa, names){
 
   const scenes = [];
   scenes.push({ kind: "hook", art: true,
-    say: `MTGアリーナ、リミテッドの${nameJa}環境を、${games}試合のデータで1分で。`,
+    say: `MTGアリーナ、リミテッドの${nameJa}環境。${games}試合のデータが、1分でわかります。`,
     title: nameJa, games });
 
   // お決まりの前置き：リミテッドとは何か、シールドとドラフトのどちらのデータか
