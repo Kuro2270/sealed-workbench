@@ -343,7 +343,8 @@ async function loadSets(){
     const res = await fetch(SCRY + "/sets");
     if(!res.ok) throw new Error("HTTP " + res.status);
     const d = await res.json();
-    const today = new Date().toISOString().slice(0,10);
+    // アリーナは紙の発売日より数日早く始まるので、発売日の1週間前から出す
+    const today = new Date(Date.now() + 7*86400000).toISOString().slice(0,10);
     sets = d.data.filter(s => ["expansion","core"].includes(s.set_type) && s.released_at
                            && s.released_at <= today && s.card_count > 100).slice(0, 30);
     renderSetOptions();
