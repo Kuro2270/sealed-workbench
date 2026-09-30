@@ -69,7 +69,7 @@ const L = {
     none: "このセットのデータはまだありません。",
     nav: { guide:"使い方", sealed:"シールド練習", draft:"ドラフト練習", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", sassist:"シールド補助", table:"対戦卓", privacy:"プライバシー" },
     navgrp: { start:"はじめに", build:"練習する", assist:"アリーナで使う", data:"データを見る", play:"対戦する" },
-    navsub: { build:"仮想パックで1人練習", assist:"実戦のログを読んで助ける・PC専用" },
+    navsub: { build:"仮想パックで1人でも、友人と対戦しても", assist:"実戦のログを読んで助ける・PC専用" },
     pc: "PC",
     foot: 'データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。',
     otherLang: "English", otherHref: c => `${c}.en.html`
@@ -105,7 +105,7 @@ const L = {
     none: "No data for this set yet.",
     nav: { guide:"Guide", sealed:"Sealed practice", draft:"Draft practice", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", sassist:"Sealed assistant", table:"Play table", privacy:"Privacy" },
     navgrp: { start:"Start", build:"Practice", assist:"With Arena", data:"Data", play:"Play" },
-    navsub: { build:"Virtual packs, solo", assist:"Reads your log in real play · PC only" },
+    navsub: { build:"Virtual packs, solo or with friends", assist:"Reads your log in real play · PC only" },
     pc: "PC",
     foot: 'Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.',
     otherLang: "日本語", otherHref: c => `${c}.html`

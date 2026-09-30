@@ -106,7 +106,7 @@ function navHtml(current) {
   return `<nav>
       <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span>
         ${a("./guide.html", "nav.guide", "使い方")}</div>
-      <div class="ng"><span class="ngl" data-i18n="navgrp.build">練習する</span><span class="ngs" data-i18n="navsub.build">仮想パックで1人練習</span>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.build">練習する</span><span class="ngs" data-i18n="navsub.build">仮想パックで1人でも、友人と対戦しても</span>
         ${a("./", "nav.sealed", "シールド練習")}
         ${a("./draft.html", "nav.draft", "ドラフト練習")}</div>
       <div class="ng"><span class="ngl" data-i18n="navgrp.assist">アリーナで使う</span><span class="ngs" data-i18n="navsub.assist">実戦のログを読んで助ける・PC専用</span>
