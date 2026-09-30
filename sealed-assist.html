@@ -362,7 +362,20 @@ const D = {                 // ドラフトの状態
 };
 let view = "deck";          // シールドはデッキ案だけを出す
 let deckChoice = 0;         // 何番目の候補を見せているか
-let noArena = false;        // Scryfall に Arena ID が無い（発売直後）
+let noArena = false;        // カード情報がまだ揃っていない（発売直後）
+let setEnName = "";         // セットの英語名（カード情報から拾う）
+/* 発売直後でカード情報が揃っていないときの案内。専門用語を使わず、セット名と目安の日付で伝える。
+   勝率は 17Lands の規約で紙の発売日から12日後（アリーナ発売から15日ほど）に加わるので、その日付も添える。 */
+function notReadyMsg(code){
+  const name = I18N.setName(String(code).toLowerCase(), setEnName || code);
+  const m = String(D.event || "").match(/_(\d{4})(\d{2})(\d{2})$/);
+  let when = "";
+  if(m){
+    const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3] + 15));
+    when = I18N.lang === "ja" ? `${d.getUTCMonth() + 1}月${d.getUTCDate()}日` : d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+  }
+  return t(when ? "sassist.notReadyWhen" : "sassist.notReady", {set: name, when});
+}
 let cards = {};             // arena_id → {name, ja, colors, rarity, cmc, type}
 let wr = {};                // 英語名 → {gih, games}
 let loadedSet = "";
@@ -595,17 +608,17 @@ async function ensureSet(code){
   }catch(e){}
   // カード情報（英語）。Arena ID が付いていないカード（発売直後のセットで起こる）は数に入らない
   let seen = 0, withArena = 0;
-  await scryAll(`set:${code.toLowerCase()} unique:prints`, c => { seen++; if(c.arena_id) withArena++; addCard(c); });
+  await scryAll(`set:${code.toLowerCase()} unique:prints`, c => { seen++; if(c.arena_id) withArena++; if(!setEnName && c.set_name) setEnName = c.set_name; addCard(c); });
   log(`scryfall: set ${code} ${seen} printings, ${withArena} with arena_id`);
   noArena = seen > 0 && withArena === 0;
-  if(noArena) setStatus(t("sassist.noArena", {set: code}), "bad");
+  if(noArena) setStatus(notReadyMsg(code), "bad");
   // 日本語名
   await scryAll(`set:${code.toLowerCase()} lang:ja unique:prints`, c => {
     const en = Object.values(cards).find(x => x.name === c.name)
             || Object.values(cards).find(x => x.cn === c.collector_number);
     if(en && !en.ja){ en.ja = c.printed_name || (c.card_faces?.[0]?.printed_name) || ""; en.imgJa = imgOf(c); }
   });
-  if(noArena) setStatus(t("sassist.noArena", {set: code}), "bad");
+  if(noArena) setStatus(notReadyMsg(code), "bad");
   else setStatus(D.picked.length ? t("sassist.loaded", {n: D.picked.length, set: code}) : t("sassist.idle"), D.picked.length ? "live" : "");
   render();
 }
@@ -674,7 +687,7 @@ async function ensureCards(ids){
   }
   const still = ids.filter(id => !cards[id]).length;
   if(missing.length){ log(`lookup by arena id: ${missing.length} tried, ${missing.filter(id => cards[id]).length} found`); render(); }
-  if(still && ids.length && still === ids.length) setStatus(t("sassist.noArena", {set: D.set || "?"}), "bad");
+  if(still && ids.length && still === ids.length) setStatus(notReadyMsg(D.set || ""), "bad");
 }
 
 /* ================= 推奨 =================
