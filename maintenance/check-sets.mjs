@@ -5,7 +5,10 @@
  *   node maintenance/check-sets.mjs                  点検して結果を表示する
  *   node maintenance/check-sets.mjs --report out.md  結果を Markdown に書き出す
  *   node maintenance/check-sets.mjs --add msh="マーベル スーパー・ヒーローズ"
- *                                                   セット名を HTML に追記する
+ *                                                   セット名を i18n.js の SET_JA に追記する
+ *
+ * 日本語のセット名は機械的に取れる元が無いので、ここだけは人が入れる。
+ * 未登録のセットは点検で見つかり、Actions の「セット名を登録」から追記できる。
  *
  * Node 18 以降で動きます。外部パッケージは使いません。
  */
@@ -14,7 +17,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const API = "https://api.scryfall.com";
-const HTML = process.env.TOOL_HTML || "mtg-sealed-tool.html";
+const HTML = process.env.TOOL_HTML || "i18n.js";        // SET_JA がある場所
 const UA = "SealedWorkbench-Maintenance/1.0";
 const MONTHS_BACK = 24;      // 何か月前までのセットを対象にするか
 const MIN_CARDS = 100;       // リミテッドに使えるセットの目安
@@ -35,16 +38,14 @@ async function api(pathname){
   return res.json();
 }
 
-/* ---------- HTML から登録済みのセット名を読む ---------- */
+/* ---------- i18n.js から登録済みのセット名を読む ---------- */
 async function readSetJa(file){
   const src = await readFile(file, "utf8");
-  const m = src.match(/const SET_JA = \{([\s\S]*?)\n\};/);
+  const m = src.match(/const SET_JA = \{([\s\S]*?)\n[ \t]*\};/);     // 閉じ括弧は字下げされていてもよい
   if(!m) throw new Error(`${file} の中に SET_JA の定義が見つかりませんでした`);
+  // 1行に複数のセットが並ぶことがあるので、行頭ではなく「コード:"名前"」の組をすべて拾う
   const codes = new Set();
-  for(const line of m[1].split("\n")){
-    const k = line.match(/^\s*([a-z0-9]+)\s*:/i);
-    if(k) codes.add(k[1].toLowerCase());
-  }
+  for(const k of m[1].matchAll(/(?:^|[,{\s])([a-z0-9]+)\s*:\s*"/gi)) codes.add(k[1].toLowerCase());
   return { src, block: m[0], codes };
 }
 
@@ -94,14 +95,16 @@ async function inspect(code){
   return result;
 }
 
-/* ---------- セット名を HTML に追記する ---------- */
+/* ---------- セット名を SET_JA に追記する ---------- */
 async function addSetName(file, code, name){
   const { src, block } = await readSetJa(file);
   if(new RegExp(`^\\s*${code}\\s*:`, "mi").test(block)){
     say(`⚠ ${code} はすでに登録されています。追記しませんでした。`);
     return;
   }
-  const updated = block.replace(/\n\};$/, `,\n  ${code}:"${name}"\n};`);
+  // 閉じ括弧の直前に1行足す。字下げは既存の行に合わせる
+  const indent = (block.match(/\n([ \t]*)[a-z0-9]+\s*:/i) || [, "  "])[1];
+  const updated = block.replace(/,?\s*\n([ \t]*)\};$/, `,\n${indent}${code}:"${name.replace(/"/g, "\u201d")}"\n$1};`);
   await writeFile(file, src.replace(block, updated), "utf8");
   say(`✓ ${code} に「${name}」を追記しました。`);
 }
@@ -140,13 +143,12 @@ async function main(){
     needsAttention = true;
     say("## 日本語のセット名が未登録");
     say("");
-    say("公式サイト（https://mtg-jp.com/products/）で正式な表記を確認して、下の行を実行してください。");
+    say("公式サイト（https://mtg-jp.com/products/）で正式な表記を確認して、Actions の「セット名を登録」を実行してください。");
+    say("登録するまでは英語名で表示されます（動作には支障ありません）。");
     say("");
-    say("```");
     for(const s of missing){
-      say(`node maintenance/check-sets.mjs --add ${s.code}="（${s.name} の日本語名）"`);
+      say(`- **${s.code.toUpperCase()}**（${s.name}）→ code=\`${s.code}\`、name=日本語の正式名称`);
     }
-    say("```");
     say("");
     say("| コード | 英語名 | 発売日 | 収録枚数 |");
     say("| --- | --- | --- | --- |");
