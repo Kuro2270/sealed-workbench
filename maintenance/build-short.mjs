@@ -160,7 +160,7 @@ function buildScript(d, nameJa, names){
 
   if(sur) scenes.push({ kind: "surprise", say: sur.say, ...sur });
 
-  scenes.push({ kind: "outro", art: true, say: `全カードの勝率は、${SITE.replace(/\./g, " ドット ")} で。データは17Landsです。`,
+  scenes.push({ kind: "outro", art: true, say: `全カードの勝率は、${SITE.replace(/\./g, " ドット ")} で。`,   // 17Lands の出典は画面の文字で示す（音声では言わない）
     site: SITE });
   return scenes;
 }
@@ -205,16 +205,13 @@ function symbol(c, x, y, size){
 function pairSymbols(pair, x, y, size){
   return [...pair].map((c, i) => symbol(c, x + i * (size + 12) + size / 2, y, size)).join("");
 }
-function frame(inner, say, opts = {}){
+/* 画面の枠。サイト名やドメインは常時表示しない（締めの場面で音声つきで案内するので、それ以外はうるさくなる） */
+function frame(inner, say){
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W * SCALE}" height="${H * SCALE}" viewBox="0 0 ${W} ${H}" font-family="${FONT}">
   <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${PINE}"/><stop offset="1" stop-color="${DEEP}"/></linearGradient></defs>
   ${HAS_BG ? "" : `<rect width="${W}" height="${H}" fill="url(#bg)"/>`}
-  ${HAS_BG ? `<rect x="${W / 2 - 330}" y="86" width="660" height="52" rx="26" fill="${DEEP}" opacity="0.8"/>` : ""}
-  ${opts.brand === false ? "" : T(W / 2, 122, "MTGアリーナ リミテッド・ワークベンチ", { size: 30, fill: BLUE, weight: 700, anchor: "middle" })}
   ${inner}
   ${say ? caption(say) : ""}
-  ${HAS_BG ? `<rect x="${W / 2 - 220}" y="${H - SAFE_BOTTOM - 18}" width="440" height="56" rx="28" fill="${DEEP}" opacity="0.8"/>` : ""}
-  ${T(W / 2, H - SAFE_BOTTOM + 22, SITE, { size: 34, fill: BLUE, weight: 700, anchor: "middle" })}
 </svg>`;
 }
 
