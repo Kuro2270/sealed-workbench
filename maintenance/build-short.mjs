@@ -23,6 +23,7 @@
  *     縦に切り出して暗くぼかし、その上に文字や図を重ねる。音は使わない
  *
  * 投稿は手動。音声の読みは script.json の "kana" で確認できる。
+ * SHORT_STILLS=1 を付けると場面の画像だけ作って終わる（レイアウト確認用）。
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
@@ -279,20 +280,22 @@ function sceneSvg(sc){
       return frame(s, sc.say);
     }
     case "top": {
-      let s = T(80, 230, `${sc.label} 勝率トップ3`, { size: 40, fill: MUTED });
+      // カードを大きく見せる。字幕の枠（下から 300+40+118）にかからない範囲で、3枚を縦に並べる
+      const CW = 266, CH = 372, ROW = 405, Y0 = 190, TX = 390;
+      let s = T(80, 150, `${sc.label} 勝率トップ3`, { size: 40, fill: MUTED });
       sc.cards.forEach((c, i) => {
-        const y = 280 + i * 280, col = COLOR[c.color] || MUTED;
+        const y = Y0 + i * ROW, col = COLOR[c.color] || MUTED;
         // カード画像が入る枠。取れたときは実画像、取れなければ色付きの札に名前
         if(c.imgPath){
-          s += `<image href="${c.imgPath}" x="90" y="${y}" width="180" height="250" preserveAspectRatio="xMidYMid slice"/>`;
+          s += `<image href="${c.imgPath}" x="80" y="${y}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/>`;
         }else{
-          s += `<rect x="90" y="${y}" width="180" height="250" rx="14" fill="${col}" opacity="0.85"/>`;
-          s += `<rect x="104" y="${y + 14}" width="162" height="120" rx="8" fill="${DEEP}" opacity="0.5"/>`;
+          s += `<rect x="80" y="${y}" width="${CW}" height="${CH}" rx="16" fill="${col}" opacity="0.85"/>`;
+          s += `<rect x="96" y="${y + 16}" width="${CW - 32}" height="170" rx="10" fill="${DEEP}" opacity="0.5"/>`;
         }
-        s += T(310, y + 62, `${i + 1}位`, { size: 34, fill: MUTED });
+        s += T(TX, y + 90, `${i + 1}位`, { size: 36, fill: MUTED });
         const n = [...c.ja].length;
-        s += T(310, y + 140, c.ja, { size: n <= 8 ? 56 : n <= 12 ? 44 : 36, weight: 900 });
-        s += T(310, y + 220, `GIH勝率 ${pt(c.gih)}%`, { size: 44, fill: BLUE, weight: 700 });
+        s += T(TX, y + 190, c.ja, { size: n <= 8 ? 60 : n <= 12 ? 48 : 38, weight: 900 });
+        s += T(TX, y + 290, `GIH勝率 ${pt(c.gih)}%`, { size: 46, fill: BLUE, weight: 700 });
       });
       return frame(s, sc.say);
     }
@@ -458,6 +461,7 @@ async function main(){
     const { kana, dur } = sc;
     const svg = sceneSvg(sc);
     await sharp(Buffer.from(svg), { density: 72 }).png().toFile(base + ".png");
+    if(process.env.SHORT_STILLS){ console.error(`${i} ${sc.kind} → ${base}.png（画像だけ）`); continue; }   // 見た目の確認用。動画は作らない
     // 読み終わってすぐ切り替えず少し置く。画面に見せたい場面は最低の長さを保つ
     const len = dur + (sc.tail || 0.35), pad = len - dur, N = Math.ceil(len * 30);   // 読み終わりに少し置く（カードを見せる場面は長め）
     const audio = `[${(sc.art && artPath) || HAS_BG ? 2 : 1}:a]apad=pad_dur=${pad.toFixed(2)},aformat=sample_rates=48000:channel_layouts=stereo[a]`;
@@ -497,6 +501,7 @@ async function main(){
     console.error(`${i} ${sc.kind.padEnd(8)} ${dur.toFixed(1)}s → ${len.toFixed(1)}s  ${sc.say}`);
     console.error(`   読み: ${kana}`);
   }
+  if(process.env.SHORT_STILLS){ console.error("画像だけ作りました。"); return; }
   await writeFile(`${OUT}/${LANG}/list.txt`, segs.join("\n"), "utf8");
   execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", `${OUT}/${LANG}/list.txt`,
     "-c", "copy", "-movflags", "+faststart", `${OUT}/${LANG}.mp4`]);

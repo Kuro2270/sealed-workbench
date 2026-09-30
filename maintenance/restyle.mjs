@@ -87,23 +87,31 @@ const NAV_CSS = `
   nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end}
   .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
   .ng:first-of-type{padding-left:0;border-left:none}
-  .ngl{width:100%;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6;margin:0 0 1px;text-transform:uppercase}
+  .ng{position:relative;padding-top:17px}
+  .ng:has(.ngs){padding-top:35px}
+  .ngl{position:absolute;left:16px;top:0;white-space:nowrap;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6;text-transform:uppercase}
+  .ng:first-of-type .ngl,.ng:first-of-type .ngs{left:0}
+  .ngs{position:absolute;left:16px;top:17px;white-space:nowrap;font-size:11px;color:#8FA9C6;line-height:1.3}
+  nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
+  nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
   @media (max-width:760px){
-    .ng{padding-left:0;border-left:none;width:100%}
+    .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0}
   }`;
 
 function navHtml(current) {
-  const a = (href, key, label) =>
-    `<a href="${href}"${href === current ? ' class="on"' : ""} data-i18n="${key}">${label}</a>`;
+  // pc=true のものは「PC」の札を付ける（ログを読む機能はスマホでは使えない）
+  const a = (href, key, label, pc) => pc
+    ? `<a href="${href}"${href === current ? ' class="on"' : ""}><span data-i18n="${key}">${label}</span><b class="pcb" data-i18n="nav.pc">PC</b></a>`
+    : `<a href="${href}"${href === current ? ' class="on"' : ""} data-i18n="${key}">${label}</a>`;
   return `<nav>
       <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span>
         ${a("./guide.html", "nav.guide", "使い方")}</div>
-      <div class="ng"><span class="ngl" data-i18n="navgrp.build">デッキを作る</span>
-        ${a("./", "nav.sealed", "シールド構築")}
-        ${a("./draft.html", "nav.draft", "ドラフト構築")}</div>
-      <div class="ng"><span class="ngl" data-i18n="navgrp.assist">補助</span>
-        ${a("./assistant.html", "nav.assist", "ドラフト補助")}
-        ${a("./sealed-assist.html", "nav.sassist", "シールド補助")}</div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.build">練習する</span><span class="ngs" data-i18n="navsub.build">仮想パックで1人練習</span>
+        ${a("./", "nav.sealed", "シールド練習")}
+        ${a("./draft.html", "nav.draft", "ドラフト練習")}</div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.assist">アリーナで使う</span><span class="ngs" data-i18n="navsub.assist">実戦のログを読んで助ける・PC専用</span>
+        ${a("./assistant.html", "nav.assist", "ドラフト補助", true)}
+        ${a("./sealed-assist.html", "nav.sassist", "シールド補助", true)}</div>
       <div class="ng"><span class="ngl" data-i18n="navgrp.data">データを見る</span>
         ${a("./ratings.html", "nav.ratings", "カード勝率一覧")}
         ${a("./reports.html", "nav.reports", "環境レポート")}</div>
@@ -118,7 +126,7 @@ export function replaceNav(text, current) {
   if (!m) return { text, ok: false };
   let out = text.replace(m[0], navHtml(current));
   // ナビ用の CSS を、既存の nav の指定のすぐ後ろに足す
-  if (!out.includes(".ngl{")) {
+  if (!out.includes(".ngs{")) {
     out = out.replace(/(\n\s*nav a\.on\{[^\n]*\n)/, `$1${NAV_CSS}\n`);
   }
   return { text: out, ok: true };

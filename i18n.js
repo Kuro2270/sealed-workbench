@@ -15,8 +15,8 @@
   const STRINGS = {
     /* ---- 共通 ---- */
     "site.name":        { ja:"MTGアリーナ リミテッド・ワークベンチ", en:"MTG Arena Limited Workbench" },
-    "nav.sealed":       { ja:"シールド構築",       en:"Sealed" },
-    "nav.draft":        { ja:"ドラフト構築",       en:"Draft" },
+    "nav.sealed":       { ja:"シールド練習",       en:"Sealed practice" },
+    "nav.draft":        { ja:"ドラフト練習",       en:"Draft practice" },
     "nav.ratings":      { ja:"カード勝率一覧",     en:"Card win rates" },
     "lang.label":       { ja:"言語",               en:"Language" },
     "foot.short":       { ja:"データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href=\"./privacy.html\">プライバシーポリシー</a>にまとめています。",
@@ -190,8 +190,11 @@
 
     /* ---- フッター ---- */
     "navgrp.start":     { ja:"はじめに", en:"Start" },
-    "navgrp.build":     { ja:"デッキを作る", en:"Build" },
-    "navgrp.assist":    { ja:"補助",         en:"Assist" },
+    "navgrp.build":     { ja:"練習する", en:"Practice" },
+    "navsub.build":     { ja:"仮想パックで1人練習", en:"Virtual packs, solo" },
+    "navgrp.assist":    { ja:"アリーナで使う", en:"With Arena" },
+    "navsub.assist":    { ja:"実戦のログを読んで助ける・PC専用", en:"Reads your log in real play · PC only" },
+    "nav.pc":           { ja:"PC", en:"PC" },
     "navgrp.data":      { ja:"データを見る", en:"Data" },
     "navgrp.play":      { ja:"対戦する", en:"Play" },
     "nav.guide":        { ja:"使い方",  en:"Guide" },

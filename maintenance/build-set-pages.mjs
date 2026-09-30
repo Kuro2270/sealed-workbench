@@ -67,8 +67,10 @@ const L = {
     indexLead: "セットを選ぶと、ドラフトとシールドの環境レポートが開きます。発売日の新しい順です。",
     source: "出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。",
     none: "このセットのデータはまだありません。",
-    nav: { guide:"使い方", sealed:"シールド構築", draft:"ドラフト構築", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", sassist:"シールド補助", table:"対戦卓", privacy:"プライバシー" },
-    navgrp: { start:"はじめに", build:"デッキを作る", assist:"補助", data:"データを見る", play:"対戦する" },
+    nav: { guide:"使い方", sealed:"シールド練習", draft:"ドラフト練習", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", sassist:"シールド補助", table:"対戦卓", privacy:"プライバシー" },
+    navgrp: { start:"はじめに", build:"練習する", assist:"アリーナで使う", data:"データを見る", play:"対戦する" },
+    navsub: { build:"仮想パックで1人練習", assist:"実戦のログを読んで助ける・PC専用" },
+    pc: "PC",
     foot: 'データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。',
     otherLang: "English", otherHref: c => `${c}.en.html`
   },
@@ -101,8 +103,10 @@ const L = {
     indexLead: "Pick a set to open its Draft and Sealed report. Newest first.",
     source: "Source: 17Lands Public Data (CC BY 4.0), aggregated by this site. Card data via Scryfall.",
     none: "No data for this set yet.",
-    nav: { guide:"Guide", sealed:"Sealed", draft:"Draft", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", sassist:"Sealed assistant", table:"Play table", privacy:"Privacy" },
-    navgrp: { start:"Start", build:"Build", assist:"Assist", data:"Data", play:"Play" },
+    nav: { guide:"Guide", sealed:"Sealed practice", draft:"Draft practice", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", sassist:"Sealed assistant", table:"Play table", privacy:"Privacy" },
+    navgrp: { start:"Start", build:"Practice", assist:"With Arena", data:"Data", play:"Play" },
+    navsub: { build:"Virtual packs, solo", assist:"Reads your log in real play · PC only" },
+    pc: "PC",
     foot: 'Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.',
     otherLang: "日本語", otherHref: c => `${c}.html`
   }
@@ -199,9 +203,11 @@ function shell(lang, code, head, body, ogImage){
   const og = ogImage || `${SITE}/ogp-${lang}.png`;
   // ナビはカテゴリごとにまとめる（本体のページと同じ並び）
   const HREF = { guide:"../guide.html", sealed:"../", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", sassist:"../sealed-assist.html", table:"../table.html" };
+  const PC = new Set(["assist", "sassist"]);   // ログを読む機能はスマホでは使えないので「PC」の札を付ける
   const navGroup = (label, keys) =>
     `<div class="ng"><span class="ngl">${esc(T.navgrp[label])}</span>` +
-    keys.map(k => `<a href="${HREF[k]}">${esc(T.nav[k])}</a>`).join("") + `</div>`;
+    (T.navsub[label] ? `<span class="ngs">${esc(T.navsub[label])}</span>` : "") +
+    keys.map(k => `<a href="${HREF[k]}">${esc(T.nav[k])}${PC.has(k) ? `<b class="pcb">${esc(T.pc)}</b>` : ""}</a>`).join("") + `</div>`;
   const nav = [
     navGroup("start", ["guide"]),
     navGroup("build", ["sealed", "draft"]),
@@ -244,8 +250,14 @@ ${head}
   nav{gap:10px 16px;align-items:flex-end}
   .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
   .ng:first-of-type{padding-left:0;border-left:none}
-  .ngl{width:100%;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6;margin:0 0 1px}
-  @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} }
+  .ng{position:relative;padding-top:17px}
+  .ng:has(.ngs){padding-top:35px}
+  .ngl{position:absolute;left:16px;top:0;white-space:nowrap;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6}
+  .ng:first-of-type .ngl,.ng:first-of-type .ngs{left:0}
+  .ngs{position:absolute;left:16px;top:17px;white-space:nowrap;font-size:11px;color:#8FA9C6;line-height:1.3}
+  nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
+  nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
+  @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0} }
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   .lang{margin-top:12px;font-size:13px}
