@@ -1,4 +1,6 @@
-   short/bg.mp4
-   short/symbols/
-   short/*/
-   node_modules/
+# 動画づくりの途中生成物と、Releases から落とす大きなファイル
+short/bg.mp4
+short/symbols/
+short/*/
+!short/logo/
+node_modules/
