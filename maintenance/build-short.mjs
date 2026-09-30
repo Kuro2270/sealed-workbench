@@ -16,7 +16,7 @@
  *   ・カード画像は data/names/<SET>.json の URL から取る。取れなければ名前だけの札にする
  *   ・冒頭と締めの背景には、そのセットで一番強い神話レア／レアのカードアート（Scryfall の art_crop）を敷く。
  *     セットのロゴは Fan Content Policy で使えないので入れない（セット名は文字で出す）
- *   ・セット名のロゴ画像を使いたいときは short/logo/<SET>.png（背景透過）を置く。あれば冒頭でセット名の
+ *   ・セット名のロゴ画像を使いたいときは short/logo/<SET>.png（背景透過）を置く。MTGアリーナのロゴは short/logo/arena.png。あれば冒頭でセット名の
  *     文字の代わりに載せる。無ければ文字。ロゴはこちらでは取得も生成もしない（置くかどうかは運用側の判断）
  *   ・背景に使うプレイ映像は short/bg.mp4 に置く（無ければ紺色の背景）。GitHub Actions では Releases の
  *     タグ assets にある bg.mp4 を落として使う（.github/workflows/build-short.yml）。横長のままでよく、
@@ -219,19 +219,22 @@ function frame(inner, say){
 function sceneSvg(sc){
   switch(sc.kind){
     case "hook": {
-      // 公式ロゴは Fan Content Policy で使えないので、文字で「MTGアリーナ リミテッド」と大きく出す
       const n = [...sc.title].length, size = n <= 5 ? 140 : n <= 8 ? 104 : 80;
-      // ロゴ画像があれば、幅 900・高さ 300 の枠に収めて中央に。無ければセット名を文字で
+      // MTGアリーナのロゴ画像（short/logo/arena.png）があれば文字の代わりに。無ければ文字
+      const arena = sc.arenaLogo
+        ? `<image href="${sc.arenaLogo}" x="${W / 2 - 320}" y="250" width="640" height="225" preserveAspectRatio="xMidYMid meet"/>`
+        : T(W / 2, 400, "MTGアリーナ", { size: 84, weight: 900, anchor: "middle" });
+      // セットのロゴ画像があれば、幅 900・高さ 300 の枠に収めて中央に。無ければセット名を文字で
       const title = sc.logo
-        ? `<image href="${sc.logo}" x="${W / 2 - 450}" y="600" width="900" height="300" preserveAspectRatio="xMidYMid meet"/>`
-        : T(W / 2, 730, sc.title, { size, weight: 900, anchor: "middle", fill: BLUE });
+        ? `<image href="${sc.logo}" x="${W / 2 - 450}" y="760" width="900" height="300" preserveAspectRatio="xMidYMid meet"/>`
+        : T(W / 2, 890, sc.title, { size, weight: 900, anchor: "middle", fill: BLUE });
       return frame(
-        T(W / 2, 430, "MTGアリーナ", { size: 84, weight: 900, anchor: "middle" }) +
-        T(W / 2, 520, "リミテッド環境レポート", { size: 48, fill: MUTED, anchor: "middle" }) +
-        `<rect x="${W / 2 - 200}" y="570" width="400" height="6" fill="${BLUE}"/>` +
+        arena +
+        T(W / 2, 590, "リミテッド環境レポート", { size: 48, fill: MUTED, anchor: "middle" }) +
+        `<rect x="${W / 2 - 200}" y="640" width="400" height="6" fill="${BLUE}"/>` +
         title +
-        T(W / 2, sc.logo ? 1020 : 900, sc.games + "試合", { size: 92, weight: 900, anchor: "middle" }) +
-        T(W / 2, sc.logo ? 1100 : 980, "のデータで、1分でわかる", { size: 44, fill: MUTED, anchor: "middle" }), sc.say);
+        T(W / 2, sc.logo ? 1210 : 1090, sc.games + "試合", { size: 92, weight: 900, anchor: "middle" }) +
+        T(W / 2, sc.logo ? 1290 : 1170, "のデータが1分でわかる", { size: 44, fill: MUTED, anchor: "middle" }), sc.say);
     }
     case "intro": {
       const box = (x, label, on) =>
@@ -391,6 +394,9 @@ async function main(){
     const hook = scenes.find(sc => sc.kind === "hook");
     if(buf && hook){ hook.logo = "data:image/png;base64," + buf.toString("base64"); console.error(`ロゴ: short/logo/${SET}.png`); }
     else console.error("ロゴ: 無し（セット名を文字で出す）");
+    // MTGアリーナのロゴ画像（short/logo/arena.png）。あれば冒頭の「MTGアリーナ」の文字の代わりに
+    const ab = await readFile("short/logo/arena.png").catch(() => null);
+    if(ab && hook){ hook.arenaLogo = "data:image/png;base64," + ab.toString("base64"); console.error("アリーナのロゴ: short/logo/arena.png"); }
   }
 
   // セットの顔になるカードのアート（冒頭・締めの背景）。神話レア→レアの順に勝率上位から探す
