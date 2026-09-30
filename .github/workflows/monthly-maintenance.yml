@@ -1,8 +1,8 @@
-name: 月次メンテナンス
+name: メンテナンス点検
 
 on:
   schedule:
-    - cron: "0 0 1 * *"      # 毎月1日 09:00（日本時間）
+    - cron: "0 0 * * 1"      # 毎週月曜 09:00（日本時間）。新セットを1週間以内に拾う
   workflow_dispatch:          # 手動実行もできる
 
 permissions:
@@ -36,7 +36,7 @@ jobs:
           script: |
             const fs = require('fs');
             const body = fs.readFileSync('report.md', 'utf8');
-            const title = `月次メンテナンス ${new Date().toISOString().slice(0,7)}`;
+            const title = 'メンテナンス点検：対応が必要';   // 同じ Issue に追記していく（週ごとに増やさない）
 
             const { data: issues } = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
