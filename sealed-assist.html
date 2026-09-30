@@ -362,6 +362,7 @@ const D = {                 // ドラフトの状態
 };
 let view = "deck";          // シールドはデッキ案だけを出す
 let deckChoice = 0;         // 何番目の候補を見せているか
+let noArena = false;        // Scryfall に Arena ID が無い（発売直後）
 let cards = {};             // arena_id → {name, ja, colors, rarity, cmc, type}
 let wr = {};                // 英語名 → {gih, games}
 let loadedSet = "";
@@ -596,14 +597,16 @@ async function ensureSet(code){
   let seen = 0, withArena = 0;
   await scryAll(`set:${code.toLowerCase()} unique:prints`, c => { seen++; if(c.arena_id) withArena++; addCard(c); });
   log(`scryfall: set ${code} ${seen} printings, ${withArena} with arena_id`);
-  if(seen && !withArena) setStatus(t("sassist.noArena", {set: code}), "bad");
+  noArena = seen > 0 && withArena === 0;
+  if(noArena) setStatus(t("sassist.noArena", {set: code}), "bad");
   // 日本語名
   await scryAll(`set:${code.toLowerCase()} lang:ja unique:prints`, c => {
     const en = Object.values(cards).find(x => x.name === c.name)
             || Object.values(cards).find(x => x.cn === c.collector_number);
     if(en && !en.ja){ en.ja = c.printed_name || (c.card_faces?.[0]?.printed_name) || ""; en.imgJa = imgOf(c); }
   });
-  setStatus(D.picked.length ? t("sassist.loaded", {n: D.picked.length, set: code}) : t("sassist.idle"), D.picked.length ? "live" : "");
+  if(noArena) setStatus(t("sassist.noArena", {set: code}), "bad");
+  else setStatus(D.picked.length ? t("sassist.loaded", {n: D.picked.length, set: code}) : t("sassist.idle"), D.picked.length ? "live" : "");
   render();
 }
 function imgOf(c){ return c.image_uris?.normal || c.card_faces?.[0]?.image_uris?.normal || ""; }
