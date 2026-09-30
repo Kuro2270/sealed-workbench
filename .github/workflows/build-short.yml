@@ -1,0 +1,102 @@
+name: 環境まとめ動画を作る
+
+# 「1分でわかる〇〇環境」の縦動画（1080×1920）を、集計済みの記事データから作る。
+#   ・ナレーションは VOICEVOX（ずんだもん）。動画の最後にクレジットが入る
+#   ・背景のプレイ映像は Releases のタグ assets にある bg.mp4 を使う（無ければ紺色）
+#   ・セットのロゴを使うときは short/logo/<SET>.png をリポジトリに置く
+# できた動画はこの実行ページの「Artifacts」から ZIP で落とせる（30日で消える）。投稿は手動。
+# 勝率データが揃う前（発売から2週間ほど）は記事データが無いので作れない。
+
+on:
+  workflow_dispatch:
+    inputs:
+      set:
+        description: "セットコード（例: HOB）"
+        required: true
+      speed:
+        description: "読み上げの速さ（1.0 = ふつう、1.2 = 少し速め）"
+        required: false
+        default: "1.2"
+
+permissions:
+  contents: read
+
+jobs:
+  short:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      voicevox:
+        image: voicevox/voicevox_engine:cpu-ubuntu22.04-latest
+        ports:
+          - 50021:50021
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: ffmpeg と画像合成ライブラリを入れる
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ffmpeg fonts-noto-cjk
+          npm install --no-save sharp
+
+      - name: 背景のプレイ映像を Releases から落とす
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p short
+          if gh release download assets --repo "$GITHUB_REPOSITORY" --pattern bg.mp4 --dir short --clobber; then
+            ls -la short/bg.mp4
+          else
+            echo "::warning::Releases（タグ assets）に bg.mp4 が無いので、紺色の背景で作ります。"
+          fi
+
+      - name: VOICEVOX が起きるのを待つ
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf -m 3 http://127.0.0.1:50021/version; then echo; exit 0; fi
+            sleep 3
+          done
+          echo "::error::VOICEVOX ENGINE が起動しませんでした。"
+          exit 1
+
+      - name: 動画を作る
+        env:
+          # 入力はいちど環境変数に移す（コマンド行に直接埋め込まない）
+          SET_IN: ${{ inputs.set }}
+          VOICEVOX_SPEED: ${{ inputs.speed }}
+          VOICEVOX_URL: http://127.0.0.1:50021
+        run: |
+          export SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"
+          if [ ! -f "data/articles/${SET_CODE}_draft.json" ] && [ ! -f "data/articles/${SET_CODE}_sealed.json" ]; then
+            echo "::error::${SET_CODE} の記事データ（data/articles/）がまだありません。勝率データ集計が終わってから作ってください。"
+            exit 1
+          fi
+          node maintenance/build-short.mjs "$SET_CODE"
+          echo "SET_CODE=$SET_CODE" >> "$GITHUB_ENV"
+          {
+            echo "## ${SET_CODE} の動画ができました"
+            echo
+            echo "下の Artifacts から \`short-${SET_CODE}\` を落として、中の ja.mp4 を確認してから投稿してください。"
+            echo
+            echo "### 読み上げの台本（読みの確認用）"
+            echo
+            echo '```'
+            node -e 'const s=require("./short/"+process.env.SET_CODE+"/ja/script.json");for(const x of s)console.log(`${x.kind.padEnd(8)} ${(+x.dur).toFixed(1)}s  ${x.say}\n         ${x.kana||""}`)'
+            echo '```'
+            echo
+            echo "読み違いがあれば short/yomi.json に「表記: 読み（カタカナ）」を足して、もう一度実行してください。"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 動画を保存する
+        uses: actions/upload-artifact@v4
+        with:
+          name: short-${{ env.SET_CODE }}
+          path: |
+            short/${{ env.SET_CODE }}/ja.mp4
+            short/${{ env.SET_CODE }}/ja/script.json
+          retention-days: 30
+          if-no-files-found: error
