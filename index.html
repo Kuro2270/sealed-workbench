@@ -260,6 +260,9 @@
     /* 画像プレビューは指で隠れるので出さない */
     #preview{display:none !important}
   }
+  .filebtn{display:inline-flex;align-items:center;padding:0 16px;height:44px;border-radius:12px;
+           background:rgba(255,255,255,.12);color:#fff;font-weight:700;cursor:pointer;white-space:nowrap}
+  .filebtn:hover{background:rgba(255,255,255,.2)}
 </style>
 </head>
 <body>
@@ -291,6 +294,10 @@
       <div class="controls">
         <select id="setSelect" data-i18n-label="sel.set"><option value="">…</option></select>
         <button id="openBtn" disabled data-i18n="index.open">6パック開封</button>
+        <label class="filebtn" id="logBtn" data-i18n-title="index.logTitle">
+          <span data-i18n="index.log">ログから読み込む</span>
+          <input type="file" id="logFile" accept=".log,.txt" style="display:none">
+        </label>
         <select id="sortSelect" data-i18n-label="sel.sort" style="min-width:150px">
           <option value="cmc" data-i18n="index.sortCmc">マナ総量順</option>
           <option value="wr" data-i18n="index.sortWr">勝率順</option>
@@ -553,6 +560,87 @@ async function openPacks(){
     setStatus(e.message, true);
   }finally{
     $("openBtn").disabled = false;
+  }
+}
+
+/* ---------- アリーナのログから実際のプールを読む ---------- */
+/* Player.log の中の EventJoin の応答に、シールドのプールが Arena ID の配列で入っている。
+   一番あとに記録されたシールドを採用する（同じ回のログにドラフトが混ざっていても拾わない）。 */
+function parseSealedLog(text){
+  const re = /"InternalEventName":"([^"]*Sealed[^"]*)"[^\n]*?"CardPool":\[([0-9,\s]*)\]/g;
+  let m, last = null;
+  while((m = re.exec(text))) last = m;
+  if(!last) return null;
+  const event = last[1];
+  const ids = last[2].split(",").map(x => parseInt(x.trim(), 10)).filter(n => n > 0);
+  // Sealed_FRA_20260929 のような名前からセットコードを取る
+  const code = (event.match(/Sealed_([A-Za-z0-9]{3,5})_/i) || event.match(/_([A-Za-z0-9]{3,5})$/) || [, ""])[1].toLowerCase();
+  return { event, code, ids };
+}
+
+async function loadFromLog(file){
+  if(!file) return;
+  $("openBtn").disabled = true;
+  setStatus(t("index.logReading"), false, true);
+  try{
+    const text = await file.text();
+    const found = parseSealedLog(text);
+    if(!found || !found.ids.length) throw new Error(t("index.logNone"));
+
+    // セットを合わせる（一覧に無いコードなら、いま選ばれているセットのまま）
+    let code = found.code;
+    if(availableSets.some(s => s.code === code)) $("setSelect").value = code;
+    else code = $("setSelect").value;
+    if(!code) throw new Error(t("err.noSet"));
+
+    if(code !== setCode){
+      setStatus(t("index.loading"), false, true);
+      await loadCards(code);
+      setStatus(t("index.loadingJa"), false, true);
+      await loadJapanese(code);
+      setStatus(t("index.loadingWr"), false, true);
+      await loadWinRates(code);
+      setCode = code;
+    }
+
+    // Arena ID → カード。まずセットの一覧で引き、無いもの（別イラスト版など）は1枚ずつ問い合わせる
+    const byArena = {};
+    for(const c of boosterCards) if(c.arena_id && !byArena[c.arena_id]) byArena[c.arena_id] = c;
+    const byName = {};
+    for(const c of boosterCards) if(!byName[c.name]) byName[c.name] = c;
+    const next = [], missing = [];
+    const cache = {};
+    for(const id of found.ids){
+      let c = byArena[id];
+      if(!c){
+        if(!(id in cache)){
+          try{
+            await sleep(110);
+            const r = await fetch(API + "/cards/arena/" + id);
+            cache[id] = r.ok ? await r.json() : null;
+          }catch(e){ cache[id] = null; }
+        }
+        const got = cache[id];
+        // 別イラスト版は、同名の通常版に寄せる（画像・日本語名・勝率がそろうため）
+        c = got ? (byName[got.name] || got) : null;
+      }
+      if(c) next.push(c); else missing.push(id);
+    }
+    if(!next.length) throw new Error(t("index.logNone"));
+
+    pool = next; deck = []; side = []; landCount = {};
+    const wrN = Object.keys(wrMap).length;
+    setStatus(t("index.logLoaded", {
+      n: pool.length, set: code.toUpperCase(),
+      miss: missing.length ? t("index.logMissing", {n: missing.length}) : "",
+      wr: wrN ? t("index.wrFrom", {src: wrSource}) : t("index.wrNone")
+    }));
+    render();
+  }catch(e){
+    setStatus(e.message, true);
+  }finally{
+    $("openBtn").disabled = !$("setSelect").value;
+    $("logFile").value = "";
   }
 }
 
@@ -982,6 +1070,7 @@ function setTarget(v){
 
 /* ---------- イベント ---------- */
 $("openBtn").onclick = openPacks;
+$("logFile").onchange = e => loadFromLog(e.target.files && e.target.files[0]);
 $("clearBtn").onclick = () => { deck = []; side = []; landCount = {}; render(); };
 document.querySelectorAll("#targetSeg button").forEach(b => { b.onclick = () => setTarget(b.dataset.target); });
 $("copyBtn").onclick = async () => {

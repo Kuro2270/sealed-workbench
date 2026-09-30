@@ -114,6 +114,15 @@
     "index.jaNone":     { ja:"／日本語版なし",   en:"" },
     "index.wrFrom":     { ja:"／勝率 {src}",     en:" / win rates from {src}" },
     "index.wrNone":     { ja:"／勝率データなし", en:" / no win-rate data" },
+    "index.log":        { ja:"ログから読み込む",   en:"Load from Arena log" },
+    "index.logTitle":   { ja:"MTGアリーナの Player.log を選ぶと、実際に配られたシールドのプールを読み込みます",
+                          en:"Pick your MTG Arena Player.log to load the sealed pool you were actually dealt" },
+    "index.logReading": { ja:"ログを読んでいます…", en:"Reading the log…" },
+    "index.logNone":    { ja:"ログの中にシールドのプールが見つかりませんでした。シールドに参加したあと、アリーナを閉じる前の Player.log を選んでください。",
+                          en:"No sealed pool found in this log. Pick the Player.log from after you joined a sealed event, before Arena was restarted." },
+    "index.logLoaded":  { ja:"ログからプール {n}枚を読み込みました（{set} シールド{miss}{wr}）。カードを押すとデッキに入ります。",
+                          en:"Loaded your {n}-card pool from the log ({set} sealed{miss}{wr}). Click a card to add it." },
+    "index.logMissing": { ja:"／{n}枚は特定できず", en:" / {n} could not be identified" },
 
     /* ---- ドラフト ---- */
     "page.draft.title": { ja:"ドラフト構築｜MTGアリーナの8人卓ドラフトを1人で練習",
