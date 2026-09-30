@@ -67,8 +67,8 @@ const L = {
     indexLead: "セットを選ぶと、ドラフトとシールドの環境レポートが開きます。発売日の新しい順です。",
     source: "出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。",
     none: "このセットのデータはまだありません。",
-    nav: { guide:"使い方", sealed:"シールド構築", draft:"ドラフト構築", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", table:"対戦卓", privacy:"プライバシー" },
-    navgrp: { start:"はじめに", build:"デッキを作る", data:"データを見る", play:"対戦する" },
+    nav: { guide:"使い方", sealed:"シールド構築", draft:"ドラフト構築", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", sassist:"シールド補助", table:"対戦卓", privacy:"プライバシー" },
+    navgrp: { start:"はじめに", build:"デッキを作る", assist:"補助", data:"データを見る", play:"対戦する" },
     foot: 'データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。',
     otherLang: "English", otherHref: c => `${c}.en.html`
   },
@@ -101,8 +101,8 @@ const L = {
     indexLead: "Pick a set to open its Draft and Sealed report. Newest first.",
     source: "Source: 17Lands Public Data (CC BY 4.0), aggregated by this site. Card data via Scryfall.",
     none: "No data for this set yet.",
-    nav: { guide:"Guide", sealed:"Sealed", draft:"Draft", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", table:"Play table", privacy:"Privacy" },
-    navgrp: { start:"Start", build:"Build", data:"Data", play:"Play" },
+    nav: { guide:"Guide", sealed:"Sealed", draft:"Draft", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", sassist:"Sealed assistant", table:"Play table", privacy:"Privacy" },
+    navgrp: { start:"Start", build:"Build", assist:"Assist", data:"Data", play:"Play" },
     foot: 'Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.',
     otherLang: "日本語", otherHref: c => `${c}.html`
   }
@@ -198,13 +198,14 @@ function shell(lang, code, head, body, ogImage){
   const other = T.otherHref(code);
   const og = ogImage || `${SITE}/ogp-${lang}.png`;
   // ナビはカテゴリごとにまとめる（本体のページと同じ並び）
-  const HREF = { guide:"../guide.html", sealed:"../", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", table:"../table.html" };
+  const HREF = { guide:"../guide.html", sealed:"../", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", sassist:"../sealed-assist.html", table:"../table.html" };
   const navGroup = (label, keys) =>
     `<div class="ng"><span class="ngl">${esc(T.navgrp[label])}</span>` +
     keys.map(k => `<a href="${HREF[k]}">${esc(T.nav[k])}</a>`).join("") + `</div>`;
   const nav = [
     navGroup("start", ["guide"]),
-    navGroup("build", ["sealed", "draft", "assist"]),
+    navGroup("build", ["sealed", "draft"]),
+    navGroup("assist", ["assist", "sassist"]),
     navGroup("data", ["reports"]),
     navGroup("play", ["table", "swiss"])
   ].join("\n      ");

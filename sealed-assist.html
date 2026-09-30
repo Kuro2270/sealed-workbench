@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="ja" data-title="page.sassist.title" data-desc="desc.sassist">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>シールド・アシスタント — MTGアリーナ リミテッド・ワークベンチ</title>
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="./i18n.js"></script>
+<script src="./analytics.js"></script>
+<style>
+  :root{
+    --pine:#10304F; --pine-deep:#0A2038;
+    --paper:#F5F8FC; --paper-2:#E8EEF6;
+    --ink:#0D1B2A; --muted:#5C7185;
+    --gold:#2F7DF6; --line:#D3DFEB;
+    --w:#FAF4E2; --u:#7FB4D8; --b:#2C2833; --r:#DB8068; --g:#79A87F; --m:#C3A03B; --c:#C6CCC9;
+    --radius:8px;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  /* 内容の長さでスクロールバーが出たり消えたりしても、位置が動かないようにする */
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+
+  header{background:linear-gradient(135deg,var(--pine-deep) 0%,var(--pine) 55%,#17466F 100%);color:var(--paper);padding:24px 24px 16px;border-bottom:3px solid var(--gold);box-shadow:0 10px 30px -18px rgba(8,26,48,.9)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .head-top{display:block}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:#9CC8FF;line-height:24px;margin:0 0 12px}
+
+  /* 言語の切り替えは、どのページでも見出しの右上に置く */
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+  .brandrow .brand{margin:0}
+  select.langsel{min-width:112px;padding:6px 10px;font-size:13px}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{
+    display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;
+    font-size:13px;font-weight:500;line-height:1;white-space:nowrap;
+    color:#C6D9EE;text-decoration:none;background:rgba(255,255,255,.05);
+    border:1px solid #2C4D74;transition:background .12s,color .12s;
+  }
+  nav a:hover{background:#1A4A79;color:var(--paper);border-color:#2F5E8F}
+  nav a.on{background:var(--gold);border-color:var(--gold);color:#FFFFFF;font-weight:700}
+
+  /* ナビはカテゴリごとにまとめる。小さな見出しを付けて、探す場所を分かりやすくする */
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end}
+  .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
+  .ng:first-of-type{padding-left:0;border-left:none}
+  .ngl{width:100%;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6;margin:0 0 1px;text-transform:uppercase}
+  @media (max-width:760px){
+    .ng{padding-left:0;border-left:none;width:100%}
+  }
+  .controls{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  header select{background:var(--pine-deep);color:var(--paper);border:1px solid #2C4D74;padding:9px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px;min-width:120px}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  main{max-width:1000px;margin:0 auto;padding:22px 24px 70px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px}
+  .card h2{font-size:17px;margin:0 0 10px}
+  .hint{color:var(--muted);font-size:12.5px;margin:0 0 10px}
+  ol.steps{margin:0 0 10px;padding-left:1.4em}
+  ol.steps li{margin-bottom:6px}
+  code{background:var(--paper-2);padding:1px 6px;border-radius:3px;font-size:12.5px;word-break:break-all}
+  .shot{margin:6px 0 12px}
+  .shot img{display:block;width:100%;max-width:560px;height:auto;border:1px solid var(--line);border-radius:var(--radius)}
+  .shot figcaption{color:var(--muted);font-size:12px;margin-top:4px}
+  button{border:none;border-radius:var(--radius);padding:9px 16px;cursor:pointer;background:var(--gold);color:#FFFFFF;font-weight:700;font-family:inherit;font-size:14px}
+  button:hover{background:#1F6AE0}
+  button:disabled{background:#B9C1BC;color:#F5F8FC;cursor:not-allowed}
+  button.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);font-weight:600}
+  button.ghost:hover{background:var(--paper-2)}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .status{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;margin:0 0 14px;font-size:13.5px;color:#33506B}
+  .status.bad{border-left-color:#A24B32;background:#F8ECE8}
+  .status.live{border-left-color:#1E7A52;background:#EAF3EC}
+  .status.live::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:#1E7A52;margin-right:8px;animation:blink 1.4s ease-in-out infinite}
+  @keyframes blink{50%{opacity:.25}}
+
+  /* パック表示（この部分を小窓にも出す） */
+  .panel{background:#fff}
+  /* 小窓の案内。金の縁と大きめのボタンで、設定の中に埋もれないようにする */
+  .pipbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+          background:linear-gradient(#F4F8FF,#E9F1FE);border:1px solid #A9C8F2;border-left:5px solid var(--gold);
+          border-radius:var(--radius);padding:14px 16px;margin:0 0 16px}
+  .pipbar .pipicon{color:var(--gold);display:flex;flex:0 0 auto}
+  .pipbar .piptext{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .pipbar .piptext b{font-size:15px}
+  .pipbar .piptext span{font-size:13px;color:#41556B}
+  .pipbar .piptext .hint{margin:0;font-size:12px}
+  .pipbar .pipgo{background:var(--gold);color:#FFFFFF;border:1px solid var(--gold);font-weight:700;
+                 padding:10px 18px;font-size:14.5px;flex:0 0 auto}
+  .pipbar .pipgo:hover{background:#1F6AE0;border-color:#1F6AE0}
+  .pipbar .pipno{flex:1 1 100%;margin:0}
+  .pipbar.on{background:linear-gradient(#F0FAF4,#E3F2E9);border-color:#9DC2A6;border-left-color:#1E7A52}
+  .pipbar.on .pipicon{color:#1E7A52}
+  .pipbar.on .pipgo{background:#fff;color:var(--ink);border-color:var(--line);font-weight:600}
+  .pipbar.off .pipgo{display:none}
+
+  /* 準備の手順は、一度うまくいったらたたんでおく */
+  #setupSteps > summary{cursor:pointer;color:var(--ink);font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;
+                        font-weight:800;font-size:17px;list-style:none;display:flex;align-items:center;gap:8px}
+  #setupSteps > summary::-webkit-details-marker{display:none}
+  #setupSteps > summary::after{content:"▾";font-size:12px;color:var(--muted);font-weight:400}
+  #setupSteps[open] > summary::after{content:"▴"}
+  #setupSteps[open]{margin-bottom:12px}
+
+  .pick-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .pick-head h2{margin:0;font-size:17px}
+  .pick-head .sub{color:var(--muted);font-size:13px}
+  .colors{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px;font-size:12px;color:var(--muted);align-items:center}
+  .colors .cb{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;background:var(--paper-2)}
+  .colors .cb.main{background:var(--pine);color:var(--paper)}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);flex:none}
+  ul.pack{list-style:none;margin:0;padding:0}
+  ul.pack li{display:grid;grid-template-columns:22px 18px 1fr auto auto;align-items:center;gap:8px;padding:6px 6px;border-bottom:1px solid var(--paper-2);font-size:14px}
+  ul.pack li.top{background:#FBF6E3}
+  ul.pack li.top .nm{font-weight:700}
+  ul.pack li .rk{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;text-align:right}
+  ul.pack li.top .rk{color:var(--gold);font-weight:700}
+  ul.pack li .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  ul.pack li .nm small{color:var(--muted);font-size:11.5px;margin-left:6px}
+  ul.pack li .wr{font-variant-numeric:tabular-nums;font-weight:600;min-width:52px;text-align:right}
+  ul.pack li .wr.na{color:var(--muted);font-weight:400}
+  ul.pack li .fit{font-size:11px;padding:1px 6px;border-radius:3px;background:var(--paper-2);color:var(--muted);min-width:44px;text-align:center}
+  ul.pack li .fit.on{background:#EAF3EC;color:#1E7A52}
+  ul.pack li .fit.off{background:#F8ECE8;color:#A24B32}
+  .empty{color:var(--muted);font-size:13px;padding:18px 0;text-align:center}
+  /* 表示の切り替え */
+  .tabs{display:inline-flex;gap:2px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:2px;margin-left:auto}
+  .tabs .tab{background:transparent;border:none;border-radius:999px;padding:5px 14px;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit}
+  .tabs .tab.on{background:var(--pine);color:var(--paper)}
+  /* デッキ案 */
+  .deck-sum{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 8px;font-size:13px}
+  .deck-sum .cb{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;background:var(--paper-2);color:var(--muted);font-size:12px}
+  .deck-sum .cb.main{background:var(--pine);color:var(--paper)}
+  .deck-sec{display:flex;justify-content:space-between;align-items:baseline;margin:10px 0 3px;padding-bottom:3px;border-bottom:1px solid var(--line);font-size:13px}
+  .deck-sec b{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif}
+  .deck-sec span{color:var(--muted);font-size:11.5px}
+  ul.dl{list-style:none;margin:0;padding:0}
+  ul.dl li{display:grid;grid-template-columns:18px 26px 1fr auto;gap:8px;align-items:center;padding:3px 4px;border-bottom:1px solid var(--paper-2);font-size:13.5px}
+  ul.dl li .cmc{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+  ul.dl li .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  ul.dl li .wr{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
+  ul.dl li .qty{color:var(--gold);margin-left:4px}
+  .deck-alt{margin-top:10px;font-size:12.5px;color:var(--muted)}
+  .deck-note{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+  /* おすすめの1枚 */
+  .best{display:flex;gap:10px;flex-wrap:wrap;padding:10px;margin:0 0 10px;background:#FBF6E3;border:1px solid #E6D6A8;border-radius:var(--radius)}
+  .best-one{display:flex;gap:12px;align-items:center;flex:1 1 300px;min-width:0}
+  .best.two .best-one{flex:1 1 300px}
+  .best-txt{flex:1 1 140px;min-width:140px}
+  .best img{width:150px;height:auto;border-radius:6px;flex:none;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  .best.two img{width:110px}
+  /* 小窓や狭い画面では、2枚を縦に並べる */
+  @media (max-width:560px){
+    .best-one,.best.two .best-one{flex:1 1 100%}
+    .best img,.best.two img{width:96px}
+    .best-nm{font-size:15px}
+  }
+  .best-note{flex:1 1 100%;font-size:12px;color:var(--muted);border-top:1px dashed #E6D6A8;padding-top:6px}
+  .best-lbl{display:inline-block;padding:1px 9px;border-radius:999px;background:var(--gold);color:#FFFFFF;font-size:11px;font-weight:700;margin-bottom:6px}
+  .best-nm{font-size:18px;font-weight:700;line-height:1.3}
+  .best-wr{font-size:14px;margin-top:2px}
+  .best-why{font-size:12.5px;color:var(--muted);margin-top:4px}
+  main select{font-family:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;color:var(--ink)}
+  .picked{display:flex;flex-wrap:wrap;gap:4px;font-size:12px}
+  .picked span{padding:2px 8px;border-radius:3px;background:var(--paper-2)}
+
+  details summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--muted);padding:4px 0}
+  textarea{width:100%;min-height:120px;font-family:ui-monospace,monospace;font-size:12px;border:1px solid var(--line);border-radius:var(--radius);padding:8px}
+
+  footer{max-width:1000px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+
+  @media (max-width:720px){
+    header p{min-height:0}
+    html,body{overflow-x:hidden}
+    body{font-size:14px}
+    header{padding:16px 14px 12px}
+    header h1{font-size:20px}
+    header p{font-size:12px;max-width:none}
+    main{padding:16px 12px 50px}
+    footer{padding:0 14px 40px}
+    .head-top{flex-direction:column;align-items:stretch;gap:12px}
+    .controls select{width:100%}
+    nav{margin:0 0 14px;gap:6px;font-size:12px}
+    nav a{white-space:nowrap}
+    .card{padding:14px 12px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brandrow">
+      <div class="brand" data-i18n="site.name">MTGアリーナ リミテッド・ワークベンチ</div>
+      <select id="langSelect" class="langsel" data-i18n-label="lang.label"><option value="ja">日本語</option><option value="en">English</option></select>
+    </div>
+    <nav>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span>
+        <a href="./guide.html" data-i18n="nav.guide">使い方</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.build">デッキを作る</span>
+        <a href="./" data-i18n="nav.sealed">シールド構築</a>
+        <a href="./draft.html" data-i18n="nav.draft">ドラフト構築</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.assist">補助</span>
+        <a href="./assistant.html" data-i18n="nav.assist">ドラフト補助</a>
+        <a href="./sealed-assist.html" class="on" data-i18n="nav.sassist">シールド補助</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.data">データを見る</span>
+        <a href="./reports.html" data-i18n="nav.reports">環境レポート</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.play">対戦する</span>
+        <a href="./table.html" data-i18n="nav.table">対戦卓</a>
+        <a href="./swiss.html" data-i18n="nav.swiss">スイスドロー</a></div>
+    </nav>
+    <div class="head-top">
+      <div>
+        <h1 data-i18n="sassist.h1">シールド・アシスタント</h1>
+        <p data-i18n="sassist.lead">アリーナのシールドで実際に配られたプールをログから読み込み、勝率と色の噛み合いから2色のデッキ案を組みます。</p>
+      </div>
+      <div class="controls">
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="status" data-i18n-html="sassist.support"><b>使い方</b>：アリーナでシールドに参加してプールを開いたら、<b>アリーナを閉じる前に</b> Player.log を選びます。ファイルはこのブラウザの中でだけ読み、どこにも送られません。スマホ版アリーナはログを出さないため、PCでのプレイが対象です。</div>
+  
+
+  <section class="card" id="setup">
+    <details id="setupSteps">
+      <summary><span data-i18n="assist.setupH">準備（初回だけ）</span></summary>
+    <ol class="steps" data-i18n-html="sassist.steps"><li>マジック：ザ・ギャザリング アリーナを起動し、右上の歯車から設定を開き、「アカウント」→「詳細ログ（プラグインのサポート）」にチェックを入れる</li><li>アリーナを再起動し、シールドに参加してプールを開く（デッキを組む画面まで進めばよい）</li><li>アリーナを閉じずに、下の「Player.log を選ぶ」を押す。ファイル選択の画面で上部のアドレス欄に次を貼り付けてEnterを押し、開いたフォルダの中の <b>Player.log</b> を選ぶ<br>Windows：<code>%USERPROFILE%\AppData\LocalLow\Wizards Of The Coast\MTGA</code><br>Mac：<code>~/Library/Logs/Wizards Of The Coast/MTGA</code></li></ol>
+    <figure class="shot">
+      <img src="./img/arena-detailed-log.jpg" alt="" loading="lazy" width="1165" height="910">
+      <figcaption data-i18n="assist.shotCap">設定 →「アカウント」の画面。「詳細ログ（プラグインのサポート）」にチェックを入れます。</figcaption>
+    </figure>
+    <p class="hint" data-i18n="sassist.setupHint">アリーナを再起動するとログは作り直され、プールの記録が消えます。その場合は、いちどイベント画面からシールドのデッキ構築を開き直すと、再び記録されます。</p>
+    </details>
+    <div class="row">
+      <button id="pickBtn" data-i18n="assist.pick">Player.log を選ぶ</button>
+      <input type="file" id="logFile" accept=".log,.txt" style="display:none">
+    </div>
+  </section>
+
+  <section class="card" id="settings" hidden>
+    <h2 data-i18n="assist.settingsH">設定</h2>
+    <div class="row" style="margin-bottom:10px">
+      <label style="font-size:13.5px"><span data-i18n="assist.weight">色へのこだわり</span>
+        <select id="weightSel" style="margin-left:6px">
+          <option value="weak" data-i18n="assist.weightWeak">弱め（勝率を重視）</option>
+          <option value="mid" data-i18n="assist.weightMid">標準</option>
+          <option value="strong" data-i18n="assist.weightStrong">強め（色を重視）</option>
+        </select>
+      </label>
+      <span class="hint" style="margin:0" data-i18n="assist.weightHint">ピック済みの上位2色を自分の色とみなし、合うカードを持ち上げ、違うカードを下げます。標準では1パック目で最大±4、2パック目で±6、3パック目で±8ポイントです。</span>
+    </div>
+    <div class="row">
+      <label style="font-size:13.5px"><span data-i18n="assist.syn">部族シナジーの効き</span>
+        <select id="synSel" style="margin-left:6px">
+          <option value="weak" data-i18n="assist.synWeak">弱め（勝率を重視）</option>
+          <option value="mid" data-i18n="assist.synMid">標準</option>
+          <option value="strong" data-i18n="assist.synStrong">強め（部族を重視）</option>
+        </select>
+      </label>
+      <span class="hint" style="margin:0" data-i18n="assist.synHint">ピック済みのクリーチャー・タイプと、それを参照するカード（受け皿）の噛み合いを見て持ち上げます。標準では最大＋6ポイント、強めでは＋10ポイントほどになります。</span>
+    </div>
+    <div class="row">
+      <label style="font-size:13.5px"><span data-i18n="assist.curve">マナカーブの補正</span>
+        <select id="curveSel" style="margin-left:6px">
+          <option value="new" data-i18n="assist.curveNew">デッキのカーブを見る</option>
+          <option value="old" data-i18n="assist.curveOld">マナ域で一律（旧方式）</option>
+        </select>
+      </label>
+      <span class="hint" style="margin:0" data-i18n="assist.curveHint">環境の速さごとに「土地以外23枚のカーブ」の目安を持ち、いま足りていないマナ域を持ち上げます（最大±2ポイント）。旧方式は、デッキの中身に関係なくマナ域だけで一律に上げ下げします。</span>
+    </div>
+  </section>
+
+  <div id="statusBox" class="status" data-i18n="sassist.idle">Player.log を選ぶと、プールを読み込んでデッキ案を出します。</div>
+
+  <!-- 小窓は一番よく使う機能なので、盤面の手前に大きく出す -->
+  <section class="pipbar" id="pipBar">
+    <div class="pipicon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+        <rect x="2.2" y="4.2" width="19.6" height="15.6" rx="2"></rect>
+        <rect x="12" y="11.4" width="8.4" height="7" rx="1.2" fill="currentColor" stroke="none"></rect>
+      </svg>
+    </div>
+    <div class="piptext">
+      <b data-i18n="assist.pipLabel">小窓表示</b>
+      <span data-i18n="sassist.pipWhy">アリーナのデッキ構築画面の横に置いたまま、デッキ案を見ながら組めます。</span>
+      <span class="hint" data-i18n="assist.pipHint">アリーナを全画面ではなくウィンドウ表示にしておくと、小窓を横に置けます。</span>
+    </div>
+    <button id="pipBtn" class="pipgo" data-i18n="assist.pip">常に前面の小窓で表示</button>
+    <p class="hint pipno" id="pipNo" hidden data-i18n="assist.pipUnsupported">この機能はChrome／Edgeの新しい版でのみ使えます。</p>
+  </section>
+
+  <section class="card panel" id="panel">
+    <div class="pick-head">
+      <h2 id="pickTitle" data-i18n="sassist.waiting">プールを待っています</h2>
+      <span class="sub" id="pickSub"></span>
+      <span class="tabs" id="viewTabs" hidden></span>
+    </div>
+    <div class="colors" id="colorBar"></div>
+    <div class="best" id="best" hidden></div>
+    <ul class="pack" id="pack"></ul>
+    <div class="empty" id="packEmpty" data-i18n="sassist.packEmpty">ログを読み込むと、ここにデッキ案が出ます。</div>
+    <div id="deckView" hidden></div>
+  </section>
+
+
+  <section class="card">
+    <h2 data-i18n="sassist.poolH">プール</h2>
+    <div class="picked" id="picked"></div>
+    <div class="empty" id="pickedEmpty" data-i18n="sassist.poolEmpty">まだ読み込んでいません。</div>
+  </section>
+
+  <section class="card">
+    <details>
+      <summary data-i18n="assist.debugH">読み取りの記録（うまく動かないときに）</summary>
+      <p class="hint" data-i18n="sassist.debugHint">ログの中で見つけたものを出します。プールが見つからないときは、この内容を添えてお知らせください。</p>
+      <textarea id="debug" readonly></textarea>
+    </details>
+  </section>
+</main>
+
+<footer>
+  <span data-i18n-html="foot.short">データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="./privacy.html">プライバシーポリシー</a>にまとめています。</span>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const t = (k, v) => I18N.t(k, v);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const SCRY = "https://api.scryfall.com";
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ================= 状態 ================= */
+let handle = null;          // Player.log のファイルハンドル
+let offset = 0;             // 読み終えた位置
+let tail = "";              // 行の途中で切れた残り
+let timer = null;
+let demo = false;
+
+const D = {                 // ドラフトの状態
+  set: "",                  // セットコード（HOB など）
+  event: "",                // イベント名
+  packNo: 0, pickNo: 0,     // 1始まり
+  pack: [],                 // いま見ているパック（arena_id の配列）
+  picked: [],               // ピック済み（arena_id の配列）
+  done: false,              // ドラフトが終わったか
+  colorScore: {W:0,U:0,B:0,R:0,G:0}
+};
+let view = "deck";          // シールドはデッキ案だけを出す
+let deckChoice = 0;         // 何番目の候補を見せているか
+let cards = {};             // arena_id → {name, ja, colors, rarity, cmc, type}
+let wr = {};                // 英語名 → {gih, games}
+let loadedSet = "";
+let pace = "";                // 環境の速さ（fast / mid / slow / slower）
+let archetypes = {};          // 2色の組み合わせ → { wr, diff }（環境の平均との差、ポイント）
+let avgWR = 0;
+const RAR_BASE = { common:52.0, uncommon:53.5, rare:55.0, mythic:56.0 };
+
+/* ================= ログの解析 =================
+   アリーナのログには行の末尾に JSON が入っている。
+   人間相手のドラフト（プレミア）と Bot 相手（クイック）でキーが違うので、両方を見る。
+   形式はアップデートで変わることがあるため、キー名は大文字小文字を無視して探す。 */
+function findKey(o, names){
+  if(!o || typeof o !== "object") return undefined;
+  for(const k of Object.keys(o)){
+    if(names.includes(k.toLowerCase())) return o[k];
+  }
+  return undefined;
+}
+function parseJsonTail(line){
+  const i = line.indexOf("{");
+  if(i < 0) return null;
+  const s = line.slice(i);
+  try{ return JSON.parse(s); }catch(e){}
+  // 末尾にゴミがある場合は、対応する閉じ括弧まで切る
+  let depth = 0, inStr = false, escp = false;
+  for(let j = 0; j < s.length; j++){
+    const ch = s[j];
+    if(inStr){ if(escp) escp = false; else if(ch === "\\") escp = true; else if(ch === '"') inStr = false; continue; }
+    if(ch === '"') inStr = true;
+    else if(ch === "{") depth++;
+    else if(ch === "}"){ depth--; if(depth === 0){ try{ return JSON.parse(s.slice(0, j + 1)); }catch(e){ return null; } } }
+  }
+  return null;
+}
+function unwrap(o){
+  // {"request":"{...}"} のように JSON が文字列で入れ子になっているものを開く
+  if(o && typeof o === "object"){
+    for(const k of ["request","payload","Payload","params"]){
+      if(typeof o[k] === "string" && o[k].trim().startsWith("{")){ try{ o[k] = JSON.parse(o[k]); }catch(e){} }
+    }
+  }
+  return o;
+}
+const toIds = v => {
+  if(Array.isArray(v)) return v.map(x => String(x).trim()).filter(Boolean);
+  if(typeof v === "string") return v.split(",").map(x => x.trim()).filter(Boolean);
+  return [];
+};
+
+function handleLine(line){
+  if(!line.includes("{")) return;
+  const o = unwrap(parseJsonTail(line));
+  if(!o) return;
+  let hit = false;
+
+  // イベント名（セットコードを取り出す）
+  const evName = deepFind(o, ["internaleventname","eventname"]);
+  if(typeof evName === "string" && /draft/i.test(evName)){
+    const m = evName.match(/_([A-Z0-9]{3,5})_/);
+    if(m && m[1] !== D.set){ D.set = m[1]; hit = true; }
+    if(evName !== D.event){ D.event = evName; hit = true; }
+  }
+
+  // 人間相手のドラフト：PackCards / SelfPack / SelfPick
+  const packCards = deepFind(o, ["packcards"]);
+  if(packCards !== undefined){
+    const ids = toIds(packCards);
+    if(ids.length){
+      D.pack = ids;
+      D.packNo = +(deepFind(o, ["selfpack"]) ?? D.packNo) || D.packNo;
+      D.pickNo = +(deepFind(o, ["selfpick"]) ?? D.pickNo) || D.pickNo;
+      hit = true; log(`pack ${D.packNo} pick ${D.pickNo}: ${ids.length} cards (human)`);
+    }
+  }
+
+  // ドラフト終了（Bot 相手）：DraftStatus が Completed
+  const st = deepFind(o, ["draftstatus"]);
+  if(typeof st === "string" && /complete/i.test(st)){
+    const pc = deepFind(o, ["pickedcards"]);
+    if(pc !== undefined) D.picked = toIds(pc);
+    D.pack = []; D.done = true; view = "deck";
+    recomputeColors();
+    hit = true; log(`draft completed: ${D.picked.length} cards`);
+  }
+  // 新しいドラフトが始まったら状態を戻す
+  if(D.done && deepFind(o, ["draftpack","packcards"]) !== undefined && toIds(deepFind(o, ["draftpack","packcards"])).length){
+    D.done = false; D.picked = []; view = "pack"; recomputeColors();
+  }
+
+  // Bot 相手のドラフト：DraftPack / PackNumber / PickNumber / PickedCards
+  const draftPack = deepFind(o, ["draftpack"]);
+  if(draftPack !== undefined){
+    const ids = toIds(draftPack);
+    const pn = deepFind(o, ["packnumber"]), pk = deepFind(o, ["picknumber"]);
+    if(ids.length){
+      D.pack = ids;
+      if(pn != null) D.packNo = +pn + 1;
+      if(pk != null) D.pickNo = +pk + 1;
+      const pc = deepFind(o, ["pickedcards"]);
+      if(pc !== undefined){ D.picked = toIds(pc); recomputeColors(); }
+      hit = true; log(`pack ${D.packNo} pick ${D.pickNo}: ${ids.length} cards (bot)`);
+    }
+  }
+
+  // 自分のピック：cardId / GrpId / GrpIds
+  const cardId = deepFind(o, ["cardid","grpid"]);
+  const cardIds = deepFind(o, ["grpids","cardids"]);
+  if(line.includes("==>") && /pick/i.test(line) && (cardId != null || cardIds != null)){
+    const ids = cardIds != null ? toIds(cardIds) : [String(cardId)];
+    ids.forEach(id => { if(D.pack.includes(id) || !D.pack.length){ D.picked.push(id); } });
+    recomputeColors();
+    D.pack = [];                                   // 残りは次の人に回るので表示しない。次のパックが届くまで待つ
+    if(D.picked.length >= 42 && !D.done){ D.done = true; D.pack = []; view = "deck"; }
+    hit = true; log(`picked: ${ids.map(id => cards[id]?.name || id).join(", ")}`);
+  }
+
+  if(hit) render();
+}
+function deepFind(o, names, depth = 0){
+  if(!o || typeof o !== "object" || depth > 4) return undefined;
+  const v = findKey(o, names);
+  if(v !== undefined) return v;
+  for(const k of Object.keys(o)){
+    const r = deepFind(o[k], names, depth + 1);
+    if(r !== undefined) return r;
+  }
+  return undefined;
+}
+function consume(text){
+  const chunk = tail + text;
+  const lines = chunk.split(/\r?\n/);
+  tail = lines.pop() || "";
+  lines.forEach(handleLine);
+}
+
+const dbg = [];
+function log(msg){
+  dbg.unshift(new Date().toLocaleTimeString() + "  " + msg);
+  if(dbg.length > 60) dbg.pop();
+  $("debug").value = dbg.join("\n");
+}
+
+/* ================= ログの読み込み =================
+   Player.log の中で、シールドのプールは「イベント参加の応答」と「参加中イベントの一覧」に
+   Arena ID の配列（CardPool）として入っている。数が 40 以上の CardPool を候補にし、
+   近くに Sealed のイベント名があるものを優先して、いちばん後ろのものを採用する。 */
+function parseSealedLog(text){
+  const found = [];
+  const re = /"CardPool"\s*:\s*\[([0-9,\s]*)\]/g;
+  let m;
+  while((m = re.exec(text))){
+    const ids = m[1].split(",").map(x => x.trim()).filter(x => /^\d+$/.test(x));
+    if(ids.length < 40) continue;
+    const around = text.slice(Math.max(0, m.index - 4000), m.index);
+    const evs = [...around.matchAll(/"InternalEventName"\s*:\s*"([^"]+)"/g)].map(x => x[1]);
+    const ev = evs.length ? evs[evs.length - 1] : "";
+    found.push({ ids, event: ev, sealed: /sealed/i.test(ev), at: m.index });
+  }
+  if(!found.length) return { hit: null, found };
+  const pick = found.filter(f => f.sealed).pop() || found[found.length - 1];
+  const code = (pick.event.match(/_([A-Za-z0-9]{3,5})_/) || pick.event.match(/_([A-Za-z0-9]{3,5})$/) || [, ""])[1].toUpperCase();
+  return { hit: { ...pick, code }, found };
+}
+
+async function loadLogFile(file){
+  if(!file) return;
+  markSetupDone();
+  demo = false;
+  setStatus(t("sassist.reading"), "");
+  let text = "";
+  try{ text = await file.text(); }catch(e){ setStatus(t("sassist.readFail"), "bad"); return; }
+  const { hit, found } = parseSealedLog(text);
+  log(`file: ${file.name} (${Math.round(file.size / 1024)} KB), CardPool x${found.length}: ` +
+      found.map(f => `${f.event || "?"}=${f.ids.length}`).join(", ") + `, "Sealed" x${(text.match(/Sealed/g) || []).length}`);
+  if(!hit){ setStatus(t("sassist.notFound"), "bad"); return; }
+  D.set = hit.code; D.event = hit.event; D.pack = []; D.packNo = 0; D.pickNo = 0;
+  D.picked = hit.ids.slice(); D.done = true; view = "deck"; deckChoice = 0;
+  recomputeColors();
+  log(`pool: ${hit.event} ${hit.ids.length} cards, set ${hit.code || "?"}`);
+  setStatus(t("sassist.loaded", {n: hit.ids.length, set: hit.code || "?"}), "live");
+  render();
+}
+function markSetupDone(){
+  try{ localStorage.setItem("sw.sassist.setupDone", "1"); }catch(e){}
+  $("setupSteps").open = false;
+}
+
+/* ================= カード情報と勝率 ================= */
+async function ensureSet(code){
+  if(!code || code === loadedSet) return;
+  loadedSet = code;
+  setStatus(t("assist.loadingSet", {set: code}));
+  cards = {}; wr = {};
+  // 勝率（ドラフトの統合データ）
+  try{
+    let r = await fetch(`./data/ratings/${code}_sealed.json`, {cache: "no-cache"});
+    if(!r.ok) r = await fetch(`./data/ratings/${code}_draft.json`, {cache: "no-cache"});
+    if(r.ok){ const d = await r.json(); (d.cards || []).forEach(c => { wr[c.name] = { gih: c.gih, games: c.games, byPair: c.by_pair || {} }; }); }
+  }catch(e){}
+  // 環境の速さ（環境レポートと同じデータ）：最も勝率の高い区分を採用する
+  pace = ""; archetypes = {}; avgWR = 0;
+  try{
+    let r = await fetch(`./data/articles/${code}_sealed.json`, {cache: "no-cache"});
+    if(!r.ok) r = await fetch(`./data/articles/${code}_draft.json`, {cache: "no-cache"});
+    if(r.ok){
+      const d = await r.json();
+      const best = (d.speed || []).filter(x => x.wr != null).sort((a, b) => b.wr - a.wr)[0];
+      pace = best ? best.key : "";
+      // 2色の組み合わせごとの勝率（環境レポートと同じデータ）。平均との差をポイントで持つ
+      archetypes = {};
+      avgWR = d.overall_win_rate || 0;
+      (d.archetypes || []).filter(a => a.colors.length === 2 && a.games >= 500 && a.wr != null)
+        .forEach(a => { archetypes[[...a.colors].sort().join("")] = { wr: a.wr, diff: (a.wr - avgWR) * 100 }; });
+    }
+  }catch(e){}
+  // カード情報（英語）
+  await scryAll(`set:${code.toLowerCase()} unique:prints`, c => addCard(c));
+  // 日本語名
+  await scryAll(`set:${code.toLowerCase()} lang:ja unique:prints`, c => {
+    const en = Object.values(cards).find(x => x.name === c.name)
+            || Object.values(cards).find(x => x.cn === c.collector_number);
+    if(en && !en.ja){ en.ja = c.printed_name || (c.card_faces?.[0]?.printed_name) || ""; en.imgJa = imgOf(c); }
+  });
+  setStatus(D.picked.length ? t("sassist.loaded", {n: D.picked.length, set: code}) : t("sassist.idle"), D.picked.length ? "live" : "");
+  render();
+}
+function imgOf(c){ return c.image_uris?.normal || c.card_faces?.[0]?.image_uris?.normal || ""; }
+/* マナ・コストを読む。{G} は必須の緑、{B/G} は黒か緑のどちらでも払えるハイブリッド。
+   返り値: required = 必須の色ごとのシンボル数、hybrid = ハイブリッドの選択肢の配列 */
+function parseMana(mana){
+  const required = {W:0,U:0,B:0,R:0,G:0}, hybrid = [];
+  for(const m of String(mana || "").matchAll(/\{([^}]+)\}/g)){
+    const parts = m[1].split("/").filter(x => "WUBRG".includes(x) && x.length === 1);
+    if(parts.length === 1) required[parts[0]]++;
+    else if(parts.length >= 2) hybrid.push(parts);
+  }
+  return { required, hybrid };
+}
+function addCard(c){
+  if(!c.arena_id) return;
+  if(cards[String(c.arena_id)]) return;              // 通常版を先に登録し、別イラスト版で上書きしない
+  const front = (c.type_line || "").split("//")[0];
+  const mana = c.mana_cost || c.card_faces?.[0]?.mana_cost || "";
+  const pm = parseMana(mana);
+  const identity = (c.color_identity || []).filter(x => "WUBRG".includes(x));
+  const reqColors = Object.keys(pm.required).filter(k => pm.required[k] > 0);
+  cards[String(c.arena_id)] = {
+    name: c.name, ja: "", cn: c.collector_number,
+    // 色：土地は色識別（二色土地なら2色）、呪文はマナ・コストの必須シンボルの色。
+    // 必須シンボルが無くハイブリッドだけのカードは、選択肢の色を持たせる（どれか1色で払える）
+    colors: front.includes("Land") ? identity : (reqColors.length ? reqColors : (pm.hybrid.length ? [...new Set(pm.hybrid.flat())] : identity)),
+    reqPips: pm.required, hybrid: pm.hybrid,
+    pureHybrid: !reqColors.length && pm.hybrid.length > 0,
+    rarity: c.rarity || "", cmc: c.cmc ?? 0, type: front.trim(),
+    basic: front.includes("Basic Land"),
+    legendary: front.includes("Legendary"),
+    subtypes: (front.split("—")[1] || "").trim().split(/\s+/).filter(Boolean),
+    oracle: c.oracle_text || c.card_faces?.[0]?.oracle_text || "",
+    img: imgOf(c), imgJa: "",
+    mana: c.mana_cost || c.card_faces?.[0]?.mana_cost || "",
+    set: (c.set || "").toUpperCase()
+  };
+}
+async function scryAll(q, fn){
+  let url = `${SCRY}/cards/search?q=${encodeURIComponent(q)}`;
+  while(url){
+    try{
+      const r = await fetch(url);
+      if(!r.ok) break;
+      const d = await r.json();
+      (d.data || []).forEach(fn);
+      url = d.has_more ? d.next_page : null;
+      if(url) await sleep(110);
+    }catch(e){ break; }
+  }
+}
+/* パックに知らない ID があれば、個別に取りに行く（特別枠など） */
+const fetching = new Set();
+async function ensureCards(ids){
+  const missing = ids.filter(id => !cards[id] && !fetching.has(id));
+  missing.forEach(id => fetching.add(id));
+  for(const id of missing){
+    try{
+      const r = await fetch(`${SCRY}/cards/arena/${id}`);
+      if(r.ok){ addCard(await r.json()); }
+    }catch(e){}
+    fetching.delete(id);
+    await sleep(110);
+  }
+  if(missing.length) render();
+}
+
+/* ================= 推奨 =================
+   ドラフト構築の他プレイヤーと同じ考え方。勝率を基本に、ピックが進むほど自分の色を優先する。 */
+/* カードの評価（勝率ポイント）。pair を渡すと「その2色のデッキで使われたときの勝率」を、
+   母数に応じて全体の勝率と混ぜて返す。シナジーの効くカードは、その色でだけ高い数字になる。 */
+function ratingOf(id, pair){
+  const c = cards[id]; if(!c) return 50;
+  const e = wr[c.name] || wr[c.name.split(" // ")[0]];
+  if(!(e && e.gih != null && e.games >= 200)) return RAR_BASE[c.rarity] ?? 52;
+  const overall = e.gih * 100;
+  if(pair && e.byPair){
+    const k = [...pair].sort().join("");
+    const v = e.byPair[k];
+    if(v && v[1] >= 200){
+      const w = v[1] / (v[1] + 300);                 // 母数が多いほど、その色での勝率を信じる
+      return w * v[0] * 100 + (1 - w) * overall;
+    }
+  }
+  return overall;
+}
+function pairRating(id, pair){   // 表示用：その2色での勝率（無ければ null）
+  const c = cards[id]; if(!c) return null;
+  const e = wr[c.name] || wr[c.name.split(" // ")[0]];
+  const k = pair ? [...pair].sort().join("") : "";
+  const v = e && e.byPair && e.byPair[k];
+  return v && v[1] >= 200 ? { gih: v[0], games: v[1] } : null;
+}
+
+/* ---------- 部族などのシナジー ----------
+   カードのテキストが参照しているクリーチャー・タイプ（例：「エルフ」）と、
+   ピック済みのそのタイプのクリーチャーの枚数から、シナジーを見積もる。
+   「伝説」もタイプと同じ扱いにする（伝説を参照するカードがあるセット向け）。 */
+const PLURAL = { Elf:"Elves", Dwarf:"Dwarves", Wolf:"Wolves", Werewolf:"Werewolves", Mouse:"Mice", Ox:"Oxen", Fox:"Foxes", Fish:"Fish", Sheep:"Sheep", Moose:"Moose", Elk:"Elk", Serf:"Serfs" };
+const TYPE_STOP = new Set(["Creature","Legendary","Token"]);
+const pluralOf = ty => PLURAL[ty] || (ty.endsWith("y") ? ty.slice(0, -1) + "ies" : ty.endsWith("s") ? ty : ty + "s");
+/* 破壊・追放するだけの呪文は、その種族の受け皿ではない */
+const SYN_BAD = /\b(destroy|exile|sacrifice)\b/i;
+/*
+ * このカードが、その種族の「受け皿」かどうか。
+ *
+ * 以前は種族名がテキストに出てくるだけで受け皿として数えていた。しかしそれだと
+ * 「兵士トークンを1体作る」「ドワーフ1体を対象とする」のような、同じ種族を
+ * 集めても強くならないカードまで数に入り、ただ枚数が多いだけで点が上がっていた。
+ * そこで、その種族を《まとめて》扱っている言い回しに限って受け皿とみなす。
+ *
+ *   ・複数形で出てくる          … 「Soldiers you control get +1/+1」
+ *   ・each / all / another / other を伴う … 「each other Dwarf」
+ *   ・その種族が出る・攻撃する・死亡するたびに誘発する
+ *   ・その種族の呪文のコストが下がる
+ *
+ * 逆に、単数形で1回出てくるだけ（トークン1体を作る、1体を対象にする）は受け皿にしない。
+ */
+function isPayoffFor(text, ty){
+  const plural = pluralOf(ty);
+  const T = ty === "Legendary" ? "legendary" : `(?:${ty}|${plural})`;
+  const has = new RegExp(`\\b${T}\\b`, "i");
+  // 文ごとに見る。1つの文の中で完結している言い回しだけを拾う
+  for(const s of String(text).split(/[.;]\s*/)){
+    if(!has.test(s)) continue;
+    if(SYN_BAD.test(s.split(has)[0] || "")) continue;
+    // トークンを作るだけの文は、複数形で書かれていても受け皿ではない
+    const makesToken = /\bcreates?\b[^]*\btokens?\b/i.test(s);
+    if(!makesToken && plural !== ty && new RegExp(`\\b${plural}\\b`, "i").test(s)) return true;
+    if(new RegExp(`\\b(?:each|all|another|other)\\s+(?:\\w+\\s+){0,2}?${T}\\b`, "i").test(s)) return true;
+    if(new RegExp(`\\bwhenever\\b.*?\\b${T}\\b.*?\\b(?:enters|attacks|dies)\\b`, "i").test(s)) return true;
+    if(new RegExp(`\\b${T}\\s+spells?\\b.*?\\bcost\\b`, "i").test(s)) return true;
+  }
+  return false;
+}
+function mentionedTypes(c){
+  // このカードが受け皿になっているタイプ。セット内のカードのサブタイプを候補にする
+  if(c._mentions) return c._mentions;
+  const text = c.oracle || "";
+  const out = [];
+  for(const ty of allSubtypes()) if(isPayoffFor(text, ty)) out.push(ty);
+  if(isPayoffFor(text, "Legendary")) out.push("Legendary");
+  c._mentions = out;
+  return c._mentions;
+}
+let _subtypesCache = null, _subtypesCount = 0;
+function allSubtypes(){
+  const n = Object.keys(cards).length;
+  if(_subtypesCache && _subtypesCount === n) return _subtypesCache;
+  const set = new Set();
+  Object.values(cards).forEach(c => { if((c.type || "").includes("Creature")) (c.subtypes || []).forEach(t => { if(!TYPE_STOP.has(t)) set.add(t); }); });
+  _subtypesCache = [...set]; _subtypesCount = n;
+  return _subtypesCache;
+}
+function typesOf(c){
+  const t = new Set();
+  if((c.type || "").includes("Creature")) (c.subtypes || []).forEach(x => t.add(x));
+  if(c.legendary) t.add("Legendary");
+  return t;
+}
+/* ピック済みから、タイプごとの枚数と、そのタイプを参照するカード（受け皿）の枚数を数える */
+function synergyState(){
+  const count = {}, payoff = {};
+  D.picked.forEach(id => {
+    const c = cards[id]; if(!c) return;
+    typesOf(c).forEach(t => { count[t] = (count[t] || 0) + 1; });
+    mentionedTypes(c).forEach(t => { payoff[t] = (payoff[t] || 0) + 1; });
+  });
+  return { count, payoff };
+}
+/* シナジーの効き。色へのこだわりと同じように、設定で選べる */
+const SYN_WEIGHTS = { weak: 0.55, mid: 1, strong: 1.7 };
+function synWeight(){
+  try{ return SYN_WEIGHTS[localStorage.getItem("assist.syn") || "mid"] ?? 1; }catch(e){ return 1; }
+}
+/* マナカーブの補正の方式。new = デッキのカーブを見る、old = マナ域で一律 */
+function curveMode(){
+  try{ return localStorage.getItem("assist.curve") === "old" ? "old" : "new"; }catch(e){ return "new"; }
+}
+/* 候補カードのシナジー補正。
+   受け皿（そのタイプを参照するカード）なら、手元の仲間の枚数に応じて上げる。
+   仲間（そのタイプのクリーチャー）なら、手元の受け皿の枚数に応じて上げる。
+   部族デッキは噛み合ったときの伸びが大きいので、色の補正（最大±4〜±8）と比べても
+   見劣りしない幅にしてある。 */
+function synergyFor(c, st){
+  let adj = 0; const why = [];
+  mentionedTypes(c).forEach(t => {
+    const n = (st.count[t] || 0);
+    if(n >= 1){ const v = Math.min(5, n * 0.9); adj += v; why.push({ type: t, n, kind: "payoff" }); }
+  });
+  typesOf(c).forEach(t => {
+    const n = (st.payoff[t] || 0);
+    if(n >= 1){ const v = Math.min(3.5, n * 1.3); adj += v; why.push({ type: t, n, kind: "member" }); }
+  });
+  return { adj: Math.min(6, adj) * synWeight(), why };
+}
+function recomputeColors(){
+  D.colorScore = {W:0,U:0,B:0,R:0,G:0};
+  D.picked.forEach(id => {
+    const c = cards[id]; if(!c) return;
+    const w = Math.max(0, ratingOf(id) - 50);
+    c.colors.forEach(k => { D.colorScore[k] += w; });
+  });
+}
+/* 目標の2色を決める。
+   ピック済みの色の強さ（colorScore）に、環境レポートの「その2色の勝率が平均よりどれだけ高いか」を足して、
+   最も高い組み合わせを目標にする。環境で弱い組み合わせ（例：シナジーの無い2色）には流れにくくなる。
+   ARCHE_WEIGHT は「平均より1ポイント強い組み合わせ」を、勝率54%のカード1枚分の重みで見る、という意味。 */
+const ARCHE_WEIGHT = 4;
+const PAIRS_ALL = ["WU","WB","WR","WG","UB","UR","UG","BR","BG","RG"];
+/* 環境レポートに載らない組み合わせ（試合数が少ない＝誰も組んでいない）は、最も弱い組み合わせと同程度に扱う */
+function archeDiff(pr){
+  const key = [...pr].sort().join("");
+  if(archetypes[key]) return archetypes[key].diff;
+  if(!Object.keys(archetypes).length) return 0;                    // データ自体が無いときは中立
+  const worst = Math.min(...Object.values(archetypes).map(a => a.diff));
+  return Math.min(-2, worst);
+}
+function targetPair(){
+  const picked = Object.values(D.colorScore).some(v => v > 0);
+  if(!picked) return null;
+  let best = null;
+  for(const pr of PAIRS_ALL){
+    const own = D.colorScore[pr[0]] + D.colorScore[pr[1]];
+    if(own <= 0) continue;
+    const a = archetypes[[...pr].sort().join("")] || null;
+    const val = own + ARCHE_WEIGHT * archeDiff(pr);
+    if(!best || val > best.val) best = { pair: pr, val, own, arche: a, diff: archeDiff(pr) };
+  }
+  return best;
+}
+/* 自分の色：目標の2色を1、3色目はピックの量に応じてわずかに、それ以外は0 */
+function colorBonus(){
+  const b = {W:0,U:0,B:0,R:0,G:0};
+  const tp = targetPair();
+  if(!tp) return b;
+  b[tp.pair[0]] = 1; b[tp.pair[1]] = 1;
+  const second = Math.min(D.colorScore[tp.pair[0]], D.colorScore[tp.pair[1]]) || Math.max(D.colorScore[tp.pair[0]], D.colorScore[tp.pair[1]]);
+  Object.entries(D.colorScore).forEach(([k, v]) => {
+    // 目標外の色は、目標の2色目に比べてどれだけ集まっているかに応じて少しだけ評価する
+    if(!tp.pair.includes(k) && v > 0 && second > 0) b[k] = 0.4 * Math.min(1, v / second);
+  });
+  return b;
+}
+/* 色へのこだわり。数字は「色が完全に合うカード」に足す最大の勝率ポイント */
+const WEIGHTS = { weak: 4, mid: 8, strong: 12 };
+function colorWeight(){ return WEIGHTS[localStorage.getItem("assist.weight") || "mid"] ?? 8; }
+
+/* デッキの枠：40枚デッキの土地以外23枚のうち、クリーチャー17枚・スペル6枚を目安にする */
+const DECK_TARGET = { creature: 17, spell: 6 };
+function kindOf(c){
+  const ty = (c && c.type) || "";
+  if(ty.includes("Land")) return "land";
+  return ty.includes("Creature") ? "creature" : "spell";
+}
+/* マナ域は 1〜6以上 の6段階でまとめる。0マナは1マナ扱い */
+const MV_MIN = 1, MV_MAX = 6;
+const mvBucket = c => Math.max(MV_MIN, Math.min(MV_MAX, Math.round((c && c.cmc) || 0)));
+
+/* 自分の色のカードだけを数える（デッキに入る見込みのある分） */
+function pickedCounts(){
+  const bonus = colorBonus();
+  const n = { creature: 0, spell: 0, play: 0, mv: {1:0,2:0,3:0,4:0,5:0,6:0} };
+  D.picked.forEach(id => {
+    const c = cards[id]; if(!c) return;
+    const k = kindOf(c); if(k === "land") return;
+    // 無色はどのデッキにも入る。ハイブリッド（例：白か青で払える）は、どちらか1色が合えば入る
+    const on = !c.colors.length
+            || (c.pureHybrid ? c.colors.some(x => bonus[x] >= 1) : c.colors.every(x => bonus[x] >= 1));
+    if(on){ n[k]++; n.play++; n.mv[mvBucket(c)]++; }
+  });
+  return n;
+}
+/* クリーチャーの「この時点での目安」。
+   最終的な17枚をいきなり求めるのではなく、各パックの終わりまでに
+   1パック目 4枚・2パック目 10枚・3パック目 17枚 あればよい、として途中は直線でつなぐ。
+   1パック目は色も決まっておらず、良いカードを取るほうが大事なので目安を低くしてある。 */
+const CREATURE_BY_PACK = [4, 10, 17];
+const PICKS_PER_PACK = 14;
+function creatureGoalNow(pickIndex){
+  const pk = Math.min(2, Math.floor(pickIndex / PICKS_PER_PACK));
+  const start = pk === 0 ? 0 : CREATURE_BY_PACK[pk - 1];
+  const within = Math.min(PICKS_PER_PACK, pickIndex - pk * PICKS_PER_PACK) / PICKS_PER_PACK;
+  return start + (CREATURE_BY_PACK[pk] - start) * within;
+}
+/* 枠の過不足：+1 ならクリーチャーが目安より大きく足りない、負ならクリーチャーが足りていてスペルに寄せてよい。
+   許容する幅は後半ほど狭くする（1パック目は4枚の差まで大目に見る） */
+const SLOT_TOLERANCE = [4, 3, 2];
+function slotNeed(){
+  const n = pickedCounts();
+  const pickIndex = D.picked.length;
+  const pk = Math.min(2, Math.floor(pickIndex / PICKS_PER_PACK));
+  const short = creatureGoalNow(pickIndex) - n.creature;
+  // 足りているときは、スペルを少しだけ持ち上げる程度にとどめる
+  return Math.max(-0.5, Math.min(1, short / SLOT_TOLERANCE[pk]));
+}
+/* 枠の補正の最大幅（勝率ポイント）。パックが進むほど、枚数合わせの重みを上げる */
+const SLOT_WEIGHT = [1.5, 3, 4];
+/* ---------- マナカーブ ----------
+   環境の速さごとの「土地以外23枚のカーブ」の目安。
+   速い環境ほど軽いほうに寄る。合計はどれも23枚。 */
+const CURVE_TARGET = {
+  fast:   {1:2, 2:7, 3:6, 4:4, 5:2, 6:2},
+  mid:    {1:1, 2:6, 3:6, 4:5, 5:3, 6:2},
+  slow:   {1:1, 2:5, 3:5, 4:5, 5:4, 6:3},
+  slower: {1:0, 2:4, 3:5, 4:5, 5:5, 6:4}
+};
+/* カーブ補正の最大幅（勝率ポイント） */
+const CURVE_WEIGHT = 2;
+/* そのマナ域が今の手持ちに対して足りているか。
+   23枚ぶんの目安を、いま持っている枚数ぶんに割り戻して比べる。
+   +1 なら大きく足りない、−1 なら取りすぎ。
+   「速い環境だから重いカードは一律で下げる」のをやめ、
+   自分のデッキに何が足りないかで決める。環境の速さは目安のカーブ自体に入っている。 */
+function curveNeed(mv, n){
+  const tgt = CURVE_TARGET[pace] || CURVE_TARGET.mid;
+  const full = tgt[mv] || 0;
+  const goal = Math.min(full, full * (n.play / 23));   // 序盤は目安も比例して小さい
+  const have = n.mv[mv] || 0;
+  const tol = Math.max(1.5, full * 0.6);               // 枠が大きいほど、ずれは大目に見る
+  return { need: Math.max(-1, Math.min(1, (goal - have) / tol)), goal, have, full };
+}
+/* 旧方式（マナ域で一律に上げ下げ）。見比べられるよう残してある */
+const PACE_ADJ = {
+  fast:   {0:0, 1:1.5, 2:1.5, 3:0.5, 4:-0.5, 5:-1.5, 6:-2,   7:-2},
+  mid:    {0:0, 1:0,   2:0.5, 3:0.5, 4:0,    5:-0.5, 6:-1.5, 7:-2},
+  slow:   {0:0, 1:-1,  2:0,   3:0.5, 4:0.5,  5:0.5,  6:0,    7:-0.5},
+  slower: {0:0, 1:-1.5,2:-0.5,3:0,   4:0.5,  5:1,    6:0.5,  7:0}
+};
+
+function scorePack(){
+  const pickIndex = D.picked.length;
+  // 色へのこだわり：4手目で1.0になり、2パック目で1.5、3パック目で2.0まで強まる。
+  // 後半ほど色は固まっているので、色違いの強いカードに引きずられにくくする。
+  const packIdx = Math.floor(pickIndex / 14);
+  const commit = Math.min(1, pickIndex / 4) * (1 + 0.5 * Math.min(2, packIdx));
+  const ramp = Math.min(1, pickIndex / 8);          // 枠の調整は8手目で最大
+  const bonus = colorBonus();
+  const w = colorWeight();
+  const need = slotNeed();
+  const tp = targetPair();
+  const usePair = tp && commit >= 0.5 ? tp.pair : null;     // 色が決まってきたら、その色での勝率で見る
+  const st = synergyState();
+  const counts = pickedCounts();
+  const cMode = curveMode();
+  return D.pack.map(id => {
+    const c = cards[id];
+    const base = ratingOf(id, usePair);
+    const cols = c ? c.colors : [];
+    const kind = kindOf(c);
+    // 1) 色
+    let fit;
+    if(!cols.length) fit = kind === "land" ? 0.5 : 1;   // 無色の呪文はどの色のデッキにも入る
+    else if(c && c.pureHybrid) fit = Math.max(...cols.map(k => bonus[k]));   // ハイブリッドはどれか1色が合えばよい
+    else fit = cols.reduce((n, k) => n + bonus[k], 0) / cols.length;
+    // 多色は、目標の色から外れる色が混じっているときだけ少し割り引く。
+    // 目標の2色ちょうどの多色（白赤のデッキに白赤のカードなど）は、単色と同じく完全に色が合っている
+    if(cols.length > 1 && !(c && c.pureHybrid) && !cols.every(k => bonus[k] >= 1)) fit *= 0.9;
+    const adjColor = commit * w * (fit - 0.5);
+    // 2) 枠（クリーチャーが足りなければクリーチャーを、スペルが足りなければスペルを）
+    let adjSlot = 0;
+    const slotW = SLOT_WEIGHT[Math.min(2, packIdx)];
+    if(kind === "creature") adjSlot = slotW * need;
+    else if(kind === "spell") adjSlot = -slotW * need;
+    // 3) マナカーブ（土地は対象外）
+    // 序盤は勝率そのもので選ぶ。補正は枠と同じく8手目で最大にする（初手は補正なし）
+    let adjPace = 0, curve = null;
+    if(c && kind !== "land" && pace){
+      if(cMode === "old"){
+        adjPace = ramp * ((PACE_ADJ[pace] || {})[Math.min(7, Math.round(c.cmc || 0))] || 0);
+      }else{
+        const mv = mvBucket(c);
+        curve = curveNeed(mv, counts);
+        curve.mv = mv;
+        adjPace = ramp * CURVE_WEIGHT * curve.need;
+      }
+    }
+    // 4) 伝説のカード：同じものは場に1枚しか置けないので、2枚目は大きく、3枚目以降はほぼ取らない
+    let adjLegend = 0, owned = 0;
+    if(c && c.legendary){
+      owned = D.picked.filter(x => x === id).length;
+      if(owned === 1) adjLegend = -2;        // 2枚目：強いカードなので少し下げるだけ
+      else if(owned >= 2) adjLegend = -8;    // 3枚目以降：ほぼ取らない
+    }
+    // 5) シナジー（部族など）：ピックが進んでから効かせる
+    const syn = c ? synergyFor(c, st) : { adj: 0, why: [] };
+    const adjSyn = ramp * syn.adj;
+    const basic = !!(c && c.basic);
+    const score = basic ? -1 : base + adjColor + adjSlot + adjPace + adjLegend + adjSyn;
+    return { id, c, base, fit, adjColor, adjSlot, adjPace, adjLegend, adjSyn, synWhy: syn.why, usePair, owned, score, commit, basic, kind, curve };
+  }).sort((a, b) => b.score - a.score);
+}
+/* おすすめ欄に出す勝率。目標の2色が決まっていれば、その2色での勝率を出す */
+function bestWrText(e, wrE){
+  const pr = e.usePair ? pairRating(e.id, e.usePair) : null;
+  if(pr) return esc(t("assist.bestWrPair", {c: e.usePair.split("").map(colorName).join(""), p: (pr.gih * 100).toFixed(1)}));
+  return wrE && wrE.gih != null ? esc(t("assist.bestWr", {p: (wrE.gih * 100).toFixed(1)})) : "";
+}
+function reasonFor(e){
+  const tp = targetPair();
+  const ranked = tp ? tp.pair.split("").map(colorName) : [];
+  // パックの終盤：選択肢が少なく、色も勝率も合わないカードしか残っていないことがある
+  const left = D.pack.filter(id => !(cards[id] && cards[id].basic)).length;
+  if(left <= 1) return t("assist.reasonLast");
+  const offColor = ranked.length && e.commit >= 0.5 && e.fit <= 0.25;
+  if(left <= 3 && (offColor || e.base < 53)) return t("assist.reasonLate");
+  let main;
+  if(e.commit < 0.5 || !ranked.length) main = t("assist.reasonEarly");
+  else if(e.fit >= 0.75) main = t("assist.reasonColor", {c: ranked.join("・")});
+  else if(e.fit <= 0.25) main = t("assist.reasonOff", {c: ranked.join("・")});
+  else main = t("assist.reasonBest");
+  const extra = [];
+  if(tp && e.fit >= 0.75 && e.commit >= 0.5){
+    if(tp.arche) extra.push(t(tp.arche.diff >= 0 ? "assist.reasonArcheGood" : "assist.reasonArcheWeak", {c: ranked.join("・"), p: (tp.arche.wr * 100).toFixed(1)}));
+    else if(Object.keys(archetypes).length) extra.push(t("assist.reasonArcheNone", {c: ranked.join("・")}));
+  }
+  if(e.adjSyn >= 0.75 && e.synWhy.length){
+    const w = e.synWhy.slice().sort((a, b) => b.n - a.n)[0];
+    const head = t(w.type === "Legendary" ? "assist.synLegend" : "assist.synTribe");
+    extra.push(head + t(w.kind === "payoff" ? "assist.reasonSynPayoff" : "assist.reasonSynMember", {t: typeLabel(w.type), n: w.n}));
+  }
+  if(e.adjLegend < 0) extra.push(t("assist.reasonLegend", {n: e.owned}));
+  if(e.adjSlot >= 1) extra.push(t(e.kind === "creature" ? "assist.reasonNeedCreature" : "assist.reasonNeedSpell"));
+  if(e.curve){
+    const m = e.curve.mv >= MV_MAX ? t("assist.mv6") : t("assist.mv", {n: e.curve.mv});
+    const g = e.curve.goal.toFixed(1);
+    if(e.adjPace >= 1) extra.push(t("assist.reasonCurveShort", {m, h: e.curve.have, g}));
+    else if(e.adjPace <= -1) extra.push(t("assist.reasonCurveOver", {m, h: e.curve.have, g}));
+  }else if(e.adjPace >= 1) extra.push(t("assist.reasonPace", {p: t("assist.pace." + pace)}));
+  return main + (extra.length ? " " + extra.join(" ") : "");
+}
+/* 一覧の各行に、内訳を出す */
+function breakdown(e){
+  const f = v => (v >= 0 ? "+" : "") + v.toFixed(1);
+  return t("assist.breakdown", {b: e.base.toFixed(1), c: f(e.adjColor), s: f(e.adjSlot), p: f(e.adjPace)})
+    + (e.adjSyn ? "　" + t("assist.breakdownSyn", {v: f(e.adjSyn)}) : "")
+    + (e.adjLegend ? "　" + t("assist.breakdownLegend", {v: f(e.adjLegend)}) : "");
+}
+
+/* ================= デッキ案 =================
+   ピック済みのプールから、2色の組み合わせごとに23枚を選び、最も評価の高い組み合わせを出す。
+   枠はクリーチャー17・スペル6を目安にし、重いカードが多すぎれば軽いカードに入れ替える。 */
+const PAIRS = ["WU","WB","WR","WG","UB","UR","UG","BR","BG","RG"];
+const BASIC_OF = { W:"Plains", U:"Island", B:"Swamp", R:"Mountain", G:"Forest" };
+
+/* このカードがその2色で使えるか（必須の色がすべて含まれ、ハイブリッドはどれか1色が含まれればよい） */
+function fitsPair(c, pair){
+  const req = Object.keys(c.reqPips || {}).filter(k => c.reqPips[k] > 0);
+  if(!req.every(k => pair.includes(k))) return false;
+  if(c.hybrid && c.hybrid.length && !req.length) return c.hybrid.every(opts => opts.some(k => pair.includes(k)));
+  if(c.hybrid && c.hybrid.length) return c.hybrid.every(opts => opts.some(k => pair.includes(k)));
+  return kindOf(c) === "land" ? c.colors.every(k => pair.includes(k)) : true;
+}
+
+function buildDeck(pair){
+  const pool = D.picked.map(id => ({ id, c: cards[id] })).filter(x => x.c);
+  const spells = pool.filter(x => kindOf(x.c) !== "land" && fitsPair(x.c, pair)).map(x => ({ ...x, r: ratingOf(x.id, pair), kind: kindOf(x.c) }));
+  const byR = (a, b) => b.r - a.r;
+  const deck = [];
+  // 伝説のカードは、同じものを何枚まで入れるか（まず1枚、足りなければ2枚）
+  const legendCount = id => deck.filter(x => x.id === id).length;
+  const allowed = (x, cap) => !x.c.legendary || legendCount(x.id) < cap;
+  const take = (arr, n, cap) => {
+    for(let i = 0; i < arr.length && n > 0; ){
+      if(allowed(arr[i], cap)){ deck.push(arr.splice(i, 1)[0]); n--; }
+      else i++;
+    }
+  };
+  const creatures = spells.filter(x => x.kind === "creature").sort(byR);
+  const others    = spells.filter(x => x.kind === "spell").sort(byR);
+  take(creatures, DECK_TARGET.creature, 2);
+  take(others, DECK_TARGET.spell, 2);
+  const rest = creatures.concat(others).sort(byR);
+  take(rest, 23 - deck.length, 2);                              // 同じ伝説は2枚まで
+  if(deck.length < 23) take(rest, 23 - deck.length, 3);        // それでも足りなければ3枚目を許す
+  // 重いカード（5マナ以上）が6枚を超えるなら、評価差が小さい範囲で軽いカードと入れ替える
+  const heavy = () => deck.filter(x => (x.c.cmc || 0) >= 5);
+  while(heavy().length > 6 && rest.length){
+    const h = heavy().sort((a, b) => a.r - b.r)[0];
+    const light = rest.find(x => (x.c.cmc || 0) <= 3 && h.r - x.r < 4 && allowed(x, 2));
+    if(!light) break;
+    deck.splice(deck.indexOf(h), 1); rest.splice(rest.indexOf(light), 1);
+    deck.push(light); rest.push(h); rest.sort(byR);
+  }
+
+  // 特殊土地：基本土地でなく、色がこの2色に収まり（無色も可）、勝率が平均以上のものを最大3枚、17枚の土地に含める
+  const specials = pool.filter(x => kindOf(x.c) === "land" && !x.c.basic && fitsPair(x.c, pair))
+    .map(x => ({ ...x, r: ratingOf(x.id, pair), kind: "land" }))
+    .filter(x => x.r >= 53)
+    .sort(byR).slice(0, 3);
+  const basicsTotal = 17 - specials.length;
+
+  // 土地の配分：マナ・シンボルの数で分ける。ハイブリッドは払える色に振り分ける（両方なら半分ずつ）
+  const pips = {}, maxPip = {}, count = {};
+  pair.split("").forEach(k => { pips[k] = 0; maxPip[k] = 0; count[k] = 0; });
+  deck.forEach(x => {
+    const c = x.c;
+    for(const k of pair){
+      const n = (c.reqPips && c.reqPips[k]) || 0;
+      pips[k] += n; if(n > maxPip[k]) maxPip[k] = n;
+    }
+    (c.hybrid || []).forEach(opts => {
+      const inPair = opts.filter(k => pair.includes(k));
+      inPair.forEach(k => { pips[k] += 1 / inPair.length; });
+    });
+    c.colors.forEach(k => { if(count[k] !== undefined) count[k]++; });
+  });
+  const totalPips = Object.values(pips).reduce((a, b) => a + b, 0) || 1;
+  // 特殊土地が出せる色は、その色の土地として数える
+  const specialSrc = {}; pair.split("").forEach(k => specialSrc[k] = specials.filter(x => x.c.colors.includes(k)).length);
+  const lands = {};
+  let assigned = 0;
+  pair.split("").forEach((k, i) => {
+    lands[k] = i === pair.length - 1 ? basicsTotal - assigned : Math.round(basicsTotal * pips[k] / totalPips);
+    assigned += lands[k];
+  });
+  // 最低限の土地：ダブルシンボル（同じ色が2つ以上）のカードがある色は8枚以上、3つ以上なら9枚以上、
+  // 1つだけでも使っている色は6枚以上を目安にする（特殊土地も数に入れる）
+  const minFor = k => pips[k] <= 0 ? 0 : (maxPip[k] >= 3 ? 9 : (maxPip[k] >= 2 ? 8 : 6));
+  const ks = pair.split("");
+  for(let guard = 0; guard < 6; guard++){
+    let moved = false;
+    for(const k of ks){
+      const need = minFor(k) - (lands[k] + specialSrc[k]);
+      if(need <= 0) continue;
+      const other = ks.find(o => o !== k);
+      if(!other) break;
+      const spare = (lands[other] + specialSrc[other]) - minFor(other);
+      const give = Math.min(need, Math.max(0, spare));
+      if(give > 0){ lands[other] -= give; lands[k] += give; moved = true; }
+    }
+    if(!moved) break;
+  }
+  const doubles = ks.filter(k => maxPip[k] >= 2);
+  const archeAdj = ARCHE_WEIGHT * 2 * archeDiff(pair);
+  const score = deck.reduce((a, x) => a + x.r, 0) - (23 - deck.length) * 45 - Math.max(0, heavy().length - 6) * 2 + archeAdj;
+  const side = rest.slice(0, 6);
+  return { pair, deck, side, lands, specials, pips, doubles, count, score, short: 23 - deck.length,
+           avgCmc: deck.length ? deck.reduce((a, x) => a + (x.c.cmc || 0), 0) / deck.length : 0 };
+}
+function bestDecks(){
+  return PAIRS.map(buildDeck).sort((a, b) => b.score - a.score);
+}
+function deckText(d){
+  const lines = ["Deck"];
+  const tally = new Map();
+  d.deck.forEach(x => tally.set(x.id, (tally.get(x.id) || 0) + 1));
+  tally.forEach((n, id) => { const c = cards[id]; lines.push(`${n} ${c.name} (${c.set}) ${c.cn}`); });
+  (d.specials || []).forEach(x => lines.push(`1 ${x.c.name} (${x.c.set}) ${x.c.cn}`));
+  Object.entries(d.lands).forEach(([k, n]) => { if(n > 0) lines.push(`${n} ${BASIC_OF[k]}`); });
+  return lines.join("\n");
+}
+
+/* ================= 描画 ================= */
+function setStatus(msg, cls){
+  const el = $("statusBox");
+  el.textContent = msg;
+  el.className = "status" + (cls ? " " + cls : "");
+}
+function colorName(k){ return t("color." + k); }
+const TYPE_JA = { Elf:"エルフ", Dwarf:"ドワーフ", Goblin:"ゴブリン", Human:"人間", Orc:"オーク", Wolf:"狼", Bird:"鳥", Spirit:"スピリット", Zombie:"ゾンビ", Vampire:"吸血鬼", Knight:"騎士", Soldier:"兵士", Warrior:"戦士", Wizard:"ウィザード", Cleric:"クレリック", Rogue:"ならず者", Dragon:"ドラゴン", Beast:"ビースト", Elemental:"エレメンタル", Angel:"天使", Demon:"デーモン", Merfolk:"マーフォーク", Halfling:"ハーフリング", Troll:"トロール", Giant:"巨人", Cat:"猫", Dog:"犬", Rat:"ネズミ", Bat:"コウモリ", Frog:"カエル", Lizard:"トカゲ", Snake:"蛇", Insect:"昆虫", Spider:"蜘蛛", Scout:"スカウト", Ranger:"レインジャー", Bard:"バード", Noble:"貴族", Artificer:"工匠", Pirate:"海賊", Ninja:"忍者", Samurai:"侍", Citizen:"市民", Peasant:"農民", Archer:"射手", Shaman:"シャーマン", Druid:"ドルイド", Monk:"モンク", Mercenary:"傭兵", Assassin:"暗殺者", Berserker:"狂戦士", Barbarian:"バーバリアン", Skeleton:"スケルトン", Golem:"ゴーレム", Construct:"構築物", Horse:"馬", Bear:"熊", Boar:"猪", Ox:"雄牛", Elephant:"象", Griffin:"グリフィン", Phoenix:"不死鳥", Hydra:"ハイドラ", Sphinx:"スフィンクス", Treefolk:"ツリーフォーク", Fungus:"菌類", Squirrel:"リス", Otter:"カワウソ", Crab:"カニ", Turtle:"海亀", Fox:"狐", Mouse:"ネズミ", Rabbit:"兎", Goat:"山羊", Sheep:"羊", Nightmare:"ナイトメア", Shapeshifter:"多相の戦士", Avatar:"アバター", Wraith:"レイス", Werewolf:"人狼", Advisor:"助言者", Mount:"騎乗獣", Employee:"従業員", Performer:"パフォーマー", Detective:"探偵", Legendary:"伝説" };
+function typeLabel(ty){ return I18N.lang === "ja" ? (TYPE_JA[ty] || ty) : ty; }
+function displayName(c){ return I18N.lang === "ja" && c.ja ? c.ja : c.name; }
+
+function render(){
+  if(D.set && D.set !== loadedSet) ensureSet(D.set);
+  if(D.pack.length) ensureCards(D.pack);
+  if(D.picked.length) ensureCards(D.picked);
+  recomputeColors();                              // カード情報が後から揃うこともあるので毎回
+
+
+  const has = D.pack.length > 0;
+  $("pickTitle").textContent = has ? t("assist.packPick", {p: D.packNo || "?", k: D.pickNo || "?"})
+                             : (D.done ? t("assist.doneTitle") : (D.picked.length ? t("assist.waitingNext") : t("assist.waiting")));
+  $("pickSub").textContent = D.set ? (t("assist.setLabel", {set: D.set}) + (D.event ? "　" + D.event : "")) : "";
+  $("packEmpty").hidden = has;
+  $("packEmpty").textContent = D.picked.length && !D.done ? t("assist.packEmptyNext") : t("assist.packEmpty");
+
+  // 向かっている色・枠・環境の速さ
+  const cb = $("colorBar");
+  cb.innerHTML = "";
+  const ranked = Object.entries(D.colorScore).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  const tp = targetPair();
+  if(ranked.length){
+    const lab = document.createElement("span"); lab.textContent = t("assist.leaning"); cb.appendChild(lab);
+    ranked.slice(0, 3).forEach(([k, v]) => {
+      const s = document.createElement("span");
+      s.className = "cb" + (tp && tp.pair.includes(k) ? " main" : "");
+      s.innerHTML = `<span class="dot" style="background:var(--${k.toLowerCase()})"></span>${esc(colorName(k))} <small>${Math.round(v)}</small>`;
+      cb.appendChild(s);
+    });
+    if(tp){
+      const s = document.createElement("span"); s.className = "cb";
+      const pairName = tp.pair.split("").map(colorName).join("");
+      s.textContent = tp.arche ? t("assist.targetPair", {c: pairName, p: (tp.arche.wr * 100).toFixed(1)}) : t("assist.targetPairNoData", {c: pairName});
+      s.title = t("assist.targetPairTip");
+      cb.appendChild(s);
+    }
+  }
+  if(D.picked.length){
+    const st = synergyState();
+    const tribes = Object.entries(st.count).filter(([ty, n]) => n >= 3 && ty !== "Legendary").sort((a, b) => b[1] - a[1]).slice(0, 2);
+    tribes.forEach(([ty, n]) => {
+      const s = document.createElement("span"); s.className = "cb";
+      s.textContent = t("assist.tribe", {t: typeLabel(ty), n, p: st.payoff[ty] || 0});
+      s.title = t("assist.tribeTip");
+      cb.appendChild(s);
+    });
+  }
+  if(pace){
+    const s = document.createElement("span"); s.className = "cb";
+    s.textContent = t("assist.paceLabel", {p: t("assist.pace." + pace)});
+    s.title = t("assist.paceTip");
+    cb.appendChild(s);
+  }
+
+  // 表示の切り替え
+  document.querySelectorAll("#viewTabs .tab").forEach(b => b.classList.toggle("on", b.dataset.view === view));
+  $("viewTabs").hidden = !D.picked.length;
+  const deckMode = view === "deck" && D.picked.length > 0;
+  $("best").hidden = true; $("pack").hidden = deckMode; $("packEmpty").hidden = deckMode; $("deckView").hidden = !deckMode;
+  if(deckMode){ renderDeck(); syncPip(); return; }
+
+  // パック
+  const ul = $("pack");
+  ul.innerHTML = "";
+  $("best").hidden = true;
+  if(has){
+    const list = scorePack();
+    const cands = list.filter(e => e.c && !e.basic);
+    // 1位と2位の差が小さければ2枚並べて、最後は本人に委ねる
+    const shown = cands.length >= 2 && (cands[0].score - cands[1].score) < 1.0 ? cands.slice(0, 2) : cands.slice(0, 1);
+    if(shown.length){
+      const box = $("best");
+      box.innerHTML = "";
+      box.classList.toggle("two", shown.length === 2);
+      shown.forEach((e, i) => {
+        const c = e.c;
+        const wrE = wr[c.name] || wr[c.name.split(" // ")[0]];
+        const img = (I18N.lang === "ja" && c.imgJa) || c.img || "";
+        const el = document.createElement("div");
+        el.className = "best-one";
+        el.innerHTML =
+          (img ? `<img src="${esc(img)}" alt="">` : "") +
+          `<div class="best-txt">` +
+            `<div class="best-lbl">${esc(shown.length === 2 ? t("assist.bestN", {n: i + 1}) : t("assist.best"))}</div>` +
+            `<div class="best-nm">${esc(displayName(c))}</div>` +
+            `<div class="best-wr">${bestWrText(e, wrE)}</div>` +
+            `<div class="best-why">${esc(reasonFor(e))}</div>` +
+          `</div>`;
+        box.appendChild(el);
+      });
+      if(shown.length === 2){
+        const note = document.createElement("div"); note.className = "best-note";
+        note.textContent = t("assist.bestTwoNote");
+        box.appendChild(note);
+      }
+      box.hidden = false;
+    }
+    list.forEach((e, i) => {
+      const li = document.createElement("li");
+      if(i < 3 && !e.basic) li.className = "top";
+      const c = e.c;
+      const cols = c ? c.colors : [];
+      const dotColor = cols.length === 0 ? "var(--c)" : cols.length > 1 ? "var(--m)" : `var(--${cols[0].toLowerCase()})`;
+      const wrE = c ? (wr[c.name] || wr[c.name.split(" // ")[0]]) : null;
+      const pr = e.usePair ? pairRating(e.id, e.usePair) : null;
+      // 並べ替えに使っている勝率だけを出す。2つ並ぶと、どちらを見ればよいのか分からなくなる
+      const wrTxt = e.basic ? "—" : (pr ? (pr.gih * 100).toFixed(1) + "%" : (wrE && wrE.gih != null ? (wrE.gih * 100).toFixed(1) + "%" : "—"));
+      const anyColor = Object.values(D.colorScore).some(v => v > 0);
+      const fitCls = !c || !cols.length || e.basic || e.commit < 0.5 || !anyColor ? "" : (e.fit >= 0.75 ? " on" : (e.fit <= 0.25 ? " off" : ""));
+      const fitTxt = e.adjLegend < 0 ? t("assist.legendTag", {n: e.owned}) : (e.adjSyn >= 0.75 ? t("assist.synTag") : (fitCls === " on" ? t("assist.onColor") : fitCls === " off" ? t("assist.offColor") : ""));
+      li.title = e.basic ? "" : breakdown(e);
+      li.innerHTML =
+        `<span class="rk">${i + 1}</span>` +
+        `<span class="dot" style="background:${dotColor}"></span>` +
+        `<span class="nm">${c ? esc(displayName(c)) : "#" + esc(e.id)}${c && c.rarity ? `<small>${esc(t("rarity." + c.rarity))}</small>` : ""}</span>` +
+        `<span class="wr${wrE ? "" : " na"}" title="${esc(pr ? t("assist.pairWrTip", {c: e.usePair.split("").map(colorName).join("")}) : t("wr.gih.tip"))}">${wrTxt}</span>` +
+        `<span class="fit${e.adjLegend < 0 ? " off" : fitCls}">${esc(fitTxt)}</span>`;
+      ul.appendChild(li);
+    });
+  }
+
+  // ピック済み
+  const pk = $("picked");
+  pk.innerHTML = "";
+  D.picked.forEach(id => {
+    const s = document.createElement("span");
+    s.textContent = cards[id] ? displayName(cards[id]) : "#" + id;
+    pk.appendChild(s);
+  });
+  $("pickedEmpty").hidden = D.picked.length > 0;
+
+  syncPip();
+}
+
+function renderDeck(){
+  const box = $("deckView");
+  const list = bestDecks();
+  if(deckChoice >= list.length) deckChoice = 0;
+  const d = list[deckChoice] || list[0];
+  if(!d || !d.deck.length){ box.innerHTML = `<div class="empty">${esc(t("assist.deckNone"))}</div>`; return; }
+  const pairName = pr => pr.split("").map(colorName).join("");
+  $("pickTitle").textContent = t("assist.deckTitleDone", {c: pairName(d.pair)});
+  // 上位3案を切り替えるボタン（かっこ内は1位との評価差）
+  const cands = list.slice(0, 3).filter(x => x.deck.length >= 20);
+  const candBar = `<div class="row" style="margin:0 0 10px;gap:6px;flex-wrap:wrap">` +
+    cands.map((x, i) => `<button type="button" class="tab${i === deckChoice ? " on" : ""}" data-deck="${i}">` +
+      `${esc(pairName(x.pair))}${i ? ` <small>${Math.round(x.score - list[0].score)}</small>` : ""}</button>`).join("") + `</div>`;
+  const pct = x => { const e = wr[x.c.name] || wr[x.c.name.split(" // ")[0]]; return e && e.gih != null ? (e.gih * 100).toFixed(1) + "%" : "—"; };
+  const group = arr => {                        // 同じカードをまとめて枚数を持たせる
+    const m = new Map();
+    arr.forEach(x => { const e = m.get(x.id); if(e) e.n++; else m.set(x.id, { ...x, n: 1 }); });
+    return [...m.values()];
+  };
+  const row = x => {
+    const cols = x.c.colors, dot = cols.length === 0 ? "var(--c)" : cols.length > 1 ? "var(--m)" : `var(--${cols[0].toLowerCase()})`;
+    return `<li><span class="dot" style="background:${dot}"></span><span class="cmc">${x.c.cmc ?? 0}</span>` +
+           `<span class="nm">${esc(displayName(x.c))}${x.n > 1 ? ` <b class="qty">×${x.n}</b>` : ""}</span><span class="wr">${pct(x)}</span></li>`;
+  };
+  const byCmc = (a, b) => (a.c.cmc || 0) - (b.c.cmc || 0) || b.r - a.r;
+  const cre = group(d.deck.filter(x => x.kind === "creature")).sort(byCmc);
+  const spl = group(d.deck.filter(x => x.kind === "spell")).sort(byCmc);
+  const creN = d.deck.filter(x => x.kind === "creature").length, splN = d.deck.length - creN;
+  const landTxt = Object.entries(d.lands).filter(([, n]) => n > 0).map(([k, n]) => `${t("land." + BASIC_OF[k])} ${n}`).join("・")
+    + (d.specials.length ? "・" + d.specials.map(x => displayName(x.c)).join("・") : "")
+    + "　" + t("assist.landBasis", {c: Object.entries(d.pips).map(([k, n]) => `${colorName(k)} ${Math.round(n)}`).join("・")})
+    + (d.doubles.length ? "　" + t("assist.landDouble", {c: d.doubles.map(colorName).join("・")}) : "");
+  const alt = list.slice(1, 3).filter(x => x.deck.length >= 20).map(x => pairName(x.pair) + "（" + Math.round(x.score - d.score) + "）").join("、");
+  box.innerHTML = candBar +
+    `<div class="deck-sum">` +
+      `<span class="cb main">${esc(pairName(d.pair))}</span>` +
+      `<span class="cb">${esc(t("assist.deckCount", {n: d.deck.length, c: creN, s: splN}))}</span>` +
+      `<span class="cb">${esc(t("assist.deckAvg", {v: d.avgCmc.toFixed(2)}))}</span>` +
+    `</div>` +
+    (d.short > 0 ? `<p class="deck-note">${esc(t("assist.deckShort", {n: d.short}))}</p>` : "") +
+    `<div class="deck-sec"><b>${esc(t("assist.deckCreatures"))}</b><span>${creN}</span></div><ul class="dl">${cre.map(row).join("")}</ul>` +
+    `<div class="deck-sec"><b>${esc(t("assist.deckSpells"))}</b><span>${splN}</span></div><ul class="dl">${spl.map(row).join("")}</ul>` +
+    `<div class="deck-sec"><b>${esc(t("assist.deckLands"))}</b><span>17</span></div><p style="margin:4px 4px 0;font-size:13.5px">${esc(landTxt)}</p>` +
+    (d.side.length ? `<div class="deck-sec"><b>${esc(t("assist.deckSide"))}</b><span>${d.side.length}</span></div><ul class="dl">${group(d.side).sort(byCmc).map(row).join("")}</ul>` : "") +
+    `<div class="row" style="margin-top:10px"><button type="button" class="ghost" id="deckCopyBtn">${esc(t("assist.deckCopy"))}</button></div>` +
+    `<p class="deck-note">${esc(t("assist.deckNote"))}</p>`;
+  box.querySelectorAll("button[data-deck]").forEach(b => { b.onclick = () => { deckChoice = +b.dataset.deck; render(); }; });
+  $("deckCopyBtn").onclick = async () => {
+    try{ await navigator.clipboard.writeText(deckText(d)); $("deckCopyBtn").textContent = t("assist.deckCopied"); }
+    catch(e){ prompt(t("swiss.copyManual"), deckText(d)); }
+    setTimeout(() => { const b = $("deckCopyBtn"); if(b) b.textContent = t("assist.deckCopy"); }, 2000);
+  };
+}
+document.querySelectorAll("#viewTabs .tab").forEach(b => { b.onclick = () => { view = b.dataset.view; render(); }; });
+
+/* ================= 常に前面の小窓 ================= */
+let pip = null;
+function setPipUi(on){
+  $("pipBtn").textContent = on ? t("assist.pipClose") : t("assist.pip");
+  $("pipBar").classList.toggle("on", on);
+  $("pipBar").querySelector(".piptext b").textContent = on ? t("assist.pipOpen") : t("assist.pipLabel");
+}
+async function openPip(){
+  if(!("documentPictureInPicture" in window)){ setStatus(t("assist.pipUnsupported"), "bad"); return; }
+  if(pip){ pip.close(); return; }
+  pip = await window.documentPictureInPicture.requestWindow({ width: 380, height: 560 });
+  // 同じ見た目にする
+  [...document.querySelectorAll("style,link[rel=stylesheet]")].forEach(n => pip.document.head.appendChild(n.cloneNode(true)));
+  pip.document.body.style.margin = "0";
+  pip.document.body.style.background = "#fff";
+  const box = pip.document.createElement("div");
+  box.id = "pipBox"; box.style.padding = "10px 12px";
+  pip.document.body.appendChild(box);
+  pip.addEventListener("pagehide", () => { pip = null; setPipUi(false); });
+  pip.document.addEventListener("click", async ev => {
+    const b = ev.target.closest("button");
+    if(!b) return;
+    if(b.dataset.deck){ deckChoice = +b.dataset.deck; render(); return; }
+    if(b.id === "deckCopyBtn"){
+      // クリップボードへの書き込みは、押された側の窓（小窓）から行う必要がある
+      const d = bestDecks()[deckChoice] || bestDecks()[0];
+      if(!d) return;
+      const text = deckText(d);
+      try{ await pip.navigator.clipboard.writeText(text); b.textContent = t("assist.deckCopied"); }
+      catch(e){ pip.prompt(t("swiss.copyManual"), text); }
+      setTimeout(() => { if(pip){ const x = pip.document.getElementById("deckCopyBtn"); if(x) x.textContent = t("assist.deckCopy"); } }, 2000);
+    }
+  });
+  setPipUi(true);
+  syncPip();
+}
+function syncPip(){
+  if(!pip) return;
+  const box = pip.document.getElementById("pipBox");
+  if(box) box.innerHTML = $("panel").innerHTML;
+}
+
+$("pickBtn").onclick = () => $("logFile").click();
+$("logFile").onchange = e => { loadLogFile(e.target.files && e.target.files[0]); e.target.value = ""; };
+$("pipBtn").onclick = openPip;
+$("weightSel").value = localStorage.getItem("assist.weight") || "mid";
+$("weightSel").onchange = () => { try{ localStorage.setItem("assist.weight", $("weightSel").value); }catch(e){} render(); };
+$("synSel").value = localStorage.getItem("assist.syn") || "mid";
+$("synSel").onchange = () => { try{ localStorage.setItem("assist.syn", $("synSel").value); }catch(e){} render(); };
+$("curveSel").value = curveMode();
+$("curveSel").onchange = () => { try{ localStorage.setItem("assist.curve", $("curveSel").value); }catch(e){} render(); };
+const sel = $("langSelect");
+sel.value = I18N.lang;
+sel.onchange = e => I18N.set(e.target.value);
+I18N.onChange(() => { render(); setPipUi(!!pip); });
+
+(() => {
+  // 2回目以降は手順をたたんでおく（見出しを押せばいつでも開ける）
+  try{ $("setupSteps").open = !localStorage.getItem("sw.sassist.setupDone"); }catch(e){ $("setupSteps").open = true; }
+  if(!("documentPictureInPicture" in window)){
+    $("pipBar").classList.add("off");
+    $("pipNo").hidden = false;
+  }
+})();
+</script>
+</body>
+</html>
