@@ -1,0 +1,42 @@
+name: YouTube 投稿許可
+
+# 動画を上げるチャンネルが、アプリに「上げてよい」と許可を出すための手続き（Google のデバイス方式）。
+# 1回目：入力なしで実行 → ログにURLと8文字のコードと device_code が出る → ブラウザでコードを入れて許可
+# 2回目：device_code を入れて実行 → ログに REFRESH_TOKEN が出る（Secrets に登録して、ログは削除）
+# 先に Secrets に YT_CLIENT_ID / YT_CLIENT_SECRET が登録されていること（手順書「YouTube 自動アップロードの準備」）。
+
+on:
+  workflow_dispatch:
+    inputs:
+      device_code:
+        description: "2回目のみ：1回目のログに出た device_code"
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  auth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 開始（URL とコードを表示）
+        if: inputs.device_code == ''
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+        run: node maintenance/youtube-auth.mjs start
+
+      - name: 完了（REFRESH_TOKEN を表示）
+        if: inputs.device_code != ''
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          DEVICE_CODE: ${{ inputs.device_code }}
+        run: node maintenance/youtube-auth.mjs finish

@@ -4,7 +4,8 @@ name: 環境まとめ動画を作る
 #   ・ナレーションは VOICEVOX（ずんだもん）。動画の最後にクレジットが入る
 #   ・背景のプレイ映像は Releases のタグ assets にある bg.mp4 を使う（無ければ紺色）
 #   ・セットのロゴを使うときは short/logo/<SET>.png をリポジトリに置く
-# できた動画はこの実行ページの「Artifacts」から ZIP で落とせる（30日で消える）。投稿は手動。
+# できた動画はこの実行ページの「Artifacts」から ZIP で落とせる（30日で消える）。
+# YouTube の許可（YT_REFRESH_TOKEN_JA）が登録されていれば、非公開で自動的に上げる。公開にするのは YouTube Studio で手で。
 # 勝率データが揃う前（発売から2週間ほど）は記事データが無いので作れない。
 
 on:
@@ -17,6 +18,10 @@ on:
         description: "読み上げの速さ（1.0 = ふつう、1.2 = 少し速め）"
         required: false
         default: "1.2"
+      upload:
+        description: "できた動画を YouTube に非公開で上げる（許可の登録が済んでいるとき）"
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -91,6 +96,27 @@ jobs:
             echo "読み違いがあれば short/yomi.json に「表記: 読み（カタカナ）」を足して、もう一度実行してください。"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: YouTube に非公開で上げる（許可が登録されていれば）
+        if: inputs.upload == true
+        env:
+          SITE_URL: https://sealed-workbench.com
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN_JA: ${{ secrets.YT_REFRESH_TOKEN_JA }}
+        run: |
+          node maintenance/youtube-upload.mjs "$SET_CODE" ja | tee yt.log
+          if [ -f "short/$SET_CODE/ja.youtube.json" ]; then
+            URL=$(node -e 'console.log(require("./short/"+process.env.SET_CODE+"/ja.youtube.json").url)')
+            {
+              echo
+              echo "### YouTube（非公開）"
+              echo
+              echo "$URL"
+              echo
+              echo "内容を確認して、YouTube Studio で「公開」にしてください。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: 動画を保存する
         uses: actions/upload-artifact@v4
         with:
@@ -98,5 +124,6 @@ jobs:
           path: |
             short/${{ env.SET_CODE }}/ja.mp4
             short/${{ env.SET_CODE }}/ja/script.json
+            short/${{ env.SET_CODE }}/ja.youtube.json
           retention-days: 30
           if-no-files-found: error
