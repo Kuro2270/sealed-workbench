@@ -61,7 +61,7 @@ const UI = JA ? {
   speedH: "環境の速さ", speedSub: "平均マナ総量ごとの勝率", under: m => `${m}未満`, between: (a, b) => `${a}〜${b}`, over: m => `${m}以上`,
   pace: { fast: "速い", mid: "普通", slow: "遅い", slower: "かなり遅い" },
   noCurve: "カーブで差がつかない", light: n => `軽いデッキが${n}pt有利`, heavy: n => `重いデッキが${n}pt有利`,
-  colorsH: "色の強さ", bestPair: "一番強い組み合わせ", worsePair: "組むと弱くなる", vsAvg: (sign, n) => `2色の平均より ${sign}${n}pt`,
+  colorsH: "色の強さ", bestPair: "一番強い組み合わせ", worsePair: "一番弱い組み合わせ", vsAvg: (sign, n) => `2色の平均より ${sign}${n}pt`,
   topH: label => `${label} 勝率トップ3`, common: "コモン", uncommon: "アンコモン", rank: i => `${i}位`, gih: v => `GIH勝率 ${v}%`,
   surpriseH: "意外な事実", nobody: "誰も組んでいない", strongerTogether: "組むと強くなる", weakerTogether: "組むと弱くなる",
   wrRank: (v, r) => `勝率 ${v}%（${r}位）`, wr: v => `勝率 ${v}%`, usedOnly: (g, p) => `使われた試合は ${g}。全体の${p}%だけ`, vsAvg2: (sign, n) => `2色それぞれの平均より ${sign}${n}pt`,
@@ -72,7 +72,7 @@ const UI = JA ? {
   speedH: "Format speed", speedSub: "Win rate by average mana value", under: m => `under ${m}`, between: (a, b) => `${a}–${b}`, over: m => `${m}+`,
   pace: { fast: "Fast", mid: "Average", slow: "Slow", slower: "Very slow" },
   noCurve: "Curve barely matters", light: n => `Light decks +${n}pt`, heavy: n => `Heavy decks +${n}pt`,
-  colorsH: "Colour strength", bestPair: "Best pair", worsePair: "Weaker together", vsAvg: (sign, n) => `vs 2-colour avg ${sign}${n}pt`,
+  colorsH: "Colour strength", bestPair: "Best pair", worsePair: "Weakest pair", vsAvg: (sign, n) => `vs 2-colour avg ${sign}${n}pt`,
   topH: label => `Top 3 ${label}s by win rate`, common: "common", uncommon: "uncommon", rank: i => `#${i}`, gih: v => `GIH WR ${v}%`,
   surpriseH: "One surprise", nobody: "Nobody plays it", strongerTogether: "Better together", weakerTogether: "Worse together",
   wrRank: (v, r) => `${v}% win rate (#${r})`, wr: v => `${v}% win rate`, usedOnly: (g, p) => `Only ${g} games — ${p}% of all decks`, vsAvg2: (sign, n) => `${sign}${n}pt vs each colour's average`,
@@ -149,7 +149,11 @@ function buildScript(d, nameJa, names){
   const colors = (d.colors || []).slice().sort((a, b) => b.wr - a.wr);
   const pairs = pairRows(d);
   const best = pairs[0];
-  const worst = pairs.filter(p => p.games >= 10000).slice().sort((a, b) => a.gap - b.gap)[0];
+  // 一番弱い組み合わせ（勝率が最も低いもの。試合数が少なすぎる組み合わせは除く）
+  //（全体の 4% 以上、かつ 2,000 試合以上使われている組み合わせから選ぶ。シールドは試合数が少ないので割合で見る）
+  const totalPairGames = pairs.reduce((n, p) => n + p.games, 0);
+  const solidPairs = pairs.filter(p => p.games >= Math.max(2000, totalPairGames * 0.04));
+  const worst = (solidPairs.length ? solidPairs : pairs).slice().sort((a, b) => a.wr - b.wr)[0];
   const top3 = list => (list || []).slice(0, 3)
     .map(c => ({ ...c, label: JA ? ((names.names || {})[c.name] || c.name) : c.name, img: JA ? (names.images || {})[c.name] : null }));
   const commons = top3(d.top && d.top.common), uncommons = top3(d.top && d.top.uncommon);
@@ -174,10 +178,14 @@ function buildScript(d, nameJa, names){
     // 速さは一言だけ。数字は画面に任せる（読み上げるとくどい）
     const paceKey = UI.pace[(d.verdict || {}).key] ? (d.verdict || {}).key : (spread < 2 ? "mid" : faster ? "fast" : "slow");
     const paceWord = UI.pace[paceKey];
-    const bestBand = fast.wr >= slow.wr ? UI.under(fast.max) : (slow.max ? UI.under(slow.max) : UI.over(pace[pace.length - 2].max));
+    // 一番勝っている区分（端だけでなく全部の区分から選ぶ）。読み上げ用は「2.9から3.2」のように言葉で
+    const bi = pace.reduce((m, r, i) => r.wr > pace[m].wr ? i : m, 0), br = pace[bi];
+    const bestBand = bi === 0 ? (JA ? `${br.max}未満` : `under ${br.max}`)
+                   : br.max ? (JA ? `${pace[bi - 1].max}から${br.max}` : `between ${pace[bi - 1].max} and ${br.max}`)
+                   : (JA ? `${pace[bi - 1].max}以上` : `${pace[bi - 1].max} or more`);
     scenes.push({ kind: "pace",
-      say: JA ? `環境の速さは、${paceWord}です。平均マナ総量${bestBand}のデッキが、勝率${pt(Math.max(fast.wr, slow.wr))}パーセントで一番勝っています。`
-              : `The format is ${paceWord.toLowerCase()}. Decks with an average mana value ${bestBand} win the most, at ${pt(Math.max(fast.wr, slow.wr))} percent.`,
+      say: JA ? `環境の速さは、${paceWord}です。平均マナ総量${bestBand}のデッキが、勝率${pt(br.wr)}パーセントで一番勝っています。`
+              : `The format is ${paceWord.toLowerCase()}. Decks with an average mana value ${bestBand} win the most, at ${pt(br.wr)} percent.`,
       paceWord, tail: 0.8,
       rows: pace.map((s, i) => ({ label: i === 0 ? UI.under(s.max) : s.max ? UI.between(pace[i - 1].max, s.max) : UI.over(pace[i - 1].max), wr: s.wr })),
       headline: spread < 2 ? UI.noCurve : faster ? UI.light(Math.round(spread)) : UI.heavy(Math.round(spread)) });
@@ -187,9 +195,9 @@ function buildScript(d, nameJa, names){
     const top2 = colors.slice(0, 2).map(c => CN[c.color]).join(JA ? "と" : " and ");
     let say = JA ? `強い色は${top2}。組み合わせなら${pairName(best.pair)}が${pt(best.wr)}パーセントで最強。`
                  : `The strongest colours are ${top2}. The best pair is ${pairName(best.pair)}, at ${pt(best.wr)} percent.`;
-    if(worst && worst.gap < -0.005) say += JA ? `逆に${pairName(worst.pair)}は、色ごとの平均より${Math.abs(worst.gap * 100).toFixed(1)}ポイント低い。組むと弱くなる色です。`
-                                              : ` ${pairName(worst.pair)}, on the other hand, is ${Math.abs(worst.gap * 100).toFixed(1)} points below its colours' average. Those two are worse together.`;
-    scenes.push({ kind: "colors", say, colors, best, worst: worst && worst.gap < -0.005 ? worst : null });
+    if(worst && worst !== best) say += JA ? `逆に一番弱いのは${pairName(worst.pair)}で、${pt(worst.wr)}パーセントです。`
+                                         : ` The weakest pair is ${pairName(worst.pair)}, at ${pt(worst.wr)} percent.`;
+    scenes.push({ kind: "colors", say, colors, best, worst: worst && worst !== best ? worst : null });
   }
 
   // カード名は読まず画面に任せる。読むと忙しいので、どの色が強いかだけ言う
