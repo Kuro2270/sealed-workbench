@@ -2,7 +2,8 @@
 /*
  * 「1分でわかる〇〇環境」の縦動画（1080×1920）を、記事データから作る。
  *
- *   node maintenance/build-short.mjs HOB
+ *   node maintenance/build-short.mjs HOB        … 日本語（VOICEVOX）
+ *   node maintenance/build-short.mjs HOB en     … 英語（Kokoro。KOKORO_DIR にモデルを置く）
  *
  * 出力: short/<SET>/ja.mp4 と、途中生成物（台本 script.json・場面ごとの png/wav）
  *
@@ -30,8 +31,11 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 
 const SET = process.argv[2];
-if(!SET){ console.error("使い方: node maintenance/build-short.mjs <SET>"); process.exit(1); }
-const LANG = "ja";
+const LANG = (process.argv[3] || "ja").toLowerCase();
+if(!SET || !["ja", "en"].includes(LANG)){ console.error("使い方: node maintenance/build-short.mjs <SET> [ja|en]"); process.exit(1); }
+const JA = LANG === "ja";
+const KOKORO_DIR = process.env.KOKORO_DIR || "short/kokoro";    // 英語の読み上げ（Kokoro）のモデル置き場
+const KOKORO_PY = process.env.KOKORO_PY || "python3";
 const VV = process.env.VOICEVOX_URL || "http://127.0.0.1:50021";
 const SPEAKER = +(process.env.VOICEVOX_SPEAKER || 3);          // 3 = ずんだもん ノーマル
 const SPEED = +(process.env.VOICEVOX_SPEED || 1.2);            // 1分に収めるため少し速め
@@ -45,12 +49,40 @@ const PINE = "#10304F", DEEP = "#0A2038", BLUE = "#2F7DF6", PAPER = "#F5F8FC", M
 const UP = "#5B9BFF", DOWN = "#F08A3E";
 const COLOR = { W: "#F3EAC6", U: "#4A90E2", B: "#6B5E7A", R: "#E1553E", G: "#3E9B5B" };
 const COLOR_JA = { W: "白", U: "青", B: "黒", R: "赤", G: "緑" };
+const COLOR_EN = { W: "White", U: "Blue", B: "Black", R: "Red", G: "Green" };
+const CN = JA ? COLOR_JA : COLOR_EN;                 // この言語での色の名前
+/* 画面とナレーションの決まり文句。言語ごとにここだけ変える */
+const UI = JA ? {
+  analysis: "リミテッド環境分析", arena: "MTGアリーナ", report: "リミテッド環境レポート", games: g => `${g}試合`, inOneMinute: "のデータが1分でわかる",
+  whatIs: "リミテッドとは", whatIs1: "その場で開けたパックだけで", whatIs2: "デッキを組む遊び方", sealed: "シールド", draft: "ドラフト", thisVideo: "この動画はこちら",
+  speedH: "環境の速さ", speedSub: "平均マナ総量ごとの勝率", under: m => `${m}未満`, between: (a, b) => `${a}〜${b}`, over: m => `${m}以上`,
+  pace: { fast: "速い", mid: "普通", slow: "遅い", slower: "かなり遅い" },
+  noCurve: "カーブで差がつかない", light: n => `軽いデッキが${n}pt有利`, heavy: n => `重いデッキが${n}pt有利`,
+  colorsH: "色の強さ", bestPair: "一番強い組み合わせ", worsePair: "組むと弱くなる", vsAvg: (sign, n) => `2色の平均より ${sign}${n}pt`,
+  topH: label => `${label} 勝率トップ3`, common: "コモン", uncommon: "アンコモン", rank: i => `${i}位`, gih: v => `GIH勝率 ${v}%`,
+  surpriseH: "意外な事実", nobody: "誰も組んでいない", strongerTogether: "組むと強くなる", weakerTogether: "組むと弱くなる",
+  wrRank: (v, r) => `勝率 ${v}%（${r}位）`, wr: v => `勝率 ${v}%`, usedOnly: (g, p) => `使われた試合は ${g}。全体の${p}%だけ`, vsAvg2: (sign, n) => `2色それぞれの平均より ${sign}${n}pt`,
+  outro1: "全カードの勝率は", outro2: "シールド／ドラフトの構築練習も無料", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん"
+} : {
+  analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute",
+  whatIs: "What is Limited?", whatIs1: "Build a deck only from", whatIs2: "packs you just opened", sealed: "Sealed", draft: "Draft", thisVideo: "This video",
+  speedH: "Format speed", speedSub: "Win rate by average mana value", under: m => `under ${m}`, between: (a, b) => `${a}–${b}`, over: m => `${m}+`,
+  pace: { fast: "Fast", mid: "Average", slow: "Slow", slower: "Very slow" },
+  noCurve: "Curve barely matters", light: n => `Light decks +${n}pt`, heavy: n => `Heavy decks +${n}pt`,
+  colorsH: "Colour strength", bestPair: "Best pair", worsePair: "Weaker together", vsAvg: (sign, n) => `vs 2-colour avg ${sign}${n}pt`,
+  topH: label => `Top 3 ${label}s by win rate`, common: "common", uncommon: "uncommon", rank: i => `#${i}`, gih: v => `GIH WR ${v}%`,
+  surpriseH: "One surprise", nobody: "Nobody plays it", strongerTogether: "Better together", weakerTogether: "Worse together",
+  wrRank: (v, r) => `${v}% win rate (#${r})`, wr: v => `${v}% win rate`, usedOnly: (g, p) => `Only ${g} games — ${p}% of all decks`, vsAvg2: (sign, n) => `${sign}${n}pt vs each colour's average`,
+  outro1: "Every card's win rate at", outro2: "Free Sealed / Draft practice too", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS"
+};
 const FONT = "'Noto Sans CJK JP','Noto Sans JP',sans-serif";
 
 const readJson = async (p, f) => { try { return JSON.parse(await readFile(p, "utf8")); } catch (e) { return f; } };
 const esc = s => String(s ?? "").replace(/[&<>]/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[m]));
 const pt = v => (v * 100).toFixed(1);
-const man = n => n >= 10000 ? `${Math.round(n / 10000)}万` : n.toLocaleString("ja-JP");
+const man = n => JA ? (n >= 10000 ? `${Math.round(n / 10000)}万` : n.toLocaleString("ja-JP"))
+                    : (n >= 10000 ? `${Math.round(n / 1000)}K` : n.toLocaleString("en-US"));
+const manSay = n => JA ? man(n) : n.toLocaleString("en-US");     // 読み上げ用（英語は K と読ませない）
 
 /* ------------------------------------------------------------ 材料 */
 
@@ -80,10 +112,11 @@ function surprise(d, pairs){
   if(sleeper){
     const rank = pairs.indexOf(sleeper) + 1;
     return {
-      title: "誰も組んでいない",
-      big: pairName(sleeper.pair), pair: sleeper.pair, sub: `勝率 ${pt(sleeper.wr)}%（${rank}位）`,
-      note: `使われた試合は ${man(sleeper.games)}。全体の${(sleeper.games / totalPair * 100).toFixed(1)}%だけ`,
-      say: `意外なのは、${pairName(sleeper.pair)}が勝率${pt(sleeper.wr)}パーセントで${rank}位なのに、使われた試合が${man(sleeper.games)}しかないこと。誰も組んでいません。`
+      title: UI.nobody,
+      big: pairName(sleeper.pair), pair: sleeper.pair, sub: UI.wrRank(pt(sleeper.wr), rank),
+      note: UI.usedOnly(man(sleeper.games), (sleeper.games / totalPair * 100).toFixed(1)),
+      say: JA ? `意外なのは、${pairName(sleeper.pair)}が勝率${pt(sleeper.wr)}パーセントで${rank}位なのに、使われた試合が${man(sleeper.games)}しかないこと。誰も組んでいません。`
+              : `Here's the surprise: ${pairName(sleeper.pair)} wins ${pt(sleeper.wr)} percent, number ${rank} overall, yet it showed up in only ${manSay(sleeper.games)} games. Nobody is playing it.`
     };
   }
   // 2色それぞれの平均から一番外れた組み合わせ
@@ -92,15 +125,16 @@ function surprise(d, pairs){
   if(odd){
     const up = odd.gap > 0;
     return {
-      title: up ? "組むと強くなる" : "組むと弱くなる",
-      big: pairName(odd.pair), pair: odd.pair, sub: `勝率 ${pt(odd.wr)}%`,
-      note: `2色それぞれの平均より ${up ? "+" : "−"}${Math.abs(odd.gap * 100).toFixed(1)}pt`,
-      say: `意外なのは${pairName(odd.pair)}。2色それぞれの平均より${Math.abs(odd.gap * 100).toFixed(1)}ポイント${up ? "高い" : "低い"}。組むと${up ? "強く" : "弱く"}なる色です。`
+      title: up ? UI.strongerTogether : UI.weakerTogether,
+      big: pairName(odd.pair), pair: odd.pair, sub: UI.wr(pt(odd.wr)),
+      note: UI.vsAvg2(up ? "+" : "−", Math.abs(odd.gap * 100).toFixed(1)),
+      say: JA ? `意外なのは${pairName(odd.pair)}。2色それぞれの平均より${Math.abs(odd.gap * 100).toFixed(1)}ポイント${up ? "高い" : "低い"}。組むと${up ? "強く" : "弱く"}なる色です。`
+              : `The surprise is ${pairName(odd.pair)}: ${Math.abs(odd.gap * 100).toFixed(1)} points ${up ? "above" : "below"} what its two colours average on their own. These colours are ${up ? "better" : "worse"} together.`
     };
   }
   return null;
 }
-const pairName = p => [...p].map(c => COLOR_JA[c] || c).join("");
+const pairName = p => [...p].map(c => CN[c] || c).join(JA ? "" : "-");
 
 /* ------------------------------------------------------------ 台本 */
 
@@ -114,54 +148,62 @@ function buildScript(d, nameJa, names){
   const best = pairs[0];
   const worst = pairs.filter(p => p.games >= 10000).slice().sort((a, b) => a.gap - b.gap)[0];
   const top3 = list => (list || []).slice(0, 3)
-    .map(c => ({ ...c, ja: (names.names || {})[c.name] || c.name, img: (names.images || {})[c.name] }));
+    .map(c => ({ ...c, label: JA ? ((names.names || {})[c.name] || c.name) : c.name, img: JA ? (names.images || {})[c.name] : null }));
   const commons = top3(d.top && d.top.common), uncommons = top3(d.top && d.top.uncommon);
   const sur = surprise(d, pairs);
   const games = man(d.total_games);
 
   const scenes = [];
   scenes.push({ kind: "hook", art: true,
-    say: `MTGアリーナ、リミテッドの${nameJa}環境。${games}試合のデータが、1分でわかります。`,
+    say: JA ? `MTGアリーナ、リミテッドの${nameJa}環境。${games}試合のデータが、1分でわかります。`
+            : `MTG Arena Limited: ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} format. ${d.total_games >= 10000 ? Math.round(d.total_games / 1000) + " thousand" : manSay(d.total_games)} games of data, in one minute.`,
     title: nameJa, games });
 
   // お決まりの前置き：リミテッドとは何か、シールドとドラフトのどちらのデータか
   const isSealed = d.mode === "sealed";
   scenes.push({ kind: "intro", isSealed,
-    say: `リミテッドは、その場で開けたパックだけでデッキを組む遊び方。シールドとドラフトがあります。`
-       + `この動画は、${isSealed ? "シールド" : "ドラフト"}のデータです。`,
+    say: JA ? `リミテッドは、その場で開けたパックだけでデッキを組む遊び方。シールドとドラフトがあります。`
+            + `この動画は、${isSealed ? "シールド" : "ドラフト"}のデータです。`
+            : `Limited means building a deck only from packs you just opened. There are two formats, Sealed and Draft. This video covers ${isSealed ? "Sealed" : "Draft"} data.`,
     tail: 0.8 });
 
   if(fast && slow){
     // 速さは一言だけ。数字は画面に任せる（読み上げるとくどい）
-    const PACE_JA = { fast: "速い", mid: "普通", slow: "遅い", slower: "かなり遅い" };
-    const paceWord = PACE_JA[(d.verdict || {}).key] || (spread < 2 ? "普通" : faster ? "速い" : "遅い");
+    const paceKey = UI.pace[(d.verdict || {}).key] ? (d.verdict || {}).key : (spread < 2 ? "mid" : faster ? "fast" : "slow");
+    const paceWord = UI.pace[paceKey];
+    const bestBand = fast.wr >= slow.wr ? UI.under(fast.max) : (slow.max ? UI.under(slow.max) : UI.over(pace[pace.length - 2].max));
     scenes.push({ kind: "pace",
-      say: `環境の速さは、${paceWord}です。平均マナ総量${fast.wr >= slow.wr ? fast.max + "未満" : (slow.max ? slow.max + "未満" : pace[pace.length - 2].max + "以上")}のデッキが、`
-         + `勝率${pt(Math.max(fast.wr, slow.wr))}パーセントで一番勝っています。`, paceWord, tail: 0.8,
-      rows: pace.map((s, i) => ({ label: i === 0 ? `${s.max}未満` : s.max ? `${pace[i - 1].max}〜${s.max}` : `${pace[i - 1].max}以上`, wr: s.wr })),
-      headline: spread < 2 ? "カーブで差がつかない" : faster ? `軽いデッキが${Math.round(spread)}pt有利` : `重いデッキが${Math.round(spread)}pt有利` });
+      say: JA ? `環境の速さは、${paceWord}です。平均マナ総量${bestBand}のデッキが、勝率${pt(Math.max(fast.wr, slow.wr))}パーセントで一番勝っています。`
+              : `The format is ${paceWord.toLowerCase()}. Decks with an average mana value ${bestBand} win the most, at ${pt(Math.max(fast.wr, slow.wr))} percent.`,
+      paceWord, tail: 0.8,
+      rows: pace.map((s, i) => ({ label: i === 0 ? UI.under(s.max) : s.max ? UI.between(pace[i - 1].max, s.max) : UI.over(pace[i - 1].max), wr: s.wr })),
+      headline: spread < 2 ? UI.noCurve : faster ? UI.light(Math.round(spread)) : UI.heavy(Math.round(spread)) });
   }
 
   if(colors.length && best){
-    const top2 = colors.slice(0, 2).map(c => COLOR_JA[c.color]).join("と");
-    let say = `強い色は${top2}。組み合わせなら${pairName(best.pair)}が${pt(best.wr)}パーセントで最強。`;
-    if(worst && worst.gap < -0.005) say += `逆に${pairName(worst.pair)}は、色ごとの平均より${Math.abs(worst.gap * 100).toFixed(1)}ポイント低い。組むと弱くなる色です。`;
+    const top2 = colors.slice(0, 2).map(c => CN[c.color]).join(JA ? "と" : " and ");
+    let say = JA ? `強い色は${top2}。組み合わせなら${pairName(best.pair)}が${pt(best.wr)}パーセントで最強。`
+                 : `The strongest colours are ${top2}. The best pair is ${pairName(best.pair)}, at ${pt(best.wr)} percent.`;
+    if(worst && worst.gap < -0.005) say += JA ? `逆に${pairName(worst.pair)}は、色ごとの平均より${Math.abs(worst.gap * 100).toFixed(1)}ポイント低い。組むと弱くなる色です。`
+                                              : ` ${pairName(worst.pair)}, on the other hand, is ${Math.abs(worst.gap * 100).toFixed(1)} points below its colours' average. Those two are worse together.`;
     scenes.push({ kind: "colors", say, colors, best, worst: worst && worst.gap < -0.005 ? worst : null });
   }
 
   // カード名は読まず画面に任せる。読むと忙しいので、どの色が強いかだけ言う
   const topScene = (cards, label) => {
     if(!cards.length) return;
-    const lead = cards[0].color && cards.filter(c => c.color === cards[0].color).length >= 2
-      ? `${COLOR_JA[cards[0].color]}が強いです。` : "色はばらけています。";
-    scenes.push({ kind: "top", label, say: `${label}のトップ3はこちら。${lead}`, cards, tail: 1.0 });
+    const same = cards[0].color && cards.filter(c => c.color === cards[0].color).length >= 2;
+    const lead = JA ? (same ? `${CN[cards[0].color]}が強いです。` : "色はばらけています。")
+                    : (same ? `${CN[cards[0].color]} is strong here.` : "The colours are spread out.");
+    scenes.push({ kind: "top", label, say: JA ? `${label}のトップ3はこちら。${lead}` : `Here are the top three ${label}s. ${lead}`, cards, tail: 1.0 });
   };
-  topScene(commons, "コモン");
-  topScene(uncommons, "アンコモン");
+  topScene(commons, UI.common);
+  topScene(uncommons, UI.uncommon);
 
   if(sur) scenes.push({ kind: "surprise", say: sur.say, ...sur });
 
-  scenes.push({ kind: "outro", art: true, say: `全カードの勝率は、${SITE.replace(/\./g, " ドット ")} で。`,   // 17Lands の出典は画面の文字で示す（音声では言わない）
+  scenes.push({ kind: "outro", art: true, say: JA ? `全カードの勝率は、${SITE.replace(/\./g, " ドット ")} で。` : `Every card's win rate is at ${SITE.replace(/\./g, " dot ").replace("-", " ")}.`,
+    cap: JA ? `全カードの勝率は、${SITE} で。` : `Every card's win rate is at ${SITE}`,   // 字幕は読み上げ用の「ドット」ではなく本来の表記で   // 17Lands の出典は画面の文字で示す（音声では言わない）
     site: SITE });
   return scenes;
 }
@@ -174,6 +216,15 @@ const T = (x, y, s, o = {}) =>
 
 /* 字幕。句読点で折り返し、数字・英字のかたまりは途中で切らない */
 function wrap(s, n = 22){
+  if(!JA){
+    // 英語は単語で折り返す（1行 38 文字ほど）
+    const words = s.split(/\s+/).filter(Boolean), out = []; let cur = "";
+    for(const w of words){
+      if(cur && (cur + " " + w).length > 38){ out.push(cur); cur = w; } else cur = cur ? cur + " " + w : w;
+    }
+    if(cur) out.push(cur);
+    return out.slice(0, 5);
+  }
   // 「61.4%」「sealed-workbench.com」のような並びは1つの塊として扱う
   const toks = s.match(/[0-9０-９][0-9０-９.,%]*|[A-Za-z][A-Za-z0-9.\-]*|[^0-9０-９A-Za-z]/g) || [];
   const out = []; let cur = "";
@@ -189,7 +240,7 @@ function wrap(s, n = 22){
 /* YouTube Shorts は下 20% 弱にタイトルやボタンが重なるので、字幕はその上に置く */
 const SAFE_BOTTOM = 300;
 function caption(say){
-  const lines = wrap(say.replace(/パーセント/g, "%"));
+  const lines = wrap(say.replace(/パーセント/g, "%").replace(/ percent/g, "%"));
   const lh = 62, boxH = lines.length * lh + 56, y0 = H - SAFE_BOTTOM - 40 - boxH;
   return `<rect x="60" y="${y0}" width="${W - 120}" height="${boxH}" rx="22" fill="${DEEP}" opacity="0.92"/>` +
     lines.map((l, i) => T(W / 2, y0 + 62 + i * lh, l, { size: 42, anchor: "middle", weight: 700 })).join("");
@@ -200,7 +251,7 @@ const SYM = {};
 function symbol(c, x, y, size){
   if(SYM[c]) return `<svg x="${x - size / 2}" y="${y - size / 2}" width="${size}" height="${size}" viewBox="${SYM[c].viewBox}">${SYM[c].inner}</svg>`;
   return `<circle cx="${x}" cy="${y}" r="${size / 2}" fill="${COLOR[c] || MUTED}"/>` +
-         T(x, y + size * 0.17, COLOR_JA[c] || c, { size: size * 0.42, weight: 900, anchor: "middle", fill: c === "W" ? DEEP : PAPER });
+         T(x, y + size * 0.17, JA ? (COLOR_JA[c] || c) : c, { size: size * 0.42, weight: 900, anchor: "middle", fill: c === "W" ? DEEP : PAPER });
 }
 /* 2色の組み合わせをシンボル2つで */
 function pairSymbols(pair, x, y, size){
@@ -215,12 +266,12 @@ function header(){
   if(HEADER.logo){
     return band +
       `<image href="${HEADER.logo}" x="64" y="44" width="330" height="118" preserveAspectRatio="xMinYMid meet"/>` +
-      T(424, 122, "リミテッド環境分析", { size: 40, fill: MUTED, weight: 700 });
+      T(424, 122, UI.analysis, { size: 40, fill: MUTED, weight: 700 });
   }
   const n = [...HEADER.title].length;
   return band +
     T(64, 122, HEADER.title, { size: n <= 6 ? 56 : n <= 9 ? 46 : 38, fill: BLUE, weight: 900 }) +
-    T(W - 64, 122, "リミテッド環境分析", { size: 36, fill: MUTED, weight: 700, anchor: "end" });
+    T(W - 64, 122, UI.analysis, { size: 36, fill: MUTED, weight: 700, anchor: "end" });
 }
 function frame(inner, say, opts = {}){
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W * SCALE}" height="${H * SCALE}" viewBox="0 0 ${W} ${H}" font-family="${FONT}">
@@ -235,44 +286,44 @@ function frame(inner, say, opts = {}){
 function sceneSvg(sc){
   switch(sc.kind){
     case "hook": {
-      const n = [...sc.title].length, size = n <= 5 ? 140 : n <= 8 ? 104 : 80;
+      const n = [...sc.title].length, size = JA ? (n <= 5 ? 140 : n <= 8 ? 104 : 80) : (n <= 10 ? 120 : n <= 16 ? 90 : 68);
       // MTGアリーナのロゴ画像（short/logo/arena.png）があれば文字の代わりに。無ければ文字
       const arena = sc.arenaLogo
         ? `<image href="${sc.arenaLogo}" x="${W / 2 - 320}" y="250" width="640" height="225" preserveAspectRatio="xMidYMid meet"/>`
-        : T(W / 2, 400, "MTGアリーナ", { size: 84, weight: 900, anchor: "middle" });
+        : T(W / 2, 400, UI.arena, { size: 84, weight: 900, anchor: "middle" });
       // セットのロゴ画像があれば、幅 900・高さ 300 の枠に収めて中央に。無ければセット名を文字で
       const title = sc.logo
         ? `<image href="${sc.logo}" x="${W / 2 - 450}" y="760" width="900" height="300" preserveAspectRatio="xMidYMid meet"/>`
         : T(W / 2, 890, sc.title, { size, weight: 900, anchor: "middle", fill: BLUE });
       return frame(
         arena +
-        T(W / 2, 590, "リミテッド環境レポート", { size: 48, fill: MUTED, anchor: "middle" }) +
+        T(W / 2, 590, UI.report, { size: 48, fill: MUTED, anchor: "middle" }) +
         `<rect x="${W / 2 - 200}" y="640" width="400" height="6" fill="${BLUE}"/>` +
         title +
-        T(W / 2, sc.logo ? 1210 : 1090, sc.games + "試合", { size: 92, weight: 900, anchor: "middle" }) +
-        T(W / 2, sc.logo ? 1290 : 1170, "のデータが1分でわかる", { size: 44, fill: MUTED, anchor: "middle" }), sc.say, { header: false });
+        T(W / 2, sc.logo ? 1210 : 1090, UI.games(sc.games), { size: 92, weight: 900, anchor: "middle" }) +
+        T(W / 2, sc.logo ? 1290 : 1170, UI.inOneMinute, { size: 44, fill: MUTED, anchor: "middle" }), sc.say, { header: false });
     }
     case "intro": {
       const box = (x, label, on) =>
         `<rect x="${x}" y="640" width="440" height="300" rx="28" fill="${DEEP}" fill-opacity="${HAS_BG ? 0.72 : 0.25}" stroke="${on ? BLUE : MUTED}" stroke-width="${on ? 6 : 3}"/>` +
         T(x + 220, 790, label, { size: 68, weight: 900, anchor: "middle", fill: on ? PAPER : MUTED }) +
-        (on ? T(x + 220, 870, "この動画はこちら", { size: 32, anchor: "middle", fill: BLUE, weight: 700 }) : "");
+        (on ? T(x + 220, 870, UI.thisVideo, { size: 32, anchor: "middle", fill: BLUE, weight: 700 }) : "");
       return frame(
-        T(W / 2, 330, "リミテッドとは", { size: 44, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 430, "その場で開けたパックだけで", { size: 50, weight: 700, anchor: "middle" }) +
-        T(W / 2, 500, "デッキを組む遊び方", { size: 50, weight: 700, anchor: "middle" }) +
-        box(80, "シールド", sc.isSealed) + box(560, "ドラフト", !sc.isSealed), sc.say);
+        T(W / 2, 330, UI.whatIs, { size: 44, fill: MUTED, anchor: "middle" }) +
+        T(W / 2, 430, UI.whatIs1, { size: 50, weight: 700, anchor: "middle" }) +
+        T(W / 2, 500, UI.whatIs2, { size: 50, weight: 700, anchor: "middle" }) +
+        box(80, UI.sealed, sc.isSealed) + box(560, UI.draft, !sc.isSealed), sc.say);
     }
     case "pace": {
       const wrs = sc.rows.map(r => r.wr * 100), lo = Math.floor(Math.min(...wrs) - 1), hi = Math.ceil(Math.max(...wrs) + 1);
       const X0 = 330, X1 = W - 120, sx = v => X0 + (v - lo) / (hi - lo) * (X1 - X0);
-      let s = T(80, 300, "環境の速さ", { size: 40, fill: MUTED }) +
+      let s = T(80, 300, UI.speedH, { size: 40, fill: MUTED }) +
               T(80, 390, sc.paceWord, { size: 96, weight: 900, fill: BLUE }) +
-              T(80 + [...sc.paceWord].length * 100 + 24, 388, sc.headline, { size: 40, fill: PAPER });
-      s += T(80, 470, "平均マナ総量ごとの勝率", { size: 34, fill: MUTED });
+              T(80 + [...sc.paceWord].length * (JA ? 100 : 56) + 24, 388, sc.headline, { size: 40, fill: PAPER });
+      s += T(80, 470, UI.speedSub, { size: 34, fill: MUTED });
       sc.rows.forEach((r, i) => {
         const y = 580 + i * 130;
-        s += T(X0 - 30, y + 16, r.label, { size: 40, anchor: "end" });
+        s += T(X0 - 30, y + 16, r.label, { size: JA ? 40 : 34, anchor: "end" });
         s += `<line x1="${X0}" x2="${X1}" y1="${y}" y2="${y}" stroke="${PAPER}" stroke-opacity="0.12" stroke-width="3"/>`;
         s += `<line x1="${X0}" x2="${sx(r.wr * 100)}" y1="${y}" y2="${y}" stroke="${BLUE}" stroke-width="10" stroke-linecap="round"/>`;
         s += `<circle cx="${sx(r.wr * 100)}" cy="${y}" r="22" fill="${BLUE}" stroke="${PAPER}" stroke-width="4"/>`;
@@ -281,7 +332,7 @@ function sceneSvg(sc){
       return frame(s, sc.say);
     }
     case "colors": {
-      let s = T(80, 230, "色の強さ", { size: 40, fill: MUTED });
+      let s = T(80, 230, UI.colorsH, { size: 40, fill: MUTED });
       sc.colors.forEach((c, i) => {
         const x = 130 + i * 205;
         s += symbol(c.color, x, 350, 132);
@@ -291,17 +342,17 @@ function sceneSvg(sc){
         `<rect x="80" y="${y}" width="${W - 160}" height="210" rx="28" fill="${DEEP}" fill-opacity="${HAS_BG ? 0.72 : 0.25}" stroke="${col}" stroke-width="4"/>` +
         T(120, y + 62, title, { size: 34, fill: col, weight: 700 }) +
         pairSymbols(p.pair, 120, y + 128, 96) +
-        T(350, y + 160, pairName(p.pair), { size: 60, weight: 900 }) +
+        T(350, y + 160, pairName(p.pair), { size: JA ? 60 : 48, weight: 900 }) +
         T(W - 120, y + 148, pt(p.wr) + "%", { size: 80, weight: 900, anchor: "end", fill: col }) +
-        T(W - 120, y + 190, `2色の平均より ${p.gap > 0 ? "+" : "−"}${Math.abs(p.gap * 100).toFixed(1)}pt`, { size: 30, anchor: "end", fill: MUTED });
-      s += card(560, "一番強い組み合わせ", sc.best, UP);
-      if(sc.worst) s += card(810, "組むと弱くなる", sc.worst, DOWN);
+        T(W - 120, y + 190, UI.vsAvg(p.gap > 0 ? "+" : "−", Math.abs(p.gap * 100).toFixed(1)), { size: 30, anchor: "end", fill: MUTED });
+      s += card(560, UI.bestPair, sc.best, UP);
+      if(sc.worst) s += card(810, UI.worsePair, sc.worst, DOWN);
       return frame(s, sc.say);
     }
     case "top": {
       // カードを大きく見せる。字幕の枠（下から 300+40+118）にかからない範囲で、3枚を縦に並べる
       const CW = 266, CH = 372, ROW = 380, Y0 = 250, TX = 390;
-      let s = T(80, 222, `${sc.label} 勝率トップ3`, { size: 40, fill: MUTED });
+      let s = T(80, 222, UI.topH(sc.label), { size: 40, fill: MUTED });
       sc.cards.forEach((c, i) => {
         const y = Y0 + i * ROW, col = COLOR[c.color] || MUTED;
         // カード画像が入る枠。取れたときは実画像、取れなければ色付きの札に名前
@@ -311,34 +362,35 @@ function sceneSvg(sc){
           s += `<rect x="80" y="${y}" width="${CW}" height="${CH}" rx="16" fill="${col}" opacity="0.85"/>`;
           s += `<rect x="96" y="${y + 16}" width="${CW - 32}" height="170" rx="10" fill="${DEEP}" opacity="0.5"/>`;
         }
-        s += T(TX, y + 90, `${i + 1}位`, { size: 36, fill: MUTED });
-        const n = [...c.ja].length;
-        s += T(TX, y + 190, c.ja, { size: n <= 8 ? 60 : n <= 12 ? 48 : 38, weight: 900 });
-        s += T(TX, y + 290, `GIH勝率 ${pt(c.gih)}%`, { size: 46, fill: BLUE, weight: 700 });
+        s += T(TX, y + 90, UI.rank(i + 1), { size: 36, fill: MUTED });
+        const n = [...c.label].length;
+        const size = JA ? (n <= 8 ? 60 : n <= 12 ? 48 : 38) : (n <= 16 ? 50 : n <= 24 ? 40 : 32);
+        s += T(TX, y + 190, c.label, { size, weight: 900 });
+        s += T(TX, y + 290, UI.gih(pt(c.gih)), { size: 46, fill: BLUE, weight: 700 });
       });
       return frame(s, sc.say);
     }
     case "surprise": {
       return frame(
-        T(W / 2, 420, "意外な事実", { size: 44, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 560, sc.title, { size: 72, weight: 900, anchor: "middle", fill: DOWN }) +
+        T(W / 2, 420, UI.surpriseH, { size: 44, fill: MUTED, anchor: "middle" }) +
+        T(W / 2, 560, sc.title, { size: JA ? 72 : 64, weight: 900, anchor: "middle", fill: DOWN }) +
         `<rect x="120" y="640" width="${W - 240}" height="420" rx="32" fill="${DEEP}" fill-opacity="${HAS_BG ? 0.72 : 0.25}" stroke="${BLUE}" stroke-width="4"/>` +
-        (sc.pair ? pairSymbols(sc.pair, W / 2 - 132 - 6, 740, 132) + T(W / 2, 866, sc.big, { size: 60, weight: 900, anchor: "middle" })
+        (sc.pair ? pairSymbols(sc.pair, W / 2 - 132 - 6, 740, 132) + T(W / 2, 866, sc.big, { size: JA ? 60 : 50, weight: 900, anchor: "middle" })
                  : T(W / 2, 810, sc.big, { size: 140, weight: 900, anchor: "middle" })) +
         T(W / 2, 940, sc.sub, { size: 50, anchor: "middle", fill: BLUE, weight: 700 }) +
-        T(W / 2, 1010, sc.note, { size: 34, anchor: "middle", fill: MUTED }), sc.say);
+        T(W / 2, 1010, sc.note, { size: JA ? 34 : 30, anchor: "middle", fill: MUTED }), sc.say);
     }
     case "outro": {
       return frame(
-        T(W / 2, 560, "全カードの勝率は", { size: 52, fill: MUTED, anchor: "middle" }) +
+        T(W / 2, 560, UI.outro1, { size: 52, fill: MUTED, anchor: "middle" }) +
         T(W / 2, 700, sc.site, { size: 78, weight: 900, anchor: "middle", fill: BLUE }) +
-        T(W / 2, 800, "シールド／ドラフトの構築練習も無料", { size: 40, anchor: "middle" }) +
-        T(W / 2, 930, "データ: 17Lands 公開データ（CC BY 4.0）", { size: 30, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 975, "音声: VOICEVOX:ずんだもん", { size: 30, fill: MUTED, anchor: "middle" }) +
+        T(W / 2, 800, UI.outro2, { size: 40, anchor: "middle" }) +
+        T(W / 2, 930, UI.data, { size: 30, fill: MUTED, anchor: "middle" }) +
+        T(W / 2, 975, UI.voice, { size: 30, fill: MUTED, anchor: "middle" }) +
         // Wizards の Fan Content Policy が求める表記。外さないこと
         T(W / 2, 1050, "Unofficial Fan Content permitted under the Fan Content Policy.", { size: 22, fill: MUTED, anchor: "middle" }) +
         T(W / 2, 1082, "Not approved/endorsed by Wizards. Portions of the materials used", { size: 22, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 1114, "are property of Wizards of the Coast. ©Wizards of the Coast LLC.", { size: 22, fill: MUTED, anchor: "middle" }), sc.say);
+        T(W / 2, 1114, "are property of Wizards of the Coast. ©Wizards of the Coast LLC.", { size: 22, fill: MUTED, anchor: "middle" }), sc.cap || sc.say);
     }
   }
   return frame("", sc.say);
@@ -359,7 +411,27 @@ async function loadYomi(){
   if(n) console.error(`読み辞書: ${n} 語`);
 }
 
+/* 英語の読み上げ（Kokoro）。短い Python を呼ぶ。モデルは KOKORO_DIR（kokoro-v1.0.onnx と voices-v1.0.bin） */
+async function speakEn(text, wavPath){
+  const py = `
+import sys, json, os, soundfile as sf
+from kokoro_onnx import Kokoro
+D = os.environ["KOKORO_DIR"]
+k = Kokoro(os.path.join(D, "kokoro-v1.0.onnx"), os.path.join(D, "voices-v1.0.bin"))
+job = json.load(sys.stdin)
+samples, sr = k.create(job["text"], voice=os.environ.get("KOKORO_VOICE", "af_heart"), speed=float(os.environ.get("KOKORO_SPEED", "1.05")), lang="en-us")
+sf.write(job["out"], samples, sr)
+`;
+  execFileSync(KOKORO_PY, ["-c", py], { input: JSON.stringify({ text, out: wavPath }), env: { ...process.env, KOKORO_DIR }, stdio: ["pipe", "inherit", "inherit"] });
+  // 文末に少し間を置く（0.25秒の無音を足す）
+  execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", wavPath, "-af", "apad=pad_dur=0.25", wavPath + ".tmp.wav"]);
+  execFileSync("mv", [wavPath + ".tmp.wav", wavPath]);
+  const dur = +execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", wavPath]).toString().trim();
+  return { kana: text, dur };
+}
+
 async function speak(text, wavPath){
+  if(!JA) return speakEn(text, wavPath);
   const q = await fetch(`${VV}/audio_query?speaker=${SPEAKER}&text=${encodeURIComponent(text)}`, { method: "POST" });
   if(!q.ok) throw new Error(`audio_query ${q.status}`);
   const query = await q.json();
@@ -381,7 +453,7 @@ async function main(){
   const d = await readJson(`data/articles/${SET}_draft.json`, null) || await readJson(`data/articles/${SET}_sealed.json`, null);
   if(!d){ console.error(`${SET}: 記事データがありません`); process.exit(1); }
   const names = await readJson(`data/names/${SET}.json`, { names: {}, images: {} });
-  const nameJa = (await setNameJa(SET)) || names.set || SET;
+  const nameJa = JA ? ((await setNameJa(SET)) || names.set || SET) : (names.set || SET);   // 英語のときは英語のセット名
   const sharp = (await import("sharp")).default;
   await mkdir(`${OUT}/${LANG}`, { recursive: true });
 
@@ -440,9 +512,16 @@ async function main(){
     if(!artPath) console.error("背景アート: 取得できず");
   }
 
-  // カード画像（取れなければ名前の札のまま）
+  // カード画像（取れなければ名前の札のまま）。英語は Scryfall から英語版を引く
   for(const sc of scenes) if(sc.kind === "top"){
     for(const [i, c] of sc.cards.entries()){
+      if(!JA && !c.img){
+        try{
+          const r = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(String(c.name).split(" // ")[0])}&set=${SET.toLowerCase()}`, { headers: { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)", Accept: "application/json" } });
+          if(r.ok){ const j = await r.json(); c.img = (j.image_uris || (j.card_faces && j.card_faces[0].image_uris) || {}).normal || null; }
+          await new Promise(res => setTimeout(res, 120));
+        }catch(e){}
+      }
       if(!c.img) continue;
       try{
         const r = await fetch(c.img, { headers: { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)" } });
@@ -471,7 +550,7 @@ async function main(){
     if(old && old.say === sc.say && old.dur && await readFile(base + ".wav").then(() => true, () => false)){
       sc.kana = old.kana; sc.dur = old.dur; continue;
     }
-    if(!yomiLoaded){ await loadYomi(); yomiLoaded = true; }
+    if(JA && !yomiLoaded){ await loadYomi(); yomiLoaded = true; }
     const { kana, dur } = await speak(sc.say, base + ".wav");
     sc.kana = kana; sc.dur = dur;
   }
