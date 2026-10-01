@@ -167,11 +167,13 @@ function xLength(text){
   }
   return n;
 }
-/* 上限に収まるまで、印のついた行から順に落とす */
-function fit(lines, limit = 280){
+/* 上限に収まるまで、印のついた行から順に落とす。X は独自の数え方で 280、Bluesky は文字数（URL も全部）で 300 */
+function fit(lines, track = "x"){
+  const limit = track === "bsky" ? 300 : 280;
+  const len = track === "bsky" ? (t => [...t].length) : xLength;
   let out = lines.slice();
   const join = arr => arr.filter(l => l != null).map(l => l.replace(/^~/, "")).join("\n").replace(/\n{3,}/g, "\n\n").trim();
-  while(xLength(join(out)) > limit){
+  while(len(join(out)) > limit){
     const i = out.map((l, k) => [l, k]).reverse().find(([l]) => typeof l === "string" && l.startsWith("~"));
     if(!i) break;
     out.splice(i[1], 1);
@@ -223,7 +225,7 @@ function weeklyPost(ctx, lang, theme, track){
     if(rares.length){ lines.push("", L ? "~レア・神話レアの勝率上位" : "~Top rares & mythics by win rate"); rares.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); }
   }
   lines.push("", url, TAGS[lang]);
-  return { text: fit(lines), cards: picCards };
+  return { text: fit(lines, track), cards: picCards };
 }
 
 function monthlyPost(ctx, lang, track){
@@ -237,7 +239,7 @@ function monthlyPost(ctx, lang, track){
       : `${games.toLocaleString()} games across Draft and Sealed (17Lands public data). Card win rates, set reports and the draft assistant are all updated.`,
     "", url, TAGS[lang]
   ];
-  return { text: fit(lines), cards: [] };
+  return { text: fit(lines, track), cards: [] };
 }
 
 function announcePost(ctx, lang, track){
@@ -254,7 +256,7 @@ function announcePost(ctx, lang, track){
   ];
   if(top.length){ lines.push(L ? "~いまのレア・神話レアの上位：" : "~Top rares & mythics so far:"); top.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); lines.push(""); }
   lines.push(url, TAGS[lang]);
-  return { text: fit(lines), cards: top };
+  return { text: fit(lines, track), cards: top };
 }
 
 /* 動画を公開したときの案内。VIDEO_ID と VIDEO_LANG は環境変数で受け取る */
@@ -271,13 +273,13 @@ function videoPost(ctx, lang, track){
     L ? `【${nm}】1分でわかる${modeName}環境（動画）` : `${nm} ${modeName} in 60 seconds (video)`,
     "",
     L ? `${modeName}${games.toLocaleString()}試合の実戦データから、環境の速さ・強い色・コモン／アンコモンのトップ3を1分にまとめました。` : `Format speed, the strongest colours and the top commons and uncommons, from ${games.toLocaleString()} ${modeName} games, in one minute.`,
-    best ? (L ? `~いちばん勝っている色は${COLOR.ja[best.color] || best.color}（${pct(best.wr)}）。` : `~Best colour so far: ${COLOR.en[best.color] || best.color} (${pct(best.wr)}).`) : null,
+    best ? (L ? `~いちばん勝っている色は${COLOR.ja[best.color] || best.color}（${pct(best.wr)}）。` : `~Best colour so far: ${({W:"White",U:"Blue",B:"Black",R:"Red",G:"Green"})[best.color] || best.color} (${pct(best.wr)}).`) : null,
     "",
     `https://www.youtube.com/shorts/${id}`,
-    L ? `~全カードの勝率はこちら ${url}` : `~Every card's win rate: ${url}`,
+    L ? `全カードの勝率はこちら ${url}` : `Every card's win rate: ${url}`,   // サイトへの導線は落とさない（長いときは上の「色」の行から落ちる）
     TAGS[lang]
   ];
-  return { text: fit(lines), cards: [] };
+  return { text: fit(lines, track), cards: [] };
 }
 
 /* ---------- 画像：上位3枚のカードを横に並べる ---------- */
