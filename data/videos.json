@@ -25,6 +25,13 @@
         "uploadedAt": "2026-10-01",
         "public": true,
         "publishedAt": "2026-10-01"
+      },
+      "sealed": {
+        "id": "EIQmzM8Ut6A",
+        "mode": "sealed",
+        "title": "The Hobbit Sealed in 60 seconds | MTG Arena #Shorts",
+        "uploadedAt": "2026-10-01",
+        "public": false
       }
     }
   }
