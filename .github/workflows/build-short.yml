@@ -1,7 +1,7 @@
 name: 環境まとめ動画を作る
 
 # 「1分でわかる〇〇環境」の縦動画（1080×1920）を、集計済みの記事データから作る。
-#   ・ナレーションは VOICEVOX（ずんだもん）。動画の最後にクレジットが入る
+#   ・ナレーションは日本語が VOICEVOX（ずんだもん）、英語が Kokoro。動画の最後にクレジットが入る
 #   ・背景のプレイ映像は Releases のタグ assets にある bg.mp4 を使う（無ければ紺色）
 #   ・セットのロゴを使うときは short/logo/<SET>.png をリポジトリに置く
 # できた動画はこの実行ページの「Artifacts」から ZIP で落とせる（30日で消える）。
@@ -14,6 +14,11 @@ on:
       set:
         description: "セットコード（例: HOB）"
         required: true
+      lang:
+        description: "動画の言語（ja = 日本語チャンネル、en = 英語チャンネル）"
+        type: choice
+        options: [ja, en]
+        default: ja
       speed:
         description: "読み上げの速さ（1.0 = ふつう、1.2 = 少し速め）"
         required: false
@@ -59,7 +64,28 @@ jobs:
             echo "::warning::Releases（タグ assets）に bg.mp4 が無いので、紺色の背景で作ります。"
           fi
 
+      - name: 英語の読み上げ（Kokoro）を入れる
+        if: inputs.lang == 'en'
+        run: pip install --quiet kokoro-onnx soundfile
+
+      - name: Kokoro のモデルを用意する（2回目からはキャッシュ）
+        if: inputs.lang == 'en'
+        id: kokoro
+        uses: actions/cache@v4
+        with:
+          path: short/kokoro
+          key: kokoro-model-v1.0
+
+      - name: Kokoro のモデルを落とす
+        if: inputs.lang == 'en' && steps.kokoro.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p short/kokoro
+          curl -sSL -o short/kokoro/kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
+          curl -sSL -o short/kokoro/voices-v1.0.bin https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
+          ls -la short/kokoro
+
       - name: VOICEVOX が起きるのを待つ
+        if: inputs.lang != 'en'
         run: |
           for i in $(seq 1 60); do
             if curl -sf -m 3 http://127.0.0.1:50021/version; then echo; exit 0; fi
@@ -72,25 +98,29 @@ jobs:
         env:
           # 入力はいちど環境変数に移す（コマンド行に直接埋め込まない）
           SET_IN: ${{ inputs.set }}
+          LANG_IN: ${{ inputs.lang || 'ja' }}
           VOICEVOX_SPEED: ${{ inputs.speed }}
           VOICEVOX_URL: http://127.0.0.1:50021
+          KOKORO_DIR: short/kokoro
         run: |
           export SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"
+          export VLANG="$LANG_IN"
           if [ ! -f "data/articles/${SET_CODE}_draft.json" ] && [ ! -f "data/articles/${SET_CODE}_sealed.json" ]; then
             echo "::error::${SET_CODE} の記事データ（data/articles/）がまだありません。勝率データ集計が終わってから作ってください。"
             exit 1
           fi
-          node maintenance/build-short.mjs "$SET_CODE"
+          node maintenance/build-short.mjs "$SET_CODE" "$VLANG"
           echo "SET_CODE=$SET_CODE" >> "$GITHUB_ENV"
+          echo "VLANG=$VLANG" >> "$GITHUB_ENV"
           {
             echo "## ${SET_CODE} の動画ができました"
             echo
-            echo "下の Artifacts から \`short-${SET_CODE}\` を落として、中の ja.mp4 を確認してから投稿してください。"
+            echo "下の Artifacts から \`short-${SET_CODE}-${VLANG}\` を落として、中の ${VLANG}.mp4 を確認してから投稿してください。"
             echo
             echo "### 読み上げの台本（読みの確認用）"
             echo
             echo '```'
-            node -e 'const s=require("./short/"+process.env.SET_CODE+"/ja/script.json");for(const x of s)console.log(`${x.kind.padEnd(8)} ${(+x.dur).toFixed(1)}s  ${x.say}\n         ${x.kana||""}`)'
+            node -e 'const s=require("./short/"+process.env.SET_CODE+"/"+process.env.VLANG+"/script.json");for(const x of s)console.log(`${x.kind.padEnd(8)} ${(+x.dur).toFixed(1)}s  ${x.say}\n         ${x.kana||""}`)'
             echo '```'
             echo
             echo "読み違いがあれば short/yomi.json に「表記: 読み（カタカナ）」を足して、もう一度実行してください。"
@@ -103,10 +133,11 @@ jobs:
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN_JA: ${{ secrets.YT_REFRESH_TOKEN_JA }}
+          YT_REFRESH_TOKEN_EN: ${{ secrets.YT_REFRESH_TOKEN_EN }}
         run: |
-          node maintenance/youtube-upload.mjs "$SET_CODE" ja | tee yt.log
-          if [ -f "short/$SET_CODE/ja.youtube.json" ]; then
-            URL=$(node -e 'console.log(require("./short/"+process.env.SET_CODE+"/ja.youtube.json").url)')
+          node maintenance/youtube-upload.mjs "$SET_CODE" "$VLANG" | tee yt.log
+          if [ -f "short/$SET_CODE/$VLANG.youtube.json" ]; then
+            URL=$(node -e 'console.log(require("./short/"+process.env.SET_CODE+"/"+process.env.VLANG+".youtube.json").url)')
             {
               echo
               echo "### YouTube（非公開）"
@@ -124,7 +155,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add data/videos.json
-            git commit -m "動画の記録を更新（$SET_CODE）"
+            git commit -m "動画の記録を更新（$SET_CODE $VLANG）"
             for i in 1 2 3; do
               git pull --rebase origin main && git push origin main && break
               echo "再試行 $i"; sleep 5
@@ -134,10 +165,10 @@ jobs:
       - name: 動画を保存する
         uses: actions/upload-artifact@v4
         with:
-          name: short-${{ env.SET_CODE }}
+          name: short-${{ env.SET_CODE }}-${{ env.VLANG }}
           path: |
-            short/${{ env.SET_CODE }}/ja.mp4
-            short/${{ env.SET_CODE }}/ja/script.json
-            short/${{ env.SET_CODE }}/ja.youtube.json
+            short/${{ env.SET_CODE }}/${{ env.VLANG }}.mp4
+            short/${{ env.SET_CODE }}/${{ env.VLANG }}/script.json
+            short/${{ env.SET_CODE }}/${{ env.VLANG }}.youtube.json
           retention-days: 30
           if-no-files-found: error
