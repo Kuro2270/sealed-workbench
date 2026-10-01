@@ -1,34 +1,25 @@
 name: 動画を配信
 
-# YouTube Studio で動画を「公開」にしたあとに押す。
-#   1) data/videos.json のその動画を public にする
-#   2) セット別ページを作り直して、動画を埋め込む（Cloudflare が自動で配信）
+# YouTube Studio で動画を「公開」にしたあとに押す。入力は不要。
+#   1) data/videos.json にある「未配信」の動画について、YouTube に公開になっているか確認する
+#   2) 公開になっていたものを、セット別ページと環境レポートに載せる（Cloudflare が自動で配信）
 #   3) X と Bluesky に「動画を出しました」を投稿する（Bluesky は英語だけ）
-# 動画の ID は「環境まとめ動画を作る」が data/videos.json に記録しているので、ふつうは入力不要。
+#   まだ非公開のものは残しておき、次に押したときにまた確認する。
+# 動画の ID は「環境まとめ動画を作る」が記録しているので、ふつうは何も入れなくてよい。
 
 on:
   workflow_dispatch:
     inputs:
       set:
-        description: "セットコード（例: HOB）"
-        required: true
-      lang:
-        description: "動画の言語"
-        type: choice
-        options: [ja, en]
-        default: ja
-      mode:
-        description: "どちらの動画か"
-        type: choice
-        options: [draft, sealed]
-        default: draft
-      video_id:
-        description: "YouTube の動画 ID（data/videos.json に記録済みなら空のまま）"
+        description: "セットコードで絞る（空ならすべての未配信）"
         required: false
       post:
         description: "X・Bluesky に案内を投稿する"
         type: boolean
         default: true
+      manual:
+        description: "記録に無い動画を足す：「セット 言語 形式 動画ID」（例: HOB ja sealed g7u5JVhJgFk）"
+        required: false
 
 permissions:
   contents: write
@@ -47,33 +38,24 @@ jobs:
       - name: 画像合成ライブラリを入れる
         run: npm install --no-save sharp
 
-      - name: 動画を公開済みにする
-        id: mark
+      - name: 公開になった動画を配信する
         env:
-          SET_IN: ${{ inputs.set }}
-          LANG_IN: ${{ inputs.lang }}
-          MODE_IN: ${{ inputs.mode || 'draft' }}
-          VID_IN: ${{ inputs.video_id }}
-        run: |
-          export SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"
-          node -e '
-            const fs = require("fs");
-            const set = process.env.SET_CODE, lang = process.env.LANG_IN, mode = process.env.MODE_IN || "draft", vid = (process.env.VID_IN || "").trim();
-            let all = {}; try{ all = JSON.parse(fs.readFileSync("data/videos.json", "utf8")); }catch(e){}
-            all[set] = all[set] || {};
-            if(all[set][lang] && all[set][lang].id) all[set][lang] = { draft: all[set][lang] };   // 昔の形はドラフトとして読み替える
-            all[set][lang] = all[set][lang] || {};
-            const cur = all[set][lang][mode] || { mode };
-            if(vid) cur.id = vid;
-            if(!cur.id){ console.error(`::error::${set} の ${lang}/${mode} の動画 ID が記録にありません。video_id に入れてください。`); process.exit(1); }
-            cur.public = true;
-            cur.publishedAt = cur.publishedAt || new Date().toISOString().slice(0, 10);
-            all[set][lang][mode] = cur;
-            fs.writeFileSync("data/videos.json", JSON.stringify(all, null, 2) + "\n");
-            fs.appendFileSync(process.env.GITHUB_OUTPUT, `id=${cur.id}\n`);
-            console.log(`${set}/${lang}/${mode}: https://www.youtube.com/shorts/${cur.id}`);
-          '
-          echo "SET_CODE=$SET_CODE" >> "$GITHUB_ENV"
+          SITE_URL: https://sealed-workbench.com
+          ONLY_SET: ${{ inputs.set }}
+          MANUAL: ${{ inputs.manual }}
+          POST: ${{ inputs.post == true && '1' || '' }}
+          BSKY_LANGS: en
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN_JA: ${{ secrets.YT_REFRESH_TOKEN_JA }}
+          YT_REFRESH_TOKEN_EN: ${{ secrets.YT_REFRESH_TOKEN_EN }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+        run: node maintenance/publish-videos.mjs
 
       - name: セット別ページを作り直す
         run: node maintenance/build-set-pages.mjs
@@ -86,35 +68,9 @@ jobs:
           if git diff --staged --quiet; then
             echo "変更はありませんでした。"
           else
-            git commit -m "動画を配信（$SET_CODE ${{ inputs.lang }} ${{ inputs.mode }}）"
+            git commit -m "動画を配信"
             for i in 1 2 3; do
               git pull --rebase origin main && git push origin main && break
               echo "再試行 $i"; sleep 5
             done
           fi
-
-      - name: X と Bluesky に案内を投稿
-        if: inputs.post == true
-        env:
-          SITE_URL: https://sealed-workbench.com
-          ANNOUNCE_SETS: ${{ env.SET_CODE }}
-          LANGS: ${{ inputs.lang }}
-          BSKY_LANGS: en
-          VIDEO_ID: ${{ steps.mark.outputs.id }}
-          VIDEO_MODE: ${{ inputs.mode || 'draft' }}
-          X_API_KEY: ${{ secrets.X_API_KEY }}
-          X_API_SECRET: ${{ secrets.X_API_SECRET }}
-          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
-          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
-          BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
-          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
-        run: node maintenance/post-social.mjs video
-
-      - name: まとめ
-        run: |
-          {
-            echo "## 動画を配信しました（$SET_CODE ${{ inputs.lang }} ${{ inputs.mode }}）"
-            echo
-            echo "- 動画: https://www.youtube.com/shorts/${{ steps.mark.outputs.id }}"
-            echo "- セットページ: https://sealed-workbench.com/sets/$SET_CODE${{ inputs.lang == 'en' && '.en' || '' }}.html（Cloudflare の反映まで数分）"
-          } >> "$GITHUB_STEP_SUMMARY"
