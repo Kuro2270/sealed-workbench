@@ -12,6 +12,7 @@
  *   BSKY_HANDLE, BSKY_APP_PASSWORD                              … Bluesky に投稿する（無ければ飛ばす）
  *   DRY_RUN=1                                                   … 投稿せず文面だけ表示する
  *   LANGS=ja,en                                                 … 投稿する言語（既定は両方）
+ *   BSKY_LANGS=en                                               … Bluesky に出す言語（既定は英語だけ。日本語の利用者が少ないため）
  *
  * 投稿の考え方
  *   ・自分のアカウントに、自分のデータから作った内容を、決まった頻度で出すだけ。返信や他人への働きかけはしない。
@@ -28,6 +29,7 @@ const SCRY_HEADERS = { "User-Agent": "sealed-workbench/1.0 (https://sealed-workb
 const SITE = process.env.SITE_URL || "https://sealed-workbench.com";
 const DRY = process.env.DRY_RUN === "1";
 const LANGS = (process.env.LANGS || "ja,en").split(",").map(s => s.trim()).filter(Boolean);
+const BSKY_LANGS = (process.env.BSKY_LANGS || "en").split(",").map(s => s.trim()).filter(Boolean);
 const mode = process.argv[2] || "weekly";
 
 async function readJson(path, fallback){ try{ return JSON.parse(await readFile(path, "utf8")); }catch(e){ return fallback; } }
@@ -217,7 +219,7 @@ function weeklyPost(ctx, lang, theme, track){
     if(best) lines.push(L ? `最も勝率の高いデッキは${label}で ${pct(best.wr)}` : `Best-performing decks are ${label} at ${pct(best.wr)}`);
     const rares = topBy(d, "rare", 10).concat(topBy(d, "mythic", 10)).sort((a, b) => b.gih - a.gih).slice(0, 3);
     picCards = rares;
-    if(rares.length){ lines.push("", L ? "~レア・神話レアの勝率トップ3" : "~Top 3 rares & mythics by win rate"); rares.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); }
+    if(rares.length){ lines.push("", L ? "~レア・神話レアの勝率上位" : "~Top rares & mythics by win rate"); rares.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); }
   }
   lines.push("", url, TAGS[lang]);
   return { text: fit(lines), cards: picCards };
@@ -249,7 +251,7 @@ function announcePost(ctx, lang, track){
     L ? `${games.toLocaleString()}試合分の実戦データから、カード勝率・環境レポート・ドラフト補助が使えます。` : `Card win rates, a format report and the draft assistant, built from ${games.toLocaleString()} games.`,
     ""
   ];
-  if(top.length){ lines.push(L ? "~いまのレア・神話レアのトップ3：" : "~Top rares & mythics so far:"); top.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); lines.push(""); }
+  if(top.length){ lines.push(L ? "~いまのレア・神話レアの上位：" : "~Top rares & mythics so far:"); top.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); lines.push(""); }
   lines.push(url, TAGS[lang]);
   return { text: fit(lines), cards: top };
 }
@@ -369,7 +371,7 @@ async function postBsky(text, image){
 }
 
 /* ---------- 本体 ---------- */
-async function send(label, textX, textBsky, image){
+async function send(label, textX, textBsky, image, lang){
   console.log(`\n--- ${label} ---`);
   console.log(textX);
   console.log(`（X換算 ${xLength(textX)} 文字／画像 ${image ? Math.round(image.length / 1024) + "KB" : "なし"}）`);
@@ -378,6 +380,8 @@ async function send(label, textX, textBsky, image){
     console.log("DRY_RUN のため投稿しません"); return;
   }
   for(const [name, fn, text] of [["X", postX, textX], ["Bluesky", postBsky, textBsky]]){
+    // Bluesky は BSKY_LANGS にある言語だけ（test は両方に出す）
+    if(name === "Bluesky" && lang && !BSKY_LANGS.includes(lang)){ console.log(`Bluesky: ${lang} は出さない設定（BSKY_LANGS=${BSKY_LANGS.join(",")}）`); continue; }
     try{ console.log(await fn(text, image)); }
     catch(e){ console.error(`${name}: 失敗 — ${e.message}`); process.exitCode = 1; }
   }
@@ -405,7 +409,7 @@ async function main(){
       if(!px){ console.log(`${code}/${lang}: データが無いので飛ばしました`); continue; }
       // 画像は投稿の言語に合わせる（日本語版・英語版のカード画像）。枚数は本文のリストと同じ
       const image = (px.cards || []).length ? await composeImage(ctx, px.cards, lang) : null;
-      await send(`${mode} ${code} ${lang}`, px.text, pb.text, image);
+      await send(`${mode} ${code} ${lang}`, px.text, pb.text, image, lang);
     }
   }
 }
