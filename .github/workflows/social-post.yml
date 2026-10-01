@@ -1,45 +1,41 @@
 name: SNS 定期投稿
 
 # 毎週金曜 12:00（日本時間）に、最新セットの話題を X と Bluesky に投稿する。
-# 加えて、毎月1日 12:00（日本時間）にドラフト補助の紹介（動画つき）を投稿する。
-# 手動実行では、種類・言語・投稿先を選べる。まず test で動作確認する。
+# 手動実行では、種類（test / weekly / monthly）と言語を選べる。まず test で動作確認する。
 
 on:
   schedule:
-    - cron: "0 3 * * 5"        # 毎週金曜 03:00 UTC = 12:00 JST（定型投稿）
-    - cron: "0 4 1 * *"        # 毎月1日 04:00 UTC = 13:00 JST（紹介投稿・動画つき／週次と重なる月があるので1時間ずらす）
+    - cron: "0 3 * * 5"        # 金曜 03:00 UTC = 12:00 JST
   workflow_dispatch:
     inputs:
       kind:
         description: "投稿の種類"
         type: choice
-        options: [test, weekly, monthly, promo]
+        options: [test, weekly, monthly]
         default: test
       langs:
         description: "言語（ja,en / ja / en）"
         default: "ja,en"
+      bsky_langs:
+        description: "Bluesky に出す言語（既定は en だけ）"
+        default: "en"
       theme:
         description: "週次の話題（auto=週ごとに自動）"
         type: choice
         options: [auto, commons, uncommons, pairs, speed]
         default: auto
-      targets:
-        description: "投稿先（both=両方 / bsky=Blueskyだけ / x=Xだけ / x-media=Xへの添付だけ試す・投稿しない）"
-        type: choice
-        options: [both, bsky, x, x-media]
-        default: both
       dry_run:
         description: "文面の確認だけ（投稿しない）"
         type: boolean
         default: false
 
 permissions:
-  contents: read
+  contents: write        # カード名・カード画像の一覧を取り直したとき、リポジトリに戻すため
 
 jobs:
   post:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -54,16 +50,16 @@ jobs:
         env:
           SITE_URL: https://sealed-workbench.com
           LANGS: ${{ inputs.langs || 'ja,en' }}
+          BSKY_LANGS: ${{ inputs.bsky_langs || 'en' }}
           THEME: ${{ inputs.theme != 'auto' && inputs.theme || '' }}
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
-          TARGETS: ${{ inputs.targets || 'both' }}
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
-        run: node maintenance/post-social.mjs "${{ inputs.kind || (github.event.schedule == '0 4 1 * *' && 'promo' || 'weekly') }}"
+        run: node maintenance/post-social.mjs "${{ inputs.kind || 'weekly' }}"
 
       - name: 確認用の画像を保存（文面の確認だけのとき）
         if: inputs.dry_run == true
@@ -72,3 +68,22 @@ jobs:
           name: social-preview
           path: social-preview-*.jpg
           if-no-files-found: ignore
+
+      # 投稿の途中で data/names/<SET>.json を取り直すことがある。
+      # 戻しておかないと毎回 Scryfall を引き直すことになるので、変わっていれば押し戻す。
+      - name: カード名・カード画像の更新を戻す
+        if: always() && inputs.dry_run != true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/names || true
+          if git diff --staged --quiet; then
+            echo "変更はありませんでした。"
+            exit 0
+          fi
+          git commit -m "カード名・カード画像の一覧を更新"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin main && exit 0
+            sleep 5
+          done
+          echo "押し戻せませんでした（投稿自体は終わっています）"
