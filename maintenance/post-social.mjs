@@ -260,15 +260,17 @@ function announcePost(ctx, lang, track){
 /* 動画を公開したときの案内。VIDEO_ID と VIDEO_LANG は環境変数で受け取る */
 function videoPost(ctx, lang, track){
   const id = process.env.VIDEO_ID; if(!id) return null;
+  const vmode = process.env.VIDEO_MODE === "sealed" ? "sealed" : "draft";
   const nm = ctx.name[lang], url = ctx.url(lang) + `?from=${track}`;
   const L = lang === "ja";
-  const d = ctx.draft || ctx.sealed;
-  const games = (ctx.draft?.total_games || 0) + (ctx.sealed?.total_games || 0);
+  const d = ctx[vmode] || ctx.draft || ctx.sealed;
+  const games = d ? (d.total_games || 0) : 0;
   const best = d && d.colors && d.colors.length ? d.colors[0] : null;
+  const modeName = L ? (vmode === "sealed" ? "シールド" : "ドラフト") : (vmode === "sealed" ? "Sealed" : "Draft");
   const lines = [
-    L ? `【${nm}】1分でわかるリミテッド環境（動画）` : `${nm} Limited in 60 seconds (video)`,
+    L ? `【${nm}】1分でわかる${modeName}環境（動画）` : `${nm} ${modeName} in 60 seconds (video)`,
     "",
-    L ? `${games.toLocaleString()}試合の実戦データから、環境の速さ・強い色・コモン／アンコモンのトップ3を1分にまとめました。` : `Format speed, the strongest colours and the top commons and uncommons, from ${games.toLocaleString()} games, in one minute.`,
+    L ? `${modeName}${games.toLocaleString()}試合の実戦データから、環境の速さ・強い色・コモン／アンコモンのトップ3を1分にまとめました。` : `Format speed, the strongest colours and the top commons and uncommons, from ${games.toLocaleString()} ${modeName} games, in one minute.`,
     best ? (L ? `~いちばん勝っている色は${COLOR.ja[best.color] || best.color}（${pct(best.wr)}）。` : `~Best colour so far: ${COLOR.en[best.color] || best.color} (${pct(best.wr)}).`) : null,
     "",
     `https://www.youtube.com/shorts/${id}`,

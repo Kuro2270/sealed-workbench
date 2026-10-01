@@ -506,10 +506,12 @@ async function loadVideos(){
   try{ const r = await fetch("./data/videos.json", {cache:"no-cache"}); videos = r.ok ? await r.json() : {}; }catch(e){ videos = {}; }
   return videos;
 }
-async function renderVideo(code){
+async function renderVideo(code, mode){
   const box = $("video"); if(!box) return;
   const all = await loadVideos();
-  const v = all && all[code] && all[code][I18N.lang];
+  let v = all && all[code] && all[code][I18N.lang];
+  if(v && v.id) v = { draft: v };          // 昔の形（言語の直下に id）はドラフト
+  v = v && v[mode || "draft"];
   if(!v || !v.id || v.public === false){ box.hidden = true; box.innerHTML = ""; return; }
   const id = String(v.id);
   box.innerHTML = `<div class="yt"><img src="https://i.ytimg.com/vi/${esc(id)}/hqdefault.jpg" alt="${esc(v.title || t("reports.video.h"))}" loading="lazy" width="240" height="427">
@@ -527,7 +529,7 @@ async function renderVideo(code){
 
 function render(){
   const d = report, avg = d.overall_win_rate;
-  renderVideo(d.set);
+  renderVideo(d.set, d.mode);
   const ev = t("mode." + d.mode);
 
   setStatus(t("reports.summary", {

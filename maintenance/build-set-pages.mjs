@@ -323,7 +323,7 @@ ${body.main}
 `;
 }
 
-function modeSection(lang, code, mode, d, speedIndex, names, setDisplay){
+function modeSection(lang, code, mode, d, speedIndex, names, setDisplay, videos){
   const T = L[lang];
   const cn = n => (lang === "ja" && names[n]) ? names[n] : n;
   const dotOf = c => c.length === 0 ? "var(--c)" : c.length > 1 ? "var(--m)" : `var(--${c.toLowerCase()})`;
@@ -332,7 +332,8 @@ function modeSection(lang, code, mode, d, speedIndex, names, setDisplay){
 
   let out = `<article class="mode">
   <h2>${esc(T.mode[mode])} <small>${esc(T.games((d.total_games || 0).toLocaleString(), pct(d.overall_win_rate)))}</small></h2>
-  <p class="built">${esc(T.built((d.data_generated_at || d.generated_at || "").slice(0, 10)))}</p>`;
+  <p class="built">${esc(T.built((d.data_generated_at || d.generated_at || "").slice(0, 10)))}</p>
+${videoSection(lang, code, mode, setDisplay, videos)}`;
 
   // 環境の速さ
   const best = (d.speed || []).filter(s => s.wr != null).sort((a, b) => b.wr - a.wr)[0];
@@ -416,9 +417,9 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos){
 <meta property="og:url" content="${canonical}">`;
   const header = `    <h1>${esc(T.h1(setDisplay))}</h1>
     <p>${esc(T.lead)}${info.released_at ? `　${lang === "ja" ? "発売" : "Released"} ${esc(info.released_at)}` : ""}</p>`;
-  const body = (videoSection(lang, code, setDisplay, videos) || "") + (modes.length
-    ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay)).join("\n")
-    : `<p>${esc(T.none)}</p>`);
+  const body = modes.length
+    ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay, videos)).join("\n")
+    : `<p>${esc(T.none)}</p>`;
   const links = `<section class="links"><h3>${esc(T.links)}</h3><ul>
   <li><a href="../reports.html?set=${code}">${esc(T.linkReports)}</a></li>
   <li><a href="../">${esc(T.linkSealed)}</a>／<a href="../draft.html">${esc(T.linkDraft)}</a>／<a href="../assistant.html">${esc(T.linkAssist)}</a></li>
@@ -429,8 +430,10 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos){
 }
 
 /* 環境まとめ動画（YouTube ショート）。押すまで YouTube を読み込まない軽い埋め込みと、検索向けの VideoObject */
-function videoSection(lang, code, setDisplay, videos){
-  const v = videos && videos[code] && videos[code][lang];
+function videoSection(lang, code, mode, setDisplay, videos){
+  let v = videos && videos[code] && videos[code][lang];
+  if(v && v.id) v = { draft: v };          // 昔の形（言語の直下に id）はドラフト
+  v = v && v[mode];
   if(!v || !v.id || v.public === false) return "";
   const T = L[lang];
   const id = String(v.id);
@@ -438,7 +441,7 @@ function videoSection(lang, code, setDisplay, videos){
   const watch = `https://www.youtube.com/shorts/${id}`;
   const ld = {
     "@context": "https://schema.org", "@type": "VideoObject",
-    name: v.title || `${setDisplay} — ${T.videoH}`,
+    name: v.title || `${setDisplay} ${T.mode[mode]} — ${T.videoH}`,
     description: T.videoLead,
     thumbnailUrl: [thumb],
     uploadDate: v.uploadedAt || "",
@@ -455,7 +458,7 @@ function videoSection(lang, code, setDisplay, videos){
     <p><a href="${watch}" target="_blank" rel="noopener">${esc(T.videoOpen)}</a></p>
   </div>
   <script type="application/ld+json">${JSON.stringify(ld)}</script>
-  <script>document.querySelector(".video .yt button").addEventListener("click",function(){var b=this.parentNode,f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+b.dataset.id+"?autoplay=1&playsinline=1";f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title=this.getAttribute("aria-label");b.innerHTML="";b.appendChild(f);});</script>
+  <script>document.querySelectorAll(".video .yt button").forEach(function(btn){ if(btn.dataset.wired) return; btn.dataset.wired="1"; btn.addEventListener("click",function(){var b=this.parentNode,f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+b.dataset.id+"?autoplay=1&playsinline=1";f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title=this.getAttribute("aria-label");b.innerHTML="";b.appendChild(f);});});</script>
 </section>
 `;
 }

@@ -109,6 +109,9 @@
   </div>
 </header>
 <main>
+<article class="mode">
+  <h2>ドラフト <small>総試合数 375,126／全体勝率 56.7%</small></h2>
+  <p class="built">集計 2026-09-18</p>
 <section class="video"><div class="yt" data-id="-FNf3wIeI10">
     <img src="https://i.ytimg.com/vi/-FNf3wIeI10/hqdefault.jpg" alt="【ホビット】1分でわかるリミテッド環境｜MTGアリーナ #Shorts" loading="lazy" width="270" height="480">
     <button type="button" aria-label="再生"><span></span></button>
@@ -117,11 +120,9 @@
     <p><a href="https://www.youtube.com/shorts/-FNf3wIeI10" target="_blank" rel="noopener">YouTube で見る</a></p>
   </div>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoObject","name":"【ホビット】1分でわかるリミテッド環境｜MTGアリーナ #Shorts","description":"この環境の要点を1分のショート動画にまとめました。再生ボタンで YouTube の動画を読み込みます。","thumbnailUrl":["https://i.ytimg.com/vi/-FNf3wIeI10/hqdefault.jpg"],"uploadDate":"2026-10-01","duration":"PT1M","contentUrl":"https://www.youtube.com/shorts/-FNf3wIeI10","embedUrl":"https://www.youtube-nocookie.com/embed/-FNf3wIeI10","inLanguage":"ja"}</script>
-  <script>document.querySelector(".video .yt button").addEventListener("click",function(){var b=this.parentNode,f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+b.dataset.id+"?autoplay=1&playsinline=1";f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title=this.getAttribute("aria-label");b.innerHTML="";b.appendChild(f);});</script>
+  <script>document.querySelectorAll(".video .yt button").forEach(function(btn){ if(btn.dataset.wired) return; btn.dataset.wired="1"; btn.addEventListener("click",function(){var b=this.parentNode,f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+b.dataset.id+"?autoplay=1&playsinline=1";f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title=this.getAttribute("aria-label");b.innerHTML="";b.appendChild(f);});});</script>
 </section>
-<article class="mode">
-  <h2>ドラフト <small>総試合数 375,126／全体勝率 56.7%</small></h2>
-  <p class="built">集計 2026-09-18</p>
+
   <section><h3>環境の速さ</h3>
     <div class="verdict">平均マナ総量2.9未満の速いデッキが最も勝率が高く、57.8%です。 直近8セットと比べると、速い環境です。</div>
   </section>
@@ -219,6 +220,7 @@
 <article class="mode">
   <h2>シールド <small>総試合数 61,800／全体勝率 57.4%</small></h2>
   <p class="built">集計 2026-09-18</p>
+
   <section><h3>環境の速さ</h3>
     <div class="verdict">平均マナ総量3.2未満の中速デッキが最も勝率が高く、57.9%です。 直近8セットと比べると、速い環境です。</div>
   </section>

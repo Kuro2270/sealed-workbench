@@ -4,8 +4,9 @@
  *
  *   node maintenance/build-short.mjs HOB        … 日本語（VOICEVOX）
  *   node maintenance/build-short.mjs HOB en     … 英語（Kokoro。KOKORO_DIR にモデルを置く）
+ *   node maintenance/build-short.mjs HOB ja sealed … シールドのデータで（既定は draft）
  *
- * 出力: short/<SET>/ja.mp4 と、途中生成物（台本 script.json・場面ごとの png/wav）
+ * 出力: short/<SET>/<lang>.mp4（シールドは <lang>-sealed.mp4）と、途中生成物（台本 script.json・場面ごとの png/wav）
  *
  * 流れ: 記事データ → 台本 → 場面の画像（SVG→PNG, sharp）→ 音声（VOICEVOX）→ ffmpeg で結合
  *
@@ -32,7 +33,9 @@ import { execFileSync } from "node:child_process";
 
 const SET = process.argv[2];
 const LANG = (process.argv[3] || "ja").toLowerCase();
-if(!SET || !["ja", "en"].includes(LANG)){ console.error("使い方: node maintenance/build-short.mjs <SET> [ja|en]"); process.exit(1); }
+const MODE = (process.argv[4] || "draft").toLowerCase();        // draft | sealed（どちらのデータで作るか）
+if(!SET || !["ja", "en"].includes(LANG) || !["draft", "sealed"].includes(MODE)){ console.error("使い方: node maintenance/build-short.mjs <SET> [ja|en] [draft|sealed]"); process.exit(1); }
+const TAG = MODE === "draft" ? LANG : `${LANG}-${MODE}`;         // 出力名: short/<SET>/ja.mp4, short/<SET>/en-sealed.mp4 など
 const JA = LANG === "ja";
 const KOKORO_DIR = process.env.KOKORO_DIR || "short/kokoro";    // 英語の読み上げ（Kokoro）のモデル置き場
 const KOKORO_PY = process.env.KOKORO_PY || "python3";
@@ -301,7 +304,7 @@ function sceneSvg(sc){
         `<rect x="${W / 2 - 200}" y="640" width="400" height="6" fill="${BLUE}"/>` +
         title +
         T(W / 2, sc.logo ? 1210 : 1090, UI.games(sc.games), { size: 92, weight: 900, anchor: "middle" }) +
-        T(W / 2, sc.logo ? 1290 : 1170, UI.inOneMinute, { size: 44, fill: MUTED, anchor: "middle" }), sc.say, { header: false });
+        T(W / 2, sc.logo ? 1290 : 1170, UI.inOneMinute, { size: 44, fill: MUTED, anchor: "middle" }), null, { header: false });   // 冒頭は字幕なし（画面と同じ内容を読むだけなので）
     }
     case "intro": {
       const box = (x, label, on) =>
@@ -450,12 +453,12 @@ async function speak(text, wavPath){
 /* ------------------------------------------------------------ 実行 */
 
 async function main(){
-  const d = await readJson(`data/articles/${SET}_draft.json`, null) || await readJson(`data/articles/${SET}_sealed.json`, null);
-  if(!d){ console.error(`${SET}: 記事データがありません`); process.exit(1); }
+  const d = await readJson(`data/articles/${SET}_${MODE}.json`, null);
+  if(!d){ console.error(`${SET}: ${MODE} の記事データ（data/articles/${SET}_${MODE}.json）がありません`); process.exit(1); }
   const names = await readJson(`data/names/${SET}.json`, { names: {}, images: {} });
   const nameJa = JA ? ((await setNameJa(SET)) || names.set || SET) : (names.set || SET);   // 英語のときは英語のセット名
   const sharp = (await import("sharp")).default;
-  await mkdir(`${OUT}/${LANG}`, { recursive: true });
+  await mkdir(`${OUT}/${TAG}`, { recursive: true });
 
   for(const c of ["W", "U", "B", "R", "G"]){
     const p = `short/symbols/${c}.svg`;
@@ -500,14 +503,14 @@ async function main(){
       try{
         const r = await fetch(url.replace("/normal/", "/art_crop/"), { headers: { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)" } });
         if(!r.ok) continue;
-        artPath = `${OUT}/${LANG}/art.jpg`;
+        artPath = `${OUT}/${TAG}/art.jpg`;
         await writeFile(artPath, Buffer.from(await r.arrayBuffer()));
         console.error(`背景アート: ${c.name}`);
         break;
       }catch(e){}
     }
-    if(!artPath && await readFile(`${OUT}/${LANG}/art.jpg`).then(() => true, () => false)){
-      artPath = `${OUT}/${LANG}/art.jpg`; console.error("背景アート: 前回のものを再利用");
+    if(!artPath && await readFile(`${OUT}/${TAG}/art.jpg`).then(() => true, () => false)){
+      artPath = `${OUT}/${TAG}/art.jpg`; console.error("背景アート: 前回のものを再利用");
     }
     if(!artPath) console.error("背景アート: 取得できず");
   }
@@ -527,7 +530,7 @@ async function main(){
         const r = await fetch(c.img, { headers: { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)" } });
         if(!r.ok) continue;
         const buf = Buffer.from(await r.arrayBuffer());
-        await writeFile(`${OUT}/${LANG}/card-${sc.label}-${i}.jpg`, buf);
+        await writeFile(`${OUT}/${TAG}/card-${sc.label}-${i}.jpg`, buf);
         c.imgPath = "data:image/jpeg;base64," + buf.toString("base64");   // SVG に直接埋め込む
       }catch(e){}
     }
@@ -542,10 +545,10 @@ async function main(){
   console.error(HAS_BG ? `背景: ${BG}（${bgDur.toFixed(1)}秒、足りなければ繰り返す）` : "背景: 紺色（short/bg.mp4 が無い）");
 
   // 1) 音声を先にまとめて作る（VOICEVOX が要るのはここだけ）。文面が前回と同じなら作り直さない
-  const prev = await readJson(`${OUT}/${LANG}/script.json`, []);
+  const prev = await readJson(`${OUT}/${TAG}/script.json`, []);
   let yomiLoaded = false;
   for(const [i, sc] of scenes.entries()){
-    const base = `${OUT}/${LANG}/scene-${i}`;
+    const base = `${OUT}/${TAG}/scene-${i}`;
     const old = prev[i];
     if(old && old.say === sc.say && old.dur && await readFile(base + ".wav").then(() => true, () => false)){
       sc.kana = old.kana; sc.dur = old.dur; continue;
@@ -554,13 +557,13 @@ async function main(){
     const { kana, dur } = await speak(sc.say, base + ".wav");
     sc.kana = kana; sc.dur = dur;
   }
-  await writeFile(`${OUT}/${LANG}/script.json`, JSON.stringify(scenes.map(s => ({ kind: s.kind, say: s.say, kana: s.kana, dur: s.dur })), null, 2), "utf8");
+  await writeFile(`${OUT}/${TAG}/script.json`, JSON.stringify(scenes.map(s => ({ kind: s.kind, say: s.say, kana: s.kana, dur: s.dur })), null, 2), "utf8");
 
   // 2) 場面ごとに画像を描いて動画にする
   const segs = [];
   let total = 0;
   for(const [i, sc] of scenes.entries()){
-    const base = `${OUT}/${LANG}/scene-${i}`;
+    const base = `${OUT}/${TAG}/scene-${i}`;
     const { kana, dur } = sc;
     const svg = sceneSvg(sc);
     await sharp(Buffer.from(svg), { density: 72 }).png().toFile(base + ".png");
@@ -605,10 +608,10 @@ async function main(){
     console.error(`   読み: ${kana}`);
   }
   if(process.env.SHORT_STILLS){ console.error("画像だけ作りました。"); return; }
-  await writeFile(`${OUT}/${LANG}/list.txt`, segs.join("\n"), "utf8");
-  execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", `${OUT}/${LANG}/list.txt`,
-    "-c", "copy", "-movflags", "+faststart", `${OUT}/${LANG}.mp4`]);
-  console.error(`\n${OUT}/${LANG}.mp4  合計 ${total.toFixed(1)} 秒`);
+  await writeFile(`${OUT}/${TAG}/list.txt`, segs.join("\n"), "utf8");
+  execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", `${OUT}/${TAG}/list.txt`,
+    "-c", "copy", "-movflags", "+faststart", `${OUT}/${TAG}.mp4`]);
+  console.error(`\n${OUT}/${TAG}.mp4  合計 ${total.toFixed(1)} 秒`);
 }
 
 main().catch(e => { console.error("動画の作成に失敗しました:", e.message); process.exit(1); });

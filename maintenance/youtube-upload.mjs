@@ -21,7 +21,9 @@ import { readFile, writeFile, stat } from "node:fs/promises";
 
 const SET = (process.argv[2] || "").toUpperCase();
 const LANG = (process.argv[3] || "ja").toLowerCase();
-if(!SET){ console.error("使い方: node maintenance/youtube-upload.mjs <SET> [ja|en]"); process.exit(1); }
+const MODE = (process.argv[4] || "draft").toLowerCase();
+const TAG = MODE === "draft" ? LANG : `${LANG}-${MODE}`;
+if(!SET || !["draft", "sealed"].includes(MODE)){ console.error("使い方: node maintenance/youtube-upload.mjs <SET> [ja|en] [draft|sealed]"); process.exit(1); }
 
 const SITE = process.env.SITE_URL || "https://sealed-workbench.com";
 const ID = process.env.YT_CLIENT_ID, SECRET = process.env.YT_CLIENT_SECRET;
@@ -31,7 +33,7 @@ if(!ID || !SECRET || !REFRESH){
   process.exit(0);
 }
 
-const FILE = `short/${SET}/${LANG}.mp4`;
+const FILE = `short/${SET}/${TAG}.mp4`;
 const size = (await stat(FILE).catch(() => null))?.size;
 if(!size){ console.error(`${FILE} がありません。先に動画を作ってください。`); process.exit(1); }
 
@@ -48,16 +50,13 @@ async function setName(){
   return { ja: ja || en || SET, en: en || ja || SET };
 }
 const name = await setName();
-let games = 0, mode = "draft";
-try{
-  const d = JSON.parse(await readFile(`data/articles/${SET}_draft.json`, "utf8").catch(() => readFile(`data/articles/${SET}_sealed.json`, "utf8")));
-  games = d.total_games || 0; mode = d.mode || "draft";
-}catch(e){}
+let games = 0, mode = MODE;
+try{ const d = JSON.parse(await readFile(`data/articles/${SET}_${MODE}.json`, "utf8")); games = d.total_games || 0; }catch(e){}
 const gamesTxt = games ? games.toLocaleString(LANG === "ja" ? "ja-JP" : "en-US") : "";
 
 const pageUrl = `${SITE}/sets/${SET}${LANG === "en" ? ".en" : ""}.html`;
 const meta = LANG === "ja" ? {
-  title: `【${name.ja}】1分でわかるリミテッド環境｜MTGアリーナ #Shorts`,
+  title: `【${name.ja}】1分でわかる${mode === "sealed" ? "シールド" : "ドラフト"}環境｜MTGアリーナ #Shorts`,
   description: [
     `MTGアリーナ『${name.ja}』のリミテッド（${mode === "sealed" ? "シールド" : "ドラフト"}）環境を、${gamesTxt ? gamesTxt + "試合の" : ""}実戦データから1分でまとめました。`,
     ``,
@@ -77,7 +76,7 @@ const meta = LANG === "ja" ? {
   ].join("\n"),
   tags: ["MTGアリーナ", "MTGA", "マジック：ザ・ギャザリング", "リミテッド", "ドラフト", "シールド", name.ja, "17Lands"]
 } : {
-  title: `${name.en} Limited in 60 seconds | MTG Arena #Shorts`,
+  title: `${name.en} ${mode === "sealed" ? "Sealed" : "Draft"} in 60 seconds | MTG Arena #Shorts`,
   description: [
     `The ${name.en} Limited (${mode}) format on MTG Arena, summarised in one minute from ${gamesTxt ? gamesTxt + " games of " : ""}real match data.`,
     ``,
@@ -126,15 +125,18 @@ const put = await fetch(location, { method: "PUT", headers: { Authorization: `Be
 const res = await put.json().catch(() => ({}));
 if(!put.ok || !res.id){ console.error(`アップロードに失敗しました（HTTP ${put.status}）: ${JSON.stringify(res).slice(0, 500)}`); process.exit(1); }
 
-const out = { set: SET, lang: LANG, videoId: res.id, url: `https://youtu.be/${res.id}`, shortsUrl: `https://www.youtube.com/shorts/${res.id}`,
+const out = { set: SET, lang: LANG, mode, videoId: res.id, url: `https://youtu.be/${res.id}`, shortsUrl: `https://www.youtube.com/shorts/${res.id}`,
               title: meta.title, privacy: "private", uploadedAt: new Date().toISOString() };
-await writeFile(`short/${SET}/${LANG}.youtube.json`, JSON.stringify(out, null, 2), "utf8");
+await writeFile(`short/${SET}/${TAG}.youtube.json`, JSON.stringify(out, null, 2), "utf8");
 // サイト用の一覧にも記録しておく（まだ非公開なので public: false。「動画を配信」で true にするとセットページに載る）
 {
   let all = {};
   try{ all = JSON.parse(await readFile("data/videos.json", "utf8")); }catch(e){}
   all[SET] = all[SET] || {};
-  all[SET][LANG] = { id: res.id, mode, title: meta.title, uploadedAt: out.uploadedAt.slice(0, 10), public: false };
+  // 形式ごとに持つ。昔の形（言語の直下に id）はドラフトとして読み替える
+  if(all[SET][LANG] && all[SET][LANG].id) all[SET][LANG] = { draft: all[SET][LANG] };
+  all[SET][LANG] = all[SET][LANG] || {};
+  all[SET][LANG][mode] = { id: res.id, mode, title: meta.title, uploadedAt: out.uploadedAt.slice(0, 10), public: false };
   await writeFile("data/videos.json", JSON.stringify(all, null, 2) + "\n", "utf8");
 }
 console.log(`YouTube に非公開で上げました: ${out.url}`);

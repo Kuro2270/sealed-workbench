@@ -1,18 +1,24 @@
 {
   "HOB": {
     "ja": {
-      "id": "-FNf3wIeI10",
-      "mode": "draft",
-      "title": "【ホビット】1分でわかるリミテッド環境｜MTGアリーナ #Shorts",
-      "uploadedAt": "2026-10-01",
-      "public": true
+      "draft": {
+        "id": "-FNf3wIeI10",
+        "mode": "draft",
+        "title": "【ホビット】1分でわかるリミテッド環境｜MTGアリーナ #Shorts",
+        "uploadedAt": "2026-10-01",
+        "public": true,
+        "publishedAt": "2026-10-01"
+      }
     },
     "en": {
-      "id": "-nHQ1ypfoqA",
-      "mode": "draft",
-      "title": "The Hobbit Limited in 60 seconds | MTG Arena #Shorts",
-      "uploadedAt": "2026-10-01",
-      "public": false
+      "draft": {
+        "id": "-nHQ1ypfoqA",
+        "mode": "draft",
+        "title": "The Hobbit Limited in 60 seconds | MTG Arena #Shorts",
+        "uploadedAt": "2026-10-01",
+        "public": true,
+        "publishedAt": "2026-10-01"
+      }
     }
   }
 }
