@@ -24,7 +24,7 @@ on:
         default: true
 
 permissions:
-  contents: read
+  contents: write        # 上げた動画の ID を data/videos.json に記録するため
 
 jobs:
   short:
@@ -115,6 +115,20 @@ jobs:
               echo
               echo "内容を確認して、YouTube Studio で「公開」にしてください。"
             } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: 動画の記録をコミット
+        if: inputs.upload == true
+        run: |
+          if ! git diff --quiet -- data/videos.json 2>/dev/null; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/videos.json
+            git commit -m "動画の記録を更新（$SET_CODE）"
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push origin main && break
+              echo "再試行 $i"; sleep 5
+            done
           fi
 
       - name: 動画を保存する
