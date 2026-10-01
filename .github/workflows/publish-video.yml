@@ -17,6 +17,11 @@ on:
         type: choice
         options: [ja, en]
         default: ja
+      mode:
+        description: "どちらの動画か"
+        type: choice
+        options: [draft, sealed]
+        default: draft
       video_id:
         description: "YouTube の動画 ID（data/videos.json に記録済みなら空のまま）"
         required: false
@@ -47,23 +52,26 @@ jobs:
         env:
           SET_IN: ${{ inputs.set }}
           LANG_IN: ${{ inputs.lang }}
+          MODE_IN: ${{ inputs.mode || 'draft' }}
           VID_IN: ${{ inputs.video_id }}
         run: |
           export SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"
           node -e '
             const fs = require("fs");
-            const set = process.env.SET_CODE, lang = process.env.LANG_IN, vid = (process.env.VID_IN || "").trim();
+            const set = process.env.SET_CODE, lang = process.env.LANG_IN, mode = process.env.MODE_IN || "draft", vid = (process.env.VID_IN || "").trim();
             let all = {}; try{ all = JSON.parse(fs.readFileSync("data/videos.json", "utf8")); }catch(e){}
             all[set] = all[set] || {};
-            const cur = all[set][lang] || {};
+            if(all[set][lang] && all[set][lang].id) all[set][lang] = { draft: all[set][lang] };   // 昔の形はドラフトとして読み替える
+            all[set][lang] = all[set][lang] || {};
+            const cur = all[set][lang][mode] || { mode };
             if(vid) cur.id = vid;
-            if(!cur.id){ console.error(`::error::${set} の ${lang} の動画 ID が記録にありません。video_id に入れてください。`); process.exit(1); }
+            if(!cur.id){ console.error(`::error::${set} の ${lang}/${mode} の動画 ID が記録にありません。video_id に入れてください。`); process.exit(1); }
             cur.public = true;
             cur.publishedAt = cur.publishedAt || new Date().toISOString().slice(0, 10);
-            all[set][lang] = cur;
+            all[set][lang][mode] = cur;
             fs.writeFileSync("data/videos.json", JSON.stringify(all, null, 2) + "\n");
             fs.appendFileSync(process.env.GITHUB_OUTPUT, `id=${cur.id}\n`);
-            console.log(`${set}/${lang}: https://www.youtube.com/shorts/${cur.id}`);
+            console.log(`${set}/${lang}/${mode}: https://www.youtube.com/shorts/${cur.id}`);
           '
           echo "SET_CODE=$SET_CODE" >> "$GITHUB_ENV"
 
@@ -78,7 +86,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "変更はありませんでした。"
           else
-            git commit -m "動画を配信（$SET_CODE ${{ inputs.lang }}）"
+            git commit -m "動画を配信（$SET_CODE ${{ inputs.lang }} ${{ inputs.mode }}）"
             for i in 1 2 3; do
               git pull --rebase origin main && git push origin main && break
               echo "再試行 $i"; sleep 5
@@ -93,6 +101,7 @@ jobs:
           LANGS: ${{ inputs.lang }}
           BSKY_LANGS: en
           VIDEO_ID: ${{ steps.mark.outputs.id }}
+          VIDEO_MODE: ${{ inputs.mode || 'draft' }}
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
@@ -104,7 +113,7 @@ jobs:
       - name: まとめ
         run: |
           {
-            echo "## 動画を配信しました（$SET_CODE ${{ inputs.lang }}）"
+            echo "## 動画を配信しました（$SET_CODE ${{ inputs.lang }} ${{ inputs.mode }}）"
             echo
             echo "- 動画: https://www.youtube.com/shorts/${{ steps.mark.outputs.id }}"
             echo "- セットページ: https://sealed-workbench.com/sets/$SET_CODE${{ inputs.lang == 'en' && '.en' || '' }}.html（Cloudflare の反映まで数分）"

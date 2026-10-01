@@ -19,6 +19,11 @@ on:
         type: choice
         options: [ja, en]
         default: ja
+      mode:
+        description: "どちらのデータで作るか"
+        type: choice
+        options: [draft, sealed]
+        default: draft
       speed:
         description: "読み上げの速さ（1.0 = ふつう、1.2 = 少し速め）"
         required: false
@@ -99,28 +104,32 @@ jobs:
           # 入力はいちど環境変数に移す（コマンド行に直接埋め込まない）
           SET_IN: ${{ inputs.set }}
           LANG_IN: ${{ inputs.lang || 'ja' }}
+          MODE_IN: ${{ inputs.mode || 'draft' }}
           VOICEVOX_SPEED: ${{ inputs.speed }}
           VOICEVOX_URL: http://127.0.0.1:50021
           KOKORO_DIR: short/kokoro
         run: |
           export SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"
-          export VLANG="$LANG_IN"
-          if [ ! -f "data/articles/${SET_CODE}_draft.json" ] && [ ! -f "data/articles/${SET_CODE}_sealed.json" ]; then
-            echo "::error::${SET_CODE} の記事データ（data/articles/）がまだありません。勝率データ集計が終わってから作ってください。"
+          export VLANG="$LANG_IN" VMODE="$MODE_IN"
+          export VTAG="$VLANG"; [ "$VMODE" = "sealed" ] && VTAG="$VLANG-sealed"
+          if [ ! -f "data/articles/${SET_CODE}_${VMODE}.json" ]; then
+            echo "::error::${SET_CODE} の ${VMODE} の記事データ（data/articles/${SET_CODE}_${VMODE}.json）がまだありません。勝率データ集計が終わってから作ってください。"
             exit 1
           fi
-          node maintenance/build-short.mjs "$SET_CODE" "$VLANG"
+          node maintenance/build-short.mjs "$SET_CODE" "$VLANG" "$VMODE"
           echo "SET_CODE=$SET_CODE" >> "$GITHUB_ENV"
           echo "VLANG=$VLANG" >> "$GITHUB_ENV"
+          echo "VMODE=$VMODE" >> "$GITHUB_ENV"
+          echo "VTAG=$VTAG" >> "$GITHUB_ENV"
           {
-            echo "## ${SET_CODE} の動画ができました"
+            echo "## ${SET_CODE} の動画ができました（${VLANG} / ${VMODE}）"
             echo
-            echo "下の Artifacts から \`short-${SET_CODE}-${VLANG}\` を落として、中の ${VLANG}.mp4 を確認してから投稿してください。"
+            echo "下の Artifacts から \`short-${SET_CODE}-${VTAG}\` を落として、中の ${VTAG}.mp4 を確認してから投稿してください。"
             echo
             echo "### 読み上げの台本（読みの確認用）"
             echo
             echo '```'
-            node -e 'const s=require("./short/"+process.env.SET_CODE+"/"+process.env.VLANG+"/script.json");for(const x of s)console.log(`${x.kind.padEnd(8)} ${(+x.dur).toFixed(1)}s  ${x.say}\n         ${x.kana||""}`)'
+            node -e 'const s=require("./short/"+process.env.SET_CODE+"/"+process.env.VTAG+"/script.json");for(const x of s)console.log(`${x.kind.padEnd(8)} ${(+x.dur).toFixed(1)}s  ${x.say}\n         ${x.kana||""}`)'
             echo '```'
             echo
             echo "読み違いがあれば short/yomi.json に「表記: 読み（カタカナ）」を足して、もう一度実行してください。"
@@ -135,9 +144,9 @@ jobs:
           YT_REFRESH_TOKEN_JA: ${{ secrets.YT_REFRESH_TOKEN_JA }}
           YT_REFRESH_TOKEN_EN: ${{ secrets.YT_REFRESH_TOKEN_EN }}
         run: |
-          node maintenance/youtube-upload.mjs "$SET_CODE" "$VLANG" | tee yt.log
-          if [ -f "short/$SET_CODE/$VLANG.youtube.json" ]; then
-            URL=$(node -e 'console.log(require("./short/"+process.env.SET_CODE+"/"+process.env.VLANG+".youtube.json").url)')
+          node maintenance/youtube-upload.mjs "$SET_CODE" "$VLANG" "$VMODE" | tee yt.log
+          if [ -f "short/$SET_CODE/$VTAG.youtube.json" ]; then
+            URL=$(node -e 'console.log(require("./short/"+process.env.SET_CODE+"/"+process.env.VTAG+".youtube.json").url)')
             {
               echo
               echo "### YouTube（非公開）"
@@ -155,7 +164,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add data/videos.json
-            git commit -m "動画の記録を更新（$SET_CODE $VLANG）"
+            git commit -m "動画の記録を更新（$SET_CODE $VLANG $VMODE）"
             for i in 1 2 3; do
               git pull --rebase origin main && git push origin main && break
               echo "再試行 $i"; sleep 5
@@ -165,10 +174,10 @@ jobs:
       - name: 動画を保存する
         uses: actions/upload-artifact@v4
         with:
-          name: short-${{ env.SET_CODE }}-${{ env.VLANG }}
+          name: short-${{ env.SET_CODE }}-${{ env.VTAG }}
           path: |
-            short/${{ env.SET_CODE }}/${{ env.VLANG }}.mp4
-            short/${{ env.SET_CODE }}/${{ env.VLANG }}/script.json
-            short/${{ env.SET_CODE }}/${{ env.VLANG }}.youtube.json
+            short/${{ env.SET_CODE }}/${{ env.VTAG }}.mp4
+            short/${{ env.SET_CODE }}/${{ env.VTAG }}/script.json
+            short/${{ env.SET_CODE }}/${{ env.VTAG }}.youtube.json
           retention-days: 30
           if-no-files-found: error
