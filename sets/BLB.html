@@ -41,8 +41,14 @@
   nav{gap:10px 16px;align-items:flex-end}
   .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
   .ng:first-of-type{padding-left:0;border-left:none}
-  .ngl{width:100%;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6;margin:0 0 1px}
-  @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} }
+  .ng{position:relative;padding-top:17px}
+  .ng:has(.ngs){padding-top:35px}
+  .ngl{position:absolute;left:16px;top:0;white-space:nowrap;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6}
+  .ng:first-of-type .ngl,.ng:first-of-type .ngs{left:0}
+  .ngs{position:absolute;left:16px;top:17px;white-space:nowrap;font-size:11px;color:#8FA9C6;line-height:1.3}
+  nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
+  nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
+  @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0} }
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   .lang{margin-top:12px;font-size:13px}
@@ -53,6 +59,16 @@
   .mode > h2 small{font-size:13px;color:var(--muted);font-weight:500}
   .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
   section{margin-top:18px}
+  .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
+  .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .video .yt button span{width:64px;height:64px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .video .yt button span::after{content:"";border-left:22px solid #0B1E33;border-top:13px solid transparent;border-bottom:13px solid transparent;margin-left:5px}
+  .video .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .video .vtext{flex:1 1 240px;min-width:0}
+  .video .vtext p{margin:0 0 8px}
+  .video .vtext a{font-size:13px}
   section h3{font-size:16px;margin:0 0 4px}
   .lead{color:var(--muted);font-size:13px;margin:0 0 8px}
   .verdict{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;font-size:14.5px}
@@ -82,7 +98,8 @@
     <div class="brand"><a href="../">MTGアリーナ リミテッド・ワークベンチ</a></div>
     <nav>
       <div class="ng"><span class="ngl">はじめに</span><a href="../guide.html">使い方</a></div>
-      <div class="ng"><span class="ngl">デッキを作る</span><a href="../">シールド構築</a><a href="../draft.html">ドラフト構築</a><a href="../assistant.html">ドラフト補助</a></div>
+      <div class="ng"><span class="ngl">練習する</span><span class="ngs">仮想パックで練習</span><a href="../">シールド練習</a><a href="../draft.html">ドラフト練習</a></div>
+      <div class="ng"><span class="ngl">アリーナで使う</span><span class="ngs">実戦のログを読んで助ける・PC専用</span><a href="../assistant.html">ドラフト補助<b class="pcb">PC</b></a><a href="../sealed-assist.html">シールド補助<b class="pcb">PC</b></a></div>
       <div class="ng"><span class="ngl">データを見る</span><a href="../reports.html">環境レポート</a></div>
       <div class="ng"><span class="ngl">対戦する</span><a href="../table.html">対戦卓</a><a href="../swiss.html">スイスドロー</a></div>
     </nav>
@@ -94,7 +111,8 @@
 <main>
 <article class="mode">
   <h2>ドラフト <small>総試合数 1,103,831／全体勝率 55.3%</small></h2>
-  <p class="built">集計 2026-09-18</p>
+  <p class="built">集計 2026-09-24</p>
+
   <section><h3>環境の速さ</h3>
     <div class="verdict">平均マナ総量2.9未満の速いデッキが最も勝率が高く、55.7%です。 直近8セットと比べると、速い環境です。</div>
   </section>
@@ -191,7 +209,8 @@
 </article>
 <article class="mode">
   <h2>シールド <small>総試合数 56,852／全体勝率 55.9%</small></h2>
-  <p class="built">集計 2026-09-18</p>
+  <p class="built">集計 2026-09-24</p>
+
   <section><h3>環境の速さ</h3>
     <div class="verdict">平均マナ総量3.2未満の中速デッキが最も勝率が高く、56.2%です。 直近8セットと比べると、速さは同じくらいです。</div>
   </section>
