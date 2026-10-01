@@ -11,6 +11,7 @@
  *   X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET   … X に投稿する（無ければ X は飛ばす）
  *   BSKY_HANDLE, BSKY_APP_PASSWORD                              … Bluesky に投稿する（無ければ飛ばす）
  *   DRY_RUN=1                                                   … 投稿せず文面だけ表示する
+ *   VIDEO_ID=...  ANNOUNCE_SETS=HOB  node maintenance/post-social.mjs video … 動画の公開を案内する（「動画を配信」から）
  *   LANGS=ja,en                                                 … 投稿する言語（既定は両方）
  *   BSKY_LANGS=en                                               … Bluesky に出す言語（既定は英語だけ。日本語の利用者が少ないため）
  *
@@ -256,6 +257,27 @@ function announcePost(ctx, lang, track){
   return { text: fit(lines), cards: top };
 }
 
+/* 動画を公開したときの案内。VIDEO_ID と VIDEO_LANG は環境変数で受け取る */
+function videoPost(ctx, lang, track){
+  const id = process.env.VIDEO_ID; if(!id) return null;
+  const nm = ctx.name[lang], url = ctx.url(lang) + `?from=${track}`;
+  const L = lang === "ja";
+  const d = ctx.draft || ctx.sealed;
+  const games = (ctx.draft?.total_games || 0) + (ctx.sealed?.total_games || 0);
+  const best = d && d.colors && d.colors.length ? d.colors[0] : null;
+  const lines = [
+    L ? `【${nm}】1分でわかるリミテッド環境（動画）` : `${nm} Limited in 60 seconds (video)`,
+    "",
+    L ? `${games.toLocaleString()}試合の実戦データから、環境の速さ・強い色・コモン／アンコモンのトップ3を1分にまとめました。` : `Format speed, the strongest colours and the top commons and uncommons, from ${games.toLocaleString()} games, in one minute.`,
+    best ? (L ? `~いちばん勝っている色は${COLOR.ja[best.color] || best.color}（${pct(best.wr)}）。` : `~Best colour so far: ${COLOR.en[best.color] || best.color} (${pct(best.wr)}).`) : null,
+    "",
+    `https://www.youtube.com/shorts/${id}`,
+    L ? `~全カードの勝率はこちら ${url}` : `~Every card's win rate: ${url}`,
+    TAGS[lang]
+  ];
+  return { text: fit(lines), cards: [] };
+}
+
 /* ---------- 画像：上位3枚のカードを横に並べる ---------- */
 async function composeImage(ctx, cards, lang){
   const bank = ctx.cardImg[lang] || ctx.cardImg.en || {};
@@ -393,7 +415,7 @@ async function main(){
     await send("test", text, text);
     return;
   }
-  const sets = mode === "announce" ? (process.env.ANNOUNCE_SETS || "").split(/\s+/).filter(Boolean) : [await latestSet()].filter(Boolean);
+  const sets = (mode === "announce" || mode === "video") ? (process.env.ANNOUNCE_SETS || "").split(/\s+/).filter(Boolean) : [await latestSet()].filter(Boolean);
   if(!sets.length){ console.log("対象のセットがありません。"); return; }
   // 週次の話題：THEME で指定があればそれ、無ければ週ごとに順番に回す
   const THEMES = { commons: 0, uncommons: 1, pairs: 2, speed: 3 };
@@ -405,6 +427,7 @@ async function main(){
       let px, pb;
       if(mode === "weekly"){ px = weeklyPost(ctx, lang, theme, "x"); pb = weeklyPost(ctx, lang, theme, "bsky"); }
       else if(mode === "monthly"){ px = monthlyPost(ctx, lang, "x"); pb = monthlyPost(ctx, lang, "bsky"); }
+      else if(mode === "video"){ px = videoPost(ctx, lang, "x"); pb = videoPost(ctx, lang, "bsky"); }
       else { px = announcePost(ctx, lang, "x"); pb = announcePost(ctx, lang, "bsky"); }
       if(!px){ console.log(`${code}/${lang}: データが無いので飛ばしました`); continue; }
       // 画像は投稿の言語に合わせる（日本語版・英語版のカード画像）。枚数は本文のリストと同じ

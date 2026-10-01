@@ -58,6 +58,7 @@ const L = {
     rarity: { mythic:"神話レア", rare:"レア", uncommon:"アンコモン", common:"コモン" },
     col: { color:"色", pair:"色の組み合わせ", cmc:"マナ総量", wr:"勝率", games:"試合数", card:"カード", cards:"種類数" },
     colorName: { W:"白", U:"青", B:"黒", R:"赤", G:"緑" },
+    videoH: "1分でわかる環境（動画）", videoLead: "この環境の要点を1分のショート動画にまとめました。再生ボタンで YouTube の動画を読み込みます。", videoPlay: "再生", videoOpen: "YouTube で見る",
     links: "関連ページ",
     linkRatings: "このセットの全カードの勝率一覧",
     linkReports: "環境レポート（他のセットに切り替え）",
@@ -94,6 +95,7 @@ const L = {
     rarity: { mythic:"Mythic", rare:"Rare", uncommon:"Uncommon", common:"Common" },
     col: { color:"Colour", pair:"Pair", cmc:"Mana value", wr:"Win rate", games:"Games", card:"Card", cards:"Cards" },
     colorName: { W:"White", U:"Blue", B:"Black", R:"Red", G:"Green" },
+    videoH: "The format in 60 seconds (video)", videoLead: "The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.", videoPlay: "Play", videoOpen: "Watch on YouTube",
     links: "Related pages",
     linkRatings: "All card win rates for this set",
     linkReports: "Set reports (switch sets)",
@@ -268,6 +270,16 @@ ${head}
   .mode > h2 small{font-size:13px;color:var(--muted);font-weight:500}
   .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
   section{margin-top:18px}
+  .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
+  .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .video .yt button span{width:64px;height:64px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .video .yt button span::after{content:"";border-left:22px solid #0B1E33;border-top:13px solid transparent;border-bottom:13px solid transparent;margin-left:5px}
+  .video .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .video .vtext{flex:1 1 240px;min-width:0}
+  .video .vtext p{margin:0 0 8px}
+  .video .vtext a{font-size:13px}
   section h3{font-size:16px;margin:0 0 4px}
   .lead{color:var(--muted);font-size:13px;margin:0 0 8px}
   .verdict{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;font-size:14.5px}
@@ -386,7 +398,7 @@ function modeSection(lang, code, mode, d, speedIndex, names, setDisplay){
   return out;
 }
 
-function setPage(lang, code, setDisplay, info, arts, speedIndex, names){
+function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos){
   const T = L[lang];
   const modes = ["draft","sealed"].filter(m => arts[m]);
   const totalGames = modes.reduce((a, m) => a + (arts[m].total_games || 0), 0).toLocaleString();
@@ -404,9 +416,9 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names){
 <meta property="og:url" content="${canonical}">`;
   const header = `    <h1>${esc(T.h1(setDisplay))}</h1>
     <p>${esc(T.lead)}${info.released_at ? `　${lang === "ja" ? "発売" : "Released"} ${esc(info.released_at)}` : ""}</p>`;
-  const body = modes.length
+  const body = (videoSection(lang, code, setDisplay, videos) || "") + (modes.length
     ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay)).join("\n")
-    : `<p>${esc(T.none)}</p>`;
+    : `<p>${esc(T.none)}</p>`);
   const links = `<section class="links"><h3>${esc(T.links)}</h3><ul>
   <li><a href="../reports.html?set=${code}">${esc(T.linkReports)}</a></li>
   <li><a href="../">${esc(T.linkSealed)}</a>／<a href="../draft.html">${esc(T.linkDraft)}</a>／<a href="../assistant.html">${esc(T.linkAssist)}</a></li>
@@ -414,6 +426,38 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names){
 </ul></section>
 <p class="source">${esc(T.source)}</p>`;
   return shell(lang, code, head, { header, main: body + "\n" + links }, `${SITE}/${OUT}/og/${code}-${lang}.png`);
+}
+
+/* 環境まとめ動画（YouTube ショート）。押すまで YouTube を読み込まない軽い埋め込みと、検索向けの VideoObject */
+function videoSection(lang, code, setDisplay, videos){
+  const v = videos && videos[code] && videos[code][lang];
+  if(!v || !v.id || v.public === false) return "";
+  const T = L[lang];
+  const id = String(v.id);
+  const thumb = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  const watch = `https://www.youtube.com/shorts/${id}`;
+  const ld = {
+    "@context": "https://schema.org", "@type": "VideoObject",
+    name: v.title || `${setDisplay} — ${T.videoH}`,
+    description: T.videoLead,
+    thumbnailUrl: [thumb],
+    uploadDate: v.uploadedAt || "",
+    duration: v.duration || "PT1M",
+    contentUrl: watch,
+    embedUrl: `https://www.youtube-nocookie.com/embed/${id}`,
+    inLanguage: lang
+  };
+  return `<section class="video"><div class="yt" data-id="${esc(id)}">
+    <img src="${thumb}" alt="${esc(v.title || T.videoH)}" loading="lazy" width="270" height="480">
+    <button type="button" aria-label="${esc(T.videoPlay)}"><span></span></button>
+  </div>
+  <div class="vtext"><h3>${esc(T.videoH)}</h3><p class="lead">${esc(T.videoLead)}</p>
+    <p><a href="${watch}" target="_blank" rel="noopener">${esc(T.videoOpen)}</a></p>
+  </div>
+  <script type="application/ld+json">${JSON.stringify(ld)}</script>
+  <script>document.querySelector(".video .yt button").addEventListener("click",function(){var b=this.parentNode,f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+b.dataset.id+"?autoplay=1&playsinline=1";f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title=this.getAttribute("aria-label");b.innerHTML="";b.appendChild(f);});</script>
+</section>
+`;
 }
 
 function indexPage(lang, rows){
@@ -442,6 +486,7 @@ async function main(){
   const index = await readJson(`${ARTICLES}/index.json`, null);
   if(!index || !Array.isArray(index.articles)){ console.error("data/articles/index.json がありません"); return; }
   const speedIndex = index.speed || null;
+  const videos = await readJson("data/videos.json", {});   // セットごとの YouTube 動画（「動画を配信」で public になったものだけ載せる）
   const ja = await setNamesJa();
   await mkdir(OUT, { recursive: true });
 
@@ -462,7 +507,7 @@ async function main(){
     const games = Object.values(arts).reduce((a, d) => a + (d.total_games || 0), 0);
     rows.push({ code, name, released_at: info.released_at || (index.articles.find(a => a.set === code) || {}).released_at || "", games });
     for(const lang of ["ja","en"]){
-      const html = setPage(lang, code, name[lang], info, arts, speedIndex, cache.names || {});
+      const html = setPage(lang, code, name[lang], info, arts, speedIndex, cache.names || {}, videos);
       await writeFile(`${OUT}/${code}${lang === "en" ? ".en" : ""}.html`, html, "utf8");
     }
     await sleep(120);

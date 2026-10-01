@@ -129,6 +129,14 @@ if(!put.ok || !res.id){ console.error(`アップロードに失敗しました�
 const out = { set: SET, lang: LANG, videoId: res.id, url: `https://youtu.be/${res.id}`, shortsUrl: `https://www.youtube.com/shorts/${res.id}`,
               title: meta.title, privacy: "private", uploadedAt: new Date().toISOString() };
 await writeFile(`short/${SET}/${LANG}.youtube.json`, JSON.stringify(out, null, 2), "utf8");
+// サイト用の一覧にも記録しておく（まだ非公開なので public: false。「動画を配信」で true にするとセットページに載る）
+{
+  let all = {};
+  try{ all = JSON.parse(await readFile("data/videos.json", "utf8")); }catch(e){}
+  all[SET] = all[SET] || {};
+  all[SET][LANG] = { id: res.id, mode, title: meta.title, uploadedAt: out.uploadedAt.slice(0, 10), public: false };
+  await writeFile("data/videos.json", JSON.stringify(all, null, 2) + "\n", "utf8");
+}
 console.log(`YouTube に非公開で上げました: ${out.url}`);
 console.log(`タイトル: ${meta.title}`);
 console.log(`公開するときは YouTube Studio → コンテンツ → この動画 → 公開設定を「公開」に。`);
