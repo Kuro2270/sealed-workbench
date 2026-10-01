@@ -1,0 +1,46 @@
+name: 新データの点検
+
+# 毎日1回、17Lands に新しいセットの勝率データが出ていないか軽く調べる（数十秒）。
+# 出ていれば「勝率データ集計」をそのまま起こす。集計のあとは、環境レポート・r/lrcast の下書き・
+# 動画4本（日英 × ドラフト/シールド）まで自動で進む。動画の公開と「動画を配信」は手動。
+# 17Lands のデータは紙の発売から12日後に出るので、新セットのたびに日付を覚えておく必要はない。
+
+on:
+  schedule:
+    - cron: "30 18 * * *"      # 毎日 03:30（日本時間）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 新しいデータがあるか調べる
+        id: check
+        run: |
+          node maintenance/check-new-data.mjs > ready.txt
+          echo "sets=$(tr '\n' ' ' < ready.txt | sed 's/ *$//')" >> "$GITHUB_OUTPUT"
+
+      - name: 勝率データ集計を起こす
+        if: steps.check.outputs.sets != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SETS: ${{ steps.check.outputs.sets }}
+        run: |
+          gh workflow run build-ratings.yml --ref main
+          echo "## 新しいデータを見つけました: $SETS" >> "$GITHUB_STEP_SUMMARY"
+          echo "「勝率データ集計」を起こしました。終わると動画が4本、非公開で YouTube に上がります。" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 新しいデータが無いとき
+        if: steps.check.outputs.sets == ''
+        run: echo "新しいデータはありませんでした。" >> "$GITHUB_STEP_SUMMARY"

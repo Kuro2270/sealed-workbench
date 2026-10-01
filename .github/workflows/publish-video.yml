@@ -23,6 +23,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   publish:
@@ -56,6 +57,23 @@ jobs:
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: node maintenance/publish-videos.mjs
+
+      - name: 配信済みのリマインド Issue を閉じる
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            if(!fs.existsSync('publish-result.json')) return;
+            const { published } = JSON.parse(fs.readFileSync('publish-result.json', 'utf8'));
+            if(!published.length) return;
+            const open = await github.paginate(github.rest.issues.listForRepo, { owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: 'video', per_page: 100 });
+            for(const p of published){
+              const label = `${p.set} ${p.lang} ${p.mode}`;
+              for(const is of open.filter(i => i.title.includes(label))){
+                await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: is.number, body: `配信しました。 https://www.youtube.com/shorts/${p.id}` });
+                await github.rest.issues.update({ owner: context.repo.owner, repo: context.repo.repo, issue_number: is.number, state: 'closed' });
+              }
+            }
 
       - name: セット別ページを作り直す
         run: node maintenance/build-set-pages.mjs

@@ -35,6 +35,7 @@ on:
 
 permissions:
   contents: write        # 上げた動画の ID を data/videos.json に記録するため
+  issues: write          # 公開と配信のリマインドを Issue で出すため（メールと GitHub アプリに通知が届く）
 
 jobs:
   short:
@@ -156,6 +157,37 @@ jobs:
               echo "内容を確認して、YouTube Studio で「公開」にしてください。"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      # 公開と「動画を配信」を忘れないように、担当者に割り当てた Issue を立てる（GitHub がメールとアプリで知らせる）
+      - name: 公開のリマインドを Issue にする
+        if: inputs.upload == true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const p = `short/${process.env.SET_CODE}/${process.env.VTAG}.youtube.json`;
+            if(!fs.existsSync(p)) return;
+            const v = JSON.parse(fs.readFileSync(p, 'utf8'));
+            const label = `${process.env.SET_CODE} ${process.env.VLANG} ${process.env.VMODE}`;
+            await github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo,
+              title: `【要対応】動画の公開と配信：${label}`,
+              assignees: [context.repo.owner],
+              labels: ['video'],
+              body: [
+                `動画が YouTube に **非公開** で上がりました。`,
+                ``,
+                `- 動画: ${v.shortsUrl || v.url}`,
+                `- タイトル: ${v.title}`,
+                ``,
+                `## やること`,
+                `1. 動画を開いて内容を確認する`,
+                `2. YouTube Studio → コンテンツ → この動画の公開設定を「公開」にする`,
+                `3. Actions「動画を配信」を入力なしで実行する（ページに載り、X・Bluesky に案内が出る）`,
+                ``,
+                `配信が済むとこの Issue は自動で閉じます。`
+              ].join('\n')
+            });
 
       - name: 動画の記録をコミット
         if: inputs.upload == true
