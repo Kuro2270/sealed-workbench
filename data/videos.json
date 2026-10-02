@@ -47,6 +47,15 @@
         "public": true,
         "publishedAt": "2026-10-02"
       }
+    },
+    "ja": {
+      "draft": {
+        "id": "Eu6e7hrztWo",
+        "mode": "draft",
+        "public": true,
+        "uploadedAt": "2026-10-02",
+        "publishedAt": "2026-10-02"
+      }
     }
   }
 }
