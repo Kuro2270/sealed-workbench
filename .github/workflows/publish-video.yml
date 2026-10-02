@@ -21,6 +21,9 @@ on:
       manual:
         description: "記録に無い動画を足す：「セット 言語 形式 動画ID」（例: HOB ja sealed g7u5JVhJgFk）"
         required: false
+      comments:
+        description: "配信済みの動画の固定コメントの文面だけ出す：セットコード（例: SOS）。配信や投稿はしない"
+        required: false
 
 permissions:
   contents: write
@@ -45,6 +48,7 @@ jobs:
           SITE_URL: https://sealed-workbench.com
           ONLY_SET: ${{ inputs.set }}
           MANUAL: ${{ inputs.manual }}
+          COMMENTS_FOR: ${{ inputs.comments }}
           POST: ${{ inputs.post == true && '1' || '' }}
           BSKY_LANGS: en
           GH_TOKEN: ${{ github.token }}
