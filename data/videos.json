@@ -64,5 +64,16 @@
         "publishedAt": "2026-10-02"
       }
     }
+  },
+  "MSH": {
+    "ja": {
+      "draft": {
+        "id": "1ulOBL7C2vU",
+        "mode": "draft",
+        "public": true,
+        "uploadedAt": "2026-10-02",
+        "publishedAt": "2026-10-02"
+      }
+    }
   }
 }
