@@ -69,7 +69,7 @@ const L = {
     source: "出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。",
     none: "このセットのデータはまだありません。",
     nav: { guide:"使い方", sealed:"シールド練習", draft:"ドラフト練習", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", sassist:"シールド補助", table:"対戦卓", privacy:"プライバシー", goods:"日本のサプライ" },
-    navgrp: { start:"はじめに", build:"練習する", assist:"MTGアリーナで使う", data:"データを見る", play:"対戦する" },
+    navgrp: { start:"はじめに", build:"練習する", assist:"MTGアリーナで使う", data:"データを見る", play:"対戦する", shop:"買う" },
     navsub: { build:"仮想パックで練習", assist:"実戦のログを読んで助ける・PC専用" },
     pc: "PC",
     foot: 'データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。<br><a href="../goods/index.html">日本の TCG サプライ（スリーブ・デッキケース）</a>',
@@ -106,7 +106,7 @@ const L = {
     source: "Source: 17Lands Public Data (CC BY 4.0), aggregated by this site. Card data via Scryfall.",
     none: "No data for this set yet.",
     nav: { guide:"Guide", sealed:"Sealed practice", draft:"Draft practice", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", sassist:"Sealed assistant", table:"Play table", privacy:"Privacy", goods:"Japanese supplies" },
-    navgrp: { start:"Start", build:"Practice", assist:"Use with MTG Arena", data:"Data", play:"Play" },
+    navgrp: { start:"Start", build:"Practice", assist:"Use with MTG Arena", data:"Data", play:"Play", shop:"Shop" },
     navsub: { build:"Virtual packs", assist:"Reads your log in real play · PC only" },
     pc: "PC",
     foot: 'Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a>',
@@ -232,6 +232,7 @@ const GOODS_CSS = `
 function shell(lang, code, head, body, ogImage){
   const T = L[lang];
   const other = T.otherHref(code);
+  const self = lang === "ja" ? `${code}.html` : `${code}.en.html`;
   const og = ogImage || `${SITE}/ogp-${lang}.png`;
   // ナビはカテゴリごとにまとめる（本体のページと同じ並び）
   const HREF = { guide:"../guide.html", sealed:"../", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", sassist:"../sealed-assist.html", table:"../table.html",
@@ -330,6 +331,8 @@ ${head}
   .setlist li a{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
   .setlist li a:hover{border-color:var(--gold)}
   .setlist small{display:block;color:var(--muted);font-size:12px}
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .langsel{background:#0F2A44;color:var(--paper);border:1px solid #2E5A86;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:13px}
   footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
 ${GOODS_CSS}
   footer a{color:var(--muted)}
@@ -339,12 +342,16 @@ ${GOODS_CSS}
 <body>
 <header>
   <div class="wrap">
-    <div class="brand"><a href="../">${esc(T.site)}</a></div>
+    <div class="brandrow"><div class="brand"><a href="../">${esc(T.site)}</a></div>
+      <select class="langsel" aria-label="Language" onchange="location.href=this.value">
+        <option value="${esc(lang === "ja" ? self : other)}"${lang === "ja" ? " selected" : ""}>日本語</option>
+        <option value="${esc(lang === "en" ? self : other)}"${lang === "en" ? " selected" : ""}>English</option>
+      </select></div>
     <nav>
       ${nav}
     </nav>
 ${body.header}
-    <div class="lang"><a href="${other}" hreflang="${lang === "ja" ? "en" : "ja"}">${esc(T.otherLang)}</a></div>
+    <link rel="alternate" hreflang="${lang === "ja" ? "en" : "ja"}" href="${other}">
   </div>
 </header>
 <main>

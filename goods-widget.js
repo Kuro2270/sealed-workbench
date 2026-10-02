@@ -3,6 +3,7 @@
  * ページ側は <div id="goodsStrip"></div> を置くだけ。言語は I18N.lang に合わせる。
  * ナビの「日本のサプライ」のリンク先も言語に合わせてここで直す。 */
 (function(){
+  function render(){
   var lang = (window.I18N && I18N.lang) || (document.documentElement.lang === "en" ? "en" : "ja");
   var T = lang === "en"
     ? { h: "Japanese TCG supplies", lead: "Sleeves and deck boxes you can only get in Japan — ships worldwide via Buyee.", buy: "Buy via Buyee", more: "See all →", pr: "Contains affiliate links" }
@@ -21,7 +22,7 @@
     ".gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}" +
     ".gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine,#0F2A44);color:#fff;text-decoration:none}" +
     "@media (max-width:720px){.gstrip{padding:14px 12px 0}}";
-  var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
+  if(!document.getElementById("gstripCss")){ var st = document.createElement("style"); st.id = "gstripCss"; st.textContent = css; document.head.appendChild(st); }
 
   fetch("./data/products/current.json", { cache: "no-cache" }).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
     if(!d) return;
@@ -44,4 +45,7 @@
     html += '</ul></section>';
     box.innerHTML = html;
   }).catch(function(){});
+  }
+  render();
+  if(window.I18N && I18N.onChange) I18N.onChange(render);   // 言語を切り替えたら枠も出し直す
 })();

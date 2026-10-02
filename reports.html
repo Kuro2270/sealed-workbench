@@ -831,7 +831,7 @@ $("langSelect").value = I18N.lang;
 $("langSelect").onchange = e => I18N.set(e.target.value);
 I18N.onChange(() => {
   hidePreview(); renderSetOptions(); updateModeTabs(); syncStaticLink();
-  if(report) load();
+  load();   // 記事も下見も、表示中の言語で読み直す
 });
 window.addEventListener("scroll", hidePreview, {passive:true});
 
