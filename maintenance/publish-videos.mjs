@@ -38,7 +38,7 @@ try{
       all[S] = all[S] || {};
       if(all[S][Lg] && all[S][Lg].id) all[S][Lg] = { draft: all[S][Lg] };
       all[S][Lg] = all[S][Lg] || {};
-      if(!all[S][Lg][M] || all[S][Lg][M].id !== v.id) all[S][Lg][M] = { id: v.id, mode: M, title: v.title, uploadedAt: v.uploadedAt, public: false };
+      if(!all[S][Lg][M] || all[S][Lg][M].id !== v.id) all[S][Lg][M] = { id: v.id, mode: M, title: v.title, poster: v.poster || undefined, uploadedAt: v.uploadedAt, public: false };
       console.log(`記録を取り込み: ${S} ${Lg} ${M} ${v.id}`);
       await unlink(`data/videos/${f}`);
     }catch(e){ console.log(`記録を読めません: ${f}`); }

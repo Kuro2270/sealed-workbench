@@ -437,7 +437,11 @@ function videoSection(lang, code, mode, setDisplay, videos){
   if(!v || !v.id || v.public === false) return "";
   const T = L[lang];
   const id = String(v.id);
-  const thumb = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  // 自前のサムネイル（冒頭のタイトル場面）があればそれを。無ければ YouTube の自動サムネイル
+  const posterFile = `assets/video/${code}-${mode === "draft" ? lang : lang + "-" + mode}.jpg`;
+  const poster = existsSync(posterFile) ? posterFile : null;
+  const thumb = poster ? `${SITE}/${poster}` : `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  const thumbSrc = poster ? `/${poster}` : thumb;
   const watch = `https://www.youtube.com/shorts/${id}`;
   const ld = {
     "@context": "https://schema.org", "@type": "VideoObject",
@@ -451,7 +455,7 @@ function videoSection(lang, code, mode, setDisplay, videos){
     inLanguage: lang
   };
   return `<section class="video"><div class="yt" data-id="${esc(id)}">
-    <img src="${thumb}" alt="${esc(v.title || T.videoH)}" loading="lazy" width="270" height="480">
+    <img src="${thumbSrc}" alt="${esc(v.title || T.videoH)}" loading="lazy" width="270" height="480">
     <button type="button" aria-label="${esc(T.videoPlay)}"><span></span></button>
   </div>
   <div class="vtext"><h3>${esc(T.videoH)}</h3><p class="lead">${esc(T.videoLead)}</p>

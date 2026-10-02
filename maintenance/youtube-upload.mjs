@@ -49,7 +49,9 @@ async function setName(){
   try{ const n = JSON.parse(await readFile(`data/names/${SET}.json`, "utf8")); en = n.set || n.setName || null; }catch(e){}
   return { ja: ja || en || SET, en: en || ja || SET };
 }
-const name = await setName();
+const shortName = n => { const m = String(n).replace(/^Magic:\s*The Gathering\s*[:|｜-]?\s*/i, "").split(/\s*[｜|]\s*/); return (m[m.length - 1] || "").trim() || String(n); };
+const name0 = await setName();
+const name = { ja: shortName(name0.ja), en: shortName(name0.en) };   // 長いセット名は後半だけ（タイトルが一覧で切れないように）
 let games = 0, mode = MODE;
 try{ const d = JSON.parse(await readFile(`data/articles/${SET}_${MODE}.json`, "utf8")); games = d.total_games || 0; }catch(e){}
 const gamesTxt = games ? games.toLocaleString(LANG === "ja" ? "ja-JP" : "en-US") : "";
@@ -125,13 +127,26 @@ const put = await fetch(location, { method: "PUT", headers: { Authorization: `Be
 const res = await put.json().catch(() => ({}));
 if(!put.ok || !res.id){ console.error(`アップロードに失敗しました（HTTP ${put.status}）: ${JSON.stringify(res).slice(0, 500)}`); process.exit(1); }
 
-const out = { set: SET, lang: LANG, mode, videoId: res.id, url: `https://youtu.be/${res.id}`, shortsUrl: `https://www.youtube.com/shorts/${res.id}`,
+// サムネイル（冒頭のタイトル場面）。YouTube 側にも試す（チャンネルの電話番号確認が済んでいないと 403 で断られるので、その時はサイト側だけ）
+const posterPath = `assets/video/${SET}-${TAG}.jpg`;
+const poster = (await stat(posterPath).catch(() => null)) ? posterPath : null;
+if(poster){
+  try{
+    const img = await readFile(poster);
+    const r = await fetch(`https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId=${encodeURIComponent(res.id)}`, {
+      method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "image/jpeg", "Content-Length": String(img.length) }, body: img });
+    if(r.ok) console.log("YouTube のサムネイルも冒頭の場面にしました。");
+    else console.log(`YouTube のサムネイルは変えられませんでした（HTTP ${r.status}）。チャンネルの電話番号確認が済むと使えます。サイト側は自前のサムネイルを使います。`);
+  }catch(e){ console.log("YouTube のサムネイル設定に失敗: " + e.message); }
+}
+
+const out = { set: SET, lang: LANG, mode, videoId: res.id, poster, url: `https://youtu.be/${res.id}`, shortsUrl: `https://www.youtube.com/shorts/${res.id}`,
               title: meta.title, privacy: "private", uploadedAt: new Date().toISOString() };
 await writeFile(`short/${SET}/${TAG}.youtube.json`, JSON.stringify(out, null, 2), "utf8");
 // サイト用の記録は 1本ごとの小さなファイルに置く（同時に動画を作っても衝突しない）。「動画を配信」がまとめて取り込む
 {
   await mkdir("data/videos", { recursive: true });
-  await writeFile(`data/videos/${SET}-${LANG}-${mode}.json`, JSON.stringify({ set: SET, lang: LANG, mode, id: res.id, title: meta.title, uploadedAt: out.uploadedAt.slice(0, 10) }, null, 2) + "\n", "utf8");
+  await writeFile(`data/videos/${SET}-${LANG}-${mode}.json`, JSON.stringify({ set: SET, lang: LANG, mode, id: res.id, title: meta.title, poster, uploadedAt: out.uploadedAt.slice(0, 10) }, null, 2) + "\n", "utf8");
 }
 console.log(`YouTube に非公開で上げました: ${out.url}`);
 console.log(`タイトル: ${meta.title}`);

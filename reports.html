@@ -531,7 +531,10 @@ async function renderVideo(code, mode){
   v = v && v[mode || "draft"];
   if(!v || !v.id || v.public === false){ box.hidden = true; box.innerHTML = ""; return; }
   const id = String(v.id);
-  box.innerHTML = `<div class="yt"><img src="https://i.ytimg.com/vi/${esc(id)}/hqdefault.jpg" alt="${esc(v.title || t("reports.video.h"))}" loading="lazy" width="240" height="427">
+  // 自前のサムネイル（assets/video/<SET>-<言語>[-sealed].jpg）があればそれを。無ければ YouTube の自動サムネイル
+  const yt = `https://i.ytimg.com/vi/${esc(id)}/hqdefault.jpg`;
+  const poster = `./assets/video/${esc(code)}-${esc(I18N.lang)}${(mode || "draft") === "draft" ? "" : "-" + esc(mode)}.jpg`;
+  box.innerHTML = `<div class="yt"><img src="${poster}" onerror="this.onerror=null;this.src='${yt}'" alt="${esc(v.title || t("reports.video.h"))}" loading="lazy" width="240" height="427">
     <button type="button" aria-label="${esc(t("reports.video.play"))}"><span></span></button></div>
     <div class="vtext"><h3>${esc(t("reports.video.h"))}</h3><p>${esc(t("reports.video.lead"))}</p>
     <p><a href="https://www.youtube.com/shorts/${esc(id)}" target="_blank" rel="noopener">${esc(t("reports.video.open"))}</a></p></div>`;

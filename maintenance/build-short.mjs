@@ -279,6 +279,11 @@ function pairSymbols(pair, x, y, size){
 /* 画面の枠。サイト名やドメインは常時表示しない（締めの場面で音声つきで案内するので、それ以外はうるさくなる）。
    代わりに、冒頭以外の場面では上部にセットのロゴ（無ければセット名）と「リミテッド環境分析」を常に出し、
    途中から見た人にも何のセットの話か分かるようにする */
+/* 長いセット名（例「マジック：ザ・ギャザリング｜マーベル スーパー・ヒーローズ」）は「｜」や「:」の後ろだけにする */
+function shortName(n){
+  const m = String(n).replace(/^Magic:\s*The Gathering\s*[:|｜-]?\s*/i, "").split(/\s*[｜|]\s*/);
+  return (m[m.length - 1] || "").trim() || String(n);
+}
 const HEADER = { logo: null, title: "" };
 function header(){
   const band = HAS_BG ? `<rect x="40" y="30" width="${W - 80}" height="146" rx="24" fill="${DEEP}" opacity="0.6"/>` : "";
@@ -289,7 +294,7 @@ function header(){
   }
   const n = [...HEADER.title].length;
   return band +
-    T(64, 122, HEADER.title, { size: n <= 6 ? 56 : n <= 9 ? 46 : 38, fill: BLUE, weight: 900 }) +
+    T(64, 122, HEADER.title, { size: Math.max(26, Math.min(56, Math.floor(520 / Math.max(1, n * (JA ? 1 : 0.6))))), fill: BLUE, weight: 900 }) +
     T(W - 64, 122, UI.analysis, { size: 36, fill: MUTED, weight: 700, anchor: "end" });
 }
 function frame(inner, say, opts = {}){
@@ -472,7 +477,7 @@ async function main(){
   const d = await readJson(`data/articles/${SET}_${MODE}.json`, null);
   if(!d){ console.error(`${SET}: ${MODE} の記事データ（data/articles/${SET}_${MODE}.json）がありません`); process.exit(1); }
   const names = await readJson(`data/names/${SET}.json`, { names: {}, images: {} });
-  const nameJa = JA ? ((await setNameJa(SET)) || names.set || SET) : (names.set || SET);   // 英語のときは英語のセット名
+  const nameJa = shortName(JA ? ((await setNameJa(SET)) || names.set || SET) : (names.set || SET));   // 英語のときは英語のセット名
   const sharp = (await import("sharp")).default;
   await mkdir(`${OUT}/${TAG}`, { recursive: true });
 
@@ -577,6 +582,22 @@ async function main(){
   HAS_BG = bgDur > 0;
   console.error(HAS_BG ? `背景: ${BG}（${bgDur.toFixed(1)}秒、足りなければ繰り返す）` : "背景: 紺色（short/bg.mp4 が無い）");
 
+  // サムネイルだけ作る（SHORT_POSTER=1）。冒頭のタイトル場面を背景に重ねて assets/video/<SET>-<TAG>.jpg に。読み上げは要らない
+  if(process.env.SHORT_POSTER){
+    const png = `${OUT}/${TAG}/poster.png`;
+    await sharp(Buffer.from(sceneSvg(scenes[0])), { density: 72 }).png().toFile(png);
+    await mkdir("assets/video", { recursive: true });
+    const out = `assets/video/${SET}-${TAG}.jpg`;
+    const args = HAS_BG
+      ? ["-ss", "1.0", "-i", BG, "-i", png, "-filter_complex",
+         `[0:v]scale=iw*sar:ih,setsar=1,scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},eq=saturation=0.7,gblur=sigma=5,setsar=1[bg0];` +
+         `color=c=0x0A2038@0.6:s=${W}x${H}[tint];[bg0][tint]overlay=shortest=1[bg];[1:v]scale=${W}:${H},format=rgba[fg];[bg][fg]overlay=shortest=1,scale=540:960[v]`]
+      : ["-f", "lavfi", "-i", `color=c=0x0A2038:s=${W}x${H}`, "-i", png, "-filter_complex", `[0:v][1:v]overlay=shortest=1,scale=540:960[v]`];
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...args, "-map", "[v]", "-frames:v", "1", "-q:v", "4", out]);
+    console.error(`サムネイルを作りました: ${out}`);
+    return;
+  }
+
   // 1) 音声を先にまとめて作る（VOICEVOX が要るのはここだけ）。文面が前回と同じなら作り直さない
   const prev = await readJson(`${OUT}/${TAG}/script.json`, []);
   let yomiLoaded = false;
@@ -654,6 +675,12 @@ async function main(){
         `[v1][duck]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`,
       "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-t", String(total), "-movflags", "+faststart", `${OUT}/${TAG}.mp4`]);
   }
+  // サイトの埋め込み用のサムネイル（冒頭のタイトル場面）。assets/video/<SET>-<TAG>.jpg に置き、ページはこれを使う
+  try{
+    await mkdir("assets/video", { recursive: true });
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-ss", "1.0", "-i", `${OUT}/${TAG}.mp4`, "-frames:v", "1", "-vf", "scale=540:960", "-q:v", "4", `assets/video/${SET}-${TAG}.jpg`]);
+    console.error(`サムネイル: assets/video/${SET}-${TAG}.jpg`);
+  }catch(e){ console.error("サムネイルを作れませんでした: " + e.message); }
   console.error(`\n${OUT}/${TAG}.mp4  合計 ${total.toFixed(1)} 秒${bgm ? "（BGM あり）" : ""}`);
 }
 
