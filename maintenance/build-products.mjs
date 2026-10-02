@@ -162,7 +162,7 @@ const P = {
     group: { "chara-sleeve": "This week's character sleeves", "deck-case": "This week's deck boxes", "playmat": "This week's playmats" },
     groupLead: { "chara-sleeve": "Rotates weekly. Character sleeves are printed in small runs and sell out, so don't wait.", "deck-case": "Mostly character goods.", "playmat": "Rubber playmats, made in Japan." },
     price: p => `¥${p.toLocaleString("en-US")} (about $${(p / 150).toFixed(0)})`, shop: s => `Seller: ${s}`,
-    btnRakuten: "Rakuten (Japan only)", btnBuyee: "Buy via Buyee (ships worldwide)", btnAmazon: "Amazon Japan",
+    btnRakuten: "Rakuten", btnBuyee: "Buy via Buyee (ships worldwide)", btnAmazon: "Amazon Japan",
     updated: w => `Updated: ${w} (rotates automatically every Monday)`,
     disclosure: "Contains affiliate links.",
     rakutenNote: "Product details and images come from the Rakuten Ichiba API. Rakuten shops generally ship within Japan only — use the Buyee button to order from overseas."
@@ -204,7 +204,8 @@ function card(lang, it){
   const note = it.note ? it.note[lang] : "";
   const az = amazonLink(it.amazon);
   const primary = lang === "en" ? `<a class="btn p" href="${esc(buyeeLink(it))}" target="_blank" rel="noopener sponsored">${esc(T.btnBuyee)}</a>` : `<a class="btn p" href="${esc(it.affiliateUrl)}" target="_blank" rel="noopener sponsored">${esc(T.btnRakuten)}</a>`;
-  const secondary = lang === "en" ? `<a class="btn" href="${esc(it.affiliateUrl)}" target="_blank" rel="noopener sponsored">${esc(T.btnRakuten)}</a>` : `<a class="btn" href="${esc(buyeeLink(it))}" target="_blank" rel="noopener sponsored">${esc(T.btnBuyee)}</a>`;
+  // ボタンは言語ごとに1つ（日本語＝楽天、英語＝Buyee）。画像のリンク先は楽天のまま（楽天の画像は楽天へのリンクと組で使う決まり）
+  const secondary = "";
   return `<li class="item">
   <a class="img" href="${esc(it.affiliateUrl)}" target="_blank" rel="noopener sponsored"><img src="${esc(it.image)}" alt="${esc(label)}" loading="lazy" width="200" height="200"></a>
   <div class="txt">
