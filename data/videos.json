@@ -55,6 +55,13 @@
         "public": true,
         "uploadedAt": "2026-10-02",
         "publishedAt": "2026-10-02"
+      },
+      "sealed": {
+        "id": "CzJIt0_cwLQ",
+        "mode": "sealed",
+        "public": true,
+        "uploadedAt": "2026-10-02",
+        "publishedAt": "2026-10-02"
       }
     }
   }
