@@ -45,14 +45,16 @@
         "title": "Secrets of Strixhaven Draft in 60 seconds | MTG Arena #Shorts",
         "uploadedAt": "2026-10-02",
         "public": true,
-        "publishedAt": "2026-10-02"
+        "publishedAt": "2026-10-02",
+        "comment": true
       },
       "sealed": {
         "id": "NZe0B10ju1w",
         "mode": "sealed",
         "public": true,
         "uploadedAt": "2026-10-02",
-        "publishedAt": "2026-10-02"
+        "publishedAt": "2026-10-02",
+        "comment": true
       }
     },
     "ja": {
@@ -61,14 +63,16 @@
         "mode": "draft",
         "public": true,
         "uploadedAt": "2026-10-02",
-        "publishedAt": "2026-10-02"
+        "publishedAt": "2026-10-02",
+        "comment": true
       },
       "sealed": {
         "id": "CzJIt0_cwLQ",
         "mode": "sealed",
         "public": true,
         "uploadedAt": "2026-10-02",
-        "publishedAt": "2026-10-02"
+        "publishedAt": "2026-10-02",
+        "comment": true
       }
     }
   },
