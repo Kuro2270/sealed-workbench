@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>エッジ・オブ・エタニティーズ リミテッド環境レポート（ドラフト・シールドの勝率） — MTGアリーナ リミテッド・ワークベンチ</title>
-<meta name="description" content="マジック：ザ・ギャザリング アリーナ「エッジ・オブ・エタニティーズ」のリミテッド環境を、17Landsの実戦データ（695,776試合）から読み解きます。環境の速さ、色の強さ、強いアーキタイプ、レアリティ別の強いカード。">
+<title>エッジ・オブ・エタニティーズ（EOE）リミテッド環境レポート｜MTGアリーナ ドラフト・シールドの勝率 — MTGアリーナ リミテッド・ワークベンチ</title>
+<meta name="description" content="MTGアリーナ「エッジ・オブ・エタニティーズ（EOE）」のドラフト・シールド環境を、17Landsの実戦データ（695,776試合）から読み解きます。環境の速さ、強い色、勝率の高い2色の組み合わせ、コモン・アンコモン・レアの強いカード、カード評価の一覧。">
 <link rel="canonical" href="https://sealed-workbench.com/sets/EOE.html">
 <link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/EOE.html">
 <link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/EOE.en.html">
 <link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/EOE.html">
-<meta property="og:title" content="エッジ・オブ・エタニティーズ リミテッド環境レポート（ドラフト・シールドの勝率）">
-<meta property="og:description" content="マジック：ザ・ギャザリング アリーナ「エッジ・オブ・エタニティーズ」のリミテッド環境を、17Landsの実戦データ（695,776試合）から読み解きます。環境の速さ、色の強さ、強いアーキタイプ、レアリティ別の強いカード。">
+<meta property="og:title" content="エッジ・オブ・エタニティーズ（EOE）リミテッド環境レポート｜MTGアリーナ ドラフト・シールドの勝率">
+<meta property="og:description" content="MTGアリーナ「エッジ・オブ・エタニティーズ（EOE）」のドラフト・シールド環境を、17Landsの実戦データ（695,776試合）から読み解きます。環境の速さ、強い色、勝率の高い2色の組み合わせ、コモン・アンコモン・レアの強いカード、カード評価の一覧。">
 <meta property="og:url" content="https://sealed-workbench.com/sets/EOE.html">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
@@ -87,6 +87,10 @@
   .setlist li a{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
   .setlist li a:hover{border-color:var(--gold)}
   .setlist small{display:block;color:var(--muted);font-size:12px}
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .langsel{background:#0F2A44;color:var(--paper);border:1px solid #2E5A86;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:13px}
+  .summary{font-size:14.5px;line-height:1.8;margin:0 0 16px;padding:12px 16px;background:var(--paper-2);border-radius:8px}
+  header h1 .code{font-size:14px;font-weight:600;color:#A9C2DE;margin-left:8px;letter-spacing:.06em}
   footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
 
   .gstrip{margin:28px 0 0;padding:16px 0 0;border-top:1px solid var(--line)}
@@ -104,24 +108,29 @@
 <body>
 <header>
   <div class="wrap">
-    <div class="brand"><a href="../">MTGアリーナ リミテッド・ワークベンチ</a></div>
+    <div class="brandrow"><div class="brand"><a href="../">MTGアリーナ リミテッド・ワークベンチ</a></div>
+      <select class="langsel" aria-label="Language" onchange="location.href=this.value">
+        <option value="EOE.html" selected>日本語</option>
+        <option value="EOE.en.html">English</option>
+      </select></div>
     <nav>
       <div class="ng"><span class="ngl">はじめに</span><a href="../guide.html">使い方</a></div>
       <div class="ng"><span class="ngl">練習する</span><span class="ngs">仮想パックで練習</span><a href="../">シールド練習</a><a href="../draft.html">ドラフト練習</a></div>
       <div class="ng"><span class="ngl">MTGアリーナで使う</span><span class="ngs">実戦のログを読んで助ける・PC専用</span><a href="../sealed-assist.html">シールド補助<b class="pcb">PC</b></a><a href="../assistant.html">ドラフト補助<b class="pcb">PC</b></a></div>
       <div class="ng"><span class="ngl">データを見る</span><a href="../reports.html">環境レポート</a></div>
       <div class="ng"><span class="ngl">対戦する</span><a href="../table.html">対戦卓</a><a href="../swiss.html">スイスドロー</a></div>
-      <div class="ng"><span class="ngl"></span><a href="../goods/index.html">日本のサプライ</a></div>
+      <div class="ng"><span class="ngl">買う</span><a href="../goods/index.html">日本のサプライ</a></div>
     </nav>
-    <h1>エッジ・オブ・エタニティーズ｜リミテッド環境レポート</h1>
+    <h1>エッジ・オブ・エタニティーズ｜リミテッド環境レポート <small class="code">EOE</small></h1>
     <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。　発売 2025-08-01</p>
-    <div class="lang"><a href="EOE.en.html" hreflang="en">English</a></div>
+    <link rel="alternate" hreflang="en" href="EOE.en.html">
   </div>
 </header>
 <main>
 <article class="mode">
   <h2>ドラフト <small>総試合数 631,747／全体勝率 55.9%</small></h2>
   <p class="built">集計 2026-09-24</p>
+  <p class="summary">エッジ・オブ・エタニティーズのドラフトは631,747試合のデータで、全体勝率は55.9%。環境はやや遅めのデッキが勝ちやすい傾向です。色は緑（56.4%）と青（55.9%）が強く、2色の組み合わせでは青緑が57.7%で最強、青黒が55.6%で最弱です。カード単位ではコモンは「氷（こおり）魔（ま）法（ほう）の秘（ひ）宝（ほう）」、アンコモンは「疑（うたが）わしい珍（ちん）味（み）」、レアは「エレジーの見（み）習（なら）い」が最も勝率が高いカードです。</p>
 
   <section><h3>環境の速さ</h3>
     <div class="verdict">平均マナ総量3.5未満の遅いデッキが最も勝率が高く、56.1%です。 直近8セットと比べると、速さは同じくらいです。</div>
@@ -220,6 +229,7 @@
 <article class="mode">
   <h2>シールド <small>総試合数 64,029／全体勝率 57.4%</small></h2>
   <p class="built">集計 2026-09-24</p>
+  <p class="summary">エッジ・オブ・エタニティーズのシールドは64,029試合のデータで、全体勝率は57.4%。環境はやや遅めのデッキが勝ちやすい傾向です。色は白（57.7%）と緑（57.5%）が強く、2色の組み合わせでは青緑が59.9%で最強、赤緑が57.2%で最弱です。カード単位ではコモンは「氷（こおり）魔（ま）法（ほう）の秘（ひ）宝（ほう）」、アンコモンは「惑（わく）星（せい）契（ちぎ）りの威（い）嚇（かく）屋（や）」、レアは「エレジーの見（み）習（なら）い」が最も勝率が高いカードです。</p>
 
   <section><h3>環境の速さ</h3>
     <div class="verdict">平均マナ総量3.5未満の遅いデッキが最も勝率が高く、58.0%です。 直近8セットと比べると、速さは同じくらいです。</div>

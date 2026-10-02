@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Through the Omenpaths Limited format report — Draft and Sealed win rates — MTG Arena Limited Workbench</title>
-<meta name="description" content="A data-driven look at Magic: The Gathering Arena Limited for Through the Omenpaths, built from 232,543 games of 17Lands public data: format speed, colour strength, best archetypes and the best cards at each rarity.">
+<title>Through the Omenpaths (OM1) Limited format report — MTG Arena Draft and Sealed win rates — MTG Arena Limited Workbench</title>
+<meta name="description" content="Through the Omenpaths (OM1) Draft and Sealed on MTG Arena, read from 232,543 games of 17Lands public data: format speed, strongest colours, best two-colour archetypes, top commons, uncommons and rares, and a full card tier list.">
 <link rel="canonical" href="https://sealed-workbench.com/sets/OM1.en.html">
 <link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/OM1.html">
 <link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/OM1.en.html">
 <link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/OM1.html">
-<meta property="og:title" content="Through the Omenpaths Limited format report — Draft and Sealed win rates">
-<meta property="og:description" content="A data-driven look at Magic: The Gathering Arena Limited for Through the Omenpaths, built from 232,543 games of 17Lands public data: format speed, colour strength, best archetypes and the best cards at each rarity.">
+<meta property="og:title" content="Through the Omenpaths (OM1) Limited format report — MTG Arena Draft and Sealed win rates">
+<meta property="og:description" content="Through the Omenpaths (OM1) Draft and Sealed on MTG Arena, read from 232,543 games of 17Lands public data: format speed, strongest colours, best two-colour archetypes, top commons, uncommons and rares, and a full card tier list.">
 <meta property="og:url" content="https://sealed-workbench.com/sets/OM1.en.html">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
@@ -87,6 +87,10 @@
   .setlist li a{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
   .setlist li a:hover{border-color:var(--gold)}
   .setlist small{display:block;color:var(--muted);font-size:12px}
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .langsel{background:#0F2A44;color:var(--paper);border:1px solid #2E5A86;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:13px}
+  .summary{font-size:14.5px;line-height:1.8;margin:0 0 16px;padding:12px 16px;background:var(--paper-2);border-radius:8px}
+  header h1 .code{font-size:14px;font-weight:600;color:#A9C2DE;margin-left:8px;letter-spacing:.06em}
   footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
 
   .gstrip{margin:28px 0 0;padding:16px 0 0;border-top:1px solid var(--line)}
@@ -104,24 +108,29 @@
 <body>
 <header>
   <div class="wrap">
-    <div class="brand"><a href="../">MTG Arena Limited Workbench</a></div>
+    <div class="brandrow"><div class="brand"><a href="../">MTG Arena Limited Workbench</a></div>
+      <select class="langsel" aria-label="Language" onchange="location.href=this.value">
+        <option value="OM1.html">日本語</option>
+        <option value="OM1.en.html" selected>English</option>
+      </select></div>
     <nav>
       <div class="ng"><span class="ngl">Start</span><a href="../guide.html">Guide</a></div>
       <div class="ng"><span class="ngl">Practice</span><span class="ngs">Virtual packs</span><a href="../">Sealed practice</a><a href="../draft.html">Draft practice</a></div>
       <div class="ng"><span class="ngl">Use with MTG Arena</span><span class="ngs">Reads your log in real play · PC only</span><a href="../sealed-assist.html">Sealed assistant<b class="pcb">PC</b></a><a href="../assistant.html">Draft assistant<b class="pcb">PC</b></a></div>
       <div class="ng"><span class="ngl">Data</span><a href="../reports.html">Set reports</a></div>
       <div class="ng"><span class="ngl">Play</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
-      <div class="ng"><span class="ngl"></span><a href="../goods/index.en.html">Japanese supplies</a></div>
+      <div class="ng"><span class="ngl">Shop</span><a href="../goods/index.en.html">Japanese supplies</a></div>
     </nav>
-    <h1>Through the Omenpaths — Limited format report</h1>
+    <h1>Through the Omenpaths — Limited format report <small class="code">OM1</small></h1>
     <p>Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data.　Released 2025-09-23</p>
-    <div class="lang"><a href="OM1.html" hreflang="ja">日本語</a></div>
+    <link rel="alternate" hreflang="ja" href="OM1.html">
   </div>
 </header>
 <main>
 <article class="mode">
   <h2>Draft <small>198,140 games · overall win rate 55.5%</small></h2>
   <p class="built">Built 2026-09-24</p>
+  <p class="summary">Through the Omenpaths Draft on MTG Arena: 198,140 games, 55.5% overall win rate. In this format fast decks win most. White (56.7%) and Green (56.2%) are the strongest colours; the best two-colour pair is White/Green at 58.7%, and the weakest is Red/Green at 53.8%. By card, the top common is Spectacular Tactics, the top uncommon is Terrific Team-Up, the top rare is Villainous Wrath (game-in-hand win rate).</p>
 
   <section><h3>Format speed</h3>
     <div class="verdict">Decks averaging under 2.9 mana value have the highest win rate, at 55.5%. Compared with the last 8 sets, the pace is about the same.</div>
@@ -202,6 +211,7 @@
 <article class="mode">
   <h2>Sealed <small>34,403 games · overall win rate 58.3%</small></h2>
   <p class="built">Built 2026-09-24</p>
+  <p class="summary">Through the Omenpaths Sealed on MTG Arena: 34,403 games, 58.3% overall win rate. In this format fast decks win most. White (59.8%) and Green (59.3%) are the strongest colours; the best two-colour pair is White/Green at 61.2%, and the weakest is Black/Red at 54.9%. By card, the top common is Spectacular Tactics, the top uncommon is Terrific Team-Up, the top rare is Cheering Crowd (game-in-hand win rate).</p>
 
   <section><h3>Format speed</h3>
     <div class="verdict">Decks averaging under 2.9 mana value have the highest win rate, at 58.3%. Compared with the last 8 sets, the pace is about the same.</div>
@@ -280,7 +290,7 @@
   <li><a href="index.en.html">All sets</a></li>
 </ul></section>
 <p class="source">Source: 17Lands Public Data (CC BY 4.0), aggregated by this site. Card data via Scryfall.</p>
-<section class="gstrip"><div class="gh"><h2>Japanese TCG supplies</h2><span class="gpr">Contains affiliate links</span><a class="gmore" href="../goods/index.en.html">See all →</a></div><p class="glead">Sleeves and deck boxes you can only get in Japan — ships worldwide via Buyee.</p><ul><li><a class="gi" href="https://hb.afl.rakuten.co.jp/hgc/g00upqwo.g5lp6d65.g00upqwo.g5lp7c64/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fwonder-price-r%2F452108600171-3%2F&amp;m=http%3A%2F%2Fm.rakuten.co.jp%2Fwonder-price-r%2Fi%2F10000044%2F&amp;rafcid=wsc_i_is_d48fc971-4b9e-49e6-a774-fd86af71850f" target="_blank" rel="noopener sponsored"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/wonder-price-r/cabinet/imgrc0119297205.jpg?_ex=400x400" alt="" loading="lazy"></a><div class="gt"><p class="gn">KMC Card Barrier 100 Perfect Size (inner sleeves)</p><p class="gp">¥550 (~$4)</p><a class="gb" href="https://buyee.jp/rakuten/detail/wonder-price-r%3A10000044?lang=en" target="_blank" rel="noopener sponsored">Buy via Buyee</a></div></li><li><a class="gi" href="https://hb.afl.rakuten.co.jp/hgc/g00uremo.g5lp6bf4.g00uremo.g5lp7a72/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Frockon1%2Fev3cdmqfjihtlq73d77olsb7w4%2F&amp;m=http%3A%2F%2Fm.rakuten.co.jp%2Frockon1%2Fi%2F10245551%2F&amp;rafcid=wsc_i_is_d48fc971-4b9e-49e6-a774-fd86af71850f" target="_blank" rel="noopener sponsored"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/rockon1/cabinet/13439095/46968938_1.jpg?_ex=400x400" alt="" loading="lazy"></a><div class="gt"><p class="gn">Character sleeves by movic — Shadowverse</p><p class="gp">¥1,850 (~$12)</p><a class="gb" href="https://buyee.jp/rakuten/detail/rockon1%3A10245551?lang=en" target="_blank" rel="noopener sponsored">Buy via Buyee</a></div></li><li><a class="gi" href="https://hb.afl.rakuten.co.jp/hgc/g00sctio.g5lp692d.g00sctio.g5lp7de2/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fakaikumasan%2F4582692207043%2F&amp;m=http%3A%2F%2Fm.rakuten.co.jp%2Fakaikumasan%2Fi%2F10053907%2F&amp;rafcid=wsc_i_is_d48fc971-4b9e-49e6-a774-fd86af71850f" target="_blank" rel="noopener sponsored"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/akaikumasan/cabinet/picture20250319/4582692207043.jpg?_ex=400x400" alt="" loading="lazy"></a><div class="gt"><p class="gn">Character sleeves by Bushiroad — Vol.3463 A3!</p><p class="gp">¥309 (~$2)</p><a class="gb" href="https://buyee.jp/rakuten/detail/akaikumasan%3A10053907?lang=en" target="_blank" rel="noopener sponsored">Buy via Buyee</a></div></li><li><a class="gi" href="https://hb.afl.rakuten.co.jp/hgc/g00q5m4o.g5lp63a6.g00q5m4o.g5lp738d/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fdigitamin%2Fyc167553%2F&amp;m=http%3A%2F%2Fm.rakuten.co.jp%2Fdigitamin%2Fi%2F10316583%2F&amp;rafcid=wsc_i_is_d48fc971-4b9e-49e6-a774-fd86af71850f" target="_blank" rel="noopener sponsored"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/digitamin/cabinet/168000/yc167553.jpg?_ex=400x400" alt="" loading="lazy"></a><div class="gt"><p class="gn">Character sleeves by movic — NIKKE</p><p class="gp">¥980 (~$7)</p><a class="gb" href="https://buyee.jp/rakuten/detail/digitamin%3A10316583?lang=en" target="_blank" rel="noopener sponsored">Buy via Buyee</a></div></li></ul></section>
+<section class="gstrip"><div class="gh"><h2>Japanese TCG supplies</h2><span class="gpr">Contains affiliate links</span><a class="gmore" href="../goods/index.en.html">See all →</a></div><p class="glead">Sleeves and deck boxes you can only get in Japan — ships worldwide via Buyee.</p><ul><li><a class="gi" href="https://hb.afl.rakuten.co.jp/hgc/g00upqwo.g5lp6d65.g00upqwo.g5lp7c64/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fwonder-price-r%2F452108600171-3%2F&amp;m=http%3A%2F%2Fm.rakuten.co.jp%2Fwonder-price-r%2Fi%2F10000044%2F&amp;rafcid=wsc_i_is_d48fc971-4b9e-49e6-a774-fd86af71850f" target="_blank" rel="noopener sponsored"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/wonder-price-r/cabinet/imgrc0119297205.jpg?_ex=400x400" alt="" loading="lazy"></a><div class="gt"><p class="gn">KMC Card Barrier 100 Perfect Size (inner sleeves)</p><p class="gp">about $4</p><a class="gb" href="https://buyee.jp/rakuten/detail/wonder-price-r%3A10000044?lang=en" target="_blank" rel="noopener sponsored">Buy via Buyee</a></div></li><li><a class="gi" href="https://hb.afl.rakuten.co.jp/hgc/g00uremo.g5lp6bf4.g00uremo.g5lp7a72/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Frockon1%2Fev3cdmqfjihtlq73d77olsb7w4%2F&amp;m=http%3A%2F%2Fm.rakuten.co.jp%2Frockon1%2Fi%2F10245551%2F&amp;rafcid=wsc_i_is_d48fc971-4b9e-49e6-a774-fd86af71850f" target="_blank" rel="noopener sponsored"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/rockon1/cabinet/13439095/46968938_1.jpg?_ex=400x400" alt="" loading="lazy"></a><div class="gt"><p class="gn">Character sleeves by movic — Shadowverse</p><p class="gp">about $12</p><a class="gb" href="https://buyee.jp/rakuten/detail/rockon1%3A10245551?lang=en" target="_blank" rel="noopener sponsored">Buy via Buyee</a></div></li><li><a class="gi" href="https://hb.afl.rakuten.co.jp/hgc/g00sctio.g5lp692d.g00sctio.g5lp7de2/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fakaikumasan%2F4582692207043%2F&amp;m=http%3A%2F%2Fm.rakuten.co.jp%2Fakaikumasan%2Fi%2F10053907%2F&amp;rafcid=wsc_i_is_d48fc971-4b9e-49e6-a774-fd86af71850f" target="_blank" rel="noopener sponsored"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/akaikumasan/cabinet/picture20250319/4582692207043.jpg?_ex=400x400" alt="" loading="lazy"></a><div class="gt"><p class="gn">Character sleeves by Bushiroad — Vol.3463 A3!</p><p class="gp">about $2</p><a class="gb" href="https://buyee.jp/rakuten/detail/akaikumasan%3A10053907?lang=en" target="_blank" rel="noopener sponsored">Buy via Buyee</a></div></li><li><a class="gi" href="https://hb.afl.rakuten.co.jp/hgc/g00q5m4o.g5lp63a6.g00q5m4o.g5lp738d/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fdigitamin%2Fyc167553%2F&amp;m=http%3A%2F%2Fm.rakuten.co.jp%2Fdigitamin%2Fi%2F10316583%2F&amp;rafcid=wsc_i_is_d48fc971-4b9e-49e6-a774-fd86af71850f" target="_blank" rel="noopener sponsored"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/digitamin/cabinet/168000/yc167553.jpg?_ex=400x400" alt="" loading="lazy"></a><div class="gt"><p class="gn">Character sleeves by movic — NIKKE</p><p class="gp">about $7</p><a class="gb" href="https://buyee.jp/rakuten/detail/digitamin%3A10316583?lang=en" target="_blank" rel="noopener sponsored">Buy via Buyee</a></div></li></ul></section>
 </main>
 <footer>Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a></footer>
 </body>
