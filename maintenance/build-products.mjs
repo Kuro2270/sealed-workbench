@@ -26,8 +26,23 @@ const aff = await readJson("data/affiliate.json", { buyee: {}, amazon: {} });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /* ---------- 楽天の検索 ---------- */
+// 版は 2026 年の新基盤のもの（古い 20220601 は「API Configuration not found」で断られる）。1秒に1回までなので、間を空けて 429 なら待って試し直す
+const RAKUTEN_VERSION = process.env.RAKUTEN_API_VERSION || "20260701";
+let lastCall = 0;
 async function rakutenSearch(keyword, extra = {}){
-  const u = new URL("https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20220601");
+  for(let attempt = 0; attempt < 4; attempt++){
+    const wait = 1100 - (Date.now() - lastCall);
+    if(wait > 0) await sleep(wait);
+    lastCall = Date.now();
+    try{ return await rakutenSearchOnce(keyword, extra); }
+    catch(e){
+      if(/HTTP 429/.test(e.message) && attempt < 3){ await sleep(1500 * (attempt + 1)); continue; }
+      throw e;
+    }
+  }
+}
+async function rakutenSearchOnce(keyword, extra = {}){
+  const u = new URL(`https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/${RAKUTEN_VERSION}`);
   const p = { applicationId: APP, accessKey: KEY, affiliateId: AFF || "", keyword, format: "json", formatVersion: "2", hits: "30", imageFlag: "1", availability: "1", ...extra };
   for(const [k, v] of Object.entries(p)) if(v !== "" && v != null) u.searchParams.set(k, String(v));
   // Web アプリとして登録しているので、登録したサイトの名前で問い合わせる
@@ -73,7 +88,7 @@ async function select(){
       const it = items[0];
       if(it) out.fixed.push({ ...it, id: f.id, group: f.group, label: f.name, note: f.note, amazon: f.amazon || "" });
       else console.error(`定番: 見つからず ${f.keyword}`);
-      await sleep(400);
+      
     }catch(e){ console.error(`定番: ${f.keyword}: ${e.message}`); }
   }
 
@@ -85,7 +100,7 @@ async function select(){
       for(const sort of ["standard", "-reviewCount"]){
         try{ for(const it of (await rakutenSearch(q, { sort })).filter(ok)) if(!cand.has(it.code)) cand.set(it.code, it); }
         catch(e){ console.error(`週替わり: ${q} (${sort}): ${e.message}`); }
-        await sleep(400);
+        
       }
     }
     // 最初に手で選んだ商品（seed）は、まだ出していなければ最優先
@@ -95,7 +110,7 @@ async function select(){
       if(picked.length >= g.pick) break;
       try{
         const it = (await rakutenSearch(s.keyword, { sort: "-reviewCount" })).filter(ok)[0];
-        await sleep(400);
+        
         if(it && !recent.has(it.code) && !picked.some(p => p.code === it.code)){ picked.push({ ...it, amazon: s.amazon || "" }); cand.delete(it.code); }
       }catch(e){}
     }
