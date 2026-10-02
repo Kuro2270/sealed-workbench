@@ -81,6 +81,15 @@
         "uploadedAt": "2026-10-02",
         "publishedAt": "2026-10-02"
       }
+    },
+    "en": {
+      "draft": {
+        "id": "ypchzzE38pU",
+        "mode": "draft",
+        "public": true,
+        "uploadedAt": "2026-10-02",
+        "publishedAt": "2026-10-02"
+      }
     }
   }
 }
