@@ -41,35 +41,45 @@
      "rarity": "common",
      "cmc": 3,
      "id": "2f5345ae-4489-4d05-b2d5-c71285254f05",
-     "img": "https://cards.scryfall.io/normal/front/2/f/2f5345ae-4489-4d05-b2d5-c71285254f05.jpg?1788866058"
+     "img": "https://cards.scryfall.io/normal/front/2/f/2f5345ae-4489-4d05-b2d5-c71285254f05.jpg?1788866058",
+     "ja": "記憶の罠",
+     "imgJa": "https://cards.scryfall.io/normal/front/4/6/46a4cda6-0311-4d47-acf7-f78b5f9aedb3.jpg?1790681245"
     },
     {
      "name": "Prophesied End",
      "rarity": "uncommon",
      "cmc": 2,
      "id": "1f95399a-9766-4f3d-aa6a-ece55e0530d9",
-     "img": "https://cards.scryfall.io/normal/front/1/f/1f95399a-9766-4f3d-aa6a-ece55e0530d9.jpg?1788951920"
+     "img": "https://cards.scryfall.io/normal/front/1/f/1f95399a-9766-4f3d-aa6a-ece55e0530d9.jpg?1788951920",
+     "ja": "予言されし終焉",
+     "imgJa": "https://cards.scryfall.io/normal/front/b/d/bda0f95a-efb7-441f-9e7e-76f8bff1baad.jpg?1790681313"
     },
     {
      "name": "Refute Destiny",
      "rarity": "uncommon",
      "cmc": 2,
      "id": "2c588954-c6eb-4aae-a2fa-0651ccf2d90a",
-     "img": "https://cards.scryfall.io/normal/front/2/c/2c588954-c6eb-4aae-a2fa-0651ccf2d90a.jpg?1789470778"
+     "img": "https://cards.scryfall.io/normal/front/2/c/2c588954-c6eb-4aae-a2fa-0651ccf2d90a.jpg?1789470778",
+     "ja": "運命への論駁",
+     "imgJa": "https://cards.scryfall.io/normal/front/f/3/f33d0707-1604-4c08-bab4-26e2ac9e7a23.jpg?1790681347"
     },
     {
      "name": "Surgical Precision",
      "rarity": "common",
      "cmc": 2,
      "id": "d3acf176-ef02-4729-88c4-0f0dfbfdada4",
-     "img": "https://cards.scryfall.io/normal/front/d/3/d3acf176-ef02-4729-88c4-0f0dfbfdada4.jpg?1789385570"
+     "img": "https://cards.scryfall.io/normal/front/d/3/d3acf176-ef02-4729-88c4-0f0dfbfdada4.jpg?1789385570",
+     "ja": "外科的精密性",
+     "imgJa": "https://cards.scryfall.io/normal/front/2/b/2bc8d568-162a-4450-90a0-4559c0681692.jpg?1790681505"
     },
     {
      "name": "Your Fate Ends Here",
      "rarity": "uncommon",
      "cmc": 3,
      "id": "25000a17-b701-4d69-b2ef-2c74029199d3",
-     "img": "https://cards.scryfall.io/normal/front/2/5/25000a17-b701-4d69-b2ef-2c74029199d3.jpg?1789729751"
+     "img": "https://cards.scryfall.io/normal/front/2/5/25000a17-b701-4d69-b2ef-2c74029199d3.jpg?1789729751",
+     "ja": "汝の宿命の終焉",
+     "imgJa": "https://cards.scryfall.io/normal/front/5/3/53e0a377-88d8-4156-ad41-ac5bb79b8905.jpg?1790681563"
     }
    ],
    "flyerCards": [
@@ -132,7 +142,9 @@
      "rarity": "common",
      "cmc": 2,
      "id": "8d754b96-5e44-45af-9c7a-b0da59fbe4c3",
-     "img": "https://cards.scryfall.io/normal/front/8/d/8d754b96-5e44-45af-9c7a-b0da59fbe4c3.jpg?1788779540"
+     "img": "https://cards.scryfall.io/normal/front/8/d/8d754b96-5e44-45af-9c7a-b0da59fbe4c3.jpg?1788779540",
+     "ja": "氷の歓迎",
+     "imgJa": "https://cards.scryfall.io/normal/front/e/3/e309a323-eebc-4fb9-bbb7-0847b2053b7c.jpg?1790681764"
     }
    ],
    "flyerCards": [
@@ -195,28 +207,36 @@
      "rarity": "common",
      "cmc": 4,
      "id": "eb4b6ed8-782e-4473-abc9-d50bf2275c6a",
-     "img": "https://cards.scryfall.io/normal/front/e/b/eb4b6ed8-782e-4473-abc9-d50bf2275c6a.jpg?1789556713"
+     "img": "https://cards.scryfall.io/normal/front/e/b/eb4b6ed8-782e-4473-abc9-d50bf2275c6a.jpg?1789556713",
+     "ja": "欠席の延長",
+     "imgJa": "https://cards.scryfall.io/normal/front/5/a/5a65792e-1a86-41fb-b82d-951936bccf17.jpg?1790682468"
     },
     {
      "name": "Last Gasp",
      "rarity": "common",
      "cmc": 2,
      "id": "2381d123-d8c7-4822-98fe-b1c365beb5ed",
-     "img": "https://cards.scryfall.io/normal/front/2/3/2381d123-d8c7-4822-98fe-b1c365beb5ed.jpg?1789127524"
+     "img": "https://cards.scryfall.io/normal/front/2/3/2381d123-d8c7-4822-98fe-b1c365beb5ed.jpg?1789127524",
+     "ja": "最後の喘ぎ",
+     "imgJa": "https://cards.scryfall.io/normal/front/2/1/217783f3-71da-4e0f-9160-b94ee01ea1f4.jpg?1790682512"
     },
     {
      "name": "Silence the Echo",
      "rarity": "common",
      "cmc": 2,
      "id": "f1d274db-751b-4414-a38d-762198168e91",
-     "img": "https://cards.scryfall.io/normal/front/f/1/f1d274db-751b-4414-a38d-762198168e91.jpg?1789385640"
+     "img": "https://cards.scryfall.io/normal/front/f/1/f1d274db-751b-4414-a38d-762198168e91.jpg?1789385640",
+     "ja": "こだまを静寂に",
+     "imgJa": "https://cards.scryfall.io/normal/front/2/1/2100413b-e63a-4ba4-82e0-9958f9276647.jpg?1790682789"
     },
     {
      "name": "Terminal Criticism",
      "rarity": "uncommon",
      "cmc": 2,
      "id": "7ebd7e38-b27c-4c6e-aaea-e8ee5ba5e5df",
-     "img": "https://cards.scryfall.io/normal/front/7/e/7ebd7e38-b27c-4c6e-aaea-e8ee5ba5e5df.jpg?1789470810"
+     "img": "https://cards.scryfall.io/normal/front/7/e/7ebd7e38-b27c-4c6e-aaea-e8ee5ba5e5df.jpg?1789470810",
+     "ja": "絶望的批評",
+     "imgJa": "https://cards.scryfall.io/normal/front/7/a/7ad7993e-b2df-4495-90a4-f96a76dd6985.jpg?1790682846"
     }
    ],
    "flyerCards": [
@@ -255,42 +275,54 @@
      "rarity": "common",
      "cmc": 5,
      "id": "c596c4ec-8480-4be9-a45d-700398a126f6",
-     "img": "https://cards.scryfall.io/normal/front/c/5/c596c4ec-8480-4be9-a45d-700398a126f6.jpg?1789556812"
+     "img": "https://cards.scryfall.io/normal/front/c/5/c596c4ec-8480-4be9-a45d-700398a126f6.jpg?1789556812",
+     "ja": "業火の覚醒",
+     "imgJa": "https://cards.scryfall.io/normal/front/4/b/4b5724e4-dc15-4d07-a746-8c5f82eaa4eb.jpg?1790683004"
     },
     {
      "name": "Fulminous Forte",
      "rarity": "uncommon",
      "cmc": 3,
      "id": "19acb2b5-3b3e-43f0-bd81-8426ed3d9c55",
-     "img": "https://cards.scryfall.io/normal/front/1/9/19acb2b5-3b3e-43f0-bd81-8426ed3d9c55.jpg?1789614832"
+     "img": "https://cards.scryfall.io/normal/front/1/9/19acb2b5-3b3e-43f0-bd81-8426ed3d9c55.jpg?1789614832",
+     "ja": "大音響のフォルテ",
+     "imgJa": "https://cards.scryfall.io/normal/front/5/b/5bdc4c7c-5e8c-4ece-b2e1-78903bb12574.jpg?1790683354"
     },
     {
      "name": "No Admittance",
      "rarity": "common",
      "cmc": 2,
      "id": "11ba4fdd-cc03-4bb6-a493-91a9785771d0",
-     "img": "https://cards.scryfall.io/normal/front/1/1/11ba4fdd-cc03-4bb6-a493-91a9785771d0.jpg?1788878170"
+     "img": "https://cards.scryfall.io/normal/front/1/1/11ba4fdd-cc03-4bb6-a493-91a9785771d0.jpg?1788878170",
+     "ja": "入場不可",
+     "imgJa": "https://cards.scryfall.io/normal/front/1/9/19c9a3d9-8168-40ad-af8c-6dac519ccb6e.jpg?1790683494"
     },
     {
      "name": "Tether Technician",
      "rarity": "common",
      "cmc": 5,
      "id": "b75bbf46-a421-467a-9433-6cf22398a3a5",
-     "img": "https://cards.scryfall.io/normal/front/b/7/b75bbf46-a421-467a-9433-6cf22398a3a5.jpg?1789556839"
+     "img": "https://cards.scryfall.io/normal/front/b/7/b75bbf46-a421-467a-9433-6cf22398a3a5.jpg?1789556839",
+     "ja": "繋操術の技師",
+     "imgJa": "https://cards.scryfall.io/normal/front/1/3/13fdf14b-fbd8-4d91-9855-5b01e91642f9.jpg?1790683637"
     },
     {
      "name": "Violent Echoes",
      "rarity": "uncommon",
      "cmc": 4,
      "id": "ad03ba90-2442-4a71-94df-2088b5b63662",
-     "img": "https://cards.scryfall.io/normal/front/a/d/ad03ba90-2442-4a71-94df-2088b5b63662.jpg?1789127599"
+     "img": "https://cards.scryfall.io/normal/front/a/d/ad03ba90-2442-4a71-94df-2088b5b63662.jpg?1789127599",
+     "ja": "暴力的なこだま",
+     "imgJa": "https://cards.scryfall.io/normal/front/8/2/82780df0-68a5-4d80-a553-73657efb2fa5.jpg?1790683657"
     },
     {
      "name": "Wrath of the Bloodmane",
      "rarity": "common",
      "cmc": 3,
      "id": "b5b55617-684a-4036-be9b-a3b24fc9cd5a",
-     "img": "https://cards.scryfall.io/normal/front/b/5/b5b55617-684a-4036-be9b-a3b24fc9cd5a.jpg?1789385820"
+     "img": "https://cards.scryfall.io/normal/front/b/5/b5b55617-684a-4036-be9b-a3b24fc9cd5a.jpg?1789385820",
+     "ja": "血のたてがみの怒り",
+     "imgJa": "https://cards.scryfall.io/normal/front/c/0/c0ba08f9-fe2b-4985-814f-aaa667edb4cf.jpg?1790683687"
     }
    ],
    "flyerCards": []
@@ -323,7 +355,9 @@
      "rarity": "uncommon",
      "cmc": 1,
      "id": "f71958e9-6d6d-4393-8b49-567103b50877",
-     "img": "https://cards.scryfall.io/normal/front/f/7/f71958e9-6d6d-4393-8b49-567103b50877.jpg?1789470852"
+     "img": "https://cards.scryfall.io/normal/front/f/7/f71958e9-6d6d-4393-8b49-567103b50877.jpg?1789470852",
+     "ja": "繁茂の組みつき",
+     "imgJa": "https://cards.scryfall.io/normal/front/8/f/8fd54d38-6563-4ce9-82c4-00511d6044e9.jpg?1790683842"
     }
    ],
    "flyerCards": []
@@ -461,5 +495,5 @@
  ],
  "avgCmcAll": 3.0730337078651684,
  "nameJa": "リアリティ・フラクチャー",
- "generated_at": "2026-10-02T03:17:08.837Z"
+ "generated_at": "2026-10-02T04:13:43.654Z"
 }
