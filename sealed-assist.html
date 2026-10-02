@@ -226,6 +226,8 @@
       <div class="ng"><span class="ngl" data-i18n="navgrp.play">対戦する</span>
         <a href="./table.html" data-i18n="nav.table">対戦卓</a>
         <a href="./swiss.html" data-i18n="nav.swiss">スイスドロー</a></div>
+    <div class="ng"><span class="ngl" data-i18n="navgrp.shop">買う</span>
+        <a href="./goods/index.html" data-goods-link data-i18n="nav.goods">日本のサプライ</a></div>
     </nav>
     <div class="head-top">
       <div>
@@ -338,6 +340,8 @@
     </details>
   </section>
 </main>
+
+<div id="goodsStrip"></div>
 
 <footer>
   <span data-i18n-html="foot.short">データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="./privacy.html">プライバシーポリシー</a>にまとめています。</span>
@@ -1444,5 +1448,6 @@ I18N.onChange(() => { render(); setPipUi(!!pip); });
   }
 })();
 </script>
+<script src="./goods-widget.js" defer></script>
 </body>
 </html>

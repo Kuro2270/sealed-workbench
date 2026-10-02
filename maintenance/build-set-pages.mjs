@@ -18,7 +18,7 @@
  */
 
 import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 // Scryfall は送信元を名乗らないアクセスを拒否するので、必ずこのヘッダーを付ける
 const SCRY_HEADERS = { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)", Accept: "application/json" };
@@ -68,7 +68,7 @@ const L = {
     indexLead: "セットを選ぶと、ドラフトとシールドの環境レポートが開きます。発売日の新しい順です。",
     source: "出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。",
     none: "このセットのデータはまだありません。",
-    nav: { guide:"使い方", sealed:"シールド練習", draft:"ドラフト練習", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", sassist:"シールド補助", table:"対戦卓", privacy:"プライバシー" },
+    nav: { guide:"使い方", sealed:"シールド練習", draft:"ドラフト練習", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", sassist:"シールド補助", table:"対戦卓", privacy:"プライバシー", goods:"日本のサプライ" },
     navgrp: { start:"はじめに", build:"練習する", assist:"MTGアリーナで使う", data:"データを見る", play:"対戦する" },
     navsub: { build:"仮想パックで練習", assist:"実戦のログを読んで助ける・PC専用" },
     pc: "PC",
@@ -105,7 +105,7 @@ const L = {
     indexLead: "Pick a set to open its Draft and Sealed report. Newest first.",
     source: "Source: 17Lands Public Data (CC BY 4.0), aggregated by this site. Card data via Scryfall.",
     none: "No data for this set yet.",
-    nav: { guide:"Guide", sealed:"Sealed practice", draft:"Draft practice", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", sassist:"Sealed assistant", table:"Play table", privacy:"Privacy" },
+    nav: { guide:"Guide", sealed:"Sealed practice", draft:"Draft practice", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", sassist:"Sealed assistant", table:"Play table", privacy:"Privacy", goods:"Japanese supplies" },
     navgrp: { start:"Start", build:"Practice", assist:"Use with MTG Arena", data:"Data", play:"Play" },
     navsub: { build:"Virtual packs", assist:"Reads your log in real play · PC only" },
     pc: "PC",
@@ -198,13 +198,44 @@ async function cardNamesJa(code){
   return out;
 }
 
+/* ---------- 「日本のサプライ」の小さな枠（セット別ページの下に）---------- */
+let GOODS = null;
+try{ GOODS = JSON.parse(readFileSync("data/products/current.json", "utf8")); }catch(e){}
+function goodsStrip(lang){
+  if(!GOODS) return "";
+  const rot = Object.values(GOODS.rotating || {}).flat(), fixed = GOODS.fixed || [];
+  const items = [...fixed.slice(0, 1), ...rot.slice(0, 3)];
+  if(!items.length) return "";
+  const en = lang === "en";
+  const T = en ? { h: "Japanese TCG supplies", lead: "Sleeves and deck boxes you can only get in Japan — ships worldwide via Buyee.", buy: "Buy via Buyee", more: "See all →", pr: "Contains affiliate links" }
+               : { h: "日本の TCG サプライ", lead: "日本のプレイヤーが使っている定番と、今週のキャラクタースリーブ。", buy: "楽天市場で見る", more: "もっと見る →", pr: "PR" };
+  const href = en ? "../goods/index.en.html" : "../goods/index.html";
+  const li = items.map(it => {
+    const name = en ? (it.labelEn || it.name) : (it.labelJa || it.name);
+    const link = en ? ((it.links && it.links.buyee) || it.affiliateUrl) : ((it.links && it.links.rakuten) || it.affiliateUrl);
+    const price = "¥" + Number(it.price).toLocaleString(en ? "en-US" : "ja-JP") + (en ? ` (~$${Math.round(it.price / 150)})` : "");
+    return `<li><a class="gi" href="${esc(it.affiliateUrl)}" target="_blank" rel="noopener sponsored"><img src="${esc(it.image)}" alt="" loading="lazy"></a><div class="gt"><p class="gn">${esc(name)}</p><p class="gp">${esc(price)}</p><a class="gb" href="${esc(link)}" target="_blank" rel="noopener sponsored">${esc(T.buy)}</a></div></li>`;
+  }).join("");
+  return `<section class="gstrip"><div class="gh"><h2>${esc(T.h)}</h2><span class="gpr">${esc(T.pr)}</span><a class="gmore" href="${href}">${esc(T.more)}</a></div><p class="glead">${esc(T.lead)}</p><ul>${li}</ul></section>`;
+}
+const GOODS_CSS = `
+  .gstrip{margin:28px 0 0;padding:16px 0 0;border-top:1px solid var(--line)}
+  .gstrip .gh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 4px}.gstrip h2{font-size:15px;margin:0}.gstrip .gpr{font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px}
+  .gstrip .gmore{margin-left:auto;font-size:12.5px}.gstrip .glead{font-size:12.5px;color:var(--muted);margin:0 0 10px}
+  .gstrip ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+  .gstrip li{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px;display:flex;gap:8px;align-items:flex-start}
+  .gstrip .gi{flex:none;width:64px;height:64px;border-radius:6px;overflow:hidden;background:var(--paper-2)}.gstrip .gi img{width:100%;height:100%;object-fit:contain;display:block}
+  .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}`;
+
 /* ---------- HTML ---------- */
 function shell(lang, code, head, body, ogImage){
   const T = L[lang];
   const other = T.otherHref(code);
   const og = ogImage || `${SITE}/ogp-${lang}.png`;
   // ナビはカテゴリごとにまとめる（本体のページと同じ並び）
-  const HREF = { guide:"../guide.html", sealed:"../", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", sassist:"../sealed-assist.html", table:"../table.html" };
+  const HREF = { guide:"../guide.html", sealed:"../", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", sassist:"../sealed-assist.html", table:"../table.html",
+                 goods: lang === "en" ? "../goods/index.en.html" : "../goods/index.html" };
   const PC = new Set(["assist", "sassist"]);   // ログを読む機能はスマホでは使えないので「PC」の札を付ける
   const navGroup = (label, keys) =>
     `<div class="ng"><span class="ngl">${esc(T.navgrp[label])}</span>` +
@@ -215,7 +246,8 @@ function shell(lang, code, head, body, ogImage){
     navGroup("build", ["sealed", "draft"]),
     navGroup("assist", ["sassist", "assist"]),
     navGroup("data", ["reports"]),
-    navGroup("play", ["table", "swiss"])
+    navGroup("play", ["table", "swiss"]),
+    navGroup("shop", ["goods"])
   ].join("\n      ");
   return `<!DOCTYPE html>
 <html lang="${lang}">
@@ -299,6 +331,7 @@ ${head}
   .setlist li a:hover{border-color:var(--gold)}
   .setlist small{display:block;color:var(--muted);font-size:12px}
   footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+${GOODS_CSS}
   footer a{color:var(--muted)}
   @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
 </style>
@@ -316,6 +349,7 @@ ${body.header}
 </header>
 <main>
 ${body.main}
+${body.noGoods ? "" : goodsStrip(lang)}
 </main>
 <footer>${T.foot}</footer>
 </body>

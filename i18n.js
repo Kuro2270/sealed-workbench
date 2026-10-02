@@ -198,6 +198,8 @@
     "navgrp.data":      { ja:"データを見る", en:"Data" },
     "navgrp.play":      { ja:"対戦する", en:"Play" },
     "nav.guide":        { ja:"使い方",  en:"Guide" },
+    "navgrp.shop":      { ja:"買う", en:"Shop" },
+    "nav.goods":        { ja:"日本のサプライ", en:"Japanese supplies" },
 
     "page.guide.title": { ja:"使い方｜MTGアリーナのリミテッドを無料で練習する",
                           en:"Guide — Free MTG Arena Limited practice" },

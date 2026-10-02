@@ -122,11 +122,21 @@ async function select(){
     console.error(`${g.group}: 候補 ${cand.size + picked.length} → ${picked.length} 件`);
   }
 
+  decorate(out);
   history[week] = [...Object.values(out.rotating).flat().map(it => it.code)];
   await mkdir("data/products", { recursive: true });
   await writeFile("data/products/history.json", JSON.stringify(history, null, 1), "utf8");
   await writeFile("data/products/current.json", JSON.stringify(out, null, 1), "utf8");
   return out;
+}
+
+/* 各ページの小さな枠（goods-widget.js）が使う、言語別の見出しとリンクを商品に付ける */
+function decorate(data){
+  for(const it of [...data.fixed, ...Object.values(data.rotating).flat()]){
+    it.labelJa = it.label ? it.label.ja : shortName(it.name);
+    it.labelEn = it.label ? it.label.en : labelEn(it);
+    it.links = { rakuten: it.affiliateUrl, buyee: buyeeLink(it), amazon: amazonLink(it.amazon) || "" };
+  }
 }
 
 /* ---------- ページ ---------- */
@@ -141,7 +151,7 @@ const P = {
     price: p => `¥${p.toLocaleString("ja-JP")}`, shop: s => `出品：${s}`,
     btnRakuten: "楽天市場で見る", btnBuyee: "Buyee（海外発送）", btnAmazon: "Amazon で見る",
     updated: w => `更新：${w}（毎週月曜に自動で入れ替え）`,
-    disclosure: "当ページのリンクはアフィリエイトリンクです。リンク先で購入があった場合、当サイトに紹介料が入ります。価格と在庫はリンク先の表示が正となります。",
+    disclosure: "PR：このページの商品リンクはアフィリエイトリンクです。",
     rakutenNote: "商品情報と画像は楽天市場の API から取得しています。"
   },
   en: {
@@ -154,10 +164,32 @@ const P = {
     price: p => `¥${p.toLocaleString("en-US")} (about $${(p / 150).toFixed(0)})`, shop: s => `Seller: ${s}`,
     btnRakuten: "Rakuten (Japan only)", btnBuyee: "Buy via Buyee (ships worldwide)", btnAmazon: "Amazon Japan",
     updated: w => `Updated: ${w} (rotates automatically every Monday)`,
-    disclosure: "Links on this page are affiliate links; this site earns a commission on purchases made through them, at no extra cost to you. Prices and stock shown on the linked page are authoritative.",
+    disclosure: "Contains affiliate links.",
     rakutenNote: "Product details and images come from the Rakuten Ichiba API. Rakuten shops generally ship within Japan only — use the Buyee button to order from overseas."
   }
 };
+/* 英語の見出し：種類 by メーカー — 作品名（商品名の英字部分、または対応表から） */
+const MAKER_EN = [["ブロッコリー", "Broccoli"], ["BROCCOLI", "Broccoli"], ["ムービック", "movic"], ["movic", "movic"], ["ブシロード", "Bushiroad"], ["Bushiroad", "Bushiroad"],
+  ["ポケモンセンター", "Pokémon Center"], ["ポケモン", "Pokémon"], ["KMC", "KMC"], ["ケイエムシー", "KMC"], ["やのまん", "Yanoman"], ["ホビーベース", "Hobby Base"], ["アンサー", "Answer"],
+  ["エポック", "Epoch"], ["ウルトラプロ", "Ultra PRO"], ["Ultra PRO", "Ultra PRO"], ["河島製作所", "Kawashima"], ["ドラゴンシールド", "Dragon Shield"], ["Dragon Shield", "Dragon Shield"]];
+const FRANCHISE_EN = [["エヴァンゲリオン", "Evangelion"], ["ダンジョンに出会いを求めるのは間違っているだろうか", "DanMachi"], ["勝利の女神", "NIKKE"], ["ウマ娘", "Umamusume"], ["ホロライブ", "hololive"],
+  ["初音ミク", "Hatsune Miku"], ["鬼滅の刃", "Demon Slayer"], ["呪術廻戦", "Jujutsu Kaisen"], ["僕のヒーローアカデミア", "My Hero Academia"], ["ワンピース", "One Piece"], ["ドラゴンボール", "Dragon Ball"],
+  ["アイドルマスター", "The Idolmaster"], ["ラブライブ", "Love Live!"], ["ガンダム", "Gundam"], ["艦隊これくしょん", "KanColle"], ["アズールレーン", "Azur Lane"], ["ブルーアーカイブ", "Blue Archive"],
+  ["原神", "Genshin Impact"], ["崩壊", "Honkai"], ["東方", "Touhou"], ["リコリス・リコイル", "Lycoris Recoil"], ["ぼっち・ざ・ろっく", "Bocchi the Rock!"], ["葬送のフリーレン", "Frieren"],
+  ["推しの子", "Oshi no Ko"], ["ポケモン", "Pokémon"], ["遊戯王", "Yu-Gi-Oh!"], ["デュエル・マスターズ", "Duel Masters"], ["マジック：ザ・ギャザリング", "Magic: The Gathering"]];
+const GROUP_EN = { sleeve: "Sleeves", "chara-sleeve": "Character sleeves", "deck-case": "Deck box", playmat: "Playmat" };
+function labelEn(it){
+  const n = String(it.name);
+  const maker = (MAKER_EN.find(([k]) => n.toLowerCase().includes(k.toLowerCase())) || [])[1];
+  let fr = (FRANCHISE_EN.find(([k]) => n.includes(k)) || [])[1];
+  if(!fr){
+    // 英字の作品名（Shadowverse、Fate/Grand Order など）。メーカー名や型番は除く
+    const skip = new Set(["No", "NEO", "MAX", "Vol", "KMC", "TCG", "DX", "mm", "ver", "Ver"]);
+    const m = (n.match(/[A-Za-z][A-Za-z0-9&'!:.\/\- ]{2,}/g) || []).map(x => x.trim()).filter(x => x.length >= 4 && !skip.has(x) && !/^[A-Z]{1,3}\d+/.test(x) && !MAKER_EN.some(([k]) => x.toLowerCase() === k.toLowerCase()));
+    fr = m[0] || "";
+  }
+  return `${GROUP_EN[it.group] || "Supplies"}${maker ? " by " + maker : ""}${fr ? " — " + fr : ""}`;
+}
 const buyeeLink = it => {
   const item = (aff.buyee.itemTemplate || "https://buyee.jp/rakuten/detail/{itemCodeEnc}?lang=en").replace("{itemCodeEnc}", encodeURIComponent(it.code));
   return aff.buyee.trackingTemplate ? aff.buyee.trackingTemplate.replace("{url}", encodeURIComponent(item)) : item;
@@ -168,7 +200,7 @@ const shortName = n => String(n).replace(/【[^】]*】/g, "").replace(/\s{2,}/g
 
 function card(lang, it){
   const T = P[lang];
-  const label = it.label ? it.label[lang] : shortName(it.name);
+  const label = it.label ? it.label[lang] : (lang === "en" ? labelEn(it) : shortName(it.name));
   const note = it.note ? it.note[lang] : "";
   const az = amazonLink(it.amazon);
   const primary = lang === "en" ? `<a class="btn p" href="${esc(buyeeLink(it))}" target="_blank" rel="noopener sponsored">${esc(T.btnBuyee)}</a>` : `<a class="btn p" href="${esc(it.affiliateUrl)}" target="_blank" rel="noopener sponsored">${esc(T.btnRakuten)}</a>`;
@@ -177,7 +209,7 @@ function card(lang, it){
   <a class="img" href="${esc(it.affiliateUrl)}" target="_blank" rel="noopener sponsored"><img src="${esc(it.image)}" alt="${esc(label)}" loading="lazy" width="200" height="200"></a>
   <div class="txt">
     <h3>${esc(label)}</h3>
-    ${it.label ? `<p class="jp">${esc(shortName(it.name))}</p>` : ""}
+    ${(it.label || lang === "en") ? `<p class="jp">${esc(shortName(it.name))}</p>` : ""}
     ${note ? `<p class="note">${esc(note)}</p>` : ""}
     <p class="price">${esc(T.price(it.price))} <small>${esc(T.shop(it.shop))}</small></p>
     <p class="btns">${primary}${secondary}${az ? `<a class="btn" href="${esc(az)}" target="_blank" rel="noopener sponsored">${esc(T.btnAmazon)}</a>` : ""}</p>
@@ -208,7 +240,7 @@ function page(lang, data){
   .btns{display:flex;flex-wrap:wrap;gap:6px;margin:0}
   .btn{font-size:12.5px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;text-decoration:none;color:var(--ink);background:#fff}
   .btn.p{background:var(--pine);color:#fff;border-color:var(--pine)}
-  .disc{font-size:12px;color:var(--muted);border-left:3px solid var(--gold);padding:8px 12px;background:var(--paper-2);margin:0 0 20px}
+  .disc{font-size:11.5px;color:var(--muted);margin:0 0 4px}
   .lead{color:var(--muted);font-size:13.5px;margin:0 0 12px}
   @media (max-width:640px){ .item .img{width:90px;height:90px} }
 </style>`;
@@ -222,7 +254,7 @@ function page(lang, data){
     main += `\n<section><h2>${esc(T.group[g] || g)}</h2><p class="lead">${esc(T.groupLead[g] || "")}</p><ul class="goods">${items.map(it => card(lang, it)).join("\n")}</ul></section>`;
   }
   main += `\n<p class="source">${esc(T.rakutenNote)}</p>`;
-  return shell(lang, "index", head, { header, main });
+  return shell(lang, "index", head, { header, main, noGoods: true });
 }
 
 /* ---------- 実行 ---------- */
@@ -230,6 +262,8 @@ let data;
 if(PAGES_ONLY){
   data = await readJson("data/products/current.json", null);
   if(!data){ console.error("data/products/current.json がありません。先に探してください"); process.exit(1); }
+  decorate(data);
+  await writeFile("data/products/current.json", JSON.stringify(data, null, 1), "utf8");
 }else{
   if(!APP || !KEY){ console.error("RAKUTEN_APP_ID と RAKUTEN_ACCESS_KEY が要ります"); process.exit(1); }
   data = await select();
