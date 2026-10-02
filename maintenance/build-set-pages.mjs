@@ -463,7 +463,7 @@ function videoSection(lang, code, mode, setDisplay, videos){
 `;
 }
 
-function indexPage(lang, rows){
+function indexPage(lang, rows, profileOnly = []){
   const T = L[lang];
   const canonical = `${SITE}/${OUT}/index${lang === "en" ? ".en" : ""}.html`;
   const head = `<title>${esc(T.indexH1)} — ${esc(T.site)}</title>
@@ -477,6 +477,9 @@ function indexPage(lang, rows){
   const header = `    <h1>${esc(T.indexH1)}</h1>
     <p>${esc(T.lead)}</p>`;
   const main = `<p class="lead">${esc(T.indexLead)}</p>
+${profileOnly.length ? `<ul class="setlist" style="margin-bottom:14px">
+${profileOnly.map(r => `  <li><a href="${r.code}.profile${lang === "en" ? ".en" : ""}.html">${esc(r.name[lang])}<small>${esc(r.code)}${r.released_at ? "　" + esc(r.released_at) : ""}　${lang === "ja" ? "下見（勝率データ待ち）" : "Preview (awaiting win-rate data)"}</small></a></li>`).join("\n")}
+</ul>` : ""}
 <ul class="setlist">
 ${rows.map(r => `  <li><a href="${r.code}${lang === "en" ? ".en" : ""}.html">${esc(r.name[lang])}<small>${esc(r.code)}${r.released_at ? "　" + esc(r.released_at) : ""}　${esc((r.games || 0).toLocaleString())} ${lang === "ja" ? "試合" : "games"}</small></a></li>`).join("\n")}
 </ul>`;
@@ -516,9 +519,27 @@ async function main(){
     await sleep(120);
   }
   rows.sort((a, b) => (b.released_at || "").localeCompare(a.released_at || "") || a.code.localeCompare(b.code));
-  await writeFile(`${OUT}/index.html`, indexPage("ja", rows), "utf8");
-  await writeFile(`${OUT}/index.en.html`, indexPage("en", rows), "utf8");
+  // 下見だけあって、まだ環境レポートが無いセット
+  const profileOnly = [];
+  try{
+    const { readdir } = await import("node:fs/promises");
+    for(const f of await readdir("data/profiles")){
+      if(!f.endsWith(".json")) continue;
+      const code = f.replace(/\.json$/, "");
+      if(codes.includes(code)) continue;
+      const pr = await readJson(`data/profiles/${f}`, null);
+      if(pr) profileOnly.push({ code, name: { ja: pr.nameJa || pr.setName || code, en: pr.setName || code }, released_at: pr.released_at || "" });
+    }
+  }catch(e){}
+  profileOnly.sort((a, b) => (b.released_at || "").localeCompare(a.released_at || ""));
+  await writeFile(`${OUT}/index.html`, indexPage("ja", rows, profileOnly), "utf8");
+  await writeFile(`${OUT}/index.en.html`, indexPage("en", rows, profileOnly), "utf8");
   console.error(`セット別ページを生成: ${rows.length}セット × 2言語`);
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+export { shell, L, esc, readJson, setNamesJa, SCRY_HEADERS, SITE };
+// 直接実行したときだけ動かす（build-set-profile.mjs から shell を借りるため）
+import { pathToFileURL } from "node:url";
+if(process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href){
+  main().catch(e => { console.error(e); process.exit(1); });
+}
