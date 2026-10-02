@@ -16,7 +16,7 @@
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { shell, L, esc, readJson, setNamesJa, SCRY_HEADERS, SITE } from "./build-set-pages.mjs";
+import { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE } from "./build-set-pages.mjs";
 
 const ARG = (process.argv[2] || "").toUpperCase();
 if(!ARG){ console.error("使い方: node maintenance/build-set-profile.mjs <SET>　または --auto（発売前後で下見が無いセットを探して作る）"); process.exit(1); }
@@ -223,7 +223,11 @@ function page(lang, p, nameJa, dataDate){
   const row = c => { const b = p.byColor[c]; return `<tr><td><span class="dot" style="background:${COLOR_CSS[c]}"></span>${esc(T.colorName[c])}</td>
 <td class="num">${b.cu}</td><td class="num">${b.creatures} <small>(${Math.round(b.creatureShare * 100)}%)</small></td><td class="num"><b>${b.removal}</b></td><td class="num"><b>${b.flyers}</b></td><td class="num">${b.tricks}</td><td class="num">${b.draw}</td><td class="num">${b.avgPower.toFixed(1)}/${b.avgToughness.toFixed(1)}</td><td class="num">${b.avgCmc.toFixed(2)}</td></tr>`; };
   const pairRows = p.pairs.map(x => `<tr><td>${[...x.pair].map(c => `<span class="dot" style="background:${COLOR_CSS[c]}"></span>`).join("")}${[...x.pair].map(c => esc(T.colorName[c])).join(lang === "ja" ? "" : "-")}</td><td class="num">${x.count}</td><td><small>${esc(x.uncommons.slice(0, 3).join(", "))}${x.uncommons.length > 3 ? "…" : ""}</small></td></tr>`).join("\n");
-  const removalRows = COLORS.map(c => p.byColor[c].removalCards.map(r => `<tr><td><span class="dot" style="background:${COLOR_CSS[c]}"></span>${esc(T.colorName[c])}</td><td><span class="rar ${r.rarity}">${T.rarity[r.rarity]}</span>${esc(r.name)}</td><td class="num">${r.cmc ?? ""}</td></tr>`).join("\n")).join("\n");
+  const removalRows = COLORS.map(c => p.byColor[c].removalCards.map(r => {
+    const nm = lang === "ja" ? (r.ja || r.name) : r.name;
+    const img = (lang === "ja" ? (r.imgJa || r.img) : r.img) || "";
+    return `<tr${img ? ` data-img="${esc(img)}"` : ""}><td><span class="dot" style="background:${COLOR_CSS[c]}"></span>${esc(T.colorName[c])}</td><td><span class="rar ${r.rarity}">${T.rarity[r.rarity]}</span><span class="cn">${esc(nm)}</span>${lang === "ja" && r.ja ? ` <small class="en">${esc(r.name)}</small>` : ""}</td><td class="num">${r.cmc ?? ""}</td></tr>`;
+  }).join("\n")).join("\n");
   const main = `<article class="mode">
   <p class="verdict">${esc(T.when(dataDate))}</p>
   <section><h3>${esc(T.colorsH)}</h3><p class="lead">${esc(T.colorsLead)}</p>
@@ -233,9 +237,26 @@ function page(lang, p, nameJa, dataDate){
   <p class="lead">${COLORS.map(c => `<span class="dot" style="background:${COLOR_CSS[c]}"></span>${esc(T.colorName[c])}`).join("　")}</p></section>
   <section><h3>${esc(T.removalH)}</h3><p class="lead">${esc(T.removalLead)}</p>
   <table><thead><tr><th>${esc(T.th.color)}</th><th></th><th class="num">${esc(T.th.cmc)}</th></tr></thead><tbody>${removalRows}</tbody></table></section>
-  ${p.topKeywords.length ? `<section><h3>${esc(T.kwH)}</h3><p class="lead">${esc(T.kwLead)}</p><p>${p.topKeywords.map(([k, n]) => `${esc(k)} <b>${n}</b>`).join("　")}</p></section>` : ""}
-  <section><h3>${esc(T.noteH)}</h3><p class="verdict">${esc(T.note)}</p></section>
 </article>
+<div id="preview" aria-hidden="true"></div>
+<style>
+  .mode .cn{border-bottom:1px dotted #9AAABB;cursor:default}
+  .mode small.en{color:#5C7185;margin-left:6px}
+  #preview{position:fixed;z-index:50;pointer-events:none;display:none;filter:drop-shadow(0 10px 24px rgba(15,28,23,.35))}
+  #preview img{display:block;width:244px;height:auto;border-radius:11px}
+  @media (hover:none){ #preview{display:none !important} }
+</style>
+<script>
+(function(){
+  var box = document.getElementById("preview"); if(!box) return;
+  function move(x, y){ var w = 252, h = box.offsetHeight || 350, left = x + 18, top = y - h / 2; if(left + w > innerWidth - 8) left = x - w - 18; if(left < 8) left = 8; top = Math.min(Math.max(8, top), innerHeight - h - 8); box.style.left = left + "px"; box.style.top = top + "px"; }
+  document.querySelectorAll("tr[data-img]").forEach(function(tr){
+    tr.addEventListener("mouseenter", function(ev){ box.innerHTML = ""; var img = document.createElement("img"); img.src = tr.dataset.img; img.alt = ""; box.appendChild(img); box.style.display = "block"; move(ev.clientX, ev.clientY); });
+    tr.addEventListener("mousemove", function(ev){ if(box.style.display === "block") move(ev.clientX, ev.clientY); });
+    tr.addEventListener("mouseleave", function(){ box.style.display = "none"; box.innerHTML = ""; });
+  });
+})();
+</script>
 <section class="links"><h3>${esc(T.links)}</h3><ul>
   <li><a href="../?set=${SET}">${esc(T.linkSealed)}</a>／<a href="../draft.html?set=${SET}">${esc(T.linkDraft)}</a></li>
   <li><a href="${SET}${lang === "en" ? ".en" : ""}.html">${esc(T.linkReport)}</a></li>
@@ -252,6 +273,19 @@ console.error(`${SET}: Scryfall から ${cards.length} 枚（集計対象 ${p.co
 if(p.counts.total < 50) console.error("::warning::集計できたカードが少なすぎます。Scryfall にまだカードが揃っていないか、絞り込みが強すぎます");
 const ja = await setNamesJa();
 const nameJa = ja[SET.toLowerCase()] || p.setName;
+// 除去カードの日本語名と日本語版の画像（Scryfall に日本語版がまだ無いカードは英語のまま）。
+// 発売前は日本語データが不完全なことがあるので data/names/ には保存しない（勝率データ集計のときに改めて取る）
+try{
+  const jn = await fetchJaNames(SET);
+  let hit = 0;
+  for(const c of Object.keys(p.byColor)) for(const r of p.byColor[c].removalCards){
+    const key = String(r.name).split(" // ")[0].trim();
+    r.ja = jn.names[r.name] || jn.names[key] || null;
+    r.imgJa = jn.images[r.name] || jn.images[key] || null;
+    if(r.ja) hit++;
+  }
+  console.error(`日本語名: 除去カードのうち ${hit} 枚に付きました`);
+}catch(e){ console.error("日本語名を取れませんでした: " + e.message); }
 // 勝率データが出る日の目安：紙の発売日 + 12日
 let dataDate = { ja: "発売2週間後", en: "two weeks after release" };
 if(p.released_at){

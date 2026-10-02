@@ -94,6 +94,8 @@
   .profile .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
   .profile .rar.uncommon{background:#8496A0}.profile .rar.rare{background:var(--gold)}.profile .rar.mythic{background:#C4552C}
   .profile svg{max-width:100%;height:auto}
+  .profile .cn{border-bottom:1px dotted var(--line);cursor:default}
+  .profile small.en{color:var(--muted);margin-left:6px}
   /* 読み込み中を示す回転 */
   .status.busy{display:flex;align-items:center;gap:10px}
   .status.busy::before{
@@ -314,7 +316,7 @@ function renderSetOptions(){
   sets.forEach(code => {
     const o = document.createElement("option");
     o.value = code;
-    o.textContent = I18N.setName(code, code) + "（" + code + "）" + (profileOnly.includes(code) ? (I18N.lang === "ja" ? "・下見" : " · preview") : "");
+    o.textContent = I18N.setName(code, code) + "（" + code + "）" + "";
     sel.appendChild(o);
   });
   if(keep && sets.includes(keep)) sel.value = keep;
@@ -534,6 +536,13 @@ async function showProfile(code){
     const box = $("body");
     box.innerHTML = `<div class="profile">${html}</div>`;
     box.hidden = false;
+    // 除去一覧のカード名にカーソルを合わせたら画像を出す（固定ページが data-img に入れている）
+    box.querySelectorAll("tr[data-img]").forEach(tr => {
+      const url = tr.dataset.img;
+      tr.onmouseenter = ev => { const pv = $("preview"); pv.innerHTML = ""; const img = document.createElement("img"); img.src = url; img.alt = ""; pv.appendChild(img); pv.style.display = "block"; movePreview(ev.clientX, ev.clientY); };
+      tr.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
+      tr.onmouseleave = hidePreview;
+    });
     $("built").textContent = "";
     if($("video")) $("video").hidden = true;
     setStatus(t("reports.profileNow"), false);

@@ -541,7 +541,7 @@ async function main(){
   console.error(`セット別ページを生成: ${rows.length}セット × 2言語`);
 }
 
-export { shell, L, esc, readJson, setNamesJa, SCRY_HEADERS, SITE };
+export { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE };
 // 直接実行したときだけ動かす（build-set-profile.mjs から shell を借りるため）
 import { pathToFileURL } from "node:url";
 if(process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href){
