@@ -115,12 +115,26 @@ for(const S of Object.keys(all).sort()){
 
 await writeFile("data/videos.json", JSON.stringify(all, null, 2) + "\n", "utf8");
 
-// 投稿（公開になったものだけ。言語ごとに1本ずつ）
+// 投稿（公開になったものだけ。言語ごとに1本ずつ）。動画ファイルが Releases（タグ videos）にあれば落として添付する
+async function fetchVideoFile(p){
+  const tag = p.mode === "draft" ? p.lang : `${p.lang}-${p.mode}`;
+  const name = `${p.set}-${tag}.mp4`;
+  try{
+    const { mkdir } = await import("node:fs/promises");
+    await mkdir("short/dl", { recursive: true });
+    execFileSync("gh", ["release", "download", "videos", "--pattern", name, "--dir", "short/dl", "--clobber"], { stdio: "pipe" });
+    const { existsSync } = await import("node:fs");
+    if(existsSync(`short/dl/${name}`)){ console.log(`動画ファイル: ${name} を Releases から取りました`); return `short/dl/${name}`; }
+  }catch(e){}
+  console.log(`動画ファイル: ${name} は Releases に無いので、リンクで投稿します`);
+  return "";
+}
 if(POST){
   for(const p of published){
     try{
+      const file = await fetchVideoFile(p);
       execFileSync("node", ["maintenance/post-social.mjs", "video"], { stdio: "inherit",
-        env: { ...process.env, ANNOUNCE_SETS: p.set, LANGS: p.lang, BSKY_LANGS: process.env.BSKY_LANGS || "en", VIDEO_ID: p.id, VIDEO_MODE: p.mode } });
+        env: { ...process.env, ANNOUNCE_SETS: p.set, LANGS: p.lang, BSKY_LANGS: process.env.BSKY_LANGS || "en", VIDEO_ID: p.id, VIDEO_MODE: p.mode, VIDEO_FILE: file } });
     }catch(e){ console.error(`投稿に失敗: ${p.set} ${p.lang} ${p.mode}`); process.exitCode = 1; }
   }
 }
