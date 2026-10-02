@@ -53,6 +53,10 @@ if(process.env.MANUAL){
     all[S] = all[S] || {};
     if(all[S][lang] && all[S][lang].id) all[S][lang] = { draft: all[S][lang] };
     all[S][lang] = all[S][lang] || {};
+    const cur = all[S][lang][mode];
+    if(cur && cur.id === id && cur.public){
+      console.log(`すでに配信済みなので何もしません: ${S} ${lang} ${mode} ${id}`);
+    }else
     all[S][lang][mode] = { ...(all[S][lang][mode] || {}), id, mode, public: false, manual: true, uploadedAt: (all[S][lang][mode] || {}).uploadedAt || new Date().toISOString().slice(0, 10) };
     console.log(`手で追加: ${S} ${lang} ${mode} ${id}`);
   }else{
