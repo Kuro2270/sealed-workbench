@@ -44,7 +44,8 @@
         "mode": "draft",
         "title": "Secrets of Strixhaven Draft in 60 seconds | MTG Arena #Shorts",
         "uploadedAt": "2026-10-02",
-        "public": false
+        "public": true,
+        "publishedAt": "2026-10-02"
       }
     }
   }
