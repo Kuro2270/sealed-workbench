@@ -378,21 +378,22 @@ function summaryText(lang, mode, d, setDisplay, cn, pairLabel, colorLabel){
   const best = pairs[0], worst = pairs[pairs.length - 1];
   const speed = (d.speed || []).filter(x => x.wr != null);
   const fastest = speed.length ? speed.reduce((m, x) => x.wr > m.wr ? x : m) : null;
-  const paceWord = fastest ? (ja ? ({ fast: "速いデッキが勝ちやすい", mid: "中速のデッキが勝ちやすい", slow: "やや遅めのデッキが勝ちやすい", slower: "重いデッキでも勝てる" })[fastest.key]
-                                : ({ fast: "fast decks win most", mid: "mid-speed decks win most", slow: "slightly slower decks win most", slower: "even heavy decks can win" })[fastest.key]) : null;
+  const vk = (d.verdict && d.verdict.key) || "even";
+  const paceWord = ja ? ({ fast: "速く、軽いデッキが勝ちやすい", "lean-fast": "やや速く、軽いデッキのほうが勝ちやすい", even: "速さでは差がつきにくい", "lean-slow": "やや遅く、重いデッキのほうが勝ちやすい", slow: "遅く、重いデッキが勝ちやすい" })[vk]
+                      : ({ fast: "fast decks clearly win more", "lean-fast": "it leans fast — lighter decks win a little more", even: "speed makes little difference", "lean-slow": "it leans slow — heavier decks win a little more", slow: "slow, heavier decks clearly win more" })[vk];
   const top = r => ((d.top && d.top[r]) || [])[0];
   const c1 = top("common"), u1 = top("uncommon"), r1 = top("rare");
   const parts = [];
   if(ja){
     parts.push(`${setDisplay}の${modeName}は${games}試合のデータで、全体勝率は${pct(d.overall_win_rate)}。`);
-    if(paceWord) parts.push(`環境は${paceWord}傾向です。`);
+    if(paceWord) parts.push(`環境は${paceWord}です。`);
     if(colors.length >= 2) parts.push(`色は${colorLabel(colors[0].color)}（${pct(colors[0].wr)}）と${colorLabel(colors[1].color)}（${pct(colors[1].wr)}）が強く、`);
     if(best) parts.push(`2色の組み合わせでは${pairLabel(best.colors)}が${pct(best.wr)}で最強${worst && worst !== best ? `、${pairLabel(worst.colors)}が${pct(worst.wr)}で最弱` : ""}です。`);
     const cards = [c1 && `コモンは「${cn(c1.name)}」`, u1 && `アンコモンは「${cn(u1.name)}」`, r1 && `レアは「${cn(r1.name)}」`].filter(Boolean);
     if(cards.length) parts.push(`カード単位では${cards.join("、")}が最も勝率が高いカードです。`);
   }else{
     parts.push(`${setDisplay} ${modeName} on MTG Arena: ${games} games, ${pct(d.overall_win_rate)} overall win rate.`);
-    if(paceWord) parts.push(`In this format ${paceWord}.`);
+    if(paceWord) parts.push(`On speed, ${paceWord}.`);
     if(colors.length >= 2) parts.push(`${colorLabel(colors[0].color)} (${pct(colors[0].wr)}) and ${colorLabel(colors[1].color)} (${pct(colors[1].wr)}) are the strongest colours;`);
     if(best) parts.push(`the best two-colour pair is ${pairLabel(best.colors)} at ${pct(best.wr)}${worst && worst !== best ? `, and the weakest is ${pairLabel(worst.colors)} at ${pct(worst.wr)}` : ""}.`);
     const cards = [c1 && `the top common is ${c1.name}`, u1 && `the top uncommon is ${u1.name}`, r1 && `the top rare is ${r1.name}`].filter(Boolean);

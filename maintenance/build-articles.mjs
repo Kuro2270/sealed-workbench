@@ -173,11 +173,20 @@ function speedVerdict(speed, avgTurns, curve){
     tilt = avg(low) - avg(high);
   }
 
+  // 帯が軽い順（または重い順）にきれいに並んでいるか（単調なら、差が小さくても傾向として読む）
+  const bands = ["fast", "mid", "slow", "slower"].map(k => speed.find(s => s.key === k)).filter(s => s && s.wr != null);
+  const monoFast = bands.length >= 3 && bands.every((b, i) => i === 0 || b.wr <= bands[i - 1].wr);
+  const monoSlow = bands.length >= 3 && bands.every((b, i) => i === 0 || b.wr >= bands[i - 1].wr);
+
   let key = "even";
   if(gap != null && gap >= 0.02) key = "fast";
   else if(gap != null && gap <= -0.02) key = "slow";
   else if(tilt != null && tilt >= 0.015) key = "fast";
   else if(tilt != null && tilt <= -0.015) key = "slow";
+  else if(gap != null && gap >= 0.01 && monoFast) key = "lean-fast";     // 1〜2pt で軽い順に並ぶ → やや速い
+  else if(gap != null && gap <= -0.01 && monoSlow) key = "lean-slow";
+  else if(tilt != null && tilt >= 0.008 && monoFast) key = "lean-fast";
+  else if(tilt != null && tilt <= -0.008 && monoSlow) key = "lean-slow";
 
   return { key, gap, tilt, avg_turns: avgTurns };
 }

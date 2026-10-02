@@ -644,7 +644,7 @@ function render(){
         <h2>${t("reports.speed.h")}</h2>
         <div class="verdict">${t("reports.speed.best", {
             label: t("reports.speedn." + best.key), p: (best.wr * 100).toFixed(1)
-          })}${paceLine()}</div>
+          })}${paceLine()}${d.verdict && d.verdict.key ? `<span class="gap">${esc(t("verdict." + d.verdict.key))}</span>` : ""}</div>
         ${d.notes?.speed ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.speed[I18N.lang] || "")}</p></div>` : ""}
       </section>`);
     }
