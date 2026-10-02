@@ -41,7 +41,7 @@ jobs:
           echo "## 新しいデータを見つけました: $SETS" >> "$GITHUB_STEP_SUMMARY"
           echo "「勝率データ集計」を起こしました。終わると動画が4本、非公開で YouTube に上がります。" >> "$GITHUB_STEP_SUMMARY"
 
-      # 発売前後のセットに、勝率データが出るまでの「下見」ページを作る（無いときだけ）
+      # 発売前後のセットに、勝率データが出るまでの「下見」ページを作る（2日ごとに作り直し、カードと日本語名が増えたら反映する）
       - name: セットの下見を作る
         run: |
           node maintenance/build-set-profile.mjs --auto || echo "::warning::下見を作れませんでした（Scryfall に届かない？）"
@@ -49,7 +49,7 @@ jobs:
             node maintenance/build-set-pages.mjs && node maintenance/build-seo.mjs
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add sets data/profiles data/names sitemap.xml || true
+            for p in sets data/profiles data/names sitemap.xml; do [ -e "$p" ] && git add -A -- "$p"; done
             git commit -m "セットの下見を追加" && { for i in 1 2 3; do git pull --rebase origin main && git push origin main && break; sleep 5; done; }
             echo "## セットの下見を作りました" >> "$GITHUB_STEP_SUMMARY"
           fi
