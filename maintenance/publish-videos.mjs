@@ -107,8 +107,18 @@ async function commentText(lang, S, mode){
     : `Thanks for watching.\n\nEvery card's win rate for ${name} ${modeName} — colours, two-colour pairs, the best commons and rares — is here (free, no sign-up):\n${page}\n\nFree Sealed / Draft practice too → ${SITE}\n\nIf a colour surprised you, or the data doesn't match your experience, tell me in the comments. It helps shape the next set's video.`;
   return text;
 }
+async function postComment(lang, id, text){
+  const tok = await accessToken(lang);
+  if(!tok) return "no-token";
+  const r = await fetch("https://www.googleapis.com/youtube/v3/commentThreads?part=snippet", { method: "POST", headers: { Authorization: `Bearer ${tok}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ snippet: { videoId: id, topLevelComment: { snippet: { textOriginal: text } } } }) });
+  if(r.ok) return "ok";
+  const body = await r.text();
+  if(r.status === 403 && /insufficient|scope|forbidden/i.test(body)) return "no-scope";
+  return `HTTP ${r.status}: ${body.slice(0, 160)}`;
+}
 
-const comments = [];
+const comments = [], posted = [];
 const published = [], waiting = [], failed = [];
 for(const S of Object.keys(all).sort()){
   if(ONLY && S !== ONLY) continue;
@@ -123,7 +133,12 @@ for(const S of Object.keys(all).sort()){
         v.public = true; v.publishedAt = v.publishedAt || new Date().toISOString().slice(0, 10);
         published.push({ set: S, lang: L, mode: M, id: v.id });
         console.log(`配信: ${S} ${L} ${M} https://www.youtube.com/shorts/${v.id}`);
-        comments.push({ set: S, lang: L, mode: M, id: v.id, text: await commentText(L, S, M) });
+        if(!v.comment){
+          const text = await commentText(L, S, M);
+          const c = await postComment(L, v.id, text);
+          if(c === "ok"){ v.comment = true; posted.push({ set: S, lang: L, mode: M, id: v.id }); console.log(`  案内コメントを付けました（固定は YouTube Studio で）`); }
+          else{ comments.push({ set: S, lang: L, mode: M, id: v.id, text, why: c }); console.log(`  コメントは付けられませんでした（${c === "no-scope" ? "許可にコメントの権限がありません。「YouTube 投稿許可」をデスクトップ アプリの方式でやり直すと付きます" : c}）。文面をまとめに出します`); }
+        }
       }else if(st === "missing"){
         failed.push({ set: S, lang: L, mode: M, id: v.id, why: "YouTube に見つかりません（削除した？）" });
         console.log(`見つからない: ${S} ${L} ${M} ${v.id}`);
@@ -140,9 +155,13 @@ const CF = (process.env.COMMENTS_FOR || "").trim().toUpperCase();
 if(CF && all[CF]){
   for(const L of ["ja", "en"]) for(const M of ["draft", "sealed"]){
     const v = all[CF][L] && all[CF][L][M];
-    if(v && v.id && v.public && !comments.some(c => c.id === v.id)) comments.push({ set: CF, lang: L, mode: M, id: v.id, text: await commentText(L, CF, M) });
+    if(!(v && v.id && v.public) || v.comment || comments.some(c => c.id === v.id)) continue;
+    const text = await commentText(L, CF, M);
+    const c = await postComment(L, v.id, text);
+    if(c === "ok"){ v.comment = true; posted.push({ set: CF, lang: L, mode: M, id: v.id }); console.log(`${CF} ${L} ${M}: 案内コメントを付けました`); }
+    else comments.push({ set: CF, lang: L, mode: M, id: v.id, text, why: c });
   }
-  console.log(`固定コメントの文面: ${CF} の ${comments.length} 本ぶんをまとめに出します`);
+  console.log(`固定コメント: ${CF} … 付けた ${posted.length} 本／文面をまとめに出す ${comments.length} 本`);
 }
 
 await writeFile("data/videos.json", JSON.stringify(all, null, 2) + "\n", "utf8");
@@ -179,8 +198,9 @@ if(published.length){ lines.push(`### 配信しました（${published.length}�
 if(waiting.length){ lines.push(`### まだ公開になっていません（YouTube Studio で公開にしてから、もう一度）`); for(const p of waiting) lines.push(`- ${p.set} ${p.lang} ${p.mode}（${p.status}）: https://www.youtube.com/shorts/${p.id}`); lines.push(""); }
 if(failed.length){ lines.push(`### 確認できませんでした`); for(const p of failed) lines.push(`- ${p.set} ${p.lang} ${p.mode}: ${p.why}`); lines.push(""); }
 if(!published.length && !waiting.length && !failed.length) lines.push("未配信の動画はありません。");
+if(posted.length){ lines.push(""); lines.push(`### 案内コメントを付けました（${posted.length}本）。YouTube Studio → コメント で「固定」にしてください`); for(const p of posted) lines.push(`- ${p.set} ${p.lang} ${p.mode}: https://www.youtube.com/shorts/${p.id}`); }
 if(comments.length){
-  lines.push(""); lines.push("### 固定コメントの文面（各動画のコメント欄に貼って「固定」にしてください）");
+  lines.push(""); lines.push("### 自動で付けられなかった固定コメントの文面（各動画のコメント欄に貼って「固定」にしてください）");
   for(const c of comments){ lines.push(""); lines.push(`**${c.set} ${c.lang} ${c.mode}** — https://www.youtube.com/shorts/${c.id}`); lines.push(""); lines.push("```"); lines.push(c.text); lines.push("```"); }
 }
 if(process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");

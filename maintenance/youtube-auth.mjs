@@ -21,8 +21,17 @@
 const ID = process.env.YT_CLIENT_ID, SECRET = process.env.YT_CLIENT_SECRET;
 if(!ID || !SECRET){ console.error("YT_CLIENT_ID / YT_CLIENT_SECRET が設定されていません。"); process.exit(1); }
 
-// コメント投稿の権限（force-ssl）は、この「限定入力デバイス」方式では取れない（invalid_scope）。コメントは配信のまとめに出す文面を手で貼る
-const SCOPE = "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly";
+/* 2つの方式に対応する
+ *   desktop … OAuth クライアントが「デスクトップ アプリ」のとき（推奨）。コメント投稿の権限（force-ssl）も取れる。
+ *             1回目で URL を出す → ブラウザで許可 → localhost に飛ばされて「ページが開けない」画面になるので、
+ *             そのアドレス欄の code=... の部分を 2回目に入れる
+ *   device  … 「テレビと限定入力デバイス」のとき。コメント投稿の権限は取れない（Google の制限）
+ * AUTH_MODE で選ぶ（既定 desktop）。 */
+const AUTH_MODE = (process.env.AUTH_MODE || "desktop").toLowerCase();
+const REDIRECT = "http://localhost:8765/";
+const SCOPE = AUTH_MODE === "device"
+  ? "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly"
+  : "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.force-ssl";
 
 async function form(url, params){
   const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(params) });
@@ -32,7 +41,36 @@ async function form(url, params){
 
 const mode = process.argv[2];
 
-if(mode === "start"){
+if(mode === "start" && AUTH_MODE !== "device"){
+  const u = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+  for(const [k, v] of Object.entries({ client_id: ID, redirect_uri: REDIRECT, response_type: "code", scope: SCOPE, access_type: "offline", prompt: "consent", include_granted_scopes: "true" })) u.searchParams.set(k, v);
+  console.log("");
+  console.log("================ 手順 ================");
+  console.log("1. 動画を上げるチャンネル（ブランドアカウント）でログインしたブラウザで、次のURLを開く：");
+  console.log("");
+  console.log(`   ${u.toString()}`);
+  console.log("");
+  console.log("2. アカウントを選ぶ画面で、必ずチャンネル（ブランドアカウント）のほうを選ぶ");
+  console.log("   「このアプリは Google で確認されていません」と出たら「詳細」→「（アプリ名）に移動」で進む");
+  console.log("3. 「許可」を押すと、localhost のページに飛ばされて「このサイトにアクセスできません」と出る。それで正常。");
+  console.log("   そのときのアドレス欄（http://localhost:8765/?code=4/0A...&scope=...）から、code= の後ろから &scope の手前までをコピーする");
+  console.log("4. このワークフローをもう一度実行し、code 欄にそれを貼る（10分以内）");
+  console.log("======================================");
+}else if(mode === "finish" && AUTH_MODE !== "device"){
+  let code = (process.env.DEVICE_CODE || "").trim();
+  if(!code){ console.error("code が空です。1回目の手順で取った code=... の値を入れてください。"); process.exit(1); }
+  // URL ごと貼られたときも拾う
+  const m = code.match(/[?&]code=([^&\s]+)/); if(m) code = m[1];
+  code = decodeURIComponent(code);
+  const { ok, status, j } = await form("https://oauth2.googleapis.com/token", { client_id: ID, client_secret: SECRET, code, grant_type: "authorization_code", redirect_uri: REDIRECT });
+  if(!ok){
+    const why = j.error === "invalid_grant" ? "code が無効か期限切れです。1回目（開始）からやり直してください。"
+              : j.error === "redirect_uri_mismatch" ? "OAuth クライアントの種類が「デスクトップ アプリ」ではありません。Google Cloud でデスクトップ アプリのクライアントを作り、YT_CLIENT_ID / YT_CLIENT_SECRET を差し替えてください。"
+              : `HTTP ${status}: ${JSON.stringify(j)}`;
+    console.error(`許可の受け取りに失敗しました: ${why}`); process.exit(1);
+  }
+  await done(j);
+}else if(mode === "start"){
   const { ok, status, j } = await form("https://oauth2.googleapis.com/device/code", { client_id: ID, scope: SCOPE });
   if(!ok){ console.error(`開始に失敗しました（HTTP ${status}）: ${JSON.stringify(j)}`); process.exit(1); }
   console.log("");
@@ -65,6 +103,13 @@ if(mode === "start"){
               : `HTTP ${status}: ${JSON.stringify(j)}`;
     console.error(`許可の受け取りに失敗しました: ${why}`); process.exit(1);
   }
+  await done(j);
+}else{
+  console.error("使い方: node maintenance/youtube-auth.mjs start | finish");
+  process.exit(1);
+}
+
+async function done(j){
   if(!j.refresh_token){ console.error("refresh_token が返ってきませんでした。OAuth 同意画面の設定を確認してください。"); process.exit(1); }
   // どのチャンネルの許可か確認して表示する
   let channel = "";
@@ -82,8 +127,6 @@ if(mode === "start"){
   console.log("");
   console.log("（英語チャンネルなら YT_REFRESH_TOKEN_EN）");
   console.log("登録したら、この実行のログは削除すること（右上の … → Delete logs）。");
+  console.log(`（取れた権限: ${j.scope || "不明"}）`);
   console.log("======================================");
-}else{
-  console.error("使い方: node maintenance/youtube-auth.mjs start | finish");
-  process.exit(1);
 }
