@@ -135,6 +135,16 @@ for(const S of Object.keys(all).sort()){
   }
 }
 
+// 配信済みの動画の固定コメントの文面だけ出す（COMMENTS_FOR=SET。配信や投稿はしない）
+const CF = (process.env.COMMENTS_FOR || "").trim().toUpperCase();
+if(CF && all[CF]){
+  for(const L of ["ja", "en"]) for(const M of ["draft", "sealed"]){
+    const v = all[CF][L] && all[CF][L][M];
+    if(v && v.id && v.public && !comments.some(c => c.id === v.id)) comments.push({ set: CF, lang: L, mode: M, id: v.id, text: await commentText(L, CF, M) });
+  }
+  console.log(`固定コメントの文面: ${CF} の ${comments.length} 本ぶんをまとめに出します`);
+}
+
 await writeFile("data/videos.json", JSON.stringify(all, null, 2) + "\n", "utf8");
 
 // 投稿（公開になったものだけ。言語ごとに1本ずつ）。動画ファイルが Releases（タグ videos）にあれば落として添付する
