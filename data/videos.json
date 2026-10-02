@@ -46,6 +46,13 @@
         "uploadedAt": "2026-10-02",
         "public": true,
         "publishedAt": "2026-10-02"
+      },
+      "sealed": {
+        "id": "NZe0B10ju1w",
+        "mode": "sealed",
+        "public": true,
+        "uploadedAt": "2026-10-02",
+        "publishedAt": "2026-10-02"
       }
     },
     "ja": {
