@@ -69,7 +69,7 @@ const L = {
     source: "出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。",
     none: "このセットのデータはまだありません。",
     nav: { guide:"使い方", sealed:"シールド練習", draft:"ドラフト練習", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", sassist:"シールド補助", table:"対戦卓", privacy:"プライバシー" },
-    navgrp: { start:"はじめに", build:"練習する", assist:"アリーナで使う", data:"データを見る", play:"対戦する" },
+    navgrp: { start:"はじめに", build:"練習する", assist:"MTGアリーナで使う", data:"データを見る", play:"対戦する" },
     navsub: { build:"仮想パックで練習", assist:"実戦のログを読んで助ける・PC専用" },
     pc: "PC",
     foot: 'データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。',
@@ -106,7 +106,7 @@ const L = {
     source: "Source: 17Lands Public Data (CC BY 4.0), aggregated by this site. Card data via Scryfall.",
     none: "No data for this set yet.",
     nav: { guide:"Guide", sealed:"Sealed practice", draft:"Draft practice", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", sassist:"Sealed assistant", table:"Play table", privacy:"Privacy" },
-    navgrp: { start:"Start", build:"Practice", assist:"With Arena", data:"Data", play:"Play" },
+    navgrp: { start:"Start", build:"Practice", assist:"Use with MTG Arena", data:"Data", play:"Play" },
     navsub: { build:"Virtual packs", assist:"Reads your log in real play · PC only" },
     pc: "PC",
     foot: 'Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.',
@@ -213,7 +213,7 @@ function shell(lang, code, head, body, ogImage){
   const nav = [
     navGroup("start", ["guide"]),
     navGroup("build", ["sealed", "draft"]),
-    navGroup("assist", ["assist", "sassist"]),
+    navGroup("assist", ["sassist", "assist"]),
     navGroup("data", ["reports"]),
     navGroup("play", ["table", "swiss"])
   ].join("\n      ");

@@ -109,9 +109,9 @@ function navHtml(current) {
       <div class="ng"><span class="ngl" data-i18n="navgrp.build">練習する</span><span class="ngs" data-i18n="navsub.build">仮想パックで練習</span>
         ${a("./", "nav.sealed", "シールド練習")}
         ${a("./draft.html", "nav.draft", "ドラフト練習")}</div>
-      <div class="ng"><span class="ngl" data-i18n="navgrp.assist">アリーナで使う</span><span class="ngs" data-i18n="navsub.assist">実戦のログを読んで助ける・PC専用</span>
-        ${a("./assistant.html", "nav.assist", "ドラフト補助", true)}
-        ${a("./sealed-assist.html", "nav.sassist", "シールド補助", true)}</div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.assist">MTGアリーナで使う</span><span class="ngs" data-i18n="navsub.assist">実戦のログを読んで助ける・PC専用</span>
+        ${a("./sealed-assist.html", "nav.sassist", "シールド補助", true)}
+        ${a("./assistant.html", "nav.assist", "ドラフト補助", true)}</div>
       <div class="ng"><span class="ngl" data-i18n="navgrp.data">データを見る</span>
         ${a("./ratings.html", "nav.ratings", "カード勝率一覧")}
         ${a("./reports.html", "nav.reports", "環境レポート")}</div>

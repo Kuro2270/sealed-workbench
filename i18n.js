@@ -192,7 +192,7 @@
     "navgrp.start":     { ja:"はじめに", en:"Start" },
     "navgrp.build":     { ja:"練習する", en:"Practice" },
     "navsub.build":     { ja:"仮想パックで練習", en:"Virtual packs" },
-    "navgrp.assist":    { ja:"アリーナで使う", en:"With Arena" },
+    "navgrp.assist":    { ja:"MTGアリーナで使う", en:"Use with MTG Arena" },
     "navsub.assist":    { ja:"実戦のログを読んで助ける・PC専用", en:"Reads your log in real play · PC only" },
     "nav.pc":           { ja:"PC", en:"PC" },
     "navgrp.data":      { ja:"データを見る", en:"Data" },
