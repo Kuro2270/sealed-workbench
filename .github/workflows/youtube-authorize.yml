@@ -1,16 +1,24 @@
 name: YouTube 投稿許可
 
-# 動画を上げるチャンネルが、アプリに「上げてよい」と許可を出すための手続き（Google のデバイス方式）。
-# 1回目：入力なしで実行 → ログにURLと8文字のコードと device_code が出る → ブラウザでコードを入れて許可
-# 2回目：device_code を入れて実行 → ログに REFRESH_TOKEN が出る（Secrets に登録して、ログは削除）
-# 先に Secrets に YT_CLIENT_ID / YT_CLIENT_SECRET が登録されていること（手順書「YouTube 自動アップロードの準備」）。
+# 動画を上げるチャンネルが、アプリに「上げてよい」「コメントしてよい」と許可を出すための手続き。
+# OAuth クライアントは「デスクトップ アプリ」の種類で作る（コメント投稿の権限は、この種類でないと取れない）。
+# 1回目：入力なしで実行 → ログに URL が出る → ブラウザで開いて許可 → localhost に飛ばされてエラー画面になる（正常）
+#         → アドレス欄の code=... の値をコピー
+# 2回目：code を入れて実行 → ログに REFRESH_TOKEN が出る（Secrets に登録して、ログは削除）
+# 先に Secrets に YT_CLIENT_ID / YT_CLIENT_SECRET（デスクトップ アプリのもの）が登録されていること。
+# 昔の「テレビと限定入力デバイス」のクライアントを使うときは mode に device を入れる（コメントの権限は付かない）。
 
 on:
   workflow_dispatch:
     inputs:
       device_code:
-        description: "2回目のみ：1回目のログに出た device_code"
+        description: "2回目のみ：ブラウザのアドレス欄の code=... の値（URL ごと貼ってもよい）"
         required: false
+      mode:
+        description: "許可の方式（desktop = デスクトップ アプリのクライアント／device = 限定入力デバイス）"
+        type: choice
+        options: [desktop, device]
+        default: desktop
 
 permissions:
   contents: read
@@ -31,6 +39,7 @@ jobs:
         env:
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          AUTH_MODE: ${{ inputs.mode || 'desktop' }}
         run: node maintenance/youtube-auth.mjs start
 
       - name: 完了（REFRESH_TOKEN を表示）
@@ -39,4 +48,5 @@ jobs:
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           DEVICE_CODE: ${{ inputs.device_code }}
+          AUTH_MODE: ${{ inputs.mode || 'desktop' }}
         run: node maintenance/youtube-auth.mjs finish
