@@ -1,0 +1,160 @@
+{
+ "set": "FRA",
+ "setName": "Reality Fracture",
+ "released_at": "2026-10-02",
+ "counts": {
+  "total": 0,
+  "common": 0,
+  "uncommon": 0,
+  "rare": 0,
+  "mythic": 0,
+  "creatures": 0,
+  "removal": 0,
+  "flyers": 0,
+  "multi": 0
+ },
+ "byColor": {
+  "W": {
+   "total": 0,
+   "cu": 0,
+   "commons": 0,
+   "creatures": 0,
+   "creatureShare": 0,
+   "flyers": 0,
+   "removal": 0,
+   "tricks": 0,
+   "draw": 0,
+   "avgPower": 0,
+   "avgToughness": 0,
+   "avgCmc": 0,
+   "curve": {},
+   "removalCards": [],
+   "flyerCards": []
+  },
+  "U": {
+   "total": 0,
+   "cu": 0,
+   "commons": 0,
+   "creatures": 0,
+   "creatureShare": 0,
+   "flyers": 0,
+   "removal": 0,
+   "tricks": 0,
+   "draw": 0,
+   "avgPower": 0,
+   "avgToughness": 0,
+   "avgCmc": 0,
+   "curve": {},
+   "removalCards": [],
+   "flyerCards": []
+  },
+  "B": {
+   "total": 0,
+   "cu": 0,
+   "commons": 0,
+   "creatures": 0,
+   "creatureShare": 0,
+   "flyers": 0,
+   "removal": 0,
+   "tricks": 0,
+   "draw": 0,
+   "avgPower": 0,
+   "avgToughness": 0,
+   "avgCmc": 0,
+   "curve": {},
+   "removalCards": [],
+   "flyerCards": []
+  },
+  "R": {
+   "total": 0,
+   "cu": 0,
+   "commons": 0,
+   "creatures": 0,
+   "creatureShare": 0,
+   "flyers": 0,
+   "removal": 0,
+   "tricks": 0,
+   "draw": 0,
+   "avgPower": 0,
+   "avgToughness": 0,
+   "avgCmc": 0,
+   "curve": {},
+   "removalCards": [],
+   "flyerCards": []
+  },
+  "G": {
+   "total": 0,
+   "cu": 0,
+   "commons": 0,
+   "creatures": 0,
+   "creatureShare": 0,
+   "flyers": 0,
+   "removal": 0,
+   "tricks": 0,
+   "draw": 0,
+   "avgPower": 0,
+   "avgToughness": 0,
+   "avgCmc": 0,
+   "curve": {},
+   "removalCards": [],
+   "flyerCards": []
+  }
+ },
+ "pairs": [
+  {
+   "pair": "WU",
+   "count": 0,
+   "uncommons": []
+  },
+  {
+   "pair": "UB",
+   "count": 0,
+   "uncommons": []
+  },
+  {
+   "pair": "BR",
+   "count": 0,
+   "uncommons": []
+  },
+  {
+   "pair": "RG",
+   "count": 0,
+   "uncommons": []
+  },
+  {
+   "pair": "GW",
+   "count": 0,
+   "uncommons": []
+  },
+  {
+   "pair": "WB",
+   "count": 0,
+   "uncommons": []
+  },
+  {
+   "pair": "UR",
+   "count": 0,
+   "uncommons": []
+  },
+  {
+   "pair": "BG",
+   "count": 0,
+   "uncommons": []
+  },
+  {
+   "pair": "RW",
+   "count": 0,
+   "uncommons": []
+  },
+  {
+   "pair": "GU",
+   "count": 0,
+   "uncommons": []
+  }
+ ],
+ "curveAll": {},
+ "topKeywords": [],
+ "avgCmcAll": 0,
+ "nameJa": "リアリティ・フラクチャー",
+ "generated_at": "2026-10-02T03:09:34.220Z"
+}

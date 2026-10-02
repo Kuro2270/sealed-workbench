@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>リアリティ・フラクチャー リミテッド下見｜勝率データが出る前に、セットの形を数字で見る — MTGアリーナ リミテッド・ワークベンチ</title>
+<meta name="description" content="マジック：ザ・ギャザリング アリーナ「リアリティ・フラクチャー」のリミテッドを、勝率データが出る前にカードの枚数から読む。色ごとの除去・飛行・クリーチャーの数、マナ総量の分布。">
+<link rel="canonical" href="https://sealed-workbench.com/sets/FRA.profile.html">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/FRA.profile.html">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/FRA.profile.en.html">
+<meta property="og:title" content="リアリティ・フラクチャー リミテッド下見｜勝率データが出る前に、セットの形を数字で見る">
+<meta property="og:url" content="https://sealed-workbench.com/sets/FRA.profile.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta property="og:image" content="https://sealed-workbench.com/ogp-ja.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:image" content="https://sealed-workbench.com/ogp-ja.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="../analytics.js"></script>
+<style>
+  :root{--pine:#10304F;--pine-deep:#0A2038;--paper:#F5F8FC;--paper-2:#E8EEF6;--ink:#0D1B2A;--muted:#5C7185;--gold:#2F7DF6;--line:#D3DFEB;
+        --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:8px}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  header{background:linear-gradient(135deg,var(--pine-deep) 0%,var(--pine) 55%,#17466F 100%);color:var(--paper);padding:24px 24px 16px;border-bottom:3px solid var(--gold);box-shadow:0 10px 30px -18px rgba(8,26,48,.9)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:#9CC8FF;line-height:24px;margin:0 0 12px}
+  .brand a{color:inherit;text-decoration:none}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;color:#C6D9EE;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #2C4D74}
+  nav a:hover{background:#1A4A79;color:var(--paper)}
+  nav{gap:10px 16px;align-items:flex-end}
+  .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
+  .ng:first-of-type{padding-left:0;border-left:none}
+  .ng{position:relative;padding-top:17px}
+  .ng:has(.ngs){padding-top:35px}
+  .ngl{position:absolute;left:16px;top:0;white-space:nowrap;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6}
+  .ng:first-of-type .ngl,.ng:first-of-type .ngs{left:0}
+  .ngs{position:absolute;left:16px;top:17px;white-space:nowrap;font-size:11px;color:#8FA9C6;line-height:1.3}
+  nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
+  nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
+  @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0} }
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  .lang{margin-top:12px;font-size:13px}
+  .lang a{color:#C6D9EE}
+  main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
+  .mode{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:22px}
+  .mode > h2{font-size:22px;margin:0 0 4px;display:flex;align-items:baseline;gap:12px}
+  .mode > h2 small{font-size:13px;color:var(--muted);font-weight:500}
+  .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
+  section{margin-top:18px}
+  .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
+  .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .video .yt button span{width:64px;height:64px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .video .yt button span::after{content:"";border-left:22px solid #0B1E33;border-top:13px solid transparent;border-bottom:13px solid transparent;margin-left:5px}
+  .video .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .video .vtext{flex:1 1 240px;min-width:0}
+  .video .vtext p{margin:0 0 8px}
+  .video .vtext a{font-size:13px}
+  section h3{font-size:16px;margin:0 0 4px}
+  .lead{color:var(--muted);font-size:13px;margin:0 0 8px}
+  .verdict{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;font-size:14.5px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+  td{padding:6px 8px;border-bottom:1px solid var(--paper-2)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
+  .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#FFFFFF}.rar.mythic{background:#C4552C}
+  .links ul{margin:6px 0 0;padding-left:1.2em}
+  .links a{color:var(--pine)}
+  .source{color:var(--muted);font-size:12px;margin-top:20px}
+  .setlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+  .setlist li a{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
+  .setlist li a:hover{border-color:var(--gold)}
+  .setlist small{display:block;color:var(--muted);font-size:12px}
+  footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+  @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand"><a href="../">MTGアリーナ リミテッド・ワークベンチ</a></div>
+    <nav>
+      <div class="ng"><span class="ngl">はじめに</span><a href="../guide.html">使い方</a></div>
+      <div class="ng"><span class="ngl">練習する</span><span class="ngs">仮想パックで練習</span><a href="../">シールド練習</a><a href="../draft.html">ドラフト練習</a></div>
+      <div class="ng"><span class="ngl">MTGアリーナで使う</span><span class="ngs">実戦のログを読んで助ける・PC専用</span><a href="../sealed-assist.html">シールド補助<b class="pcb">PC</b></a><a href="../assistant.html">ドラフト補助<b class="pcb">PC</b></a></div>
+      <div class="ng"><span class="ngl">データを見る</span><a href="../reports.html">環境レポート</a></div>
+      <div class="ng"><span class="ngl">対戦する</span><a href="../table.html">対戦卓</a><a href="../swiss.html">スイスドロー</a></div>
+    </nav>
+    <h1>リアリティ・フラクチャー｜リミテッド下見（データ前）</h1>
+    <p>勝率データは発売から2週間ほどで揃います。それまでは、セットの全カードを数えて「環境の形」を見ます。</p>
+    <div class="lang"><a href="FRA.profile.en.html" hreflang="en">English</a></div>
+  </div>
+</header>
+<main>
+<article class="mode">
+  <p class="verdict">勝率データは 10月14日 ごろから。揃い次第、このセットの環境レポートが出ます。</p>
+  <section><h3>色ごとの中身（コモン・アンコモン）</h3><p class="lead">単色のコモン・アンコモンだけを数えています。除去と飛行が多い色は、序盤から主導権を取りやすい色です。</p>
+  <div style="overflow-x:auto"><table><thead><tr><th>色</th><th class="num">枚数</th><th class="num">クリーチャー</th><th class="num">除去</th><th class="num">飛行</th><th class="num">コンバットトリック</th><th class="num">ドロー</th><th class="num">平均サイズ</th><th class="num">平均マナ</th></tr></thead>
+  <tbody><tr><td><span class="dot" style="background:var(--w)"></span>白</td>
+<td class="num">0</td><td class="num">0 <small>(0%)</small></td><td class="num"><b>0</b></td><td class="num"><b>0</b></td><td class="num">0</td><td class="num">0</td><td class="num">0.0/0.0</td><td class="num">0.00</td></tr>
+<tr><td><span class="dot" style="background:var(--u)"></span>青</td>
+<td class="num">0</td><td class="num">0 <small>(0%)</small></td><td class="num"><b>0</b></td><td class="num"><b>0</b></td><td class="num">0</td><td class="num">0</td><td class="num">0.0/0.0</td><td class="num">0.00</td></tr>
+<tr><td><span class="dot" style="background:var(--b)"></span>黒</td>
+<td class="num">0</td><td class="num">0 <small>(0%)</small></td><td class="num"><b>0</b></td><td class="num"><b>0</b></td><td class="num">0</td><td class="num">0</td><td class="num">0.0/0.0</td><td class="num">0.00</td></tr>
+<tr><td><span class="dot" style="background:var(--r)"></span>赤</td>
+<td class="num">0</td><td class="num">0 <small>(0%)</small></td><td class="num"><b>0</b></td><td class="num"><b>0</b></td><td class="num">0</td><td class="num">0</td><td class="num">0.0/0.0</td><td class="num">0.00</td></tr>
+<tr><td><span class="dot" style="background:var(--g)"></span>緑</td>
+<td class="num">0</td><td class="num">0 <small>(0%)</small></td><td class="num"><b>0</b></td><td class="num"><b>0</b></td><td class="num">0</td><td class="num">0</td><td class="num">0.0/0.0</td><td class="num">0.00</td></tr></tbody></table></div></section>
+  <section><h3>マナ総量の分布</h3><p class="lead">コモン・アンコモン（土地を除く）の枚数です。2〜3マナが厚い色は、序盤の展開が安定します。</p><svg viewBox="0 0 820 230" width="100%" role="img" aria-label="マナ総量ごとの枚数" style="font-family:inherit;font-size:11px"><line x1="40" x2="810" y1="194" y2="194" stroke="#D3DFEB" stroke-width="1"/><text x="34" y="198" text-anchor="end" fill="#5C7185">0</text><line x1="40" x2="810" y1="16" y2="16" stroke="#D3DFEB" stroke-width="1"/><text x="34" y="20" text-anchor="end" fill="#5C7185">1</text><rect x="45" y="194" width="16.25" height="0" fill="var(--w)" stroke="rgba(15,28,23,.25)"/><rect x="62.25" y="194" width="16.25" height="0" fill="var(--u)" stroke="rgba(15,28,23,.25)"/><rect x="79.5" y="194" width="16.25" height="0" fill="var(--b)" stroke="rgba(15,28,23,.25)"/><rect x="96.75" y="194" width="16.25" height="0" fill="var(--r)" stroke="rgba(15,28,23,.25)"/><rect x="114" y="194" width="16.25" height="0" fill="var(--g)" stroke="rgba(15,28,23,.25)"/><text x="88.125" y="218" text-anchor="middle" fill="#5C7185">0</text><rect x="141.25" y="194" width="16.25" height="0" fill="var(--w)" stroke="rgba(15,28,23,.25)"/><rect x="158.5" y="194" width="16.25" height="0" fill="var(--u)" stroke="rgba(15,28,23,.25)"/><rect x="175.75" y="194" width="16.25" height="0" fill="var(--b)" stroke="rgba(15,28,23,.25)"/><rect x="193" y="194" width="16.25" height="0" fill="var(--r)" stroke="rgba(15,28,23,.25)"/><rect x="210.25" y="194" width="16.25" height="0" fill="var(--g)" stroke="rgba(15,28,23,.25)"/><text x="184.375" y="218" text-anchor="middle" fill="#5C7185">1</text><rect x="237.5" y="194" width="16.25" height="0" fill="var(--w)" stroke="rgba(15,28,23,.25)"/><rect x="254.75" y="194" width="16.25" height="0" fill="var(--u)" stroke="rgba(15,28,23,.25)"/><rect x="272" y="194" width="16.25" height="0" fill="var(--b)" stroke="rgba(15,28,23,.25)"/><rect x="289.25" y="194" width="16.25" height="0" fill="var(--r)" stroke="rgba(15,28,23,.25)"/><rect x="306.5" y="194" width="16.25" height="0" fill="var(--g)" stroke="rgba(15,28,23,.25)"/><text x="280.625" y="218" text-anchor="middle" fill="#5C7185">2</text><rect x="333.75" y="194" width="16.25" height="0" fill="var(--w)" stroke="rgba(15,28,23,.25)"/><rect x="351" y="194" width="16.25" height="0" fill="var(--u)" stroke="rgba(15,28,23,.25)"/><rect x="368.25" y="194" width="16.25" height="0" fill="var(--b)" stroke="rgba(15,28,23,.25)"/><rect x="385.5" y="194" width="16.25" height="0" fill="var(--r)" stroke="rgba(15,28,23,.25)"/><rect x="402.75" y="194" width="16.25" height="0" fill="var(--g)" stroke="rgba(15,28,23,.25)"/><text x="376.875" y="218" text-anchor="middle" fill="#5C7185">3</text><rect x="430" y="194" width="16.25" height="0" fill="var(--w)" stroke="rgba(15,28,23,.25)"/><rect x="447.25" y="194" width="16.25" height="0" fill="var(--u)" stroke="rgba(15,28,23,.25)"/><rect x="464.5" y="194" width="16.25" height="0" fill="var(--b)" stroke="rgba(15,28,23,.25)"/><rect x="481.75" y="194" width="16.25" height="0" fill="var(--r)" stroke="rgba(15,28,23,.25)"/><rect x="499" y="194" width="16.25" height="0" fill="var(--g)" stroke="rgba(15,28,23,.25)"/><text x="473.125" y="218" text-anchor="middle" fill="#5C7185">4</text><rect x="526.25" y="194" width="16.25" height="0" fill="var(--w)" stroke="rgba(15,28,23,.25)"/><rect x="543.5" y="194" width="16.25" height="0" fill="var(--u)" stroke="rgba(15,28,23,.25)"/><rect x="560.75" y="194" width="16.25" height="0" fill="var(--b)" stroke="rgba(15,28,23,.25)"/><rect x="578" y="194" width="16.25" height="0" fill="var(--r)" stroke="rgba(15,28,23,.25)"/><rect x="595.25" y="194" width="16.25" height="0" fill="var(--g)" stroke="rgba(15,28,23,.25)"/><text x="569.375" y="218" text-anchor="middle" fill="#5C7185">5</text><rect x="622.5" y="194" width="16.25" height="0" fill="var(--w)" stroke="rgba(15,28,23,.25)"/><rect x="639.75" y="194" width="16.25" height="0" fill="var(--u)" stroke="rgba(15,28,23,.25)"/><rect x="657" y="194" width="16.25" height="0" fill="var(--b)" stroke="rgba(15,28,23,.25)"/><rect x="674.25" y="194" width="16.25" height="0" fill="var(--r)" stroke="rgba(15,28,23,.25)"/><rect x="691.5" y="194" width="16.25" height="0" fill="var(--g)" stroke="rgba(15,28,23,.25)"/><text x="665.625" y="218" text-anchor="middle" fill="#5C7185">6</text><rect x="718.75" y="194" width="16.25" height="0" fill="var(--w)" stroke="rgba(15,28,23,.25)"/><rect x="736" y="194" width="16.25" height="0" fill="var(--u)" stroke="rgba(15,28,23,.25)"/><rect x="753.25" y="194" width="16.25" height="0" fill="var(--b)" stroke="rgba(15,28,23,.25)"/><rect x="770.5" y="194" width="16.25" height="0" fill="var(--r)" stroke="rgba(15,28,23,.25)"/><rect x="787.75" y="194" width="16.25" height="0" fill="var(--g)" stroke="rgba(15,28,23,.25)"/><text x="761.875" y="218" text-anchor="middle" fill="#5C7185">7+</text></svg>
+  <p class="lead"><span class="dot" style="background:var(--w)"></span>白　<span class="dot" style="background:var(--u)"></span>青　<span class="dot" style="background:var(--b)"></span>黒　<span class="dot" style="background:var(--r)"></span>赤　<span class="dot" style="background:var(--g)"></span>緑</p></section>
+  <section><h3>除去の一覧（コモン・アンコモン）</h3><p class="lead">オラクル文の型から機械的に拾っています。条件付きのものも含みます。</p>
+  <table><thead><tr><th>色</th><th></th><th class="num">平均マナ</th></tr></thead><tbody>
+
+
+
+</tbody></table></section>
+  
+  <section><h3>読み方の注意</h3><p class="verdict">ここにあるのは枚数だけで、強さではありません。「除去が多い色が強い」とは限らず、環境の速さや相手の色との相性で変わります。勝率データが出たら、必ずそちらで答え合わせをしてください。</p></section>
+</article>
+<section class="links"><h3>関連ページ</h3><ul>
+  <li><a href="../?set=FRA">このセットでシールド練習</a>／<a href="../draft.html?set=FRA">このセットでドラフト練習</a></li>
+  <li><a href="FRA.html">環境レポート（データが揃い次第）</a></li>
+</ul></section>
+<p class="source">カード情報：Scryfall。集計は当サイト。</p>
+</main>
+<footer>データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。</footer>
+</body>
+</html>
