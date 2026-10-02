@@ -65,6 +65,7 @@ const UI = JA ? {
   noCurve: "カーブで差がつかない", light: n => `軽いデッキが${n}pt有利`, heavy: n => `重いデッキが${n}pt有利`, lighter: "軽いほど勝つ", heavier: "重いほど勝つ",
   colorsH: "色の強さ", bestPair: "一番強い組み合わせ", worsePair: "一番弱い組み合わせ", vsAvg: (sign, n) => `2色の平均より ${sign}${n}pt`,
   topH: label => `${label} 勝率トップ3`, common: "コモン", uncommon: "アンコモン", rank: i => `${i}位`, gih: v => `GIH勝率 ${v}%`,
+  subscribe: "▶ チャンネル登録",
   surpriseH: "意外な事実", nobody: "誰も組んでいない", strongerTogether: "組むと強くなる", weakerTogether: "組むと弱くなる",
   wrRank: (v, r) => `勝率 ${v}%（${r}位）`, wr: v => `勝率 ${v}%`, usedOnly: (g, p) => `使われた試合は ${g}。全体の${p}%だけ`, vsAvg2: (sign, n) => `2色それぞれの平均より ${sign}${n}pt`,
   outro1: "全カードの勝率は", outro2: "シールド／ドラフトの構築練習も無料", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん"
@@ -76,6 +77,7 @@ const UI = JA ? {
   noCurve: "Curve barely matters", light: n => `Light decks +${n}pt`, heavy: n => `Heavy decks +${n}pt`, lighter: "Lighter wins", heavier: "Heavier wins",
   colorsH: "Colour strength", bestPair: "Best pair", worsePair: "Weakest pair", vsAvg: (sign, n) => `vs 2-colour avg ${sign}${n}pt`,
   topH: label => `Top 3 ${label}s by win rate`, common: "common", uncommon: "uncommon", rank: i => `#${i}`, gih: v => `GIH WR ${v}%`,
+  subscribe: "▶ Subscribe",
   surpriseH: "One surprise", nobody: "Nobody plays it", strongerTogether: "Better together", weakerTogether: "Worse together",
   wrRank: (v, r) => `${v}% win rate (#${r})`, wr: v => `${v}% win rate`, usedOnly: (g, p) => `Only ${g} games — ${p}% of all decks`, vsAvg2: (sign, n) => `${sign}${n}pt vs each colour's average`,
   outro1: "Every card's win rate at", outro2: "Free Sealed / Draft practice too", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS"
@@ -223,9 +225,11 @@ function buildScript(d, nameJa, names){
 
   if(sur) scenes.push({ kind: "surprise", say: sur.say, ...sur });
 
-  scenes.push({ kind: "outro", art: true, say: JA ? `全カードの勝率は、${SITE.replace(/\./g, " ドット ")} で。` : `Every card's win rate is at ${SITE.replace(/\./g, " dot ").replace("-", " ")}.`,
-    cap: JA ? `全カードの勝率は、${SITE} で。` : `Every card's win rate is at ${SITE}`,   // 字幕は読み上げ用の「ドット」ではなく本来の表記で   // 17Lands の出典は画面の文字で示す（音声では言わない）
-    site: SITE });
+  scenes.push({ kind: "outro", art: true,
+    say: JA ? `全カードの勝率は、${SITE.replace(/\./g, " ドット ")} で。次のセットも出すので、チャンネル登録をお願いします。`
+            : `Every card's win rate is at ${SITE.replace(/\./g, " dot ").replace("-", " ")}. Subscribe for the next set.`,
+    cap: JA ? `全カードの勝率は、${SITE} で。次のセットも出すので、チャンネル登録をお願いします。` : `Every card's win rate is at ${SITE}. Subscribe for the next set.`,   // 字幕は読み上げ用の「ドット」ではなく本来の表記で
+    site: SITE, tail: 1.2 });
   return scenes;
 }
 
@@ -411,8 +415,10 @@ function sceneSvg(sc){
         T(W / 2, 560, UI.outro1, { size: 52, fill: MUTED, anchor: "middle" }) +
         T(W / 2, 700, sc.site, { size: 78, weight: 900, anchor: "middle", fill: BLUE }) +
         T(W / 2, 800, UI.outro2, { size: 40, anchor: "middle" }) +
-        T(W / 2, 930, UI.data, { size: 30, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 975, UI.voice + (sc.bgmCredit ? `　BGM: ${sc.bgmCredit}` : ""), { size: 30, fill: MUTED, anchor: "middle" }) +
+        `<rect x="${W / 2 - 230}" y="848" width="460" height="64" rx="32" fill="#E53935"/>` +
+        T(W / 2, 892, UI.subscribe, { size: 34, weight: 900, anchor: "middle", fill: "#FFFFFF" }) +
+        T(W / 2, 960, UI.data, { size: 30, fill: MUTED, anchor: "middle" }) +
+        T(W / 2, 1000, UI.voice + (sc.bgmCredit ? `　BGM: ${sc.bgmCredit}` : ""), { size: 30, fill: MUTED, anchor: "middle" }) +
         // Wizards の Fan Content Policy が求める表記。外さないこと
         T(W / 2, 1050, "Unofficial Fan Content permitted under the Fan Content Policy.", { size: 22, fill: MUTED, anchor: "middle" }) +
         T(W / 2, 1082, "Not approved/endorsed by Wizards. Portions of the materials used", { size: 22, fill: MUTED, anchor: "middle" }) +
