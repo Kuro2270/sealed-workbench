@@ -246,11 +246,27 @@ function page(lang, p, nameJa, dataDate){
   .mode small.en{color:#5C7185;margin-left:6px}
   #preview{position:fixed;z-index:50;pointer-events:none;display:none;filter:drop-shadow(0 10px 24px rgba(15,28,23,.35))}
   #preview img{display:block;width:244px;height:auto;border-radius:11px}
-  @media (hover:none){ #preview{display:none !important} }
+  #tapdim{display:none;position:fixed;inset:0;z-index:49;background:rgba(15,28,23,.55)}
+  #tapdim.on{display:block}
+  #preview.tap{left:50% !important;top:50% !important;transform:translate(-50%,-50%);pointer-events:auto}
+  #preview.tap img{width:min(300px, 78vw)}
+  .mode tr[data-img]{cursor:pointer}
 </style>
+<div id="tapdim" aria-hidden="true"></div>
 <script>
 (function(){
-  var box = document.getElementById("preview"); if(!box) return;
+  var box = document.getElementById("preview"), dim = document.getElementById("tapdim"); if(!box) return;
+  var TOUCH = window.matchMedia && window.matchMedia("(hover: none)").matches;
+  function closeTap(){ box.classList.remove("tap"); box.style.display = "none"; box.innerHTML = ""; dim.classList.remove("on"); }
+  if(TOUCH){
+    // スマホ：行をタップで画面中央に画像、もう一度タップで閉じる
+    document.querySelectorAll("tr[data-img]").forEach(function(tr){
+      tr.addEventListener("click", function(){ if(box.classList.contains("tap")){ closeTap(); return; } box.innerHTML = ""; var img = document.createElement("img"); img.src = tr.dataset.img; img.alt = ""; box.appendChild(img); box.classList.add("tap"); box.style.display = "block"; dim.classList.add("on"); });
+    });
+    dim.addEventListener("click", closeTap);
+    box.addEventListener("click", closeTap);
+    return;
+  }
   function move(x, y){ var w = 252, h = box.offsetHeight || 350, left = x + 18, top = y - h / 2; if(left + w > innerWidth - 8) left = x - w - 18; if(left < 8) left = 8; top = Math.min(Math.max(8, top), innerHeight - h - 8); box.style.left = left + "px"; box.style.top = top + "px"; }
   document.querySelectorAll("tr[data-img]").forEach(function(tr){
     tr.addEventListener("mouseenter", function(ev){ box.innerHTML = ""; var img = document.createElement("img"); img.src = tr.dataset.img; img.alt = ""; box.appendChild(img); box.style.display = "block"; move(ev.clientX, ev.clientY); });

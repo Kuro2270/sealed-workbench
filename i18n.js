@@ -595,7 +595,7 @@
     "reports.h1":       { ja:"環境レポート", en:"Set report" },
     "reports.lead":     { ja:"そのセットのリミテッド環境を、実戦データから読み解きます。",
                           en:"Reading a set's Limited format from real game data." },
-    "reports.profileNow": { ja:"このセットはまだ勝率データがそろっていません。データが出るまでは、カード枚数から見た「下見」を載せています（データが出たら自動で切り替わります）。", en:"Win-rate data for this set hasn't landed yet. Until it does, here is the card-count preview (the report switches over automatically once data arrives)." },
+    "reports.profileNow": { ja:"それまでは、カード枚数から見た「下見」を載せています（データが出たら自動で切り替わります）。", en:"Until then, here is the card-count preview (the report switches over automatically once data arrives)." },
     "reports.profileLink":{ ja:"勝率データが出るまでの「下見」（カード枚数の分析）はこちら →", en:"Until win-rate data lands, see the card-count preview →" },
     "reports.video.h":   { ja:"1分でわかる環境（動画）", en:"The format in 60 seconds (video)" },
     "reports.video.lead":{ ja:"この環境の要点を1分のショート動画にまとめました。再生ボタンで YouTube の動画を読み込みます。", en:"The key points of this format in a one-minute Short. Pressing play loads the video from YouTube." },

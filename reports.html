@@ -189,7 +189,13 @@
     nav{margin:0 0 14px;gap:6px;font-size:12px}
     nav a{white-space:nowrap}
     #preview{display:none !important}
+    #preview.tap{display:block !important}
   }
+  /* スマホのタップ表示：画面中央に出し、後ろに膜を敷く */
+  #preview.tap{display:block;left:50% !important;top:50% !important;transform:translate(-50%,-50%);pointer-events:auto}
+  #preview.tap img{width:min(300px, 78vw)}
+  #tapdim{display:none;position:fixed;inset:0;z-index:49;background:rgba(15,28,23,.55)}
+  #tapdim.on{display:block}
 </style>
 </head>
 <body>
@@ -242,6 +248,7 @@
   <div id="body" hidden></div>
 </main>
 
+<div id="tapdim" aria-hidden="true"></div>
 <div id="preview" aria-hidden="true"></div>
 
 <footer>
@@ -535,17 +542,22 @@ async function showProfile(code){
     }
     const box = $("body");
     box.innerHTML = `<div class="profile">${html}</div>`;
+    // 固定ページ冒頭の「勝率データは〇月〇日ごろから」は、上の案内文に合わせて1つにまとめる
+    let when = "";
+    const first = box.querySelector(".profile > .verdict");
+    if(first){ when = first.textContent.trim(); first.remove(); }
     box.hidden = false;
     // 除去一覧のカード名にカーソルを合わせたら画像を出す（固定ページが data-img に入れている）
     box.querySelectorAll("tr[data-img]").forEach(tr => {
       const url = tr.dataset.img;
+      if(TOUCH){ tr.onclick = () => tapPreview([url], ""); return; }
       tr.onmouseenter = ev => { const pv = $("preview"); pv.innerHTML = ""; const img = document.createElement("img"); img.src = url; img.alt = ""; pv.appendChild(img); pv.style.display = "block"; movePreview(ev.clientX, ev.clientY); };
       tr.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
       tr.onmouseleave = hidePreview;
     });
     $("built").textContent = "";
     if($("video")) $("video").hidden = true;
-    setStatus(t("reports.profileNow"), false);
+    setStatus((when ? when + " " : "") + t("reports.profileNow"), false);
     $("status").classList.add("preview");
     return true;
   }catch(e){ return false; }
@@ -714,6 +726,7 @@ function render(){
   // カード名にカーソルを合わせたら画像を出す
   $("body").querySelectorAll("tr[data-card]").forEach(tr => {
     const name = tr.dataset.card;
+    if(TOUCH){ tr.onclick = () => { const u = imageUrls(name); if(u.length) tapPreview(u, displayName(name)); }; return; }
     tr.onmouseenter = ev => showPreview(name, ev.clientX, ev.clientY);
     tr.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
     tr.onmouseleave = hidePreview;
@@ -721,6 +734,24 @@ function render(){
 }
 
 /* ---------- 画像プレビュー ---------- */
+/* スマホ（カーソルが無い端末）：行をタップで画像を画面中央に出し、もう一度どこかをタップで閉じる */
+const TOUCH = window.matchMedia && window.matchMedia("(hover: none)").matches;
+function tapPreview(urls, alt){
+  const box = $("preview"), dim = $("tapdim");
+  if(box.classList.contains("tap")){ closeTap(); return; }
+  box.innerHTML = "";
+  urls.forEach(u => { const img = document.createElement("img"); img.src = u; img.alt = alt || ""; box.appendChild(img); });
+  box.classList.add("tap"); box.style.display = "block"; box.style.left = ""; box.style.top = "";
+  dim.classList.add("on");
+}
+function closeTap(){
+  const box = $("preview"), dim = $("tapdim");
+  box.classList.remove("tap"); box.style.display = "none"; box.innerHTML = "";
+  dim.classList.remove("on");
+}
+document.addEventListener("click", ev => { if($("preview").classList.contains("tap") && !ev.target.closest("tr[data-card], tr[data-img]")) closeTap(); });
+$("tapdim").addEventListener("click", closeTap);
+
 function showPreview(name, x, y){
   const urls = imageUrls(name);
   if(!urls.length) return;
