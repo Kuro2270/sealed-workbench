@@ -38,7 +38,7 @@
     items.forEach(function(it){
       var name = lang === "en" ? (it.labelEn || it.name) : (it.labelJa || it.name);
       var link = lang === "en" ? ((it.links && it.links.buyee) || it.affiliateUrl) : ((it.links && it.links.rakuten) || it.affiliateUrl);
-      var price = "¥" + Number(it.price).toLocaleString(lang === "en" ? "en-US" : "ja-JP") + (lang === "en" ? " (~$" + Math.round(it.price / 150) + ")" : "");
+      var price = lang === "en" ? "about $" + Math.round(it.price * (d.usdRate || 1 / 150)) : "¥" + Number(it.price).toLocaleString("ja-JP");
       html += '<li><a class="gi" href="' + esc(it.affiliateUrl) + '" target="_blank" rel="noopener sponsored"><img src="' + esc(it.image) + '" alt="" loading="lazy"></a>' +
         '<div class="gt"><p class="gn">' + esc(name) + '</p><p class="gp">' + esc(price) + '</p><a class="gb" href="' + esc(link) + '" target="_blank" rel="noopener sponsored">' + esc(T.buy) + '</a></div></li>';
     });

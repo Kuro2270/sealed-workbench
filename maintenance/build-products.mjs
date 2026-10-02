@@ -122,6 +122,7 @@ async function select(){
     console.error(`${g.group}: 候補 ${cand.size + picked.length} → ${picked.length} 件`);
   }
 
+  out.usdRate = await usdRate();
   decorate(out);
   history[week] = [...Object.values(out.rotating).flat().map(it => it.code)];
   await mkdir("data/products", { recursive: true });
@@ -161,7 +162,7 @@ const P = {
     fixedH: "The staples", fixedLead: "Made-in-Japan supplies you'll see at every Japanese tournament table.",
     group: { "chara-sleeve": "This week's character sleeves", "deck-case": "This week's deck boxes", "playmat": "This week's playmats" },
     groupLead: { "chara-sleeve": "Rotates weekly. Character sleeves are printed in small runs and sell out, so don't wait.", "deck-case": "Mostly character goods.", "playmat": "Rubber playmats, made in Japan." },
-    price: p => `¥${p.toLocaleString("en-US")} (about $${(p / 150).toFixed(0)})`, shop: s => `Seller: ${s}`,
+    price: p => `about $${Math.round(p * RATE)}`, shop: s => `Seller: ${s}`,
     btnRakuten: "Rakuten", btnBuyee: "Buy via Buyee (ships worldwide)", btnAmazon: "Amazon Japan",
     updated: w => `Updated: ${w} (rotates automatically every Monday)`,
     disclosure: "Contains affiliate links.",
@@ -190,6 +191,14 @@ function labelEn(it){
   }
   return `${GROUP_EN[it.group] || "Supplies"}${maker ? " by " + maker : ""}${fr ? " — " + fr : ""}`;
 }
+/* 円→ドルの換算率（毎週の更新時に取る。取れなければ 1ドル=150円） */
+async function usdRate(){
+  try{
+    const r = await fetch("https://open.er-api.com/v6/latest/JPY");
+    if(r.ok){ const j = await r.json(); const v = j && j.rates && j.rates.USD; if(v && v > 0.003 && v < 0.02) return v; }
+  }catch(e){}
+  return 1 / 150;
+}
 const buyeeLink = it => {
   const item = (aff.buyee.itemTemplate || "https://buyee.jp/rakuten/detail/{itemCodeEnc}?lang=en").replace("{itemCodeEnc}", encodeURIComponent(it.code));
   return aff.buyee.trackingTemplate ? aff.buyee.trackingTemplate.replace("{url}", encodeURIComponent(item)) : item;
@@ -198,6 +207,7 @@ const amazonLink = asin => asin && aff.amazon.tag ? `https://www.amazon.co.jp/dp
 /* 商品名を見出し用に少し整える（英語ページでは日本語名をそのまま。海外の人が Buyee で探すときの手がかりになる） */
 const shortName = n => String(n).replace(/【[^】]*】/g, "").replace(/\s{2,}/g, " ").trim();
 
+let RATE = 1 / 150;
 function card(lang, it){
   const T = P[lang];
   const label = it.label ? it.label[lang] : (lang === "en" ? labelEn(it) : shortName(it.name));
@@ -269,6 +279,7 @@ if(PAGES_ONLY){
   if(!APP || !KEY){ console.error("RAKUTEN_APP_ID と RAKUTEN_ACCESS_KEY が要ります"); process.exit(1); }
   data = await select();
 }
+RATE = data.usdRate || RATE;
 await mkdir("goods", { recursive: true });
 await writeFile("goods/index.html", page("ja", data), "utf8");
 await writeFile("goods/index.en.html", page("en", data), "utf8");

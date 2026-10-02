@@ -213,7 +213,7 @@ function goodsStrip(lang){
   const li = items.map(it => {
     const name = en ? (it.labelEn || it.name) : (it.labelJa || it.name);
     const link = en ? ((it.links && it.links.buyee) || it.affiliateUrl) : ((it.links && it.links.rakuten) || it.affiliateUrl);
-    const price = "¥" + Number(it.price).toLocaleString(en ? "en-US" : "ja-JP") + (en ? ` (~$${Math.round(it.price / 150)})` : "");
+    const price = en ? `about $${Math.round(it.price * (GOODS.usdRate || 1 / 150))}` : "¥" + Number(it.price).toLocaleString("ja-JP");
     return `<li><a class="gi" href="${esc(it.affiliateUrl)}" target="_blank" rel="noopener sponsored"><img src="${esc(it.image)}" alt="" loading="lazy"></a><div class="gt"><p class="gn">${esc(name)}</p><p class="gp">${esc(price)}</p><a class="gb" href="${esc(link)}" target="_blank" rel="noopener sponsored">${esc(T.buy)}</a></div></li>`;
   }).join("");
   return `<section class="gstrip"><div class="gh"><h2>${esc(T.h)}</h2><span class="gpr">${esc(T.pr)}</span><a class="gmore" href="${href}">${esc(T.more)}</a></div><p class="glead">${esc(T.lead)}</p><ul>${li}</ul></section>`;
