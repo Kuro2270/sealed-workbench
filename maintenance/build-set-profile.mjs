@@ -21,22 +21,24 @@ import { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE }
 const ARG = (process.argv[2] || "").toUpperCase();
 if(!ARG){ console.error("使い方: node maintenance/build-set-profile.mjs <SET>　または --auto（発売前後で下見が無いセットを探して作る）"); process.exit(1); }
 const sleep0 = ms => new Promise(r => setTimeout(r, ms));
-/* --auto：紙の発売日が 20日前〜7日後で、まだ環境レポートも下見も無いセットを探す */
+/* --auto：紙の発売日が 20日前〜14日後で、まだ環境レポートが無いセットの下見を作る。
+   すでに下見があっても 2日以上たっていれば作り直す（Scryfall のカード・日本語名が発売に向けて増えていくため）。
+   勝率データが出て環境レポートができたら、そのセットは対象から外れる */
 if(ARG === "--AUTO"){
   const { execFileSync } = await import("node:child_process");
   const r = await fetch("https://api.scryfall.com/sets", { headers: SCRY_HEADERS });
   if(!r.ok){ console.error(`Scryfall HTTP ${r.status}`); process.exit(1); }
   const now = Date.now(), iso = t => new Date(t).toISOString().slice(0, 10);
-  const from = iso(now - 20 * 86400000), to = iso(now + 7 * 86400000);
+  const from = iso(now - 20 * 86400000), to = iso(now + 14 * 86400000);
   const idx = await readJson("data/articles/index.json", { articles: [] });
   const have = new Set((idx.articles || []).map(a => String(a.set).toUpperCase()));
   const sets = (await r.json()).data.filter(s => ["expansion", "core"].includes(s.set_type) && s.released_at >= from && s.released_at <= to && s.card_count > 150).map(s => s.code.toUpperCase());
   let made = 0;
   for(const code of sets){
     if(have.has(code)) continue;
-    const { existsSync } = await import("node:fs");
-    if(existsSync(`data/profiles/${code}.json`)) continue;
-    console.error(`下見を作る: ${code}`);
+    const cur = await readJson(`data/profiles/${code}.json`, null);
+    if(cur && cur.generated_at && now - Date.parse(cur.generated_at) < 2 * 86400000){ console.error(`下見は最近作ったので飛ばす: ${code}`); continue; }
+    console.error(`下見を${cur ? "作り直す" : "作る"}: ${code}`);
     execFileSync("node", [process.argv[1], code], { stdio: "inherit" }); made++;
     await sleep0(500);
   }
