@@ -110,34 +110,40 @@ function pairRows(d){
 }
 
 /* 「意外な事実」をデータから1つ選ぶ */
-function surprise(d, pairs){
+/* 「意外な事実」をデータから1つ選ぶ。最強・最弱の組み合わせは「色」の場面で言うので、ここでは出さない。
+   候補が無ければ null（場面ごと割愛） */
+function surprise(d, pairs, best, worst){
   const totalPair = pairs.reduce((n, p) => n + p.games, 0) || 1;
-  // 上位3位以内なのに、ほとんど使われていない組み合わせ
-  const sleeper = pairs.slice(0, 3).find(p => p.games / totalPair < 0.05 && p.games >= 2000);
+  const skip = p => (best && p.pair === best.pair) || (worst && p.pair === worst.pair);
+  // 1) 上位3位以内なのに、ほとんど使われていない組み合わせ（狙い目）
+  const sleeper = pairs.slice(0, 3).find(p => !skip(p) && p.games / totalPair < 0.05 && p.games >= 2000);
   if(sleeper){
     const rank = pairs.indexOf(sleeper) + 1;
     return {
       title: UI.nobody,
       big: pairName(sleeper.pair), pair: sleeper.pair, sub: UI.wrRank(pt(sleeper.wr), rank),
       note: UI.usedOnly(man(sleeper.games), (sleeper.games / totalPair * 100).toFixed(1)),
-      say: JA ? `意外なのは、${pairName(sleeper.pair)}が勝率${pt(sleeper.wr)}パーセントで${rank}位なのに、使われた試合が${man(sleeper.games)}しかないこと。誰も組んでいません。`
+      say: JA ? `意外なのは、${pairName(sleeper.pair)}が勝率${pt(sleeper.wr)}パーセントで${rank}位なのに、使われた試合が${man(sleeper.games)}しかないこと。誰も組んでいない狙い目です。`
               : `Here's the surprise: ${pairName(sleeper.pair)} wins ${pt(sleeper.wr)} percent, number ${rank} overall, yet it showed up in only ${manSay(sleeper.games)} games. Nobody is playing it.`
     };
   }
-  // 2色それぞれの平均から一番外れた組み合わせ
-  const solid = pairs.filter(p => p.games >= 10000);
-  const odd = solid.slice().sort((a, b) => Math.abs(b.gap) - Math.abs(a.gap))[0];
+  // 2) 最強・最弱以外で、2色それぞれの平均から 1pt 以上はっきり外れている組み合わせ（組むと強い／弱い）
+  const solid = pairs.filter(p => !skip(p) && p.games >= Math.max(5000, totalPair * 0.04));
+  const odd = solid.filter(p => Math.abs(p.gap) >= 0.01).sort((a, b) => Math.abs(b.gap) - Math.abs(a.gap))[0];
   if(odd){
     const up = odd.gap > 0;
+    const rank = pairs.indexOf(odd) + 1;
     return {
       title: up ? UI.strongerTogether : UI.weakerTogether,
-      big: pairName(odd.pair), pair: odd.pair, sub: UI.wr(pt(odd.wr)),
+      big: pairName(odd.pair), pair: odd.pair, sub: UI.wrRank(pt(odd.wr), rank),
       note: UI.vsAvg2(up ? "+" : "−", Math.abs(odd.gap * 100).toFixed(1)),
-      say: JA ? `意外なのは${pairName(odd.pair)}。2色それぞれの平均より${Math.abs(odd.gap * 100).toFixed(1)}ポイント${up ? "高い" : "低い"}。組むと${up ? "強く" : "弱く"}なる色です。`
-              : `The surprise is ${pairName(odd.pair)}: ${Math.abs(odd.gap * 100).toFixed(1)} points ${up ? "above" : "below"} what its two colours average on their own. These colours are ${up ? "better" : "worse"} together.`
+      say: JA ? (up ? `意外と強いのが${pairName(odd.pair)}。最強ではありませんが、2色それぞれの平均より${Math.abs(odd.gap * 100).toFixed(1)}ポイント高く、組むと強くなる色です。`
+                    : `意外と弱いのが${pairName(odd.pair)}。色だけ見ると悪くないのに、2色それぞれの平均より${Math.abs(odd.gap * 100).toFixed(1)}ポイント低い。組むと弱くなる色です。`)
+              : (up ? `A quiet overperformer: ${pairName(odd.pair)}. Not the best pair, but ${Math.abs(odd.gap * 100).toFixed(1)} points above what its two colours average on their own. These colours are better together.`
+                    : `A quiet underperformer: ${pairName(odd.pair)}. The colours look fine alone, but the pair is ${Math.abs(odd.gap * 100).toFixed(1)} points below their average. These colours are worse together.`)
     };
   }
-  return null;
+  return null;   // 意外なことが無ければ、この場面は入れない
 }
 const pairName = p => [...p].map(c => CN[c] || c).join(JA ? "" : "-");
 
@@ -159,7 +165,7 @@ function buildScript(d, nameJa, names){
   const top3 = list => (list || []).slice(0, 3)
     .map(c => ({ ...c, label: JA ? ((names.names || {})[c.name] || c.name) : c.name, img: JA ? (names.images || {})[c.name] : null }));
   const commons = top3(d.top && d.top.common), uncommons = top3(d.top && d.top.uncommon);
-  const sur = surprise(d, pairs);
+  const sur = surprise(d, pairs, best, worst);
   const games = man(d.total_games);
 
   const scenes = [];
