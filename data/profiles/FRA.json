@@ -3,158 +3,463 @@
  "setName": "Reality Fracture",
  "released_at": "2026-10-02",
  "counts": {
-  "total": 0,
-  "common": 0,
-  "uncommon": 0,
-  "rare": 0,
-  "mythic": 0,
-  "creatures": 0,
-  "removal": 0,
-  "flyers": 0,
-  "multi": 0
+  "total": 285,
+  "common": 86,
+  "uncommon": 109,
+  "rare": 64,
+  "mythic": 26,
+  "creatures": 160,
+  "removal": 23,
+  "flyers": 15,
+  "multi": 54
  },
  "byColor": {
   "W": {
-   "total": 0,
-   "cu": 0,
-   "commons": 0,
-   "creatures": 0,
-   "creatureShare": 0,
-   "flyers": 0,
-   "removal": 0,
-   "tricks": 0,
-   "draw": 0,
-   "avgPower": 0,
-   "avgToughness": 0,
-   "avgCmc": 0,
-   "curve": {},
-   "removalCards": [],
-   "flyerCards": []
+   "total": 39,
+   "cu": 27,
+   "commons": 11,
+   "creatures": 16,
+   "creatureShare": 0.5925925925925926,
+   "flyers": 5,
+   "removal": 5,
+   "tricks": 1,
+   "draw": 7,
+   "avgPower": 2.0625,
+   "avgToughness": 2.8125,
+   "avgCmc": 3.2962962962962963,
+   "curve": {
+    "2": 9,
+    "3": 10,
+    "4": 4,
+    "5": 2,
+    "6": 1,
+    "7": 1
+   },
+   "removalCards": [
+    {
+     "name": "Memory Trap",
+     "rarity": "common",
+     "cmc": 3,
+     "id": "2f5345ae-4489-4d05-b2d5-c71285254f05",
+     "img": "https://cards.scryfall.io/normal/front/2/f/2f5345ae-4489-4d05-b2d5-c71285254f05.jpg?1788866058"
+    },
+    {
+     "name": "Prophesied End",
+     "rarity": "uncommon",
+     "cmc": 2,
+     "id": "1f95399a-9766-4f3d-aa6a-ece55e0530d9",
+     "img": "https://cards.scryfall.io/normal/front/1/f/1f95399a-9766-4f3d-aa6a-ece55e0530d9.jpg?1788951920"
+    },
+    {
+     "name": "Refute Destiny",
+     "rarity": "uncommon",
+     "cmc": 2,
+     "id": "2c588954-c6eb-4aae-a2fa-0651ccf2d90a",
+     "img": "https://cards.scryfall.io/normal/front/2/c/2c588954-c6eb-4aae-a2fa-0651ccf2d90a.jpg?1789470778"
+    },
+    {
+     "name": "Surgical Precision",
+     "rarity": "common",
+     "cmc": 2,
+     "id": "d3acf176-ef02-4729-88c4-0f0dfbfdada4",
+     "img": "https://cards.scryfall.io/normal/front/d/3/d3acf176-ef02-4729-88c4-0f0dfbfdada4.jpg?1789385570"
+    },
+    {
+     "name": "Your Fate Ends Here",
+     "rarity": "uncommon",
+     "cmc": 3,
+     "id": "25000a17-b701-4d69-b2ef-2c74029199d3",
+     "img": "https://cards.scryfall.io/normal/front/2/5/25000a17-b701-4d69-b2ef-2c74029199d3.jpg?1789729751"
+    }
+   ],
+   "flyerCards": [
+    {
+     "name": "Blossom-Blessed Angel // Seed Suture",
+     "rarity": "common",
+     "cmc": 4,
+     "pt": "2/4"
+    },
+    {
+     "name": "Shatterwing Pegasus",
+     "rarity": "common",
+     "cmc": 3,
+     "pt": "2/3"
+    },
+    {
+     "name": "Rescue Girl, First Responder",
+     "rarity": "uncommon",
+     "cmc": 3,
+     "pt": "1/3"
+    },
+    {
+     "name": "Saheeli, Consul of Oversight",
+     "rarity": "uncommon",
+     "cmc": 5,
+     "pt": "4/4"
+    },
+    {
+     "name": "Tomik, Orzhov Lawmage",
+     "rarity": "uncommon",
+     "cmc": 2,
+     "pt": "2/1"
+    }
+   ]
   },
   "U": {
-   "total": 0,
-   "cu": 0,
-   "commons": 0,
-   "creatures": 0,
-   "creatureShare": 0,
-   "flyers": 0,
-   "removal": 0,
+   "total": 39,
+   "cu": 27,
+   "commons": 11,
+   "creatures": 16,
+   "creatureShare": 0.5925925925925926,
+   "flyers": 5,
+   "removal": 1,
    "tricks": 0,
-   "draw": 0,
-   "avgPower": 0,
-   "avgToughness": 0,
-   "avgCmc": 0,
-   "curve": {},
-   "removalCards": [],
-   "flyerCards": []
+   "draw": 12,
+   "avgPower": 2.25,
+   "avgToughness": 3.125,
+   "avgCmc": 2.962962962962963,
+   "curve": {
+    "1": 3,
+    "2": 9,
+    "3": 6,
+    "4": 5,
+    "5": 3,
+    "6": 1
+   },
+   "removalCards": [
+    {
+     "name": "Icy Reception",
+     "rarity": "common",
+     "cmc": 2,
+     "id": "8d754b96-5e44-45af-9c7a-b0da59fbe4c3",
+     "img": "https://cards.scryfall.io/normal/front/8/d/8d754b96-5e44-45af-9c7a-b0da59fbe4c3.jpg?1788779540"
+    }
+   ],
+   "flyerCards": [
+    {
+     "name": "Surveillance Phantasm",
+     "rarity": "common",
+     "cmc": 2,
+     "pt": "2/3"
+    },
+    {
+     "name": "Undulating Witness",
+     "rarity": "common",
+     "cmc": 5,
+     "pt": "3/5"
+    },
+    {
+     "name": "Geist of Saint Thalia",
+     "rarity": "uncommon",
+     "cmc": 2,
+     "pt": "1/2"
+    },
+    {
+     "name": "Ruric Thar, Biomagus",
+     "rarity": "uncommon",
+     "cmc": 6,
+     "pt": "4/6"
+    },
+    {
+     "name": "Traxos, Academy Guardian",
+     "rarity": "uncommon",
+     "cmc": 4,
+     "pt": "1/5"
+    }
+   ]
   },
   "B": {
-   "total": 0,
-   "cu": 0,
-   "commons": 0,
-   "creatures": 0,
-   "creatureShare": 0,
-   "flyers": 0,
-   "removal": 0,
+   "total": 39,
+   "cu": 27,
+   "commons": 11,
+   "creatures": 16,
+   "creatureShare": 0.5925925925925926,
+   "flyers": 1,
+   "removal": 4,
    "tricks": 0,
-   "draw": 0,
-   "avgPower": 0,
-   "avgToughness": 0,
-   "avgCmc": 0,
-   "curve": {},
-   "removalCards": [],
-   "flyerCards": []
+   "draw": 5,
+   "avgPower": 2.6875,
+   "avgToughness": 2.5,
+   "avgCmc": 3,
+   "curve": {
+    "1": 1,
+    "2": 9,
+    "3": 10,
+    "4": 4,
+    "5": 2,
+    "6": 1
+   },
+   "removalCards": [
+    {
+     "name": "Extended Absence",
+     "rarity": "common",
+     "cmc": 4,
+     "id": "eb4b6ed8-782e-4473-abc9-d50bf2275c6a",
+     "img": "https://cards.scryfall.io/normal/front/e/b/eb4b6ed8-782e-4473-abc9-d50bf2275c6a.jpg?1789556713"
+    },
+    {
+     "name": "Last Gasp",
+     "rarity": "common",
+     "cmc": 2,
+     "id": "2381d123-d8c7-4822-98fe-b1c365beb5ed",
+     "img": "https://cards.scryfall.io/normal/front/2/3/2381d123-d8c7-4822-98fe-b1c365beb5ed.jpg?1789127524"
+    },
+    {
+     "name": "Silence the Echo",
+     "rarity": "common",
+     "cmc": 2,
+     "id": "f1d274db-751b-4414-a38d-762198168e91",
+     "img": "https://cards.scryfall.io/normal/front/f/1/f1d274db-751b-4414-a38d-762198168e91.jpg?1789385640"
+    },
+    {
+     "name": "Terminal Criticism",
+     "rarity": "uncommon",
+     "cmc": 2,
+     "id": "7ebd7e38-b27c-4c6e-aaea-e8ee5ba5e5df",
+     "img": "https://cards.scryfall.io/normal/front/7/e/7ebd7e38-b27c-4c6e-aaea-e8ee5ba5e5df.jpg?1789470810"
+    }
+   ],
+   "flyerCards": [
+    {
+     "name": "Screeching Soulbreaker",
+     "rarity": "common",
+     "cmc": 3,
+     "pt": "1/4"
+    }
+   ]
   },
   "R": {
-   "total": 0,
-   "cu": 0,
-   "commons": 0,
-   "creatures": 0,
-   "creatureShare": 0,
+   "total": 40,
+   "cu": 27,
+   "commons": 11,
+   "creatures": 16,
+   "creatureShare": 0.5925925925925926,
    "flyers": 0,
-   "removal": 0,
-   "tricks": 0,
-   "draw": 0,
-   "avgPower": 0,
-   "avgToughness": 0,
-   "avgCmc": 0,
-   "curve": {},
-   "removalCards": [],
+   "removal": 6,
+   "tricks": 1,
+   "draw": 8,
+   "avgPower": 2.3125,
+   "avgToughness": 2.5,
+   "avgCmc": 3.111111111111111,
+   "curve": {
+    "1": 2,
+    "2": 8,
+    "3": 8,
+    "4": 4,
+    "5": 4,
+    "6": 1
+   },
+   "removalCards": [
+    {
+     "name": "Awaken the Inferno",
+     "rarity": "common",
+     "cmc": 5,
+     "id": "c596c4ec-8480-4be9-a45d-700398a126f6",
+     "img": "https://cards.scryfall.io/normal/front/c/5/c596c4ec-8480-4be9-a45d-700398a126f6.jpg?1789556812"
+    },
+    {
+     "name": "Fulminous Forte",
+     "rarity": "uncommon",
+     "cmc": 3,
+     "id": "19acb2b5-3b3e-43f0-bd81-8426ed3d9c55",
+     "img": "https://cards.scryfall.io/normal/front/1/9/19acb2b5-3b3e-43f0-bd81-8426ed3d9c55.jpg?1789614832"
+    },
+    {
+     "name": "No Admittance",
+     "rarity": "common",
+     "cmc": 2,
+     "id": "11ba4fdd-cc03-4bb6-a493-91a9785771d0",
+     "img": "https://cards.scryfall.io/normal/front/1/1/11ba4fdd-cc03-4bb6-a493-91a9785771d0.jpg?1788878170"
+    },
+    {
+     "name": "Tether Technician",
+     "rarity": "common",
+     "cmc": 5,
+     "id": "b75bbf46-a421-467a-9433-6cf22398a3a5",
+     "img": "https://cards.scryfall.io/normal/front/b/7/b75bbf46-a421-467a-9433-6cf22398a3a5.jpg?1789556839"
+    },
+    {
+     "name": "Violent Echoes",
+     "rarity": "uncommon",
+     "cmc": 4,
+     "id": "ad03ba90-2442-4a71-94df-2088b5b63662",
+     "img": "https://cards.scryfall.io/normal/front/a/d/ad03ba90-2442-4a71-94df-2088b5b63662.jpg?1789127599"
+    },
+    {
+     "name": "Wrath of the Bloodmane",
+     "rarity": "common",
+     "cmc": 3,
+     "id": "b5b55617-684a-4036-be9b-a3b24fc9cd5a",
+     "img": "https://cards.scryfall.io/normal/front/b/5/b5b55617-684a-4036-be9b-a3b24fc9cd5a.jpg?1789385820"
+    }
+   ],
    "flyerCards": []
   },
   "G": {
-   "total": 0,
-   "cu": 0,
-   "commons": 0,
-   "creatures": 0,
-   "creatureShare": 0,
+   "total": 37,
+   "cu": 27,
+   "commons": 11,
+   "creatures": 18,
+   "creatureShare": 0.6666666666666666,
    "flyers": 0,
-   "removal": 0,
-   "tricks": 0,
-   "draw": 0,
-   "avgPower": 0,
-   "avgToughness": 0,
-   "avgCmc": 0,
-   "curve": {},
-   "removalCards": [],
+   "removal": 1,
+   "tricks": 1,
+   "draw": 5,
+   "avgPower": 3.1176470588235294,
+   "avgToughness": 2.9411764705882355,
+   "avgCmc": 3.259259259259259,
+   "curve": {
+    "1": 4,
+    "2": 7,
+    "3": 7,
+    "4": 3,
+    "5": 3,
+    "6": 1,
+    "7": 2
+   },
+   "removalCards": [
+    {
+     "name": "Flourishing Grapple",
+     "rarity": "uncommon",
+     "cmc": 1,
+     "id": "f71958e9-6d6d-4393-8b49-567103b50877",
+     "img": "https://cards.scryfall.io/normal/front/f/7/f71958e9-6d6d-4393-8b49-567103b50877.jpg?1789470852"
+    }
+   ],
    "flyerCards": []
   }
  },
  "pairs": [
   {
    "pair": "WU",
-   "count": 0,
-   "uncommons": []
+   "count": 6,
+   "uncommons": [
+    "Desperate Futurescribe",
+    "Fatehold Charm",
+    "Prudent Fateseer // Peer Review"
+   ]
   },
   {
    "pair": "UB",
-   "count": 0,
-   "uncommons": []
+   "count": 6,
+   "uncommons": [
+    "Paradox Shaper // Omit Variables",
+    "Recursive Recruitment",
+    "Theorix Charm"
+   ]
   },
   {
    "pair": "BR",
-   "count": 0,
-   "uncommons": []
+   "count": 6,
+   "uncommons": [
+    "Grim Repriser",
+    "Stingerquill Charm",
+    "Stingerquill Voxmancer // Vicious Verse"
+   ]
   },
   {
    "pair": "RG",
-   "count": 0,
-   "uncommons": []
+   "count": 6,
+   "uncommons": [
+    "Craftwork Crusher",
+    "Konstrari Charm",
+    "Woodwork Prodigy // Soul Tether"
+   ]
   },
   {
    "pair": "GW",
-   "count": 0,
-   "uncommons": []
+   "count": 6,
+   "uncommons": [
+    "Bloombrute",
+    "Vigorbloom Charm",
+    "Vigorbloom Vanguard // Seed Suture"
+   ]
   },
   {
    "pair": "WB",
-   "count": 0,
-   "uncommons": []
+   "count": 4,
+   "uncommons": [
+    "Twisted Fates",
+    "Edgar, Ancient Bloodlord"
+   ]
   },
   {
    "pair": "UR",
-   "count": 0,
-   "uncommons": []
+   "count": 4,
+   "uncommons": [
+    "Clash of Elements",
+    "Saheeli, Jewel of Avishkar"
+   ]
   },
   {
    "pair": "BG",
-   "count": 0,
-   "uncommons": []
+   "count": 4,
+   "uncommons": [
+    "Primal Witchstalker",
+    "Hapatra, the Desert Fang"
+   ]
   },
   {
    "pair": "RW",
-   "count": 0,
-   "uncommons": []
+   "count": 4,
+   "uncommons": [
+    "Warrior's Blades",
+    "Mabel, Valley Hero"
+   ]
   },
   {
    "pair": "GU",
-   "count": 0,
-   "uncommons": []
+   "count": 6,
+   "uncommons": [
+    "Mind Meanderer",
+    "Kiora of Salt and Sand"
+   ]
   }
  ],
- "curveAll": {},
- "topKeywords": [],
- "avgCmcAll": 0,
+ "curveAll": {
+  "1": 14,
+  "2": 59,
+  "3": 51,
+  "4": 27,
+  "5": 16,
+  "6": 7,
+  "7": 4
+ },
+ "topKeywords": [
+  [
+   "Surveil",
+   43
+  ],
+  [
+   "Empower Jace",
+   35
+  ],
+  [
+   "Prepared",
+   24
+  ],
+  [
+   "Trample",
+   10
+  ],
+  [
+   "Prowess",
+   9
+  ],
+  [
+   "Flash",
+   9
+  ],
+  [
+   "Vigilance",
+   8
+  ],
+  [
+   "Mill",
+   8
+  ]
+ ],
+ "avgCmcAll": 3.0730337078651684,
  "nameJa": "リアリティ・フラクチャー",
- "generated_at": "2026-10-02T03:09:34.220Z"
+ "generated_at": "2026-10-02T03:17:08.837Z"
 }
