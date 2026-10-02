@@ -1,0 +1,12 @@
+{
+  "_comment": "アフィリエイトのリンクの形。秘密ではない（リンクに入る公開の値）。楽天のアフィリエイト ID は Actions の Secrets（RAKUTEN_AFFILIATE_ID）から入る",
+  "buyee": {
+    "itemTemplate": "https://buyee.jp/rakuten/detail/{itemCodeEnc}?lang=en",
+    "trackingTemplate": "",
+    "_howto": "Indoleads で Buyee が承認されたら、発行されたトラッキングリンクを trackingTemplate に入れる。行き先 URL を入れる場所を {url} と書く（例: https://go.indoleads.com/xxxx?url={url}）。空のあいだは Buyee の商品ページに直接リンクする"
+  },
+  "amazon": {
+    "tag": "",
+    "_howto": "Amazon アソシエイトに通ったら、トラッキング ID（例: sealedwork-22）を tag に入れる。空のあいだは Amazon のリンクを出さない"
+  }
+}

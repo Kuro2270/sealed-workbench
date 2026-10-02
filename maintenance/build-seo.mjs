@@ -66,6 +66,16 @@ async function main(){
     ].join("\n");
   });
 
+  // 商品ページ（goods/index.html が日本語、goods/index.en.html が英語）
+  try{
+    await stat("goods/index.html");
+    for(const [l, f] of [["ja", "index.html"], ["en", "index.en.html"]]){
+      const loc = `${SITE}/goods/${f}`;
+      entries.push(["  <url>", `    <loc>${loc}</loc>`, `    <lastmod>${day}</lastmod>`, "    <changefreq>weekly</changefreq>", "    <priority>0.6</priority>",
+        `    <xhtml:link rel="alternate" hreflang="ja" href="${SITE}/goods/index.html"/>`, `    <xhtml:link rel="alternate" hreflang="en" href="${SITE}/goods/index.en.html"/>`, "  </url>"].join("\n"));
+    }
+  }catch(e){}
+
   // セット別ページ（sets/<SET>.html が日本語、sets/<SET>.en.html が英語）
   let setFiles = [];
   try{ setFiles = (await readdir("sets")).filter(f => f.endsWith(".html") && !f.endsWith(".en.html")); }catch(e){}

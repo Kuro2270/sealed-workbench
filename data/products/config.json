@@ -1,0 +1,33 @@
+{
+  "_comment": "商品ページ（goods/）の設定。固定の定番と、週替わりで自動選定する枠。楽天市場の検索 API で探す",
+  "makers": ["KMC", "ケイエムシー", "ブロッコリー", "BROCCOLI", "ムービック", "movic", "やのまん", "ホビーベース", "アンサー", "エポック", "ポケモン", "ポケモンカードゲーム", "ブシロード", "Bushiroad", "ウルトラプロ", "Ultra PRO", "河島製作所", "ドラゴンシールド", "Dragon Shield"],
+  "exclude": ["中古", "USED", "ジャンク", "訳あり", "開封", "まとめ売り", "バラ", "1枚", "単品", "レンタル"],
+  "fixed": [
+    { "id": "kmc-perfect-fit", "group": "sleeve", "keyword": "KMC カードバリアー100 パーフェクトサイズ", "amazon": "B074Z2JP2Y",
+      "name": { "ja": "KMC カードバリアー100 パーフェクトサイズ", "en": "KMC Card Barrier 100 Perfect Size (inner sleeves)" },
+      "note": { "ja": "海外で「KMC Perfect Fit」として知られる定番のインナースリーブ。", "en": "The inner sleeve the rest of the world calls \"KMC Perfect Fit\". Made in Japan." } },
+    { "id": "kmc-hyper-mat", "group": "sleeve", "keyword": "KMC カードバリアー ハイパーマット", "amazon": "",
+      "name": { "ja": "KMC カードバリアー ハイパーマット", "en": "KMC Hyper Mat (outer sleeves)" },
+      "note": { "ja": "日本のプレイヤーの定番アウタースリーブ。マット加工でシャッフルしやすい。", "en": "The standard outer sleeve in Japanese tournaments. Matte finish, shuffles well." } },
+    { "id": "yanoman-inner", "group": "sleeve", "keyword": "やのまん カードプロテクター インナーガード", "amazon": "",
+      "name": { "ja": "やのまん カードプロテクター インナーガード", "en": "Yanoman Card Protector Inner Guard" },
+      "note": { "ja": "ぴったりサイズの国産インナー。", "en": "Snug-fit inner sleeves from Yanoman." } },
+    { "id": "hobbybase-side-in", "group": "sleeve", "keyword": "ホビーベース TCGスリーブガード", "amazon": "",
+      "name": { "ja": "ホビーベース TCG スリーブガード", "en": "Hobby Base TCG Sleeve Guard" },
+      "note": { "ja": "キャラスリの上から重ねる保護用の外スリーブ。", "en": "Clear protector that goes over character sleeves." } }
+  ],
+  "rotating": [
+    { "group": "chara-sleeve", "pick": 4, "queries": ["キャラクタースリーブ ブロッコリー", "きゃらスリーブコレクション ムービック", "キャラクタースリーブ プラチナグレード", "ブシロードスリーブコレクション"] },
+    { "group": "deck-case", "pick": 2, "queries": ["キャラクターデッキケース ブロッコリー", "ポケモンカードゲーム デッキケース", "デッキケース ムービック"] },
+    { "group": "playmat", "pick": 2, "queries": ["ラバーマット ブロッコリー", "ラバープレイマット ムービック", "ポケモンカードゲーム ラバープレイマット"] }
+  ],
+  "seed": [
+    { "amazon": "B0FPX18HP1", "keyword": "ブロッコリー キャラクタースリーブ エヴァンゲリオン 式波・アスカ・ラングレー リバイバル", "group": "chara-sleeve" },
+    { "amazon": "B0FVSKDSQL", "keyword": "ブロッコリー キャラクタースリーブ プラチナグレード Fate/Grand Order アサシン 両儀式", "group": "chara-sleeve" },
+    { "amazon": "B083JFYK3G", "keyword": "ムービック きゃらスリーブコレクション マットシリーズ Shadowverse 森の女王・リザ", "group": "chara-sleeve" },
+    { "amazon": "B0BD6ZTRF6", "keyword": "ムービック きゃらスリーブコレクション マットシリーズ Shadowverse 化かし女将・ホズミ", "group": "chara-sleeve" },
+    { "amazon": "B0BSKWLK14", "keyword": "ポケモンカードゲーム デッキケース ピカチュウ大集合", "group": "deck-case" },
+    { "amazon": "B0FR1MND71", "keyword": "ブロッコリー キャラクターデッキケースMAX NEO Fate/Grand Order ルーラー メリュジーヌ", "group": "deck-case" }
+  ],
+  "historyWeeks": 4
+}

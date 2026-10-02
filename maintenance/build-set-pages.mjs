@@ -72,7 +72,7 @@ const L = {
     navgrp: { start:"はじめに", build:"練習する", assist:"MTGアリーナで使う", data:"データを見る", play:"対戦する" },
     navsub: { build:"仮想パックで練習", assist:"実戦のログを読んで助ける・PC専用" },
     pc: "PC",
-    foot: 'データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。',
+    foot: 'データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。<br><a href="../goods/index.html">日本の TCG サプライ（スリーブ・デッキケース）</a>',
     otherLang: "English", otherHref: c => `${c}.en.html`
   },
   en: {
@@ -109,7 +109,7 @@ const L = {
     navgrp: { start:"Start", build:"Practice", assist:"Use with MTG Arena", data:"Data", play:"Play" },
     navsub: { build:"Virtual packs", assist:"Reads your log in real play · PC only" },
     pc: "PC",
-    foot: 'Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.',
+    foot: 'Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a>',
     otherLang: "日本語", otherHref: c => `${c}.html`
   }
 };
