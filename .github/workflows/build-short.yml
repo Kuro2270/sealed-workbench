@@ -192,10 +192,10 @@ jobs:
       - name: 動画の記録をコミット
         if: inputs.upload == true
         run: |
-          if ! git diff --quiet -- data/videos.json 2>/dev/null; then
+          if [ -n "$(git status --porcelain -- data/videos)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add data/videos.json
+            git add data/videos
             git commit -m "動画の記録を更新（$SET_CODE $VLANG $VMODE）"
             for i in 1 2 3; do
               git pull --rebase origin main && git push origin main && break
