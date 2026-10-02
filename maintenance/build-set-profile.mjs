@@ -114,7 +114,7 @@ function profile(cards){
       avgToughness: pt.length ? pt.reduce((a, [, t]) => a + t, 0) / pt.length : 0,
       avgCmc: cu.length ? cu.filter(c => !isLand(c)).reduce((a, c) => a + (c.cmc ?? 0), 0) / Math.max(1, cu.filter(c => !isLand(c)).length) : 0,
       curve,
-      removalCards: cu.filter(isRemoval).map(c => ({ name: c.name, rarity: c.rarity, cmc: c.cmc, id: c.id, img: (face(c).image_uris || c.image_uris || {}).normal || null })),
+      removalCards: cu.filter(isRemoval).map(c => ({ name: c.name, rarity: c.rarity, cmc: c.cmc, cost: face(c).mana_cost || c.mana_cost || "", id: c.id, img: (face(c).image_uris || c.image_uris || {}).normal || null })),
       flyerCards: cu.filter(hasFlying).map(c => ({ name: c.name, rarity: c.rarity, cmc: c.cmc, pt: `${face(c).power}/${face(c).toughness}` }))
     };
   }
@@ -155,7 +155,7 @@ const P = {
     sumH: "ひと目でわかる",
     sum: p => `コモン・アンコモンの除去は ${p.counts.removal} 枚、飛行持ちは ${p.counts.flyers} 枚。コモン・アンコモンの平均マナ総量は ${p.avgCmcAll.toFixed(2)}。`,
     colorsH: "色ごとの中身（コモン・アンコモン）", colorsLead: "単色のコモン・アンコモンだけを数えています。除去と飛行が多い色は、序盤から主導権を取りやすい色です。",
-    th: { color: "色", cards: "枚数", creatures: "クリーチャー", removal: "除去", flyers: "飛行", tricks: "コンバットトリック", draw: "ドロー", size: "平均サイズ", cmc: "平均マナ" },
+    th: { color: "色", cards: "枚数", creatures: "クリーチャー", removal: "除去", flyers: "飛行", tricks: "コンバットトリック", draw: "ドロー", size: "平均サイズ", cmc: "平均マナ", cost: "マナ・コスト" },
     curveH: "マナ総量の分布", curveLead: "コモン・アンコモン（土地を除く）の枚数です。2〜3マナが厚い色は、序盤の展開が安定します。",
     pairsH: "2色の組み合わせ", pairsLead: "その2色の多色カード（主にアンコモン）の枚数です。多いほど、その組み合わせが「用意されている」アーキタイプです。",
     removalH: "除去の一覧（コモン・アンコモン）", removalLead: "オラクル文の型から機械的に拾っています。条件付きのものも含みます。",
@@ -176,7 +176,7 @@ const P = {
     sumH: "At a glance",
     sum: p => `${p.counts.removal} removal spells and ${p.counts.flyers} flyers at common and uncommon. Average mana value of commons and uncommons: ${p.avgCmcAll.toFixed(2)}.`,
     colorsH: "What each colour has (commons & uncommons)", colorsLead: "Mono-coloured commons and uncommons only. Colours with more removal and flyers tend to take the initiative early.",
-    th: { color: "Colour", cards: "Cards", creatures: "Creatures", removal: "Removal", flyers: "Flyers", tricks: "Combat tricks", draw: "Card draw", size: "Avg size", cmc: "Avg MV" },
+    th: { color: "Colour", cards: "Cards", creatures: "Creatures", removal: "Removal", flyers: "Flyers", tricks: "Combat tricks", draw: "Card draw", size: "Avg size", cmc: "Avg MV", cost: "Cost" },
     curveH: "Mana-value curve", curveLead: "Commons and uncommons, lands excluded. A colour with a thick 2–3 drop slot curves out reliably.",
     pairsH: "Two-colour pairs", pairsLead: "Number of multicolour cards (mostly uncommons) for each pair. More cards means the pair is a supported archetype.",
     removalH: "Removal list (commons & uncommons)", removalLead: "Picked up mechanically from oracle text; conditional removal included.",
@@ -208,6 +208,16 @@ function curveSvg(byColor, lang){
   return s + `</svg>`;
 }
 
+/* マナ・コスト {1}{W} をマナシンボルの画像にする（Scryfall の公式シンボル SVG） */
+function manaHtml(cost){
+  const syms = String(cost || "").match(/\{[^}]+\}/g) || [];
+  if(!syms.length) return "";
+  return `<span class="mana" title="${esc(cost)}">` + syms.map(t => {
+    const k = t.slice(1, -1).replace(/\//g, "");
+    return `<img class="ms" src="https://svgs.scryfall.io/card-symbols/${encodeURIComponent(k)}.svg" alt="${esc(t)}" width="16" height="16" loading="lazy">`;
+  }).join("") + `</span>`;
+}
+
 /* ---------- ページ ---------- */
 function page(lang, p, nameJa, dataDate){
   const T = P[lang], B = L[lang];
@@ -228,7 +238,7 @@ function page(lang, p, nameJa, dataDate){
   const removalRows = COLORS.map(c => p.byColor[c].removalCards.map(r => {
     const nm = lang === "ja" ? (r.ja || r.name) : r.name;
     const img = (lang === "ja" ? (r.imgJa || r.img) : r.img) || "";
-    return `<tr${img ? ` data-img="${esc(img)}"` : ""}><td><span class="dot" style="background:${COLOR_CSS[c]}"></span>${esc(T.colorName[c])}</td><td><span class="rar ${r.rarity}">${T.rarity[r.rarity]}</span><span class="cn">${esc(nm)}</span>${lang === "ja" && r.ja ? ` <small class="en">${esc(r.name)}</small>` : ""}</td><td class="num">${r.cmc ?? ""}</td></tr>`;
+    return `<tr${img ? ` data-img="${esc(img)}"` : ""}><td><span class="dot" style="background:${COLOR_CSS[c]}"></span>${esc(T.colorName[c])}</td><td><span class="rar ${r.rarity}">${T.rarity[r.rarity]}</span><span class="cn">${esc(nm)}</span>${lang === "ja" && r.ja ? ` <small class="en">${esc(r.name)}</small>` : ""}</td><td class="num cost">${manaHtml(r.cost)}</td></tr>`;
   }).join("\n")).join("\n");
   const main = `<article class="mode">
   <p class="verdict">${esc(T.when(dataDate))}</p>
@@ -238,11 +248,13 @@ function page(lang, p, nameJa, dataDate){
   <section><h3>${esc(T.curveH)}</h3><p class="lead">${esc(T.curveLead)}</p>${curveSvg(p.byColor, lang)}
   <p class="lead">${COLORS.map(c => `<span class="dot" style="background:${COLOR_CSS[c]}"></span>${esc(T.colorName[c])}`).join("　")}</p></section>
   <section><h3>${esc(T.removalH)}</h3><p class="lead">${esc(T.removalLead)}</p>
-  <table><thead><tr><th>${esc(T.th.color)}</th><th></th><th class="num">${esc(T.th.cmc)}</th></tr></thead><tbody>${removalRows}</tbody></table></section>
+  <table><thead><tr><th>${esc(T.th.color)}</th><th></th><th class="num">${esc(T.th.cost)}</th></tr></thead><tbody>${removalRows}</tbody></table></section>
 </article>
 <div id="preview" aria-hidden="true"></div>
 <style>
   .mode .cn{border-bottom:1px dotted #9AAABB;cursor:default}
+  .mode .mana{display:inline-flex;gap:2px;vertical-align:middle}
+  .mode .ms{width:16px;height:16px;display:block}
   .mode small.en{color:#5C7185;margin-left:6px}
   #preview{position:fixed;z-index:50;pointer-events:none;display:none;filter:drop-shadow(0 10px 24px rgba(15,28,23,.35))}
   #preview img{display:block;width:244px;height:auto;border-radius:11px}
