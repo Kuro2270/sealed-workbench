@@ -275,6 +275,11 @@ async function loadIndex(){
     const j = await res.json();
     index = j.articles || [];
     speedIndex = j.speed || null;
+    // 下見だけのセット（勝率データ待ち）も選べるようにする
+    try{
+      const pr = await fetch("./data/profiles/index.json", {cache:"no-cache"});
+      if(pr.ok){ const pj = await pr.json(); profileOnly = (pj.profiles || []).map(x => x.set).filter(c => !index.some(a => a.set === c)); profileRel = Object.fromEntries((pj.profiles || []).map(x => [x.set, x.released_at || ""])); }
+    }catch(e){}
     renderSetOptions();
     const want = new URLSearchParams(location.search).get("set");
     if(want && [...$("setSelect").options].some(o => o.value === want.toUpperCase())) $("setSelect").value = want.toUpperCase();
@@ -286,20 +291,22 @@ async function loadIndex(){
   }
 }
 
+let profileOnly = [], profileRel = {};
 function renderSetOptions(){
   const sel = $("setSelect"), keep = sel.value;
 
   // 発売日の新しい順（他のページと同じ並び）。発売日が無いものは後ろに回す。
   const rel = {};
   index.forEach(a => { if(a.released_at && !rel[a.set]) rel[a.set] = a.released_at; });
-  const sets = [...new Set(index.map(a => a.set))]
+  profileOnly.forEach(c => { if(profileRel[c]) rel[c] = profileRel[c]; });
+  const sets = [...new Set([...index.map(a => a.set), ...profileOnly])]
     .sort((x, y) => (rel[y] || "").localeCompare(rel[x] || "") || x.localeCompare(y));
 
   sel.innerHTML = "";
   sets.forEach(code => {
     const o = document.createElement("option");
     o.value = code;
-    o.textContent = I18N.setName(code, code) + "（" + code + "）";
+    o.textContent = I18N.setName(code, code) + "（" + code + "）" + (profileOnly.includes(code) ? (I18N.lang === "ja" ? "　下見" : "  preview") : "");
     sel.appendChild(o);
   });
   if(keep && sets.includes(keep)) sel.value = keep;
@@ -713,7 +720,8 @@ function hidePreview(){
 $("setSelect").onchange = () => { updateModeTabs(); load(); };
 function syncStaticLink(){
   const code = $("setSelect").value;
-  $("staticLink").href = code ? `./sets/${code}${I18N.lang === "en" ? ".en" : ""}.html` : `./sets/index${I18N.lang === "en" ? ".en" : ""}.html`;
+  const suffix = I18N.lang === "en" ? ".en" : "";
+  $("staticLink").href = !code ? `./sets/index${suffix}.html` : (profileOnly.includes(code) ? `./sets/${code}.profile${suffix}.html` : `./sets/${code}${suffix}.html`);
 }
 $("setSelect").addEventListener("change", syncStaticLink);
 document.querySelectorAll("#modeTabs .tab").forEach(b => {

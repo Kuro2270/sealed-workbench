@@ -524,7 +524,7 @@ async function main(){
   try{
     const { readdir } = await import("node:fs/promises");
     for(const f of await readdir("data/profiles")){
-      if(!f.endsWith(".json")) continue;
+      if(!f.endsWith(".json") || f === "index.json") continue;
       const code = f.replace(/\.json$/, "");
       if(codes.includes(code)) continue;
       const pr = await readJson(`data/profiles/${f}`, null);

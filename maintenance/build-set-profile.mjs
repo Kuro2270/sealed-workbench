@@ -51,7 +51,7 @@ const COLORS = ["W", "U", "B", "R", "G"];
 async function fetchCards(){
   if(process.env.SCRYFALL_FIXTURE) return JSON.parse(await readFile(process.env.SCRYFALL_FIXTURE, "utf8"));
   const out = [];
-  let url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(`set:${SET.toLowerCase()} unique:cards -is:digital`)}&order=set`;
+  let url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(`set:${SET.toLowerCase()} unique:cards`)}&order=set`;
   while(url){
     const r = await fetch(url, { headers: SCRY_HEADERS });
     if(!r.ok) throw new Error(`Scryfall HTTP ${r.status}`);
@@ -66,7 +66,10 @@ async function fetchCards(){
 /* ---------- 判定 ---------- */
 const face = c => (c.card_faces && c.card_faces[0]) || c;
 const oracle = c => (c.card_faces ? c.card_faces.map(f => f.oracle_text || "").join("\n") : (c.oracle_text || ""));
-const isBooster = c => c.booster !== false && !/^(token|emblem)/i.test(face(c).type_line || "") && (c.set_type !== "token");
+// トークン・紋章・アートカードを除く。booster フラグは発売前後で当てにならないので見ない
+const isBooster = c => !["token", "double_faced_token", "emblem", "art_series", "reversible_card"].includes(c.layout || "")
+                    && !/^(Token|Emblem|Card)\b/.test(face(c).type_line || "") && c.set_type !== "token"
+                    && !(c.collector_number && /[a-z]$/i.test(String(c.collector_number)) && c.promo);
 const isCreature = c => /Creature/.test(face(c).type_line || "");
 const isLand = c => /^Land|— Land|Land —|^Basic Land/.test(face(c).type_line || "") && !/Creature/.test(face(c).type_line || "");
 const hasFlying = c => /\bFlying\b/i.test((face(c).keywords || c.keywords || []).join(",")) || /^Flying\b|\nFlying\b|, Flying\b/i.test(oracle(c));
@@ -90,7 +93,8 @@ function profile(cards){
   const commons = pool.filter(c => c.rarity === "common"), uncommons = pool.filter(c => c.rarity === "uncommon");
   const byColor = {};
   for(const col of COLORS){
-    const mono = pool.filter(c => (c.colors || face(c).colors || []).length === 1 && (c.colors || face(c).colors || [])[0] === col);
+    const colorsOf = c => (c.colors && c.colors.length ? c.colors : (face(c).colors || c.color_identity || []));
+    const mono = pool.filter(c => colorsOf(c).length === 1 && colorsOf(c)[0] === col);
     const cu = mono.filter(c => ["common", "uncommon"].includes(c.rarity));
     const creatures = cu.filter(isCreature);
     const pt = creatures.map(c => [parseFloat(face(c).power), parseFloat(face(c).toughness)]).filter(([p, t]) => !isNaN(p) && !isNaN(t));
@@ -112,14 +116,15 @@ function profile(cards){
       flyerCards: cu.filter(hasFlying).map(c => ({ name: c.name, rarity: c.rarity, cmc: c.cmc, pt: `${face(c).power}/${face(c).toughness}` }))
     };
   }
-  const multi = pool.filter(c => (c.colors || face(c).colors || []).length >= 2);
+  const colorsOf2 = c => (c.colors && c.colors.length ? c.colors : (face(c).colors || c.color_identity || []));
+  const multi = pool.filter(c => colorsOf2(c).length >= 2);
   const pairs = {};
-  for(const c of multi){ const k = (c.colors || face(c).colors).slice().sort().join(""); pairs[k] = (pairs[k] || 0) + 1; }
+  for(const c of multi){ const k = colorsOf2(c).slice().sort().join(""); pairs[k] = (pairs[k] || 0) + 1; }
   // 2色の組み合わせ（WUBRG順の並びに）
   const order = ["WU", "UB", "BR", "RG", "GW", "WB", "UR", "BG", "RW", "GU"];
   const pairList = order.map(p => {
     const key = [...p].sort().join("");
-    const cs = multi.filter(c => (c.colors || face(c).colors).slice().sort().join("") === key);
+    const cs = multi.filter(c => colorsOf2(c).slice().sort().join("") === key);
     return { pair: p, count: cs.length, uncommons: cs.filter(c => c.rarity === "uncommon").map(c => c.name) };
   });
   const allCu = pool.filter(c => ["common", "uncommon"].includes(c.rarity) && !isLand(c));
@@ -243,6 +248,8 @@ function page(lang, p, nameJa, dataDate){
 const cards = await fetchCards();
 if(!cards.length){ console.error(`${SET}: Scryfall にカードがありません`); process.exit(1); }
 const p = profile(cards);
+console.error(`${SET}: Scryfall から ${cards.length} 枚（集計対象 ${p.counts.total}）。layout の内訳: ${JSON.stringify(cards.reduce((m, c) => (m[c.layout] = (m[c.layout] || 0) + 1, m), {}))}`);
+if(p.counts.total < 50) console.error("::warning::集計できたカードが少なすぎます。Scryfall にまだカードが揃っていないか、絞り込みが強すぎます");
 const ja = await setNamesJa();
 const nameJa = ja[SET.toLowerCase()] || p.setName;
 // 勝率データが出る日の目安：紙の発売日 + 12日
@@ -254,6 +261,18 @@ if(p.released_at){
 await mkdir("data/profiles", { recursive: true });
 await mkdir("sets", { recursive: true });
 await writeFile(`data/profiles/${SET}.json`, JSON.stringify({ ...p, nameJa, generated_at: new Date().toISOString() }, null, 1), "utf8");
+// 下見があるセットの一覧（環境レポートの選択肢に出すため）
+{
+  const { readdir } = await import("node:fs/promises");
+  const list = [];
+  for(const f of await readdir("data/profiles")){
+    if(!f.endsWith(".json") || f === "index.json") continue;
+    const j = await readJson(`data/profiles/${f}`, null);
+    if(j) list.push({ set: f.replace(/\.json$/, ""), name: j.setName, nameJa: j.nameJa, released_at: j.released_at || null });
+  }
+  list.sort((a, b) => (b.released_at || "").localeCompare(a.released_at || ""));
+  await writeFile("data/profiles/index.json", JSON.stringify({ profiles: list }), "utf8");
+}
 await writeFile(`sets/${SET}.profile.html`, page("ja", p, nameJa, dataDate.ja), "utf8");
 await writeFile(`sets/${SET}.profile.en.html`, page("en", p, nameJa, dataDate.en), "utf8");
 console.error(`${SET}: ${p.counts.total} 枚（C ${p.counts.common} / U ${p.counts.uncommon} / R ${p.counts.rare} / M ${p.counts.mythic}）、除去 ${p.counts.removal}、飛行 ${p.counts.flyers} → sets/${SET}.profile.html`);
