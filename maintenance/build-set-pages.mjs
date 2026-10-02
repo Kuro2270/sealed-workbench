@@ -40,8 +40,8 @@ const pct = v => v == null ? "—" : (v * 100).toFixed(1) + "%";
 const L = {
   ja: {
     site: "MTGアリーナ リミテッド・ワークベンチ",
-    title: s => `${s} リミテッド環境レポート（ドラフト・シールドの勝率）`,
-    desc: (s, g) => `マジック：ザ・ギャザリング アリーナ「${s}」のリミテッド環境を、17Landsの実戦データ（${g}試合）から読み解きます。環境の速さ、色の強さ、強いアーキタイプ、レアリティ別の強いカード。`,
+    title: (s, c) => `${s}（${c}）リミテッド環境レポート｜MTGアリーナ ドラフト・シールドの勝率`,
+    desc: (s, g, c) => `MTGアリーナ「${s}（${c}）」のドラフト・シールド環境を、17Landsの実戦データ（${g}試合）から読み解きます。環境の速さ、強い色、勝率の高い2色の組み合わせ、コモン・アンコモン・レアの強いカード、カード評価の一覧。`,
     h1: s => `${s}｜リミテッド環境レポート`,
     lead: "マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。",
     mode: { draft: "ドラフト", sealed: "シールド" },
@@ -77,8 +77,8 @@ const L = {
   },
   en: {
     site: "MTG Arena Limited Workbench",
-    title: s => `${s} Limited format report — Draft and Sealed win rates`,
-    desc: (s, g) => `A data-driven look at Magic: The Gathering Arena Limited for ${s}, built from ${g} games of 17Lands public data: format speed, colour strength, best archetypes and the best cards at each rarity.`,
+    title: (s, c) => `${s} (${c}) Limited format report — MTG Arena Draft and Sealed win rates`,
+    desc: (s, g, c) => `${s} (${c}) Draft and Sealed on MTG Arena, read from ${g} games of 17Lands public data: format speed, strongest colours, best two-colour archetypes, top commons, uncommons and rares, and a full card tier list.`,
     h1: s => `${s} — Limited format report`,
     lead: "Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data.",
     mode: { draft: "Draft", sealed: "Sealed" },
@@ -333,6 +333,8 @@ ${head}
   .setlist small{display:block;color:var(--muted);font-size:12px}
   .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
   .langsel{background:#0F2A44;color:var(--paper);border:1px solid #2E5A86;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:13px}
+  .summary{font-size:14.5px;line-height:1.8;margin:0 0 16px;padding:12px 16px;background:var(--paper-2);border-radius:8px}
+  header h1 .code{font-size:14px;font-weight:600;color:#A9C2DE;margin-left:8px;letter-spacing:.06em}
   footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
 ${GOODS_CSS}
   footer a{color:var(--muted)}
@@ -364,6 +366,41 @@ ${body.noGoods ? "" : goodsStrip(lang)}
 `;
 }
 
+/* 冒頭の要約。数字の表だけだと検索に拾われにくいので、データから3〜5文の文章を作る */
+function summaryText(lang, mode, d, setDisplay, cn, pairLabel, colorLabel){
+  const ja = lang === "ja";
+  const modeName = ja ? (mode === "sealed" ? "シールド" : "ドラフト") : (mode === "sealed" ? "Sealed" : "Draft");
+  const games = (d.total_games || 0).toLocaleString();
+  const colors = (d.colors || []).slice().sort((a, b) => b.wr - a.wr);
+  const pairsAll = (d.archetypes || []).filter(a => a.colors && a.colors.length === 2);
+  const totalPair = pairsAll.reduce((n, p) => n + p.games, 0) || 1;
+  const pairs = pairsAll.filter(p => p.games >= Math.max(2000, totalPair * 0.04)).sort((a, b) => b.wr - a.wr);
+  const best = pairs[0], worst = pairs[pairs.length - 1];
+  const speed = (d.speed || []).filter(x => x.wr != null);
+  const fastest = speed.length ? speed.reduce((m, x) => x.wr > m.wr ? x : m) : null;
+  const paceWord = fastest ? (ja ? ({ fast: "速いデッキが勝ちやすい", mid: "中速のデッキが勝ちやすい", slow: "やや遅めのデッキが勝ちやすい", slower: "重いデッキでも勝てる" })[fastest.key]
+                                : ({ fast: "fast decks win most", mid: "mid-speed decks win most", slow: "slightly slower decks win most", slower: "even heavy decks can win" })[fastest.key]) : null;
+  const top = r => ((d.top && d.top[r]) || [])[0];
+  const c1 = top("common"), u1 = top("uncommon"), r1 = top("rare");
+  const parts = [];
+  if(ja){
+    parts.push(`${setDisplay}の${modeName}は${games}試合のデータで、全体勝率は${pct(d.overall_win_rate)}。`);
+    if(paceWord) parts.push(`環境は${paceWord}傾向です。`);
+    if(colors.length >= 2) parts.push(`色は${colorLabel(colors[0].color)}（${pct(colors[0].wr)}）と${colorLabel(colors[1].color)}（${pct(colors[1].wr)}）が強く、`);
+    if(best) parts.push(`2色の組み合わせでは${pairLabel(best.colors)}が${pct(best.wr)}で最強${worst && worst !== best ? `、${pairLabel(worst.colors)}が${pct(worst.wr)}で最弱` : ""}です。`);
+    const cards = [c1 && `コモンは「${cn(c1.name)}」`, u1 && `アンコモンは「${cn(u1.name)}」`, r1 && `レアは「${cn(r1.name)}」`].filter(Boolean);
+    if(cards.length) parts.push(`カード単位では${cards.join("、")}が最も勝率が高いカードです。`);
+  }else{
+    parts.push(`${setDisplay} ${modeName} on MTG Arena: ${games} games, ${pct(d.overall_win_rate)} overall win rate.`);
+    if(paceWord) parts.push(`In this format ${paceWord}.`);
+    if(colors.length >= 2) parts.push(`${colorLabel(colors[0].color)} (${pct(colors[0].wr)}) and ${colorLabel(colors[1].color)} (${pct(colors[1].wr)}) are the strongest colours;`);
+    if(best) parts.push(`the best two-colour pair is ${pairLabel(best.colors)} at ${pct(best.wr)}${worst && worst !== best ? `, and the weakest is ${pairLabel(worst.colors)} at ${pct(worst.wr)}` : ""}.`);
+    const cards = [c1 && `the top common is ${c1.name}`, u1 && `the top uncommon is ${u1.name}`, r1 && `the top rare is ${r1.name}`].filter(Boolean);
+    if(cards.length) parts.push(`By card, ${cards.join(", ")} (game-in-hand win rate).`);
+  }
+  return parts.join(ja ? "" : " ").replace(/、$/, "。");
+}
+
 function modeSection(lang, code, mode, d, speedIndex, names, setDisplay, videos){
   const T = L[lang];
   const cn = n => (lang === "ja" && names[n]) ? names[n] : n;
@@ -374,6 +411,7 @@ function modeSection(lang, code, mode, d, speedIndex, names, setDisplay, videos)
   let out = `<article class="mode">
   <h2>${esc(T.mode[mode])} <small>${esc(T.games((d.total_games || 0).toLocaleString(), pct(d.overall_win_rate)))}</small></h2>
   <p class="built">${esc(T.built((d.data_generated_at || d.generated_at || "").slice(0, 10)))}</p>
+  <p class="summary">${esc(summaryText(lang, mode, d, setDisplay, cn, pairLabel, colorLabel))}</p>
 ${videoSection(lang, code, mode, setDisplay, videos)}`;
 
   // 環境の速さ
@@ -446,17 +484,17 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos){
   const totalGames = modes.reduce((a, m) => a + (arts[m].total_games || 0), 0).toLocaleString();
   const canonical = `${SITE}/${OUT}/${code}${lang === "en" ? ".en" : ""}.html`;
   const altJa = `${SITE}/${OUT}/${code}.html`, altEn = `${SITE}/${OUT}/${code}.en.html`;
-  const title = T.title(setDisplay);
+  const title = T.title(setDisplay, code);
   const head = `<title>${esc(title)} — ${esc(T.site)}</title>
-<meta name="description" content="${esc(T.desc(setDisplay, totalGames))}">
+<meta name="description" content="${esc(T.desc(setDisplay, totalGames, code))}">
 <link rel="canonical" href="${canonical}">
 <link rel="alternate" hreflang="ja" href="${altJa}">
 <link rel="alternate" hreflang="en" href="${altEn}">
 <link rel="alternate" hreflang="x-default" href="${altJa}">
 <meta property="og:title" content="${esc(title)}">
-<meta property="og:description" content="${esc(T.desc(setDisplay, totalGames))}">
+<meta property="og:description" content="${esc(T.desc(setDisplay, totalGames, code))}">
 <meta property="og:url" content="${canonical}">`;
-  const header = `    <h1>${esc(T.h1(setDisplay))}</h1>
+  const header = `    <h1>${esc(T.h1(setDisplay))} <small class="code">${esc(code)}</small></h1>
     <p>${esc(T.lead)}${info.released_at ? `　${lang === "ja" ? "発売" : "Released"} ${esc(info.released_at)}` : ""}</p>`;
   const body = modes.length
     ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay, videos)).join("\n")
