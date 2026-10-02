@@ -20,6 +20,8 @@
  *     セットのロゴは Fan Content Policy で使えないので入れない（セット名は文字で出す）
  *   ・セット名のロゴ画像を使いたいときは short/logo/<SET>.png（背景透過）を置く。MTGアリーナのロゴは short/logo/arena.png。あれば冒頭でセット名の
  *     文字の代わりに載せる。無ければ文字。ロゴはこちらでは取得も生成もしない（置くかどうかは運用側の判断）
+ *   ・BGM は short/bgm/ に mp3 を置くと薄く流れる（無ければ無音）。商用利用可・YouTube/TikTok で使える曲だけ置くこと。
+ *     short/bgm/credits.json に { "曲のファイル名": "表記" } を書くと締めの場面にクレジットが出る。BGM_VOLUME で音量（既定 0.10）
  *   ・背景に使うプレイ映像は short/bg.mp4 に置く（無ければ紺色の背景）。GitHub Actions では Releases の
  *     タグ assets にある bg.mp4 を落として使う（.github/workflows/build-short.yml）。横長のままでよく、
  *     縦に切り出して暗くぼかし、その上に文字や図を重ねる。音は使わない
@@ -397,7 +399,7 @@ function sceneSvg(sc){
         T(W / 2, 700, sc.site, { size: 78, weight: 900, anchor: "middle", fill: BLUE }) +
         T(W / 2, 800, UI.outro2, { size: 40, anchor: "middle" }) +
         T(W / 2, 930, UI.data, { size: 30, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 975, UI.voice, { size: 30, fill: MUTED, anchor: "middle" }) +
+        T(W / 2, 975, UI.voice + (sc.bgmCredit ? `　BGM: ${sc.bgmCredit}` : ""), { size: 30, fill: MUTED, anchor: "middle" }) +
         // Wizards の Fan Content Policy が求める表記。外さないこと
         T(W / 2, 1050, "Unofficial Fan Content permitted under the Fan Content Policy.", { size: 22, fill: MUTED, anchor: "middle" }) +
         T(W / 2, 1082, "Not approved/endorsed by Wizards. Portions of the materials used", { size: 22, fill: MUTED, anchor: "middle" }) +
@@ -499,6 +501,23 @@ async function main(){
     const ab = await readFile("short/logo/arena.png").catch(() => null);
     if(ab && hook){ hook.arenaLogo = "data:image/png;base64," + ab.toString("base64"); console.error("アリーナのロゴ: short/logo/arena.png"); }
   }
+
+  // BGM（short/bgm/*.mp3 を置いておくと、薄く流す。short/bgm/credits.json に { "ファイル名": "表記" } があれば締めにクレジットを出す）
+  let bgm = null, bgmCredit = "";
+  try{
+    const { readdir } = await import("node:fs/promises");
+    const files = (await readdir("short/bgm")).filter(f => /\.(mp3|m4a|wav|ogg)$/i.test(f)).sort();
+    if(files.length){
+      // セットコードから決まる1曲（同じセットなら日英・形式で同じ曲になる）
+      const pick = files[[...SET].reduce((n, ch) => n + ch.charCodeAt(0), 0) % files.length];
+      bgm = `short/bgm/${pick}`;
+      const credits = await readJson("short/bgm/credits.json", {});
+      bgmCredit = credits[pick] || "";
+      console.error(`BGM: ${pick}${bgmCredit ? `（${bgmCredit}）` : ""}`);
+    }else console.error("BGM: 無し（short/bgm/ に曲が無い）");
+  }catch(e){ console.error("BGM: 無し"); }
+  const outro = scenes.find(sc => sc.kind === "outro");
+  if(outro && bgmCredit) outro.bgmCredit = bgmCredit;
 
   // セットの顔になるカードのアート（冒頭・締めの背景）。神話レア→レアの順に勝率上位から探す
   let artPath = null;
@@ -618,8 +637,18 @@ async function main(){
   if(process.env.SHORT_STILLS){ console.error("画像だけ作りました。"); return; }
   await writeFile(`${OUT}/${TAG}/list.txt`, segs.join("\n"), "utf8");
   execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", `${OUT}/${TAG}/list.txt`,
-    "-c", "copy", "-movflags", "+faststart", `${OUT}/${TAG}.mp4`]);
-  console.error(`\n${OUT}/${TAG}.mp4  合計 ${total.toFixed(1)} 秒`);
+    "-c", "copy", "-movflags", "+faststart", bgm ? `${OUT}/${TAG}/nobgm.mp4` : `${OUT}/${TAG}.mp4`]);
+  if(bgm){
+    // BGM を薄く敷く。ナレーションが鳴っている間は自動で少し下げ（ダッキング）、最後の2秒でフェードアウト
+    const vol = process.env.BGM_VOLUME || "0.10";
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", `${OUT}/${TAG}/nobgm.mp4`, "-stream_loop", "-1", "-i", bgm,
+      "-filter_complex",
+        `[1:a]aformat=sample_rates=48000:channel_layouts=stereo,volume=${vol},afade=t=in:d=1,afade=t=out:st=${Math.max(0, total - 2).toFixed(2)}:d=2[bg];` +
+        `[0:a]asplit[v1][v2];[bg][v2]sidechaincompress=threshold=0.05:ratio=6:attack=40:release=400[duck];` +
+        `[v1][duck]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`,
+      "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-t", String(total), "-movflags", "+faststart", `${OUT}/${TAG}.mp4`]);
+  }
+  console.error(`\n${OUT}/${TAG}.mp4  合計 ${total.toFixed(1)} 秒${bgm ? "（BGM あり）" : ""}`);
 }
 
 main().catch(e => { console.error("動画の作成に失敗しました:", e.message); process.exit(1); });
