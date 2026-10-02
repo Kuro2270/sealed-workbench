@@ -98,24 +98,17 @@ async function setNameFor(S, lang){
     const n = JSON.parse(await readFile(`data/names/${S}.json`, "utf8")); return n.set || S;
   }catch(e){ return S; }
 }
-async function postComment(lang, id, S, mode){
-  const tok = await accessToken(lang);
-  if(!tok) return "no-token";
+async function commentText(lang, S, mode){
   const name = shortName(await setNameFor(S, lang));
   const page = `${SITE}/sets/${S}${lang === "en" ? ".en" : ""}.html`;
   const modeName = lang === "ja" ? (mode === "sealed" ? "シールド" : "ドラフト") : (mode === "sealed" ? "Sealed" : "Draft");
   const text = lang === "ja"
     ? `見てくれてありがとうございます。\n\n動画で触れた色の勝率・2色の組み合わせ・コモンやレアの評価は、こちらで${name}の${modeName}の全カード分を見られます（無料・登録不要）\n${page}\n\nシールド／ドラフトの構築練習もできます → ${SITE}\n\n「この色が強いのは意外だった」「自分の体感と違う」などあれば、コメントで教えてください。次のセットの動画の参考にします。`
     : `Thanks for watching.\n\nEvery card's win rate for ${name} ${modeName} — colours, two-colour pairs, the best commons and rares — is here (free, no sign-up):\n${page}\n\nFree Sealed / Draft practice too → ${SITE}\n\nIf a colour surprised you, or the data doesn't match your experience, tell me in the comments. It helps shape the next set's video.`;
-  const r = await fetch("https://www.googleapis.com/youtube/v3/commentThreads?part=snippet", { method: "POST", headers: { Authorization: `Bearer ${tok}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ snippet: { videoId: id, topLevelComment: { snippet: { textOriginal: text } } } }) });
-  if(r.ok) return "ok";
-  const body = await r.text();
-  if(r.status === 403 && /insufficient|scope/i.test(body)) return "no-scope";
-  return `HTTP ${r.status}: ${body.slice(0, 160)}`;
+  return text;
 }
 
-let needScope = false;
+const comments = [];
 const published = [], waiting = [], failed = [];
 for(const S of Object.keys(all).sort()){
   if(ONLY && S !== ONLY) continue;
@@ -130,12 +123,7 @@ for(const S of Object.keys(all).sort()){
         v.public = true; v.publishedAt = v.publishedAt || new Date().toISOString().slice(0, 10);
         published.push({ set: S, lang: L, mode: M, id: v.id });
         console.log(`配信: ${S} ${L} ${M} https://www.youtube.com/shorts/${v.id}`);
-        if(!v.comment){
-          const c = await postComment(L, v.id, S, M);
-          if(c === "ok"){ v.comment = true; console.log(`  コメントを付けました（YouTube Studio で「固定」にしてください）`); }
-          else if(c === "no-scope"){ needScope = true; console.log(`  コメントは付けられませんでした：許可にコメントの権限がありません（「YouTube 投稿許可」をやり直すと付くようになります）`); }
-          else if(c !== "no-token") console.log(`  コメントは付けられませんでした：${c}`);
-        }
+        comments.push({ set: S, lang: L, mode: M, id: v.id, text: await commentText(L, S, M) });
       }else if(st === "missing"){
         failed.push({ set: S, lang: L, mode: M, id: v.id, why: "YouTube に見つかりません（削除した？）" });
         console.log(`見つからない: ${S} ${L} ${M} ${v.id}`);
@@ -181,7 +169,10 @@ if(published.length){ lines.push(`### 配信しました（${published.length}�
 if(waiting.length){ lines.push(`### まだ公開になっていません（YouTube Studio で公開にしてから、もう一度）`); for(const p of waiting) lines.push(`- ${p.set} ${p.lang} ${p.mode}（${p.status}）: https://www.youtube.com/shorts/${p.id}`); lines.push(""); }
 if(failed.length){ lines.push(`### 確認できませんでした`); for(const p of failed) lines.push(`- ${p.set} ${p.lang} ${p.mode}: ${p.why}`); lines.push(""); }
 if(!published.length && !waiting.length && !failed.length) lines.push("未配信の動画はありません。");
-if(published.length){ lines.push(""); lines.push(needScope ? "⚠ 案内コメントは付けられませんでした。「YouTube 投稿許可」をもう一度やり直して、新しい許可を Secrets に入れると、次から自動で付きます。" : "各動画に案内コメントを付けました。YouTube Studio → コメント で「固定」にしてください（固定だけは API でできません）。"); }
+if(comments.length){
+  lines.push(""); lines.push("### 固定コメントの文面（各動画のコメント欄に貼って「固定」にしてください）");
+  for(const c of comments){ lines.push(""); lines.push(`**${c.set} ${c.lang} ${c.mode}** — https://www.youtube.com/shorts/${c.id}`); lines.push(""); lines.push("```"); lines.push(c.text); lines.push("```"); }
+}
 if(process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
 await writeFile("publish-result.json", JSON.stringify({ published, waiting, failed }), "utf8");
 console.log(`\n配信 ${published.length} / 待ち ${waiting.length} / 確認できず ${failed.length}`);

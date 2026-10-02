@@ -21,8 +21,8 @@
 const ID = process.env.YT_CLIENT_ID, SECRET = process.env.YT_CLIENT_SECRET;
 if(!ID || !SECRET){ console.error("YT_CLIENT_ID / YT_CLIENT_SECRET が設定されていません。"); process.exit(1); }
 
-// force-ssl は、公開した動画に固定用のコメントを自動で付けるため（2026-10 に追加。以前の許可で取ったトークンにはこの権限が無い）
-const SCOPE = "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.force-ssl";
+// コメント投稿の権限（force-ssl）は、この「限定入力デバイス」方式では取れない（invalid_scope）。コメントは配信のまとめに出す文面を手で貼る
+const SCOPE = "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly";
 
 async function form(url, params){
   const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(params) });
