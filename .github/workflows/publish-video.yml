@@ -83,7 +83,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # 無いフォルダを git add に渡すと全体が失敗して何も記録されないので、あるものだけ足す
-          for p in data/videos.json data/videos sets data/names; do
+          for p in data/videos.json data/videos assets/video sets data/names; do
             [ -e "$p" ] && git add -A -- "$p"
           done
           git status --short | head -20

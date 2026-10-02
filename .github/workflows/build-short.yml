@@ -34,7 +34,7 @@ on:
         default: true
 
 permissions:
-  contents: write        # 上げた動画の ID を data/videos.json に記録するため
+  contents: write        # 上げた動画の ID の記録とサムネイル（assets/video/）をコミットするため
   issues: write          # 公開と配信のリマインドを Issue で出すため（メールと GitHub アプリに通知が届く）
 
 jobs:
@@ -192,10 +192,11 @@ jobs:
       - name: 動画の記録をコミット
         if: inputs.upload == true
         run: |
-          if [ -n "$(git status --porcelain -- data/videos)" ]; then
+          if [ -n "$(git status --porcelain -- data/videos assets/video)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add data/videos
+            [ -d assets/video ] && git add assets/video
             git commit -m "動画の記録を更新（$SET_CODE $VLANG $VMODE）"
             for i in 1 2 3; do
               git pull --rebase origin main && git push origin main && break
