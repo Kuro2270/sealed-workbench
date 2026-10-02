@@ -82,9 +82,13 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A data/videos.json data/videos sets data/names || true
+          # 無いフォルダを git add に渡すと全体が失敗して何も記録されないので、あるものだけ足す
+          for p in data/videos.json data/videos sets data/names; do
+            [ -e "$p" ] && git add -A -- "$p"
+          done
+          git status --short | head -20
           if git diff --staged --quiet; then
-            echo "変更はありませんでした。"
+            echo "::warning::変更はありませんでした（記録が変わっていない）。"
           else
             git commit -m "動画を配信"
             for i in 1 2 3; do
