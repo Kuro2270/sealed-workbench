@@ -97,6 +97,20 @@
   .profile .cn{border-bottom:1px dotted var(--line);cursor:default}
   .profile .mana{display:inline-flex;gap:2px;vertical-align:middle}
   .profile .ms{width:16px;height:16px;display:block}
+  .profile .ctabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+  .profile .ctab{font:inherit;font-size:13.5px;font-weight:700;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);cursor:pointer}
+  .profile .ctab.on{background:var(--navy, #0F2A44);color:#fff;border-color:var(--navy, #0F2A44)}
+  .profile .ctab .dot{display:inline-block;margin-right:5px}
+  .profile .grp{margin:0 0 18px;border:1px solid var(--line);border-radius:var(--radius);padding:6px 12px;background:#fff}
+  .profile .grp[hidden]{display:none}
+  .profile .grp h4{margin:12px 0 4px;font-size:13px}
+  .profile .grp small{color:var(--muted);font-weight:400}
+  .profile table.cards td{padding:4px 6px;text-align:left}
+  .profile table.cards td.cost{width:96px;white-space:nowrap}
+  .profile table.cards td.type{color:var(--muted);font-size:12.5px;white-space:nowrap}
+  .profile table.cards td.num{width:48px;text-align:right}
+  .profile .tag{font-size:10.5px;border:1px solid var(--line);color:var(--ink);border-radius:3px;padding:0 4px;margin-left:6px;vertical-align:1px}
+  @media (max-width:640px){ .profile table.cards td.type{display:none} .profile small.en{display:none} }
   .profile small.en{color:var(--muted);margin-left:6px}
   /* 読み込み中を示す回転 */
   .status.busy{display:flex;align-items:center;gap:10px}
@@ -549,7 +563,14 @@ async function showProfile(code){
     const first = box.querySelector(".profile > .verdict");
     if(first){ when = first.textContent.trim(); first.remove(); }
     box.hidden = false;
-    // 除去一覧のカード名にカーソルを合わせたら画像を出す（固定ページが data-img に入れている）
+    // 色のタブ
+    box.querySelectorAll(".ctab").forEach(b => {
+      b.onclick = () => {
+        box.querySelectorAll(".ctab").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-selected", String(x === b)); });
+        box.querySelectorAll(".grp").forEach(g => { g.hidden = g.dataset.grp !== b.dataset.grp; });
+      };
+    });
+    // カード名にカーソルを合わせたら画像を出す（固定ページが data-img に入れている）
     box.querySelectorAll("tr[data-img]").forEach(tr => {
       const url = tr.dataset.img;
       if(TOUCH){ tr.onclick = () => tapPreview([url], ""); return; }

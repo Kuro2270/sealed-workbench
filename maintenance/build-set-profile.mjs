@@ -135,7 +135,18 @@ function profile(cards){
   const keywords = {};
   for(const c of pool) for(const k of (c.keywords || [])) keywords[k] = (keywords[k] || 0) + 1;
   const topKeywords = Object.entries(keywords).filter(([k]) => !["Flying"].includes(k)).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  // 全カード一覧（色・レアリティ別のスポイラー用）。色は W/U/B/R/G、多色 M、無色 C、土地 L
+  const groupOf = c => { if(isLand(c)) return "L"; const cs = colorsOf2(c); return cs.length === 0 ? "C" : cs.length === 1 ? cs[0] : "M"; };
+  const cnNum = c => parseInt(String(c.collector_number).replace(/\D/g, ""), 10) || 0;
+  const list = pool.slice().sort((a, b) => cnNum(a) - cnNum(b)).map(c => ({
+    name: c.name, cn: c.collector_number, rarity: c.rarity, group: groupOf(c), colors: colorsOf2(c).slice().sort().join(""),
+    cost: face(c).mana_cost || c.mana_cost || "", cmc: c.cmc ?? 0,
+    type: face(c).type_line || "", pt: isCreature(c) && face(c).power != null ? `${face(c).power}/${face(c).toughness}` : "",
+    removal: isRemoval(c), flyer: hasFlying(c),
+    img: (face(c).image_uris || c.image_uris || {}).normal || null
+  }));
   return {
+    cards: list,
     set: SET, setName: cards[0]?.set_name || SET, released_at: cards[0]?.released_at || null,
     counts: { total: pool.length, common: commons.length, uncommon: uncommons.length, rare: pool.filter(c => c.rarity === "rare").length, mythic: pool.filter(c => c.rarity === "mythic").length,
               creatures: pool.filter(isCreature).length, removal: allCu.filter(isRemoval).length, flyers: allCu.filter(hasFlying).length, multi: multi.length },
@@ -159,6 +170,11 @@ const P = {
     curveH: "マナ総量の分布", curveLead: "コモン・アンコモン（土地を除く）の枚数です。2〜3マナが厚い色は、序盤の展開が安定します。",
     pairsH: "2色の組み合わせ", pairsLead: "その2色の多色カード（主にアンコモン）の枚数です。多いほど、その組み合わせが「用意されている」アーキタイプです。",
     removalH: "除去の一覧（コモン・アンコモン）", removalLead: "オラクル文の型から機械的に拾っています。条件付きのものも含みます。",
+    listH: "カード一覧（色・レアリティ別）", listLead: "ブースターに入る全カードです。カード名にカーソルを合わせる（スマホはタップ）とカード画像が出ます。",
+    groupName: { W: "白", U: "青", B: "黒", R: "赤", G: "緑", M: "多色", C: "無色", L: "土地" },
+    rarityName: { mythic: "神話レア", rare: "レア", uncommon: "アンコモン", common: "コモン" },
+    typeName: { Creature: "クリーチャー", Instant: "インスタント", Sorcery: "ソーサリー", Enchantment: "エンチャント", Artifact: "アーティファクト", Planeswalker: "プレインズウォーカー", Land: "土地", Battle: "バトル", Kindred: "同族" },
+    tagRemoval: "除去", tagFlyer: "飛行",
     kwH: "よく出るキーワード", kwLead: "セット全体での登場回数（飛行を除く）。",
     noteH: "読み方の注意",
     note: "ここにあるのは枚数だけで、強さではありません。「除去が多い色が強い」とは限らず、環境の速さや相手の色との相性で変わります。勝率データが出たら、必ずそちらで答え合わせをしてください。",
@@ -180,6 +196,11 @@ const P = {
     curveH: "Mana-value curve", curveLead: "Commons and uncommons, lands excluded. A colour with a thick 2–3 drop slot curves out reliably.",
     pairsH: "Two-colour pairs", pairsLead: "Number of multicolour cards (mostly uncommons) for each pair. More cards means the pair is a supported archetype.",
     removalH: "Removal list (commons & uncommons)", removalLead: "Picked up mechanically from oracle text; conditional removal included.",
+    listH: "Card list by colour and rarity", listLead: "Every card in boosters. Hover a name (tap on phones) to see the card.",
+    groupName: { W: "White", U: "Blue", B: "Black", R: "Red", G: "Green", M: "Multicolour", C: "Colourless", L: "Lands" },
+    rarityName: { mythic: "Mythic", rare: "Rare", uncommon: "Uncommon", common: "Common" },
+    typeName: {},
+    tagRemoval: "removal", tagFlyer: "flying",
     kwH: "Frequent keywords", kwLead: "Occurrences across the whole set (flying excluded).",
     noteH: "How to read this",
     note: "These are counts, not power. A colour with the most removal is not automatically the best colour; format speed and matchups decide that. Once win-rate data lands, check it against the real numbers.",
@@ -218,6 +239,38 @@ function manaHtml(cost){
   }).join("") + `</span>`;
 }
 
+/* 色・レアリティ別の全カード一覧 */
+function cardList(lang, p, T){
+  const GROUPS = ["W", "U", "B", "R", "G", "M", "C", "L"], RARS = ["mythic", "rare", "uncommon", "common"];
+  const typeOf = c => {
+    const main = String(c.type).split("—")[0].trim();
+    if(lang !== "ja") return main;
+    return main.split(/\s+/).map(w => T.typeName[w] || (w === "Legendary" ? "伝説の" : w === "Basic" ? "基本" : w === "Snow" ? "氷雪" : w)).join("");
+  };
+  const dotOf = g => g === "M" ? `<span class="dot" style="background:linear-gradient(90deg,#D7B55C,#8B6D2F)"></span>` : g === "C" || g === "L" ? `<span class="dot" style="background:#B9C3CC"></span>` : `<span class="dot" style="background:${COLOR_CSS[g]}"></span>`;
+  // 上に色のタブ。押した色だけを表示する（最初は白）
+  const present = GROUPS.filter(g => p.cards.some(c => c.group === g));
+  let out = `<div class="ctabs" role="tablist">` + present.map((g, i) => `<button type="button" class="ctab${i === 0 ? " on" : ""}" data-grp="${g}" role="tab" aria-selected="${i === 0}">${dotOf(g)}${esc(T.groupName[g])} <small>${p.cards.filter(c => c.group === g).length}</small></button>`).join("") + `</div>`;
+  for(const [i, g] of present.entries()){
+    const cs = p.cards.filter(c => c.group === g);
+    out += `<div class="grp" data-grp="${g}"${i === 0 ? "" : " hidden"}>`;
+    for(const r of RARS){
+      const rs = cs.filter(c => c.rarity === r);
+      if(!rs.length) continue;
+      out += `<h4><span class="rar ${r}">${T.rarity[r]}</span>${esc(T.rarityName[r])} <small>${rs.length}</small></h4><table class="cards"><tbody>`;
+      for(const c of rs){
+        const nm = lang === "ja" ? (c.ja || c.name) : c.name;
+        const img = (lang === "ja" ? (c.imgJa || c.img) : c.img) || "";
+        const tags = (c.removal ? `<span class="tag">${esc(T.tagRemoval)}</span>` : "") + (c.flyer ? `<span class="tag">${esc(T.tagFlyer)}</span>` : "");
+        out += `<tr${img ? ` data-img="${esc(img)}"` : ""}><td class="cost">${manaHtml(c.cost)}</td><td><span class="cn">${esc(nm)}</span>${lang === "ja" && c.ja ? ` <small class="en">${esc(c.name)}</small>` : ""}${tags}</td><td class="type">${esc(typeOf(c))}</td><td class="num">${esc(c.pt)}</td></tr>`;
+      }
+      out += `</tbody></table>`;
+    }
+    out += `</div>`;
+  }
+  return out;
+}
+
 /* ---------- ページ ---------- */
 function page(lang, p, nameJa, dataDate){
   const T = P[lang], B = L[lang];
@@ -247,14 +300,27 @@ function page(lang, p, nameJa, dataDate){
   <tbody>${COLORS.map(row).join("\n")}</tbody></table></div></section>
   <section><h3>${esc(T.curveH)}</h3><p class="lead">${esc(T.curveLead)}</p>${curveSvg(p.byColor, lang)}
   <p class="lead">${COLORS.map(c => `<span class="dot" style="background:${COLOR_CSS[c]}"></span>${esc(T.colorName[c])}`).join("　")}</p></section>
-  <section><h3>${esc(T.removalH)}</h3><p class="lead">${esc(T.removalLead)}</p>
-  <table><thead><tr><th>${esc(T.th.color)}</th><th></th><th class="num">${esc(T.th.cost)}</th></tr></thead><tbody>${removalRows}</tbody></table></section>
+  <section><h3>${esc(T.listH)}</h3><p class="lead">${esc(T.listLead)}</p>${cardList(lang, p, T)}</section>
 </article>
 <div id="preview" aria-hidden="true"></div>
 <style>
   .mode .cn{border-bottom:1px dotted #9AAABB;cursor:default}
   .mode .mana{display:inline-flex;gap:2px;vertical-align:middle}
   .mode .ms{width:16px;height:16px;display:block}
+  .mode .ctabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+  .mode .ctab{font:inherit;font-size:13.5px;font-weight:700;padding:6px 12px;border:1px solid #D3DFEB;border-radius:999px;background:#fff;color:#2A3B4C;cursor:pointer}
+  .mode .ctab.on{background:#0F2A44;color:#fff;border-color:#0F2A44}
+  .mode .ctab .dot{margin-right:5px}
+  .mode .grp{margin:0 0 18px;border:1px solid #D3DFEB;border-radius:8px;padding:6px 12px;background:#fff}
+  .mode .grp[hidden]{display:none}
+  .mode .grp h4{margin:12px 0 4px;font-size:13px;color:#2A3B4C}
+  .mode .grp small{color:#5C7185;font-weight:400}
+  .mode table.cards td{padding:4px 6px}
+  .mode table.cards td.cost{width:96px;white-space:nowrap}
+  .mode table.cards td.type{color:#5C7185;font-size:12.5px;white-space:nowrap}
+  .mode table.cards td.num{width:48px}
+  .mode .tag{font-size:10.5px;border:1px solid #9AAABB;color:#2A3B4C;border-radius:3px;padding:0 4px;margin-left:6px;vertical-align:1px}
+  @media (max-width:640px){ .mode table.cards td.type{display:none} .mode small.en{display:none} }
   .mode small.en{color:#5C7185;margin-left:6px}
   #preview{position:fixed;z-index:50;pointer-events:none;display:none;filter:drop-shadow(0 10px 24px rgba(15,28,23,.35))}
   #preview img{display:block;width:244px;height:auto;border-radius:11px}
@@ -267,6 +333,12 @@ function page(lang, p, nameJa, dataDate){
 <div id="tapdim" aria-hidden="true"></div>
 <script>
 (function(){
+  document.querySelectorAll(".ctab").forEach(function(b){
+    b.addEventListener("click", function(){
+      document.querySelectorAll(".ctab").forEach(function(x){ x.classList.toggle("on", x === b); x.setAttribute("aria-selected", String(x === b)); });
+      document.querySelectorAll(".grp").forEach(function(g){ g.hidden = g.dataset.grp !== b.dataset.grp; });
+    });
+  });
   var box = document.getElementById("preview"), dim = document.getElementById("tapdim"); if(!box) return;
   var TOUCH = window.matchMedia && window.matchMedia("(hover: none)").matches;
   function closeTap(){ box.classList.remove("tap"); box.style.display = "none"; box.innerHTML = ""; dim.classList.remove("on"); }
@@ -308,13 +380,14 @@ const nameJa = ja[SET.toLowerCase()] || p.setName;
 try{
   const jn = await fetchJaNames(SET);
   let hit = 0;
-  for(const c of Object.keys(p.byColor)) for(const r of p.byColor[c].removalCards){
+  const rows = [...p.cards, ...Object.keys(p.byColor).flatMap(c => p.byColor[c].removalCards)];
+  for(const r of rows){
     const key = String(r.name).split(" // ")[0].trim();
     r.ja = jn.names[r.name] || jn.names[key] || null;
     r.imgJa = jn.images[r.name] || jn.images[key] || null;
-    if(r.ja) hit++;
   }
-  console.error(`日本語名: 除去カードのうち ${hit} 枚に付きました`);
+  hit = p.cards.filter(r => r.ja).length;
+  console.error(`日本語名: ${p.cards.length} 枚のうち ${hit} 枚に付きました`);
 }catch(e){ console.error("日本語名を取れませんでした: " + e.message); }
 // 勝率データが出る日の目安：紙の発売日 + 12日
 let dataDate = { ja: "発売2週間後", en: "two weeks after release" };
