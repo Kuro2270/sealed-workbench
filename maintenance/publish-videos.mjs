@@ -23,8 +23,27 @@ const ONLY = (process.env.ONLY_SET || "").trim().toUpperCase();
 const POST = process.env.POST === "1";
 const ID = process.env.YT_CLIENT_ID, SECRET = process.env.YT_CLIENT_SECRET;
 
+console.log(`入力: ONLY_SET=${JSON.stringify(ONLY)} MANUAL=${JSON.stringify(process.env.MANUAL || "")} POST=${POST}`);
 let all = {};
 try{ all = JSON.parse(await readFile("data/videos.json", "utf8")); }catch(e){}
+
+// 動画づくりが1本ごとに置いた記録（data/videos/<SET>-<lang>-<mode>.json）を取り込む。同時に走っても衝突しない
+try{
+  const { readdir, unlink } = await import("node:fs/promises");
+  for(const f of await readdir("data/videos").catch(() => [])){
+    if(!f.endsWith(".json")) continue;
+    try{
+      const v = JSON.parse(await readFile(`data/videos/${f}`, "utf8"));
+      const S = String(v.set).toUpperCase(), Lg = v.lang, M = v.mode || "draft";
+      all[S] = all[S] || {};
+      if(all[S][Lg] && all[S][Lg].id) all[S][Lg] = { draft: all[S][Lg] };
+      all[S][Lg] = all[S][Lg] || {};
+      if(!all[S][Lg][M] || all[S][Lg][M].id !== v.id) all[S][Lg][M] = { id: v.id, mode: M, title: v.title, uploadedAt: v.uploadedAt, public: false };
+      console.log(`記録を取り込み: ${S} ${Lg} ${M} ${v.id}`);
+      await unlink(`data/videos/${f}`);
+    }catch(e){ console.log(`記録を読めません: ${f}`); }
+  }
+}catch(e){}
 
 // 手で足す（記録に無い動画）
 if(process.env.MANUAL){
@@ -34,7 +53,7 @@ if(process.env.MANUAL){
     all[S] = all[S] || {};
     if(all[S][lang] && all[S][lang].id) all[S][lang] = { draft: all[S][lang] };
     all[S][lang] = all[S][lang] || {};
-    all[S][lang][mode] = { ...(all[S][lang][mode] || {}), id, mode, public: false, uploadedAt: (all[S][lang][mode] || {}).uploadedAt || new Date().toISOString().slice(0, 10) };
+    all[S][lang][mode] = { ...(all[S][lang][mode] || {}), id, mode, public: false, manual: true, uploadedAt: (all[S][lang][mode] || {}).uploadedAt || new Date().toISOString().slice(0, 10) };
     console.log(`手で追加: ${S} ${lang} ${mode} ${id}`);
   }else{
     console.error("MANUAL は「セット 言語 形式 動画ID」の4つを空白で区切って指定してください。"); process.exit(1);
@@ -72,8 +91,10 @@ for(const S of Object.keys(all).sort()){
     for(const M of ["draft", "sealed"]){
       const v = all[S][L] && all[S][L][M];
       if(!v || !v.id || v.public) continue;
-      const st = await privacy(L, v.id);
+      // 手で足したものは、公開を確認して入れている前提なので YouTube に聞かずに配信する（許可の不調で止まらないように）
+      const st = v.manual ? "public" : await privacy(L, v.id);
       if(st === "public"){
+        delete v.manual;
         v.public = true; v.publishedAt = v.publishedAt || new Date().toISOString().slice(0, 10);
         published.push({ set: S, lang: L, mode: M, id: v.id });
         console.log(`配信: ${S} ${L} ${M} https://www.youtube.com/shorts/${v.id}`);

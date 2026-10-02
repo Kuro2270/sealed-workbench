@@ -17,7 +17,7 @@
  * 依存ライブラリなし（Node 18 以上）。
  */
 
-import { readFile, writeFile, stat } from "node:fs/promises";
+import { readFile, writeFile, stat, mkdir } from "node:fs/promises";
 
 const SET = (process.argv[2] || "").toUpperCase();
 const LANG = (process.argv[3] || "ja").toLowerCase();
@@ -128,16 +128,10 @@ if(!put.ok || !res.id){ console.error(`アップロードに失敗しました�
 const out = { set: SET, lang: LANG, mode, videoId: res.id, url: `https://youtu.be/${res.id}`, shortsUrl: `https://www.youtube.com/shorts/${res.id}`,
               title: meta.title, privacy: "private", uploadedAt: new Date().toISOString() };
 await writeFile(`short/${SET}/${TAG}.youtube.json`, JSON.stringify(out, null, 2), "utf8");
-// サイト用の一覧にも記録しておく（まだ非公開なので public: false。「動画を配信」で true にするとセットページに載る）
+// サイト用の記録は 1本ごとの小さなファイルに置く（同時に動画を作っても衝突しない）。「動画を配信」がまとめて取り込む
 {
-  let all = {};
-  try{ all = JSON.parse(await readFile("data/videos.json", "utf8")); }catch(e){}
-  all[SET] = all[SET] || {};
-  // 形式ごとに持つ。昔の形（言語の直下に id）はドラフトとして読み替える
-  if(all[SET][LANG] && all[SET][LANG].id) all[SET][LANG] = { draft: all[SET][LANG] };
-  all[SET][LANG] = all[SET][LANG] || {};
-  all[SET][LANG][mode] = { id: res.id, mode, title: meta.title, uploadedAt: out.uploadedAt.slice(0, 10), public: false };
-  await writeFile("data/videos.json", JSON.stringify(all, null, 2) + "\n", "utf8");
+  await mkdir("data/videos", { recursive: true });
+  await writeFile(`data/videos/${SET}-${LANG}-${mode}.json`, JSON.stringify({ set: SET, lang: LANG, mode, id: res.id, title: meta.title, uploadedAt: out.uploadedAt.slice(0, 10) }, null, 2) + "\n", "utf8");
 }
 console.log(`YouTube に非公開で上げました: ${out.url}`);
 console.log(`タイトル: ${meta.title}`);
