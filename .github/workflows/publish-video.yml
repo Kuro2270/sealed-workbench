@@ -3,7 +3,8 @@ name: 動画を配信
 # YouTube Studio で動画を「公開」にしたあとに押す。入力は不要。
 #   1) data/videos.json にある「未配信」の動画について、YouTube に公開になっているか確認する
 #   2) 公開になっていたものを、セット別ページと環境レポートに載せる（Cloudflare が自動で配信）
-#   3) X と Bluesky に「動画を出しました」を投稿する（Bluesky は英語だけ）
+#   3) X と Bluesky に「動画を出しました」を投稿する（Bluesky は英語だけ）。動画ファイルが Releases（タグ videos）にあれば動画そのものを添付し、
+#      YouTube のリンクは返信に付ける。無ければ今まで通りリンクで投稿する
 #   まだ非公開のものは残しておき、次に押したときにまた確認する。
 # 動画の ID は「環境まとめ動画を作る」が記録しているので、ふつうは何も入れなくてよい。
 
@@ -46,6 +47,7 @@ jobs:
           MANUAL: ${{ inputs.manual }}
           POST: ${{ inputs.post == true && '1' || '' }}
           BSKY_LANGS: en
+          GH_TOKEN: ${{ github.token }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN_JA: ${{ secrets.YT_REFRESH_TOKEN_JA }}

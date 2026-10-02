@@ -34,7 +34,7 @@ on:
         default: true
 
 permissions:
-  contents: write        # 上げた動画の ID の記録とサムネイル（assets/video/）をコミットするため
+  contents: write        # 上げた動画の ID の記録とサムネイルのコミット、Releases への動画ファイルの保存のため
   issues: write          # 公開と配信のリマインドを Issue で出すため（メールと GitHub アプリに通知が届く）
 
 jobs:
@@ -135,6 +135,18 @@ jobs:
             echo
             echo "読み違いがあれば short/yomi.json に「表記: 読み（カタカナ）」を足して、もう一度実行してください。"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # X・Bluesky に動画そのものを添付するために、動画ファイルを Releases（タグ videos）にも置いておく
+      - name: 動画ファイルを Releases に置く
+        if: inputs.upload == true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp "short/$SET_CODE/$VTAG.mp4" "short/$SET_CODE-$VTAG.mp4"
+          if ! gh release view videos --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create videos --repo "$GITHUB_REPOSITORY" --title "動画ファイル（配信用）" --notes "「動画を配信」が X・Bluesky に動画を添付するために使うファイル置き場です。自動で更新されます。" || true
+          fi
+          gh release upload videos "short/$SET_CODE-$VTAG.mp4" --repo "$GITHUB_REPOSITORY" --clobber || echo "::warning::Releases に動画を置けませんでした。配信のときは YouTube のリンクで投稿します。"
 
       - name: YouTube に非公開で上げる（許可が登録されていれば）
         if: inputs.upload == true
