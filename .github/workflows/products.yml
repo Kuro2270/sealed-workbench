@@ -1,0 +1,67 @@
+name: 商品ページを更新する
+
+# 「日本の TCG サプライ」ページ（goods/）を作り直す。毎週月曜の朝に自動で動く。手で押してもよい。
+#   ・楽天市場の商品検索 API で、定番（固定）と今週のキャラスリ・デッキケース・プレイマット（週替わり）を選ぶ
+#   ・直近4週に出した商品は選ばない（data/products/history.json）
+#   ・リンクの形は data/affiliate.json。Buyee のトラッキングリンクや Amazon のタグが決まったら、そこを直して「ページだけ作り直す」で反映
+# 必要な Secrets: RAKUTEN_APP_ID, RAKUTEN_ACCESS_KEY, RAKUTEN_AFFILIATE_ID
+
+on:
+  schedule:
+    - cron: "17 21 * * 0"     # 月曜 06:17 JST
+  workflow_dispatch:
+    inputs:
+      pages_only:
+        description: "楽天に問い合わせず、今の商品のままページだけ作り直す（リンクの形を変えたとき）"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  products:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 商品を選んでページを作る
+        env:
+          RAKUTEN_APP_ID: ${{ secrets.RAKUTEN_APP_ID }}
+          RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
+          RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
+          PAGES_ONLY: ${{ inputs.pages_only == true && '1' || '' }}
+        run: |
+          if [ -n "$PAGES_ONLY" ]; then
+            node maintenance/build-products.mjs --pages
+          else
+            node maintenance/build-products.mjs
+          fi
+          node maintenance/build-seo.mjs
+          {
+            echo "## 商品ページを更新しました"
+            echo
+            node -e 'const d=require("./data/products/current.json");console.log(`- 週: ${d.week}`);console.log(`- 定番: ${d.fixed.length} 件`);for(const [g,v] of Object.entries(d.rotating))console.log(`- ${g}: ${v.length} 件`);for(const it of [...d.fixed,...Object.values(d.rotating).flat()])console.log(`  - ${it.name.slice(0,60)}（¥${it.price}）`)'
+            echo
+            echo "https://sealed-workbench.com/goods/index.html ／ https://sealed-workbench.com/goods/index.en.html"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 変更をコミット
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for p in goods data/products sitemap.xml; do [ -e "$p" ] && git add -A -- "$p"; done
+          if git diff --staged --quiet; then
+            echo "変更はありませんでした。"
+          else
+            git commit -m "商品ページを更新"
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push origin main && break
+              echo "再試行 $i"; sleep 5
+            done
+          fi
