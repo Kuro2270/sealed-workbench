@@ -86,6 +86,14 @@
   .modebar select{background:#fff;color:var(--ink);border:1px solid var(--line);min-width:150px;padding:8px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px}
 
   .status{padding:14px 16px;background:var(--paper-2);border-left:3px solid var(--muted);font-size:14px;color:var(--muted);margin-bottom:8px}
+  .status.preview{border-left-color:var(--gold);color:var(--ink)}
+  /* 下見（固定ページの本文を差し込んだもの） */
+  .profile .dot{display:inline-block;margin-right:6px;vertical-align:-1px}
+  .profile td.num,.profile th.num{text-align:right}
+  .profile td{text-align:left}
+  .profile .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
+  .profile .rar.uncommon{background:#8496A0}.profile .rar.rare{background:var(--gold)}.profile .rar.mythic{background:#C4552C}
+  .profile svg{max-width:100%;height:auto}
   /* 読み込み中を示す回転 */
   .status.busy{display:flex;align-items:center;gap:10px}
   .status.busy::before{
@@ -306,7 +314,7 @@ function renderSetOptions(){
   sets.forEach(code => {
     const o = document.createElement("option");
     o.value = code;
-    o.textContent = I18N.setName(code, code) + "（" + code + "）" + (profileOnly.includes(code) ? (I18N.lang === "ja" ? "　下見" : "  preview") : "");
+    o.textContent = I18N.setName(code, code) + "（" + code + "）" + (profileOnly.includes(code) ? (I18N.lang === "ja" ? "・下見" : " · preview") : "");
     sel.appendChild(o);
   });
   if(keep && sets.includes(keep)) sel.value = keep;
@@ -440,7 +448,7 @@ async function load(){
     let r = repCache[key];
     if(!r){
       const res = await fetch(`./data/articles/${key}.json`, {cache:"no-cache"});
-      if(!res.ok){ setStatus(t("reports.none"), true); offerProfile(code); return; }
+      if(!res.ok){ if(!(await showProfile(code))){ setStatus(t("reports.none"), true); } return; }
       r = await res.json();
       repCache[key] = r;
     }
@@ -506,15 +514,32 @@ function wrClass(wr, avg){
   return "";
 }
 
-/* 勝率データが無いセットでも、下見（カード枚数の分析）があれば案内する */
-async function offerProfile(code){
+/* 勝率データが無いセットでも、下見（カード枚数の分析）があればそれを本文に出す。
+   固定ページ sets/<SET>.profile(.en).html の本文（<article class="mode">）を読み込んで差し込む。
+   勝率データが出て記事ができれば、ふつうの表示に自動で切り替わる */
+const profileCache = {};
+async function showProfile(code){
   try{
-    const r = await fetch(`./data/profiles/${code}.json`, {cache:"no-cache"});
-    if(!r.ok) return;
-    const box = $("status");
     const href = `./sets/${code}.profile${I18N.lang === "en" ? ".en" : ""}.html`;
-    box.innerHTML += ` <a href="${href}">${esc(t("reports.profileLink"))}</a>`;
-  }catch(e){}
+    let html = profileCache[href];
+    if(html == null){
+      const r = await fetch(href, {cache:"no-cache"});
+      if(!r.ok) return false;
+      const doc = new DOMParser().parseFromString(await r.text(), "text/html");
+      const art = doc.querySelector("article.mode");
+      if(!art) return false;
+      html = art.innerHTML;
+      profileCache[href] = html;
+    }
+    const box = $("body");
+    box.innerHTML = `<div class="profile">${html}</div>`;
+    box.hidden = false;
+    $("built").textContent = "";
+    if($("video")) $("video").hidden = true;
+    setStatus(t("reports.profileNow"), false);
+    $("status").classList.add("preview");
+    return true;
+  }catch(e){ return false; }
 }
 /* 環境まとめ動画（YouTube ショート）。data/videos.json に public のものがあれば、集計の下に出す。押すまで YouTube は読み込まない */
 let videos = null;
