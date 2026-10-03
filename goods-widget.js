@@ -3,16 +3,18 @@
  * ページ側は <div id="goodsStrip"></div> を置くだけ。言語は I18N.lang に合わせる。
  * ナビの「日本のサプライ」のリンク先も言語に合わせてここで直す。 */
 (function(){
+  // このスクリプトの置き場所（サイトの直下）を基準にする。start/ や sets/ のような下の階層のページでも、同じデータとリンクを使える
+  var BASE = (function(){ var el = document.currentScript; var src = el && el.src ? el.src : ""; return src ? src.replace(/goods-widget\.js.*$/, "") : "./"; })();
   function render(){
   var lang = (window.I18N && I18N.lang) || (document.documentElement.lang === "en" ? "en" : "ja");
   var T = lang === "en"
     ? { h: "Japanese TCG supplies", lead: "Sleeves and deck boxes you can only get in Japan — ships worldwide via Buyee.", buy: "Buy via Buyee", more: "See all →", pr: "Contains affiliate links" }
     : { h: "日本の TCG サプライ", lead: "日本のプレイヤーが使っている定番と、今週のキャラクタースリーブ。", buy: "楽天市場で見る", more: "もっと見る →", pr: "PR" };
-  var goodsHref = "./goods/index" + (lang === "en" ? ".en" : "") + ".html";
+  var goodsHref = BASE + "goods/index" + (lang === "en" ? ".en" : "") + ".html";
   document.querySelectorAll("a[data-goods-link]").forEach(function(a){ a.href = goodsHref; });
-  var startHref = "./start/index" + (lang === "en" ? ".en" : "") + ".html";
+  var startHref = BASE + "start/index" + (lang === "en" ? ".en" : "") + ".html";
   document.querySelectorAll("a[data-start-link]").forEach(function(a){ a.href = startHref; });
-  var limitedHref = "./start/limited" + (lang === "en" ? ".en" : "") + ".html";
+  var limitedHref = BASE + "start/limited" + (lang === "en" ? ".en" : "") + ".html";
   document.querySelectorAll("a[data-limited-link]").forEach(function(a){ a.href = limitedHref; });
 
   var box = document.getElementById("goodsStrip");
@@ -28,7 +30,7 @@
     "@media (max-width:720px){.gstrip{padding:14px 12px 0}}";
   if(!document.getElementById("gstripCss")){ var st = document.createElement("style"); st.id = "gstripCss"; st.textContent = css; document.head.appendChild(st); }
 
-  fetch("./data/products/current.json", { cache: "no-cache" }).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+  fetch(BASE + "data/products/current.json", { cache: "no-cache" }).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
     if(!d) return;
     var rot = [].concat.apply([], Object.keys(d.rotating || {}).map(function(k){ return d.rotating[k]; }));
     var fixed = d.fixed || [];

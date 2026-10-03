@@ -365,7 +365,8 @@ ${body.header}
 </header>
 <main>
 ${body.main}
-${body.noGoods ? "" : goodsStrip(lang)}
+${body.noGoods ? "" : `<div id="goodsStrip"></div>
+<script src="../goods-widget.js?v=6" defer></script>`}
 </main>
 <footer>${T.foot}</footer>
 </body>
