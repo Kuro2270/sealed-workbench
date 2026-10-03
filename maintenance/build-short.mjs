@@ -273,6 +273,9 @@ function wrapName(name, n){
   }
   const ch = [...t];
   if(ch.length <= n) return [t];
+  // 「、」「・」があればそこで折る（「だんまり忍び足、ゴラム」→「だんまり忍び足、」「ゴラム」）
+  const brk = Math.max(t.lastIndexOf("、", n), t.lastIndexOf("・", n));
+  if(brk >= 2 && ch.length - brk - 1 <= n) return [ch.slice(0, brk + 1).join(""), ch.slice(brk + 1).join("")];
   return [ch.slice(0, n).join(""), ch.slice(n).join("")];
 }
 function wrap(s, n = 22){
@@ -422,26 +425,24 @@ function sceneSvg(sc){
       return frame(s, sc.say);
     }
     case "top": {
-      // 3枚を横に並べて、カードをできるだけ大きく見せる（横幅いっぱい）。名前と勝率はカードの下
-      // 横幅は 3 枚でいっぱいなので、縦の余白はカードを下げて名前・勝率を大きくして使う
-      const CW = 330, CH = 462, GAP = 20, X0 = (W - (CW * 3 + GAP * 2)) / 2, Y0 = 440;
-      let s = T(80, 260, UI.topH(sc.label), { size: 44, fill: MUTED });
+      // 3枚を縦に並べ、左にカード、右に順位・名前・勝率。字幕の枠（下から 300+40+箱）にかからない範囲でカードをできるだけ大きく
+      const CW = 272, CH = 380, ROW = 388, Y0 = 236, TX = 396;
+      let s = T(80, 216, UI.topH(sc.label), { size: 36, fill: MUTED });
       sc.cards.forEach((c, i) => {
-        const x = X0 + i * (CW + GAP), col = COLOR[c.color] || MUTED, cx = x + CW / 2;
+        const y = Y0 + i * ROW, col = COLOR[c.color] || MUTED;
+        // カード画像が入る枠。取れたときは実画像、取れなければ色付きの札
         if(c.imgPath){
-          s += `<image href="${c.imgPath}" x="${x}" y="${Y0}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/>`;
+          s += `<image href="${c.imgPath}" x="80" y="${y}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/>`;
         }else{
-          s += `<rect x="${x}" y="${Y0}" width="${CW}" height="${CH}" rx="16" fill="${col}" opacity="0.85"/>`;
-          s += `<rect x="${x + 16}" y="${Y0 + 16}" width="${CW - 32}" height="200" rx="10" fill="${DEEP}" opacity="0.5"/>`;
+          s += `<rect x="80" y="${y}" width="${CW}" height="${CH}" rx="16" fill="${col}" opacity="0.85"/>`;
+          s += `<rect x="96" y="${y + 16}" width="${CW - 32}" height="176" rx="10" fill="${DEEP}" opacity="0.5"/>`;
         }
-        // 順位の札（カードの左上）
-        s += `<rect x="${x - 8}" y="${Y0 - 8}" width="96" height="64" rx="16" fill="${i === 0 ? GOLD : DEEP}" opacity="0.95"/>` +
-             T(x + 40, Y0 + 38, UI.rank(i + 1), { size: 40, weight: 900, anchor: "middle", fill: i === 0 ? DEEP : PAPER });
-        // 名前は2行まで。長ければ小さく
-        const lines = wrapName(c.label, JA ? 8 : 15);
-        const size = JA ? (lines.some(l => [...l].length > 6) ? 36 : 42) : (lines.some(l => l.length > 12) ? 32 : 38);
-        lines.slice(0, 2).forEach((l, j) => { s += T(cx, Y0 + CH + 64 + j * (size + 10), l, { size, weight: 900, anchor: "middle" }); });
-        s += T(cx, Y0 + CH + 64 + 2 * 52 + 36, UI.gih(pt(c.gih)), { size: 44, fill: BLUE, weight: 700, anchor: "middle" });   // 名前が1行でも高さをそろえる
+        s += T(TX, y + 92, UI.rank(i + 1), { size: 36, fill: i === 0 ? GOLD : MUTED, weight: i === 0 ? 900 : 400 });
+        // 名前は長ければ2行。右側の幅（約 600px）に収める
+        const lines = wrapName(c.label, JA ? 10 : 20).slice(0, 2);
+        const size = lines.length > 1 ? (JA ? 46 : 40) : (JA ? ([...c.label].length <= 8 ? 60 : 50) : (c.label.length <= 14 ? 50 : 42));
+        lines.forEach((l, j) => { s += T(TX, y + (lines.length > 1 ? 168 : 196) + j * (size + 8), l, { size, weight: 900 }); });
+        s += T(TX, y + 300, UI.gih(pt(c.gih)), { size: 46, fill: BLUE, weight: 700 });
       });
       return frame(s, sc.say);
     }
