@@ -117,5 +117,51 @@
         "comment": true
       }
     }
+  },
+  "TMT": {
+    "en": {
+      "draft": {
+        "id": "DjALvFTmJ6k",
+        "mode": "draft",
+        "title": "Teenage Mutant Ninja Turtles Draft in 60 seconds | MTG Arena #Shorts",
+        "poster": "assets/video/TMT-en.jpg",
+        "uploadedAt": "2026-10-03",
+        "public": true,
+        "publishedAt": "2026-10-03",
+        "comment": true
+      },
+      "sealed": {
+        "id": "LCEY5bEjuLI",
+        "mode": "sealed",
+        "title": "Teenage Mutant Ninja Turtles Sealed in 60 seconds | MTG Arena #Shorts",
+        "poster": "assets/video/TMT-en-sealed.jpg",
+        "uploadedAt": "2026-10-03",
+        "public": true,
+        "publishedAt": "2026-10-03",
+        "comment": true
+      }
+    },
+    "ja": {
+      "draft": {
+        "id": "p9z98aW8fHY",
+        "mode": "draft",
+        "title": "【ミュータント タートルズ】1分でわかるドラフト環境｜MTGアリーナ #Shorts",
+        "poster": "assets/video/TMT-ja.jpg",
+        "uploadedAt": "2026-10-03",
+        "public": true,
+        "publishedAt": "2026-10-03",
+        "comment": true
+      },
+      "sealed": {
+        "id": "MubjE3LB5sw",
+        "mode": "sealed",
+        "title": "【ミュータント タートルズ】1分でわかるシールド環境｜MTGアリーナ #Shorts",
+        "poster": "assets/video/TMT-ja-sealed.jpg",
+        "uploadedAt": "2026-10-03",
+        "public": true,
+        "publishedAt": "2026-10-03",
+        "comment": true
+      }
+    }
   }
 }
