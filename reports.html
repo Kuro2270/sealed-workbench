@@ -514,7 +514,7 @@ function cardsOf(rarity){
 }
 
 /* ---------- 描画 ---------- */
-/* 直近セットと比べた速さを、数字なしで1文にする */
+/* ゲームの長さ（平均ターン数）を直近セットと比べて1文にする。「速い／遅い環境」は言わない（環境の速さは verdict が決める） */
 function paceLine(){
   if(!speedIndex || !report) return "";
   const grp = speedIndex[report.mode];
@@ -523,7 +523,7 @@ function paceLine(){
   if(mine == null) return "";
   const diff = mine - grp.average;
   const key = Math.abs(diff) < 0.15 ? "same" : (diff < 0 ? "fast" : "slow");
-  return ` ${t("reports.pace." + key, {c: grp.count || (grp.sets || []).length})}`;
+  return ` ${t("reports.pace." + key, {n: mine.toFixed(1), c: grp.count || (grp.sets || []).length})}`;
 }
 
 function barRow(label, wr, games, cls, dotVar){
@@ -642,9 +642,9 @@ function render(){
     if(best){
       out.push(`<section>
         <h2>${t("reports.speed.h")}</h2>
-        <div class="verdict">${t("reports.speed.best", {
+        <div class="verdict">${d.verdict && d.verdict.key ? `<b>${esc(t("verdict." + d.verdict.key))}</b><span class="gap">` : ""}${t("reports.speed.best", {
             label: t("reports.speedn." + best.key), p: (best.wr * 100).toFixed(1)
-          })}${paceLine()}${d.verdict && d.verdict.key ? `<span class="gap">${esc(t("verdict." + d.verdict.key))}</span>` : ""}</div>
+          })}${paceLine()}${d.verdict && d.verdict.key ? `</span>` : ""}</div>
         ${d.notes?.speed ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.speed[I18N.lang] || "")}</p></div>` : ""}
       </section>`);
     }

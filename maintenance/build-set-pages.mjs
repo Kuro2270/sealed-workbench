@@ -50,7 +50,10 @@ const L = {
     speedH: "環境の速さ",
     speedBest: (lab, p) => `${lab}が最も勝率が高く、${p}です。`,
     speedn: { fast:"平均マナ総量2.9未満の速いデッキ", mid:"平均マナ総量3.2未満の中速デッキ", slow:"平均マナ総量3.5未満の遅いデッキ", slower:"平均マナ総量3.5以上の重いデッキ" },
-    pace: { fast: c => `直近${c}セットと比べると、速い環境です。`, same: c => `直近${c}セットと比べると、速さは同じくらいです。`, slow: c => `直近${c}セットと比べると、遅い環境です。` },
+    pace: { fast: (c, n) => `ゲームは平均${n}ターンで、直近${c}セットの中では短めです。`, same: (c, n) => `ゲームは平均${n}ターンで、直近${c}セットと同じくらいの長さです。`, slow: (c, n) => `ゲームは平均${n}ターンで、直近${c}セットの中では長めです。` },
+    verdict: { fast: "速い環境です。低マナ域を厚くしたデッキが勝ちやすい傾向がはっきり出ています。", slow: "遅い環境です。重いカードを支えられるデッキが勝ちやすい傾向が出ています。",
+               "lean-fast": "やや速い環境です。差は小さいものの、軽いデッキほど勝率が高い並びになっています。", "lean-slow": "やや遅い環境です。差は小さいものの、重いデッキほど勝率が高い並びになっています。",
+               even: "速さによる有利不利がはっきりしない環境です。デッキの中身で決まる部分が大きそうです。" },
     colorsH: "色の強さ", colorsLead: "その色のカードをデッキに入れた試合の勝率です。",
     archeH: "色の組み合わせ", archeLead: "2色の組み合わせごとの勝率です。試合数の多い順に並べています。",
     curveH: "マナ総量ごとの勝率", curveLead: "そのマナ総量のカードが手札か戦場にあった試合の勝率です。",
@@ -87,7 +90,10 @@ const L = {
     speedH: "Format speed",
     speedBest: (lab, p) => `${lab} have the highest win rate, at ${p}.`,
     speedn: { fast:"Decks averaging under 2.9 mana value", mid:"Decks averaging under 3.2 mana value", slow:"Decks averaging under 3.5 mana value", slower:"Decks averaging 3.5 mana value or more" },
-    pace: { fast: c => `Compared with the last ${c} sets, this is a fast format.`, same: c => `Compared with the last ${c} sets, the pace is about the same.`, slow: c => `Compared with the last ${c} sets, this is a slow format.` },
+    pace: { fast: (c, n) => `Games last ${n} turns on average, on the short side of the last ${c} sets.`, same: (c, n) => `Games last ${n} turns on average, about the same as the last ${c} sets.`, slow: (c, n) => `Games last ${n} turns on average, on the long side of the last ${c} sets.` },
+    verdict: { fast: "A fast format. Decks weighted toward cheap spells clearly win more.", slow: "A slow format. Decks that can support expensive cards win more.",
+               "lean-fast": "Leans fast. The gap is small, but lighter decks win a little more at every step.", "lean-slow": "Leans slow. The gap is small, but heavier decks win a little more at every step.",
+               even: "Speed does not decide much here. What goes in the deck matters more." },
     colorsH: "Colour strength", colorsLead: "Win rate of games where the deck included cards of that colour.",
     archeH: "Colour pairs", archeLead: "Win rate by two-colour pair, sorted by number of games.",
     curveH: "Win rate by mana value", curveLead: "Win rate of games where a card of that mana value was in hand or on the battlefield.",
@@ -316,6 +322,7 @@ ${head}
   section h3{font-size:16px;margin:0 0 4px}
   .lead{color:var(--muted);font-size:13px;margin:0 0 8px}
   .verdict{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;font-size:14.5px}
+  .verdict .gap{display:block;font-size:12.5px;color:var(--muted);margin-top:5px;font-weight:400}
   table{width:100%;border-collapse:collapse;font-size:14px}
   th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
   td{padding:6px 8px;border-bottom:1px solid var(--paper-2)}
@@ -425,12 +432,14 @@ ${videoSection(lang, code, mode, setDisplay, videos)}`;
       if(mine != null){
         const diff = mine - grp.average;
         const key = Math.abs(diff) < 0.15 ? "same" : (diff < 0 ? "fast" : "slow");
-        paceTxt = " " + T.pace[key](grp.count || (grp.sets || []).length);
+        paceTxt = " " + T.pace[key](grp.count || (grp.sets || []).length, mine.toFixed(1));
       }
     }
+    // 「環境の速さ」は勝っているデッキの重さ（verdict）で決める。ゲームの長さは「速い／遅い」と言わず、短め／長めの補足にする
+    const vtxt = T.verdict[(d.verdict && d.verdict.key) || "even"];
     out += `
   <section><h3>${esc(T.speedH)}</h3>
-    <div class="verdict">${esc(T.speedBest(T.speedn[best.key] || best.key, pct(best.wr)))}${esc(paceTxt)}</div>
+    <div class="verdict"><b>${esc(vtxt)}</b><span class="gap">${esc(T.speedBest(T.speedn[best.key] || best.key, pct(best.wr)))}${esc(paceTxt)}</span></div>
   </section>`;
   }
   // 色の強さ
