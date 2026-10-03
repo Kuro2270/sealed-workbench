@@ -16,7 +16,7 @@ import { shell, L, esc, SITE } from "./build-set-pages.mjs";
 const SYM = k => `<img class="ms" src="https://svgs.scryfall.io/card-symbols/${k}.svg" alt="${k}" width="22" height="22" loading="lazy">`;
 const cardUrl = name => `https://api.scryfall.com/cards/named?format=image&version=normal&exact=${encodeURIComponent(name)}`;
 const card = (name, cls = "") =>
-  `<span class="cimg ${cls}"><img src="${cardUrl(name)}" alt="${esc(name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>${esc(name)}</i></span>`;
+  `<span class="cimg ${cls}" data-name="${esc(name)}"><img src="${cardUrl(name)}" alt="${esc(name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>${esc(name)}</i></span>`;
 
 /* ------------------------------------------------------------------ 文面 */
 
@@ -164,8 +164,6 @@ const JA = {
       ["ドラフトを練習する", "8人卓を再現した仮想ドラフトで、ピックの練習。", "../draft.html", false],
       ["環境レポートを見る", "セットごとの強い色・強いカードを確認。", "../reports.html", false]
     ],
-    moreH: "もっと詳しく知りたい方へ",
-    more: [["MTG Fans：MTGのはじめかた", "https://mtgfans.com/posts/id-879"], ["MTG Fans：フォーマットの解説", "https://mtgfans.com/posts/id-794"], ["MTG Fans：はじめてのMTGアリーナ（連載）", "https://mtgfans.com/posts/id-372"]],
     credit: "カード画像とマナシンボルは Scryfall から読み込んでいます。Magic: The Gathering は Wizards of the Coast LLC の商標です。このサイトは非公式のファンサイトです。"
   },
 
@@ -317,14 +315,43 @@ const EN = {
       ["Practice Draft", "Practice picking in a simulated eight-player pod.", "../draft.html", false],
       ["Read the set reports", "See the strong colors and cards for each set.", "../reports.html", false]
     ],
-    moreH: "Want to know more?",
-    more: [["MTG Fans: How to get started (Japanese)", "https://mtgfans.com/posts/id-879"], ["MTG Fans: Formats explained (Japanese)", "https://mtgfans.com/posts/id-794"], ["MTG Fans: First steps in MTG Arena series (Japanese)", "https://mtgfans.com/posts/id-372"]],
     credit: "Card images and mana symbols are loaded from Scryfall. Magic: The Gathering is a trademark of Wizards of the Coast LLC. This is an unofficial fan site."
   },
 
   glossH: "Glossary",
   gloss: [["Mana", "The energy you spend on spells, produced by lands."], ["Spell", "Any card you cast from hand. Creatures are spells too."], ["Battlefield", "Where cards are played and fight."], ["Graveyard", "Where used or destroyed cards go."], ["Tap", "Turning a card sideways. Using a land taps it."], ["Life", "Your health. You start at 20; at 0 you lose."], ["Block", "Stopping an attacker with one of your creatures."], ["Flying", "Can't be blocked by creatures without flying."]]
 };
+
+const JS_JA = String.raw`
+<script>
+/* 日本語ページでは、Scryfall に日本語版の印刷があればその画像に差し替える（無ければ英語のまま） */
+(function(){
+  var boxes = [].slice.call(document.querySelectorAll(".cimg[data-name]"));
+  var done = {};
+  function pickImg(c){
+    if(c.image_uris) return c.image_uris.normal;
+    if(c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris) return c.card_faces[0].image_uris.normal;
+    return null;
+  }
+  function next(i){
+    if(i >= boxes.length) return;
+    var box = boxes[i], name = box.getAttribute("data-name");
+    var apply = function(url){ if(!url) return; [].slice.call(document.querySelectorAll('.cimg[data-name="' + name.replace(/"/g, '\\"') + '"] img')).forEach(function(im){ im.src = url; }); };
+    if(done[name] !== undefined){ next(i + 1); return; }
+    done[name] = null;
+    var q = '!"' + name + '" lang:ja';
+    fetch("https://api.scryfall.com/cards/search?unique=prints&order=released&dir=desc&q=" + encodeURIComponent(q))
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        var list = (d && d.data) || [];
+        for(var k = 0; k < list.length; k++){ var u = pickImg(list[k]); if(u){ done[name] = u; apply(u); break; } }
+      })
+      .catch(function(){})
+      .then(function(){ setTimeout(function(){ next(i + 1); }, 120); });
+  }
+  next(0);
+})();
+</script>`;
 
 /* ------------------------------------------------------------------ 本体 */
 
@@ -513,13 +540,11 @@ ${f.rows.map(x => `<tr><th>${x[0]}</th><td>${x[1]}</td><td>${x[2]}</td></tr>`).j
   // 10. 次の一歩
   sections.push(`<section class="blk" id="next"><h2>${n.h}</h2><p class="lead">${n.lead}</p>
 <div class="cta">${n.list.map(x => `<a class="${x[3] ? "main" : ""}" href="${x[2]}"${x[3] ? ` target="_blank" rel="noopener"` : ""}><b>${x[0]}</b><small>${x[1]}</small></a>`).join("")}</div>
-<h3 class="sub">${n.moreH}</h3>
-<ul class="more">${n.more.map(x => `<li><a href="${x[1]}" target="_blank" rel="noopener">${x[0]}</a></li>`).join("")}</ul>
 <p class="credit">${n.credit}</p></section>`);
 
   const gloss = `<details class="gl"><summary>${T.glossH}</summary><dl>${T.gloss.map(x => `<dt>${x[0]}</dt><dd>${x[1]}</dd>`).join("")}</dl></details>`;
   const toc = `<ul class="toc">${T.toc.map(x => `<li><a href="#${x[0]}">${x[1]}</a></li>`).join("")}</ul>`;
-  const main = `${toc}\n${sections.join("\n")}\n${gloss}`;
+  const main = `${toc}\n${sections.join("\n")}\n${gloss}${en ? "" : JS_JA}`;
 
   return shell(lang, "index", head, { header, main, noGoods: true });
 }
