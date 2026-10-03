@@ -261,6 +261,20 @@ const T = (x, y, s, o = {}) =>
   `${o.anchor ? ` text-anchor="${o.anchor}"` : ""}${o.op != null ? ` opacity="${o.op}"` : ""}>${esc(s)}</text>`;
 
 /* 字幕。句読点で折り返し、数字・英字のかたまりは途中で切らない */
+/* カード名を最大2行に折る（英語は単語で、日本語は文字数で） */
+function wrapName(name, n){
+  const t = String(name);
+  if(!JA){
+    const words = t.split(/\s+/), out = []; let cur = "";
+    for(const w of words){ if(cur && (cur + " " + w).length > n){ out.push(cur); cur = w; } else cur = cur ? cur + " " + w : w; }
+    if(cur) out.push(cur);
+    if(out.length > 2){ out[1] = out.slice(1).join(" "); out.length = 2; }
+    return out;
+  }
+  const ch = [...t];
+  if(ch.length <= n) return [t];
+  return [ch.slice(0, n).join(""), ch.slice(n).join("")];
+}
 function wrap(s, n = 22){
   if(!JA){
     // 英語は単語で折り返す（1行 38 文字ほど）
@@ -408,23 +422,26 @@ function sceneSvg(sc){
       return frame(s, sc.say);
     }
     case "top": {
-      // カードを大きく見せる。字幕の枠（下から 300+40+118）にかからない範囲で、3枚を縦に並べる
-      const CW = 266, CH = 372, ROW = 380, Y0 = 250, TX = 390;
-      let s = T(80, 222, UI.topH(sc.label), { size: 40, fill: MUTED });
+      // 3枚を横に並べて、カードをできるだけ大きく見せる（横幅いっぱい）。名前と勝率はカードの下
+      // 横幅は 3 枚でいっぱいなので、縦の余白はカードを下げて名前・勝率を大きくして使う
+      const CW = 330, CH = 462, GAP = 20, X0 = (W - (CW * 3 + GAP * 2)) / 2, Y0 = 440;
+      let s = T(80, 260, UI.topH(sc.label), { size: 44, fill: MUTED });
       sc.cards.forEach((c, i) => {
-        const y = Y0 + i * ROW, col = COLOR[c.color] || MUTED;
-        // カード画像が入る枠。取れたときは実画像、取れなければ色付きの札に名前
+        const x = X0 + i * (CW + GAP), col = COLOR[c.color] || MUTED, cx = x + CW / 2;
         if(c.imgPath){
-          s += `<image href="${c.imgPath}" x="80" y="${y}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/>`;
+          s += `<image href="${c.imgPath}" x="${x}" y="${Y0}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/>`;
         }else{
-          s += `<rect x="80" y="${y}" width="${CW}" height="${CH}" rx="16" fill="${col}" opacity="0.85"/>`;
-          s += `<rect x="96" y="${y + 16}" width="${CW - 32}" height="170" rx="10" fill="${DEEP}" opacity="0.5"/>`;
+          s += `<rect x="${x}" y="${Y0}" width="${CW}" height="${CH}" rx="16" fill="${col}" opacity="0.85"/>`;
+          s += `<rect x="${x + 16}" y="${Y0 + 16}" width="${CW - 32}" height="200" rx="10" fill="${DEEP}" opacity="0.5"/>`;
         }
-        s += T(TX, y + 90, UI.rank(i + 1), { size: 36, fill: MUTED });
-        const n = [...c.label].length;
-        const size = JA ? (n <= 8 ? 60 : n <= 12 ? 48 : 38) : (n <= 16 ? 50 : n <= 24 ? 40 : 32);
-        s += T(TX, y + 190, c.label, { size, weight: 900 });
-        s += T(TX, y + 290, UI.gih(pt(c.gih)), { size: 46, fill: BLUE, weight: 700 });
+        // 順位の札（カードの左上）
+        s += `<rect x="${x - 8}" y="${Y0 - 8}" width="96" height="64" rx="16" fill="${i === 0 ? GOLD : DEEP}" opacity="0.95"/>` +
+             T(x + 40, Y0 + 38, UI.rank(i + 1), { size: 40, weight: 900, anchor: "middle", fill: i === 0 ? DEEP : PAPER });
+        // 名前は2行まで。長ければ小さく
+        const lines = wrapName(c.label, JA ? 8 : 15);
+        const size = JA ? (lines.some(l => [...l].length > 6) ? 36 : 42) : (lines.some(l => l.length > 12) ? 32 : 38);
+        lines.slice(0, 2).forEach((l, j) => { s += T(cx, Y0 + CH + 64 + j * (size + 10), l, { size, weight: 900, anchor: "middle" }); });
+        s += T(cx, Y0 + CH + 64 + 2 * 52 + 36, UI.gih(pt(c.gih)), { size: 44, fill: BLUE, weight: 700, anchor: "middle" });   // 名前が1行でも高さをそろえる
       });
       return frame(s, sc.say);
     }
@@ -440,12 +457,13 @@ function sceneSvg(sc){
         T(W / 2, 1010, sc.note, { size: JA ? 34 : 30, anchor: "middle", fill: MUTED }), sc.say);
     }
     case "outro": {
+      // 登録ボタンは「本物のボタン」ではなく、画面下のチャンネル名の横にある登録ボタンを押してもらうための案内。大きく、まわりを空けて描く
       return frame(
-        T(W / 2, 560, UI.outro1, { size: 52, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 700, sc.site, { size: 78, weight: 900, anchor: "middle", fill: BLUE }) +
-        T(W / 2, 800, UI.outro2, { size: 40, anchor: "middle" }) +
-        `<rect x="${W / 2 - 230}" y="848" width="460" height="64" rx="32" fill="#E53935"/>` +
-        T(W / 2, 892, UI.subscribe, { size: 34, weight: 900, anchor: "middle", fill: "#FFFFFF" }) +
+        T(W / 2, 400, UI.outro1, { size: 52, fill: MUTED, anchor: "middle" }) +
+        T(W / 2, 540, sc.site, { size: 78, weight: 900, anchor: "middle", fill: BLUE }) +
+        T(W / 2, 640, UI.outro2, { size: 40, anchor: "middle" }) +
+        `<rect x="${W / 2 - 300}" y="760" width="600" height="110" rx="55" fill="#E53935"/>` +
+        T(W / 2, 834, UI.subscribe, { size: 52, weight: 900, anchor: "middle", fill: "#FFFFFF" }) +
         T(W / 2, 960, UI.data, { size: 30, fill: MUTED, anchor: "middle" }) +
         T(W / 2, 1000, UI.voice + (sc.bgmCredit ? `　BGM: ${sc.bgmCredit}` : ""), { size: 30, fill: MUTED, anchor: "middle" }) +
         // Wizards の Fan Content Policy が求める表記。外さないこと
@@ -644,6 +662,7 @@ async function main(){
     if(old && old.say === sc.say && old.dur && await readFile(base + ".wav").then(() => true, () => false)){
       sc.kana = old.kana; sc.dur = old.dur; continue;
     }
+    if(process.env.SHORT_STILLS){ sc.kana = sc.say; sc.dur = 3; continue; }   // 画像だけなら音声は要らない（VOICEVOX 無しでも確認できる）
     if(JA && !yomiLoaded){ await loadYomi(); yomiLoaded = true; }
     const { kana, dur } = await speak(sc.say, base + ".wav");
     sc.kana = kana; sc.dur = dur;
