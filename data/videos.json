@@ -93,7 +93,9 @@
         "title": "【マーベル スーパー・ヒーローズ】1分でわかるシールド環境｜MTGアリーナ #Shorts",
         "poster": "assets/video/MSH-ja-sealed.jpg",
         "uploadedAt": "2026-10-03",
-        "public": false
+        "public": true,
+        "publishedAt": "2026-10-03",
+        "comment": true
       }
     },
     "en": {
@@ -110,7 +112,9 @@
         "title": "Marvel Super Heroes Sealed in 60 seconds | MTG Arena #Shorts",
         "poster": "assets/video/MSH-en-sealed.jpg",
         "uploadedAt": "2026-10-03",
-        "public": false
+        "public": true,
+        "publishedAt": "2026-10-03",
+        "comment": true
       }
     }
   }
