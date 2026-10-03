@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What is Limited? Sealed and Draft, building a 40-card deck, and why removal is strong (MTG beginners)</title>
+<meta name="description" content="What MTG Limited (Sealed and Draft) is: building a deck from the packs you open, a guide to a 40-card deck, the mana curve, why removal is so strong in Limited, and how to find which cards are strong.">
+<link rel="canonical" href="https://sealed-workbench.com/start/limited.en.html">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/start/limited.html">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/start/limited.en.html">
+<meta property="og:title" content="What is Limited? Sealed and Draft, building a 40-card deck, and why removal is strong (MTG beginners)">
+<meta property="og:description" content="What MTG Limited (Sealed and Draft) is: building a deck from the packs you open, a guide to a 40-card deck, the mana curve, why removal is so strong in Limited, and how to find which cards are strong.">
+<meta property="og:url" content="https://sealed-workbench.com/start/limited.en.html">
+<style>
+  html{scroll-behavior:smooth}
+  main{max-width:960px}
+  .toc{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 22px;padding:0;list-style:none;position:sticky;top:0;z-index:20;background:rgba(245,248,252,.94);backdrop-filter:blur(6px);padding:8px 0;border-bottom:1px solid var(--line)}
+  .toc a{display:inline-block;font-size:12.5px;padding:5px 11px;border-radius:999px;background:#fff;border:1px solid var(--line);color:var(--ink);text-decoration:none;white-space:nowrap}
+  .toc a:hover{border-color:var(--gold);color:var(--gold)}
+  .blk{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:0 0 22px;scroll-margin-top:60px}
+  .blk > h2{font-size:22px;margin:0 0 6px}
+  .blk > .lead{margin:0 0 14px;color:var(--muted);font-size:14px}
+  .cards3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .pt{background:var(--paper-2);border-radius:10px;padding:14px 16px}
+  .pt .ic{font-size:26px;line-height:1}
+  .pt b{display:block;margin:6px 0 2px;font-size:15px}
+  .pt p{margin:0;font-size:13.5px;line-height:1.65}
+  h3.sub{font-size:15px;margin:20px 0 8px}
+  .flow{list-style:none;margin:0;padding:0;display:flex;gap:6px;flex-wrap:wrap;counter-reset:f}
+  .flow li{flex:1 1 140px;position:relative;background:var(--pine);color:#fff;border-radius:10px;padding:10px 12px 10px 38px;font-size:12.5px;line-height:1.5;counter-increment:f}
+  .flow li::before{content:counter(f);position:absolute;left:10px;top:10px;width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .flow li b{display:block;font-size:14px;color:#9CC8FF}
+  .note{margin:12px 0 0;font-size:13.5px;background:var(--paper-2);border-left:4px solid var(--gold);padding:9px 13px;border-radius:0 8px 8px 0}
+  .colors{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+  .col{border-radius:10px;padding:12px 14px;border:2px solid;background:#fff}
+  .col .nm{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px}
+  .col .nm img{width:30px;height:30px}
+  .col .tg{font-size:12px;color:var(--muted);margin:2px 0 6px}
+  .col p{margin:0;font-size:13px;line-height:1.65}
+  .col.W{border-color:#E7D9A8;background:#FFFBEF}.col.U{border-color:#8DBBDE;background:#F1F8FD}.col.B{border-color:#8D8795;background:#F4F2F6}.col.R{border-color:#E39A86;background:#FFF3EF}.col.G{border-color:#86B58C;background:#F1F9F2}
+  .types{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:16px 14px}
+  .ty{display:flex;flex-direction:column;gap:8px}
+  .ty .cimg{max-width:200px}
+  .ty .tn{font-weight:800;font-size:14.5px}
+  .ty .tn small{display:block;font-weight:500;color:var(--muted);font-size:11.5px}
+  .ty p{margin:0;font-size:12.5px;line-height:1.6}
+  .cimg{position:relative;display:block;aspect-ratio:488/680;border-radius:4.5%;overflow:hidden;background:var(--paper-2);box-shadow:0 8px 20px -10px rgba(13,27,42,.55)}
+  .cimg img{width:100%;height:100%;display:block;object-fit:cover}
+  .cimg i{display:none;position:absolute;inset:0;padding:12px;font-style:normal;font-weight:700;font-size:13px;color:var(--muted);align-items:center;justify-content:center;text-align:center}
+  .cimg.miss img{display:none}.cimg.miss i{display:flex}
+  .anat{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:24px;align-items:start}
+  .anat .cardwrap{position:relative}
+  .badge{position:absolute;width:24px;height:24px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.45);transform:translate(-50%,-50%);border:2px solid #fff}
+  .anat ol{list-style:none;margin:0 0 14px;padding:0}
+  .anat ol li{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--paper-2);font-size:14px}
+  .anat ol li span{flex:none;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .ms{vertical-align:middle;margin:0 1px}
+  .cost{display:inline-block;background:var(--paper-2);padding:2px 8px;border-radius:999px}
+  .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .box{border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .box h3{margin:0 0 6px;font-size:16px}
+  .box ul{margin:8px 0 0;padding-left:1.2em;font-size:13.5px}
+  .steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;counter-reset:s}
+  .steps li{background:var(--paper-2);border-radius:10px;padding:12px 14px 12px;counter-increment:s;font-size:13px;line-height:1.6}
+  .steps li b{display:block;font-size:14.5px;margin-bottom:2px}
+  .steps li::before{content:counter(s);display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;font-size:12px;align-items:center;justify-content:center;margin-bottom:6px}
+  .cmp{width:100%;border-collapse:collapse;font-size:13.5px}
+  .cmp th,.cmp td{padding:9px 10px;border-bottom:1px solid var(--paper-2);text-align:left;vertical-align:top}
+  .cmp thead th{font-size:13px;color:#fff;background:var(--pine)}
+  .cmp thead th:last-child{background:var(--gold)}
+  .cmp tbody th{width:22%;color:var(--muted);font-weight:500;font-size:12.5px}
+  .stack{display:flex;height:54px;border-radius:10px;overflow:hidden;font-weight:800;color:#fff;font-size:13px}
+  .stack div{display:flex;align-items:center;justify-content:center;flex-direction:column;line-height:1.25;text-align:center;padding:0 4px}
+  .stack div b{font-size:19px}
+  .stack .s0{background:#7C6F5A}.stack .s1{background:var(--pine)}.stack .s2{background:var(--gold)}
+  .curve{display:flex;align-items:flex-end;gap:10px;height:170px;padding:26px 4px 0;border-bottom:2px solid var(--line)}
+  .curve div{flex:1;background:var(--gold);border-radius:6px 6px 0 0;position:relative;min-height:6px}
+  .curve div b{position:absolute;top:-22px;left:0;right:0;text-align:center;font-size:13px}
+  .curvelab{display:flex;gap:10px;padding:4px 4px 0;font-size:12px;color:var(--muted)}
+  .curvelab span{flex:1;text-align:center}
+  .rarg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:0}
+  .rarg div{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;background:#fff}
+  .rarg b{display:flex;align-items:center;gap:7px;font-size:14px;margin-bottom:2px}
+  .rarg b::before{content:"";width:12px;height:12px;border-radius:50%;background:#2A3B4C}
+  .rarg .u b::before{background:#9DB0BC}.rarg .r b::before{background:#C9A227}.rarg .m b::before{background:#D8572A}
+  .exs{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 0}
+  .exs figure{margin:0;width:150px}
+  .exs figcaption{font-size:12.5px;margin-top:6px;line-height:1.5}
+  .exs figcaption b{display:block}
+  .cta{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+  .cta a{display:block;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:13px 15px;text-decoration:none;color:var(--ink)}
+  .cta a:hover{border-color:var(--gold)}
+  .cta a b{display:block;font-size:15px;color:var(--pine);margin-bottom:2px}
+  .cta a small{font-size:12.5px;color:var(--muted);line-height:1.5}
+  .cta a.main{background:var(--gold);border-color:var(--gold)}
+  .cta a.main b,.cta a.main small{color:#fff}
+  .inst{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:0 0 4px}
+  .inst a{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;background:var(--gold);color:#fff;text-decoration:none;border-radius:12px;padding:14px 12px;box-shadow:0 6px 16px -10px rgba(47,125,246,.9)}
+  .inst a:hover{background:#1F6AE0}
+  .inst .ii{font-size:24px;line-height:1.1}
+  .inst b{font-size:14.5px}
+  .inst small{font-size:12px;opacity:.9}
+  .more{font-size:13px;margin:14px 0 0;padding-left:1.2em}
+  .more a,.blk p a{color:var(--pine)}
+  details.gl{margin:0 0 22px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 20px}
+  details.gl summary{cursor:pointer;font-weight:800;font-size:16px}
+  details.gl dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:12px 0 0;font-size:13.5px}
+  details.gl dt{font-weight:700}details.gl dd{margin:0;color:var(--muted)}
+  .credit{font-size:11.5px;color:var(--muted);margin:8px 0 0}
+  @media (max-width:720px){
+    .blk{padding:16px 14px}.anat{grid-template-columns:1fr}.anat .cardwrap{width:100%;max-width:280px;margin:0 auto}
+    .toc{position:static;flex-wrap:nowrap;overflow-x:auto}
+    .cmp tbody th{width:28%}
+    .types{grid-template-columns:repeat(2,1fr);gap:16px 10px}
+  }
+</style>
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta property="og:image" content="https://sealed-workbench.com/ogp-en.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:image" content="https://sealed-workbench.com/ogp-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="../analytics.js"></script>
+<style>
+  :root{--pine:#10304F;--pine-deep:#0A2038;--paper:#F5F8FC;--paper-2:#E8EEF6;--ink:#0D1B2A;--muted:#5C7185;--gold:#2F7DF6;--line:#D3DFEB;
+        --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:8px}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  header{background:linear-gradient(135deg,var(--pine-deep) 0%,var(--pine) 55%,#17466F 100%);color:var(--paper);padding:24px 24px 16px;border-bottom:3px solid var(--gold);box-shadow:0 10px 30px -18px rgba(8,26,48,.9)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:#9CC8FF;line-height:24px;margin:0 0 12px}
+  .brand a{color:inherit;text-decoration:none}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;color:#C6D9EE;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #2C4D74}
+  nav a:hover{background:#1A4A79;color:var(--paper)}
+  nav{gap:10px 16px;align-items:flex-end}
+  .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
+  .ng:first-of-type{padding-left:0;border-left:none}
+  .ng{position:relative;padding-top:17px}
+  .ng:has(.ngs){padding-top:35px}
+  .ngl{position:absolute;left:16px;top:0;white-space:nowrap;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6}
+  .ng:first-of-type .ngl,.ng:first-of-type .ngs{left:0}
+  .ngs{position:absolute;left:16px;top:17px;white-space:nowrap;font-size:11px;color:#8FA9C6;line-height:1.3}
+  nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
+  nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
+  @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0} }
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  .lang{margin-top:12px;font-size:13px}
+  .lang a{color:#C6D9EE}
+  main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
+  .mode{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:22px}
+  .mode > h2{font-size:22px;margin:0 0 4px;display:flex;align-items:baseline;gap:12px}
+  .mode > h2 small{font-size:13px;color:var(--muted);font-weight:500}
+  .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
+  section{margin-top:18px}
+  .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
+  .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .video .yt button span{width:64px;height:64px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .video .yt button span::after{content:"";border-left:22px solid #0B1E33;border-top:13px solid transparent;border-bottom:13px solid transparent;margin-left:5px}
+  .video .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .video .vtext{flex:1 1 240px;min-width:0}
+  .video .vtext p{margin:0 0 8px}
+  .video .vtext a{font-size:13px}
+  section h3{font-size:16px;margin:0 0 4px}
+  .lead{color:var(--muted);font-size:13px;margin:0 0 8px}
+  .verdict{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;font-size:14.5px}
+  .verdict .gap{display:block;font-size:12.5px;color:var(--muted);margin-top:5px;font-weight:400}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+  td{padding:6px 8px;border-bottom:1px solid var(--paper-2)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
+  .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#FFFFFF}.rar.mythic{background:#C4552C}
+  .links ul{margin:6px 0 0;padding-left:1.2em}
+  .links a{color:var(--pine)}
+  .source{color:var(--muted);font-size:12px;margin-top:20px}
+  .setlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+  .setlist li a{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
+  .setlist li a:hover{border-color:var(--gold)}
+  .setlist small{display:block;color:var(--muted);font-size:12px}
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .langsel{background:#0F2A44;color:var(--paper);border:1px solid #2E5A86;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:13px}
+  .summary{font-size:14.5px;line-height:1.8;margin:0 0 16px;padding:12px 16px;background:var(--paper-2);border-radius:8px}
+  header h1 .code{font-size:14px;font-weight:600;color:#A9C2DE;margin-left:8px;letter-spacing:.06em}
+  footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+
+  .gstrip{margin:28px 0 0;padding:16px 0 0;border-top:1px solid var(--line)}
+  .gstrip .gh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 4px}.gstrip h2{font-size:15px;margin:0}.gstrip .gpr{font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px}
+  .gstrip .gmore{margin-left:auto;font-size:12.5px}.gstrip .glead{font-size:12.5px;color:var(--muted);margin:0 0 10px}
+  .gstrip ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+  .gstrip li{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px;display:flex;gap:8px;align-items:flex-start}
+  .gstrip .gi{flex:none;width:64px;height:64px;border-radius:6px;overflow:hidden;background:var(--paper-2)}.gstrip .gi img{width:100%;height:100%;object-fit:contain;display:block}
+  .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}
+  footer a{color:var(--muted)}
+  @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brandrow"><div class="brand"><a href="../">MTG Arena Limited Workbench</a></div>
+      <select class="langsel" aria-label="Language" onchange="location.href=this.value">
+        <option value="limited.html">日本語</option>
+        <option value="limited.en.html" selected>English</option>
+      </select></div>
+    <nav>
+      <div class="ng"><span class="ngl">Start</span><a href="../start/index.en.html">What is MTG?</a><a href="../start/limited.en.html">What is Limited?</a><a href="../guide.html">Site features</a></div>
+      <div class="ng"><span class="ngl">Practice</span><span class="ngs">Virtual packs</span><a href="../">Sealed practice</a><a href="../draft.html">Draft practice</a></div>
+      <div class="ng"><span class="ngl">Use with MTG Arena</span><span class="ngs">Reads your log in real play · PC only</span><a href="../sealed-assist.html">Sealed assistant<b class="pcb">PC</b></a><a href="../assistant.html">Draft assistant<b class="pcb">PC</b></a></div>
+      <div class="ng"><span class="ngl">Data</span><a href="../reports.html">Set reports</a></div>
+      <div class="ng"><span class="ngl">Play</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
+      <div class="ng"><span class="ngl">Shop</span><a href="../goods/index.en.html">Japanese supplies</a></div>
+    </nav>
+    <h1>What is Limited?</h1>
+    <p>Limited means playing with only the cards from packs you open. Sealed vs Draft, how to build 40 cards, and why removal is strong — on one page.</p>
+    <link rel="alternate" hreflang="ja" href="limited.html">
+  </div>
+</header>
+<main>
+<ul class="toc"><li><a href="#limited">What is Limited</a></li><li><a href="#deck">40-card deck</a></li><li><a href="#removal">Why removal</a></li><li><a href="#next">Next steps</a></li></ul>
+<section class="blk" id="limited"><h2>What is Limited?</h2><p class="lead">You build a deck on the spot, using only the cards from packs you open. Everyone starts on equal footing, so a bigger collection does not decide the game.</p>
+<div class="two"><div class="box"><h3>Sealed</h3><p style="margin:0;font-size:13.5px">Open six packs at once and build a 40-card deck from that pool.</p><ul><li>Build calmly, on your own</li><li>Deck-building is the skill</li><li>An easier way to start than Draft</li></ul></div><div class="box"><h3>Draft</h3><p style="margin:0;font-size:13.5px">Eight players sit in a pod, take one card from a pack and pass it on (three packs, 42 picks).</p><ul><li>Tests what you choose to take</li><li>Reading the others is half the fun</li><li>Includes building the deck too</li></ul></div></div>
+<p class="note"><b>What matters in Limited</b>　It is not only about collecting strong cards; the <b>balance of all 40</b> decides games. The guide below keeps you from guessing.</p></section>
+<section class="blk" id="deck"><h2>A 40-card deck, at a glance</h2><p class="lead">When unsure, start from this shape.</p>
+<div class="stack"><div class="s0" style="width:42.5%"><b>17</b>Lands</div><div class="s1" style="width:42.5%"><b>17</b>Creatures</div><div class="s2" style="width:15.0%"><b>6</b>Other spells</div></div>
+<p style="font-size:13px;color:var(--muted);margin:8px 0 18px">A rough guide: 16–17 lands, 15–17 creatures, and 6–8 spells such as removal and tricks. Many current guides use 17 lands, 17 creatures and 6 spells as the baseline (aggressive decks may drop to 16 lands).</p>
+<h3 class="sub">Mana curve (a guide for the 23 non-land cards)</h3>
+<div class="curve"><div style="height:33%"><b>2</b></div><div style="height:100%"><b>6</b></div><div style="height:83%"><b>5</b></div><div style="height:67%"><b>4</b></div><div style="height:50%"><b>3</b></div><div style="height:50%"><b>3</b></div></div>
+<div class="curvelab"><span>1 mana</span><span>2 mana</span><span>3 mana</span><span>4 mana</span><span>5 mana</span><span>6+ mana</span></div>
+<p style="font-size:13px;color:var(--muted);margin:8px 0 14px">Lots of cheap cards, fewer expensive ones. You avoid hands that do nothing early.</p>
+<div class="cards3"><div class="pt"><span class="ic">🎨</span><b>Two colors at most</b><p>Split your lands to match, for example 9 and 8.</p></div><div class="pt"><span class="ic">⚖️</span><b>Enough creatures</b><p>Too few and you struggle both to attack and to defend.</p></div><div class="pt"><span class="ic">🎯</span><b>Don't forget removal</b><p>With few spell slots, choose your removal carefully. Creatures that act as removal count too.</p></div></div></section>
+<section class="blk" id="removal"><h2>Why removal is so strong in Limited</h2><p class="lead">Removal is any card that destroys a creature or stops it from fighting.</p>
+<h3 class="sub" style="margin-top:6px">Why it is strong</h3>
+<div class="cards3"><div class="pt"><span class="ic">①</span><b>One card answers their best</b><p>Opponents will play big or flying creatures. Removal deals with them with one card.</p></div><div class="pt"><span class="ic">②</span><b>There is only a little of it</b><p>A pack has just a few removal spells. In Draft, taking them early makes a difference.</p></div><div class="pt"><span class="ic">③</span><b>It is a good trade</b><p>One card of yours for one strong card of theirs swings the board your way.</p></div></div>
+<h3 class="sub">Examples</h3>
+<div class="exs"><figure><span class="cimg " data-name="Lightning Bolt"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Lightning%20Bolt" alt="Lightning Bolt" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Lightning Bolt</i></span><figcaption><b>Lightning Bolt</b>Deals damage to destroy a creature (burn)</figcaption></figure><figure><span class="cimg " data-name="Pacifism"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Pacifism" alt="Pacifism" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Pacifism</i></span><figcaption><b>Pacifism</b>Stops a creature from attacking or blocking</figcaption></figure></div>
+<h3 class="sub">Rarity</h3><p style="margin:0 0 8px;font-size:13.5px">Rarity is not the same as strength. Plenty of commons are very strong.</p>
+<div class="rarg"><div class="c"><b>Common</b>Most plentiful; the backbone of a deck</div><div class="u"><b>Uncommon</b>Less frequent</div><div class="r"><b>Rare</b>Often powerful</div><div class="m"><b>Mythic rare</b>The rarest</div></div>
+<h3 class="sub">Checking which cards are strong</h3><p style="margin:0;font-size:14px">The <a href="../reports.html">set reports</a> on this site show card win rates by color and rarity from 17Lands data. Look at <b>GIH WR</b> (win rate in games where the card was in hand or on the battlefield); about 3 points above the set average is a strong card.</p></section>
+<section class="blk" id="next"><h2>Next steps</h2><p class="lead">You now have enough to get started.</p>
+<div class="cta"><a class="main" href="index.en.html#arena"><b>Install MTG Arena</b><small>Free to start, on PC or your phone.</small></a><a class="" href="../"><b>Practice Sealed</b><small>Build a 40-card deck from six virtual packs.</small></a><a class="" href="../draft.html"><b>Practice Draft</b><small>Practice picking in a simulated eight-player pod.</small></a><a class="" href="../reports.html"><b>Read the set reports</b><small>See the strong colors and cards for each set.</small></a></div>
+<p class="credit">Card images and mana symbols are loaded from Scryfall. Magic: The Gathering is a trademark of Wizards of the Coast LLC. This is an unofficial fan site.</p></section>
+
+
+</main>
+<footer>Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a></footer>
+</body>
+</html>

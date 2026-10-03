@@ -99,6 +99,22 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/start/index.en.html"/>
   </url>
   <url>
+    <loc>https://sealed-workbench.com/start/limited.html</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/start/limited.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/start/limited.en.html"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/start/limited.en.html</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/start/limited.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/start/limited.en.html"/>
+  </url>
+  <url>
     <loc>https://sealed-workbench.com/goods/index.html</loc>
     <lastmod>2026-09-18</lastmod>
     <changefreq>weekly</changefreq>

@@ -12,6 +12,8 @@
   document.querySelectorAll("a[data-goods-link]").forEach(function(a){ a.href = goodsHref; });
   var startHref = "./start/index" + (lang === "en" ? ".en" : "") + ".html";
   document.querySelectorAll("a[data-start-link]").forEach(function(a){ a.href = startHref; });
+  var limitedHref = "./start/limited" + (lang === "en" ? ".en" : "") + ".html";
+  document.querySelectorAll("a[data-limited-link]").forEach(function(a){ a.href = limitedHref; });
 
   var box = document.getElementById("goodsStrip");
   if(!box) return;

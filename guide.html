@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Guide — MTG Arena Limited practice</title>
+<title>Site features — MTG Arena Limited practice</title>
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
@@ -132,8 +132,9 @@
     </div>
     <nav>
       <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span>
-        <a href="./start/index.html" data-start-link data-i18n="nav.start">はじめての方へ</a>
-        <a href="./guide.html" class="on" data-i18n="nav.guide">使い方</a></div>
+        <a href="./start/index.html" data-start-link data-i18n="nav.start">MTGとは</a>
+        <a href="./start/limited.html" data-limited-link data-i18n="nav.limited">リミテッドとは</a>
+        <a href="./guide.html" class="on" data-i18n="nav.guide">サイトの機能</a></div>
       <div class="ng"><span class="ngl" data-i18n="navgrp.build">練習する</span><span class="ngs" data-i18n="navsub.build">仮想パックで練習</span>
         <a href="./" data-i18n="nav.sealed">シールド練習</a>
         <a href="./draft.html" data-i18n="nav.draft">ドラフト練習</a></div>
@@ -150,7 +151,7 @@
     </nav>
     <div class="head-top">
       <div>
-        <h1 data-i18n="guide.h1">使い方</h1>
+        <h1 data-i18n="guide.h1">サイトの機能</h1>
         <p data-i18n="guide.lead">このサイトで何ができるのか、実際にアリーナで遊ぶまでの流れをまとめます。</p>
       </div>
       <div class="controls">
@@ -168,7 +169,7 @@
   <section>
     <h2 data-i18n="guide.tools.h">できること</h2>
 
-    <h3 class="cat" data-i18n="navgrp.build">デッキを作る</h3>
+    <h3 class="cat" data-i18n="navgrp.build">練習する</h3>
     <p class="catlead" data-i18n-html="guide.cat.build"></p>
     <div class="tools">
       <div class="tool">
@@ -178,6 +179,15 @@
       <div class="tool">
         <h4><a href="./draft.html" data-i18n="nav.draft">ドラフト練習</a></h4>
         <p data-i18n="guide.t.draft"></p>
+      </div>
+    </div>
+
+    <h3 class="cat" data-i18n="navgrp.assist">MTGアリーナで使う</h3>
+    <p class="catlead" data-i18n-html="guide.cat.assist"></p>
+    <div class="tools">
+      <div class="tool">
+        <h4><a href="./sealed-assist.html" data-i18n="nav.sassist">シールド補助</a></h4>
+        <p data-i18n="guide.t.sassist"></p>
       </div>
       <div class="tool">
         <h4><a href="./assistant.html" data-i18n="nav.assist">ドラフト補助</a></h4>
@@ -204,6 +214,15 @@
       <div class="tool">
         <h4><a href="./swiss.html" data-i18n="nav.swiss">スイスドロー</a></h4>
         <p data-i18n="guide.t.swiss"></p>
+      </div>
+    </div>
+
+    <h3 class="cat" data-i18n="navgrp.shop">買う</h3>
+    <p class="catlead" data-i18n-html="guide.cat.shop"></p>
+    <div class="tools">
+      <div class="tool">
+        <h4><a href="./goods/index.html" data-goods-link data-i18n="nav.goods">日本のサプライ</a></h4>
+        <p data-i18n="guide.t.goods"></p>
       </div>
     </div>
   </section>
@@ -240,6 +259,6 @@ function fillPops(){
 document.addEventListener("DOMContentLoaded", fillPops);
 I18N.onChange(() => { sel.value = I18N.lang; fillPops(); });
 </script>
-<script src="./goods-widget.js?v=4" defer></script>
+<script src="./goods-widget.js?v=5" defer></script>
 </body>
 </html>

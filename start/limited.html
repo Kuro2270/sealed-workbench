@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>リミテッドとは｜シールドとドラフト、40枚デッキの組み方と除去が強い理由（MTG初心者向け）</title>
+<meta name="description" content="MTGのリミテッド（シールド・ドラフト）とは何か。開けたパックだけでデッキを作る遊び方、40枚デッキの配分の目安、マナカーブ、リミテッドで除去が強い理由、カードの強さの調べ方を、初心者向けにまとめました。">
+<link rel="canonical" href="https://sealed-workbench.com/start/limited.html">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/start/limited.html">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/start/limited.en.html">
+<meta property="og:title" content="リミテッドとは｜シールドとドラフト、40枚デッキの組み方と除去が強い理由（MTG初心者向け）">
+<meta property="og:description" content="MTGのリミテッド（シールド・ドラフト）とは何か。開けたパックだけでデッキを作る遊び方、40枚デッキの配分の目安、マナカーブ、リミテッドで除去が強い理由、カードの強さの調べ方を、初心者向けにまとめました。">
+<meta property="og:url" content="https://sealed-workbench.com/start/limited.html">
+<style>
+  html{scroll-behavior:smooth}
+  main{max-width:960px}
+  .toc{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 22px;padding:0;list-style:none;position:sticky;top:0;z-index:20;background:rgba(245,248,252,.94);backdrop-filter:blur(6px);padding:8px 0;border-bottom:1px solid var(--line)}
+  .toc a{display:inline-block;font-size:12.5px;padding:5px 11px;border-radius:999px;background:#fff;border:1px solid var(--line);color:var(--ink);text-decoration:none;white-space:nowrap}
+  .toc a:hover{border-color:var(--gold);color:var(--gold)}
+  .blk{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:0 0 22px;scroll-margin-top:60px}
+  .blk > h2{font-size:22px;margin:0 0 6px}
+  .blk > .lead{margin:0 0 14px;color:var(--muted);font-size:14px}
+  .cards3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .pt{background:var(--paper-2);border-radius:10px;padding:14px 16px}
+  .pt .ic{font-size:26px;line-height:1}
+  .pt b{display:block;margin:6px 0 2px;font-size:15px}
+  .pt p{margin:0;font-size:13.5px;line-height:1.65}
+  h3.sub{font-size:15px;margin:20px 0 8px}
+  .flow{list-style:none;margin:0;padding:0;display:flex;gap:6px;flex-wrap:wrap;counter-reset:f}
+  .flow li{flex:1 1 140px;position:relative;background:var(--pine);color:#fff;border-radius:10px;padding:10px 12px 10px 38px;font-size:12.5px;line-height:1.5;counter-increment:f}
+  .flow li::before{content:counter(f);position:absolute;left:10px;top:10px;width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .flow li b{display:block;font-size:14px;color:#9CC8FF}
+  .note{margin:12px 0 0;font-size:13.5px;background:var(--paper-2);border-left:4px solid var(--gold);padding:9px 13px;border-radius:0 8px 8px 0}
+  .colors{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+  .col{border-radius:10px;padding:12px 14px;border:2px solid;background:#fff}
+  .col .nm{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px}
+  .col .nm img{width:30px;height:30px}
+  .col .tg{font-size:12px;color:var(--muted);margin:2px 0 6px}
+  .col p{margin:0;font-size:13px;line-height:1.65}
+  .col.W{border-color:#E7D9A8;background:#FFFBEF}.col.U{border-color:#8DBBDE;background:#F1F8FD}.col.B{border-color:#8D8795;background:#F4F2F6}.col.R{border-color:#E39A86;background:#FFF3EF}.col.G{border-color:#86B58C;background:#F1F9F2}
+  .types{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:16px 14px}
+  .ty{display:flex;flex-direction:column;gap:8px}
+  .ty .cimg{max-width:200px}
+  .ty .tn{font-weight:800;font-size:14.5px}
+  .ty .tn small{display:block;font-weight:500;color:var(--muted);font-size:11.5px}
+  .ty p{margin:0;font-size:12.5px;line-height:1.6}
+  .cimg{position:relative;display:block;aspect-ratio:488/680;border-radius:4.5%;overflow:hidden;background:var(--paper-2);box-shadow:0 8px 20px -10px rgba(13,27,42,.55)}
+  .cimg img{width:100%;height:100%;display:block;object-fit:cover}
+  .cimg i{display:none;position:absolute;inset:0;padding:12px;font-style:normal;font-weight:700;font-size:13px;color:var(--muted);align-items:center;justify-content:center;text-align:center}
+  .cimg.miss img{display:none}.cimg.miss i{display:flex}
+  .anat{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:24px;align-items:start}
+  .anat .cardwrap{position:relative}
+  .badge{position:absolute;width:24px;height:24px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.45);transform:translate(-50%,-50%);border:2px solid #fff}
+  .anat ol{list-style:none;margin:0 0 14px;padding:0}
+  .anat ol li{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--paper-2);font-size:14px}
+  .anat ol li span{flex:none;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .ms{vertical-align:middle;margin:0 1px}
+  .cost{display:inline-block;background:var(--paper-2);padding:2px 8px;border-radius:999px}
+  .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .box{border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .box h3{margin:0 0 6px;font-size:16px}
+  .box ul{margin:8px 0 0;padding-left:1.2em;font-size:13.5px}
+  .steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;counter-reset:s}
+  .steps li{background:var(--paper-2);border-radius:10px;padding:12px 14px 12px;counter-increment:s;font-size:13px;line-height:1.6}
+  .steps li b{display:block;font-size:14.5px;margin-bottom:2px}
+  .steps li::before{content:counter(s);display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;font-size:12px;align-items:center;justify-content:center;margin-bottom:6px}
+  .cmp{width:100%;border-collapse:collapse;font-size:13.5px}
+  .cmp th,.cmp td{padding:9px 10px;border-bottom:1px solid var(--paper-2);text-align:left;vertical-align:top}
+  .cmp thead th{font-size:13px;color:#fff;background:var(--pine)}
+  .cmp thead th:last-child{background:var(--gold)}
+  .cmp tbody th{width:22%;color:var(--muted);font-weight:500;font-size:12.5px}
+  .stack{display:flex;height:54px;border-radius:10px;overflow:hidden;font-weight:800;color:#fff;font-size:13px}
+  .stack div{display:flex;align-items:center;justify-content:center;flex-direction:column;line-height:1.25;text-align:center;padding:0 4px}
+  .stack div b{font-size:19px}
+  .stack .s0{background:#7C6F5A}.stack .s1{background:var(--pine)}.stack .s2{background:var(--gold)}
+  .curve{display:flex;align-items:flex-end;gap:10px;height:170px;padding:26px 4px 0;border-bottom:2px solid var(--line)}
+  .curve div{flex:1;background:var(--gold);border-radius:6px 6px 0 0;position:relative;min-height:6px}
+  .curve div b{position:absolute;top:-22px;left:0;right:0;text-align:center;font-size:13px}
+  .curvelab{display:flex;gap:10px;padding:4px 4px 0;font-size:12px;color:var(--muted)}
+  .curvelab span{flex:1;text-align:center}
+  .rarg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:0}
+  .rarg div{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;background:#fff}
+  .rarg b{display:flex;align-items:center;gap:7px;font-size:14px;margin-bottom:2px}
+  .rarg b::before{content:"";width:12px;height:12px;border-radius:50%;background:#2A3B4C}
+  .rarg .u b::before{background:#9DB0BC}.rarg .r b::before{background:#C9A227}.rarg .m b::before{background:#D8572A}
+  .exs{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 0}
+  .exs figure{margin:0;width:150px}
+  .exs figcaption{font-size:12.5px;margin-top:6px;line-height:1.5}
+  .exs figcaption b{display:block}
+  .cta{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+  .cta a{display:block;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:13px 15px;text-decoration:none;color:var(--ink)}
+  .cta a:hover{border-color:var(--gold)}
+  .cta a b{display:block;font-size:15px;color:var(--pine);margin-bottom:2px}
+  .cta a small{font-size:12.5px;color:var(--muted);line-height:1.5}
+  .cta a.main{background:var(--gold);border-color:var(--gold)}
+  .cta a.main b,.cta a.main small{color:#fff}
+  .inst{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:0 0 4px}
+  .inst a{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;background:var(--gold);color:#fff;text-decoration:none;border-radius:12px;padding:14px 12px;box-shadow:0 6px 16px -10px rgba(47,125,246,.9)}
+  .inst a:hover{background:#1F6AE0}
+  .inst .ii{font-size:24px;line-height:1.1}
+  .inst b{font-size:14.5px}
+  .inst small{font-size:12px;opacity:.9}
+  .more{font-size:13px;margin:14px 0 0;padding-left:1.2em}
+  .more a,.blk p a{color:var(--pine)}
+  details.gl{margin:0 0 22px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 20px}
+  details.gl summary{cursor:pointer;font-weight:800;font-size:16px}
+  details.gl dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:12px 0 0;font-size:13.5px}
+  details.gl dt{font-weight:700}details.gl dd{margin:0;color:var(--muted)}
+  .credit{font-size:11.5px;color:var(--muted);margin:8px 0 0}
+  @media (max-width:720px){
+    .blk{padding:16px 14px}.anat{grid-template-columns:1fr}.anat .cardwrap{width:100%;max-width:280px;margin:0 auto}
+    .toc{position:static;flex-wrap:nowrap;overflow-x:auto}
+    .cmp tbody th{width:28%}
+    .types{grid-template-columns:repeat(2,1fr);gap:16px 10px}
+  }
+</style>
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta property="og:image" content="https://sealed-workbench.com/ogp-ja.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:image" content="https://sealed-workbench.com/ogp-ja.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="../analytics.js"></script>
+<style>
+  :root{--pine:#10304F;--pine-deep:#0A2038;--paper:#F5F8FC;--paper-2:#E8EEF6;--ink:#0D1B2A;--muted:#5C7185;--gold:#2F7DF6;--line:#D3DFEB;
+        --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:8px}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  header{background:linear-gradient(135deg,var(--pine-deep) 0%,var(--pine) 55%,#17466F 100%);color:var(--paper);padding:24px 24px 16px;border-bottom:3px solid var(--gold);box-shadow:0 10px 30px -18px rgba(8,26,48,.9)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:#9CC8FF;line-height:24px;margin:0 0 12px}
+  .brand a{color:inherit;text-decoration:none}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;color:#C6D9EE;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #2C4D74}
+  nav a:hover{background:#1A4A79;color:var(--paper)}
+  nav{gap:10px 16px;align-items:flex-end}
+  .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
+  .ng:first-of-type{padding-left:0;border-left:none}
+  .ng{position:relative;padding-top:17px}
+  .ng:has(.ngs){padding-top:35px}
+  .ngl{position:absolute;left:16px;top:0;white-space:nowrap;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6}
+  .ng:first-of-type .ngl,.ng:first-of-type .ngs{left:0}
+  .ngs{position:absolute;left:16px;top:17px;white-space:nowrap;font-size:11px;color:#8FA9C6;line-height:1.3}
+  nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
+  nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
+  @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0} }
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  .lang{margin-top:12px;font-size:13px}
+  .lang a{color:#C6D9EE}
+  main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
+  .mode{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:22px}
+  .mode > h2{font-size:22px;margin:0 0 4px;display:flex;align-items:baseline;gap:12px}
+  .mode > h2 small{font-size:13px;color:var(--muted);font-weight:500}
+  .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
+  section{margin-top:18px}
+  .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
+  .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .video .yt button span{width:64px;height:64px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .video .yt button span::after{content:"";border-left:22px solid #0B1E33;border-top:13px solid transparent;border-bottom:13px solid transparent;margin-left:5px}
+  .video .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .video .vtext{flex:1 1 240px;min-width:0}
+  .video .vtext p{margin:0 0 8px}
+  .video .vtext a{font-size:13px}
+  section h3{font-size:16px;margin:0 0 4px}
+  .lead{color:var(--muted);font-size:13px;margin:0 0 8px}
+  .verdict{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;font-size:14.5px}
+  .verdict .gap{display:block;font-size:12.5px;color:var(--muted);margin-top:5px;font-weight:400}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+  td{padding:6px 8px;border-bottom:1px solid var(--paper-2)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
+  .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#FFFFFF}.rar.mythic{background:#C4552C}
+  .links ul{margin:6px 0 0;padding-left:1.2em}
+  .links a{color:var(--pine)}
+  .source{color:var(--muted);font-size:12px;margin-top:20px}
+  .setlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+  .setlist li a{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
+  .setlist li a:hover{border-color:var(--gold)}
+  .setlist small{display:block;color:var(--muted);font-size:12px}
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .langsel{background:#0F2A44;color:var(--paper);border:1px solid #2E5A86;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:13px}
+  .summary{font-size:14.5px;line-height:1.8;margin:0 0 16px;padding:12px 16px;background:var(--paper-2);border-radius:8px}
+  header h1 .code{font-size:14px;font-weight:600;color:#A9C2DE;margin-left:8px;letter-spacing:.06em}
+  footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+
+  .gstrip{margin:28px 0 0;padding:16px 0 0;border-top:1px solid var(--line)}
+  .gstrip .gh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 4px}.gstrip h2{font-size:15px;margin:0}.gstrip .gpr{font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px}
+  .gstrip .gmore{margin-left:auto;font-size:12.5px}.gstrip .glead{font-size:12.5px;color:var(--muted);margin:0 0 10px}
+  .gstrip ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+  .gstrip li{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px;display:flex;gap:8px;align-items:flex-start}
+  .gstrip .gi{flex:none;width:64px;height:64px;border-radius:6px;overflow:hidden;background:var(--paper-2)}.gstrip .gi img{width:100%;height:100%;object-fit:contain;display:block}
+  .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}
+  footer a{color:var(--muted)}
+  @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brandrow"><div class="brand"><a href="../">MTGアリーナ リミテッド・ワークベンチ</a></div>
+      <select class="langsel" aria-label="Language" onchange="location.href=this.value">
+        <option value="limited.html" selected>日本語</option>
+        <option value="limited.en.html">English</option>
+      </select></div>
+    <nav>
+      <div class="ng"><span class="ngl">はじめに</span><a href="../start/index.html">MTGとは</a><a href="../start/limited.html">リミテッドとは</a><a href="../guide.html">サイトの機能</a></div>
+      <div class="ng"><span class="ngl">練習する</span><span class="ngs">仮想パックで練習</span><a href="../">シールド練習</a><a href="../draft.html">ドラフト練習</a></div>
+      <div class="ng"><span class="ngl">MTGアリーナで使う</span><span class="ngs">実戦のログを読んで助ける・PC専用</span><a href="../sealed-assist.html">シールド補助<b class="pcb">PC</b></a><a href="../assistant.html">ドラフト補助<b class="pcb">PC</b></a></div>
+      <div class="ng"><span class="ngl">データを見る</span><a href="../reports.html">環境レポート</a></div>
+      <div class="ng"><span class="ngl">対戦する</span><a href="../table.html">対戦卓</a><a href="../swiss.html">スイスドロー</a></div>
+      <div class="ng"><span class="ngl">買う</span><a href="../goods/index.html">日本のサプライ</a></div>
+    </nav>
+    <h1>リミテッドとは</h1>
+    <p>開けたパックのカードだけで戦う「リミテッド」。シールドとドラフトの違い、40枚デッキの組み方、除去が強い理由を、1ページでまとめました。</p>
+    <link rel="alternate" hreflang="en" href="limited.en.html">
+  </div>
+</header>
+<main>
+<ul class="toc"><li><a href="#limited">リミテッドとは</a></li><li><a href="#deck">40枚の配分</a></li><li><a href="#removal">除去が強い理由</a></li><li><a href="#next">次の一歩</a></li></ul>
+<section class="blk" id="limited"><h2>リミテッドとは</h2><p class="lead">開けたパックのカードだけで、その場でデッキを作って戦う遊び方です。みんなが同じ条件で始めるので、カードの持ち数で差がつきません。</p>
+<div class="two"><div class="box"><h3>シールド</h3><p style="margin:0;font-size:13.5px">6パック分のカードをまとめて開け、そのプールから40枚のデッキを組む。</p><ul><li>一人で、じっくり組み立てられる</li><li>「どのカードを入れるか」が勝負</li><li>ドラフトより気軽に始められる</li></ul></div><div class="box"><h3>ドラフト</h3><p style="margin:0;font-size:13.5px">8人で卓を囲み、1パックから1枚ずつ取って隣に回していく（3パック・計42枚をピック）。</p><ul><li>「何を取るか」の判断力が問われる</li><li>他の人の動きを読むのが面白い</li><li>デッキ作りまで含めて楽しめる</li></ul></div></div>
+<p class="note"><b>リミテッドで大切なこと</b>　強いカードを集めるだけでなく、<b>40枚全体のバランス</b>が勝敗を分けます。次の「配分」の目安を知っておくと、迷いません。</p></section>
+<section class="blk" id="deck"><h2>40枚デッキの配分の目安</h2><p class="lead">迷ったら、まずこの形から始めましょう。</p>
+<div class="stack"><div class="s0" style="width:42.5%"><b>17</b>土地</div><div class="s1" style="width:42.5%"><b>17</b>クリーチャー</div><div class="s2" style="width:15.0%"><b>6</b>その他の呪文</div></div>
+<p style="font-size:13px;color:var(--muted);margin:8px 0 18px">土地16〜17枚、クリーチャー15〜17枚、除去や強化などの呪文6〜8枚が目安です。近年は、土地17・クリーチャー17・呪文6という形を基準に紹介する解説が多く見られます（攻めるデッキは土地16に減らすことも）。</p>
+<h3 class="sub">マナカーブ（土地を除く23枚の目安）</h3>
+<div class="curve"><div style="height:33%"><b>2</b></div><div style="height:100%"><b>6</b></div><div style="height:83%"><b>5</b></div><div style="height:67%"><b>4</b></div><div style="height:50%"><b>3</b></div><div style="height:50%"><b>3</b></div></div>
+<div class="curvelab"><span>1マナ</span><span>2マナ</span><span>3マナ</span><span>4マナ</span><span>5マナ</span><span>6+マナ</span></div>
+<p style="font-size:13px;color:var(--muted);margin:8px 0 14px">軽いカードを多めにして、重いカードは少なめに。序盤に何も出せない手札事故を防げます。</p>
+<div class="cards3"><div class="pt"><span class="ic">🎨</span><b>色は2色までに</b><p>土地は色の枚数に合わせて、たとえば9枚と8枚のように分けます。</p></div><div class="pt"><span class="ic">⚖️</span><b>クリーチャーを十分に</b><p>戦場に出せる味方が少ないと、攻めも守りも苦しくなります。</p></div><div class="pt"><span class="ic">🎯</span><b>除去を忘れずに</b><p>呪文の枠は少ないので、除去は厳選して入れます。除去の力を持つクリーチャーも数えられます。</p></div></div></section>
+<section class="blk" id="removal"><h2>リミテッドで「除去」が強い理由</h2><p class="lead">除去とは、相手のクリーチャーを倒したり、動けなくしたりするカードのことです。</p>
+<h3 class="sub" style="margin-top:6px">なぜ強いのか</h3>
+<div class="cards3"><div class="pt"><span class="ic">①</span><b>相手の主役を1枚で止められる</b><p>リミテッドは、相手が大型や空を飛ぶ強いクリーチャーを出してきます。除去があれば、それを1枚で片づけられます。</p></div><div class="pt"><span class="ic">②</span><b>数に限りがある</b><p>1パックに入る除去は数枚だけ。ドラフトでは、早めに取っておくと差がつきます。</p></div><div class="pt"><span class="ic">③</span><b>カードの交換が得になる</b><p>自分の1枚で相手の強い1枚を倒せば、盤面が一気にこちらへ傾きます。</p></div></div>
+<h3 class="sub">除去の例</h3>
+<div class="exs"><figure><span class="cimg " data-name="Lightning Bolt"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Lightning%20Bolt" alt="Lightning Bolt" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Lightning Bolt</i></span><figcaption><b>稲妻</b>ダメージを与えて倒す（火力）</figcaption></figure><figure><span class="cimg " data-name="Pacifism"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Pacifism" alt="Pacifism" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Pacifism</i></span><figcaption><b>平和な心</b>攻撃もブロックもできなくする</figcaption></figure></div>
+<h3 class="sub">レアリティ（めずらしさ）</h3><p style="margin:0 0 8px;font-size:13.5px">カードの価値と、強さは別ものです。レアでなくても、強いカードはたくさんあります。</p>
+<div class="rarg"><div class="c"><b>コモン</b>いちばん多い。デッキの土台</div><div class="u"><b>アンコモン</b>ふつうより少なめ</div><div class="r"><b>レア</b>強力なものが多い</div><div class="m"><b>神話レア</b>最もめずらしい</div></div>
+<h3 class="sub">強いカードを数字で調べる</h3><p style="margin:0;font-size:14px">このサイトの<a href="../reports.html">環境レポート</a>では、17Landsの実戦データから、色ごと・レアリティごとのカードの勝率を確認できます。目安にするのは<b>GIH勝率</b>（そのカードが手札か戦場にあった試合の勝率）で、同じセットの中で平均より3ポイントほど高ければ強いカードです。</p></section>
+<section class="blk" id="next"><h2>次の一歩</h2><p class="lead">ここまで読めば、遊び始める準備は十分です。</p>
+<div class="cta"><a class="main" href="index.html#arena"><b>MTGアリーナを入れる</b><small>パソコンでもスマートフォンでも、無料で始められます。</small></a><a class="" href="../"><b>シールドを練習する</b><small>6パック分の仮想パックで、40枚デッキを組む練習。</small></a><a class="" href="../draft.html"><b>ドラフトを練習する</b><small>8人卓を再現した仮想ドラフトで、ピックの練習。</small></a><a class="" href="../reports.html"><b>環境レポートを見る</b><small>セットごとの強い色・強いカードを確認。</small></a></div>
+<p class="credit">カード画像とマナシンボルは Scryfall から読み込んでいます。Magic: The Gathering は Wizards of the Coast LLC の商標です。このサイトは非公式のファンサイトです。</p></section>
+
+<script>
+/* 日本語ページでは、Scryfall に日本語版の印刷があればその画像に差し替える（無ければ英語のまま） */
+(function(){
+  var boxes = [].slice.call(document.querySelectorAll(".cimg[data-name]"));
+  var done = {};
+  function pickImg(c){
+    if(c.image_uris) return c.image_uris.normal;
+    if(c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris) return c.card_faces[0].image_uris.normal;
+    return null;
+  }
+  function next(i){
+    if(i >= boxes.length) return;
+    var box = boxes[i], name = box.getAttribute("data-name");
+    var apply = function(url){ if(!url) return; [].slice.call(document.querySelectorAll('.cimg[data-name="' + name.replace(/"/g, '\\"') + '"] img')).forEach(function(im){ im.src = url; }); };
+    if(done[name] !== undefined){ next(i + 1); return; }
+    done[name] = null;
+    var q = '!"' + name + '" lang:ja';
+    fetch("https://api.scryfall.com/cards/search?unique=prints&order=released&dir=desc&q=" + encodeURIComponent(q))
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        var list = (d && d.data) || [];
+        for(var k = 0; k < list.length; k++){ var u = pickImg(list[k]); if(u){ done[name] = u; apply(u); break; } }
+      })
+      .catch(function(){})
+      .then(function(){ setTimeout(function(){ next(i + 1); }, 120); });
+  }
+  next(0);
+})();
+</script>
+
+</main>
+<footer>データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。<br><a href="../goods/index.html">日本の TCG サプライ（スリーブ・デッキケース）</a></footer>
+</body>
+</html>

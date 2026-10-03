@@ -21,17 +21,28 @@ const card = (name, cls = "") =>
 /* ------------------------------------------------------------------ 文面 */
 
 const JA = {
-  title: "はじめてのMTG｜マジック：ザ・ギャザリングとアリーナ、リミテッドを1ページで解説",
-  desc: "マジック：ザ・ギャザリング（MTG）とは何か、MTGアリーナの始め方、構築とリミテッドの違い、シールドとドラフト、40枚デッキの配分、リミテッドで除去が強い理由まで。初心者向けに図と画像でかみ砕いて1ページにまとめました。",
-  h1: "はじめてのMTG",
-  lead: "マジック：ザ・ギャザリングとは何か。アリーナで何をするのか。リミテッドとは。1ページで、ぱっとわかるようにまとめました。",
-  toc: [["what", "MTGとは"], ["colors", "5つの色"], ["types", "カードの種類"], ["read", "カードの見方"], ["arena", "MTGアリーナ"], ["formats", "フォーマット"], ["limited", "リミテッド"], ["deck", "40枚の配分"], ["removal", "除去が強い理由"], ["next", "次の一歩"]],
+  pages: {
+    mtg: {
+      title: "MTGとは｜マジック：ザ・ギャザリングの遊び方とMTGアリーナの始め方（初心者向け）",
+      desc: "マジック：ザ・ギャザリング（MTG）はどんなゲームか。5つの色、カードの種類と見方、構築とリミテッドの違い、パソコンとスマートフォンで遊べるMTGアリーナのインストールまで。初心者向けに図と画像でまとめました。",
+      h1: "MTGとは",
+      lead: "マジック：ザ・ギャザリングはどんなゲームか。カードの見方、フォーマット、MTGアリーナの始め方を、ぱっとわかるようにまとめました。",
+      toc: [["what", "どんなゲーム"], ["colors", "5つの色"], ["types", "カードの種類"], ["read", "カードの見方"], ["formats", "フォーマット"], ["arena", "MTGアリーナ"], ["official", "公式ページ"], ["next", "次の一歩"]]
+    },
+    limited: {
+      title: "リミテッドとは｜シールドとドラフト、40枚デッキの組み方と除去が強い理由（MTG初心者向け）",
+      desc: "MTGのリミテッド（シールド・ドラフト）とは何か。開けたパックだけでデッキを作る遊び方、40枚デッキの配分の目安、マナカーブ、リミテッドで除去が強い理由、カードの強さの調べ方を、初心者向けにまとめました。",
+      h1: "リミテッドとは",
+      lead: "開けたパックのカードだけで戦う「リミテッド」。シールドとドラフトの違い、40枚デッキの組み方、除去が強い理由を、1ページでまとめました。",
+      toc: [["limited", "リミテッドとは"], ["deck", "40枚の配分"], ["removal", "除去が強い理由"], ["next", "次の一歩"]]
+    }
+  },
 
   what: {
     h: "MTGって、どんなゲーム？",
-    lead: "1対1で遊ぶカードゲームです。自分でデッキ（カードの束）を組んで戦うところが一番の魅力です。",
+    lead: "基本は1対1で遊ぶカードゲームです。自分でデッキ（カードの束）を組んで戦うところが一番の魅力です。",
     points: [
-      ["⚔️", "2人で対戦", "おたがいにライフ20から始めます。相手のライフを0にすれば勝ち。"],
+      ["⚔️", "基本は1対1", "おたがいにライフ20から始め、相手のライフを0にすれば勝ち。2人1組で戦う形式や、3人以上で遊ぶ形式もあります。"],
       ["🃏", "デッキは自分で作る", "好きなカードを選んで、自分だけのデッキを組み立てます。"],
       ["🌍", "30年以上続く定番のTCG", "1993年に生まれたカードゲーム。大会も世界中で開かれています。"]
     ],
@@ -85,9 +96,12 @@ const JA = {
 
   arena: {
     h: "MTGアリーナ（デジタル版）で始める",
-    lead: "パソコンやスマートフォンで遊べる、MTGの公式デジタル版です。基本プレイ無料で、日本語に対応しています。",
+    lead: "MTGの公式デジタル版です。<b>パソコン（Windows・Mac）でも、スマートフォン・タブレット（iPhone・iPad・Android）でも</b>遊べて、基本プレイ無料、日本語に対応しています。PC版とスマホ版は、同じアカウントのデータで遊べます。",
+    installH: "インストールする",
+    install: [["💻", "パソコン（Windows・Mac）", "公式ページへ", "https://mtg-jp.com/mtgarena/"], ["📱", "iPhone・iPad", "App Store", "https://apps.apple.com/jp/app/magic-the-gathering-arena/id1496227521"], ["📱", "Android", "Google Play", "https://play.google.com/store/apps/details?id=com.wizards.mtga&hl=ja"]],
+    installNote: "対応する機種や必要な容量は、公式ページとストアの案内で確認してください。このサイトの練習ツールはスマートフォンでも使えますが、アリーナのログを読む補助ツールはパソコン専用です。",
     stepsH: "はじめの一歩",
-    steps: [["インストール", "公式サイトからアプリを入れて、アカウントを作ります。"], ["チュートリアル", "ゲーム内で、ルールを順に教えてくれます。"], ["カラーチャレンジ", "5色それぞれの無料デッキで、色の違いを体験できます。"], ["好きなモードへ", "対戦、ドラフト、シールドなどを選んで遊びます。"]],
+    steps: [["インストール", "上のボタンからアプリを入れて、アカウントを作ります。"], ["チュートリアル", "ゲーム内で、ルールを順に教えてくれます。"], ["カラーチャレンジ", "5色それぞれの無料デッキで、色の違いを体験できます。"], ["好きなモードへ", "対戦、ドラフト、シールドなどを選んで遊びます。"]],
     why: [
       ["ルールを自動で処理", "難しい判定はアプリがやってくれるので、遊びながら覚えられます。"],
       ["いつでも相手が見つかる", "世界中のプレイヤーと、好きな時間に対戦できます。"],
@@ -95,6 +109,19 @@ const JA = {
     ],
     moneyH: "覚えておきたい言葉",
     money: [["ゴールド", "遊ぶと貯まるゲーム内のお金。"], ["ジェム", "課金で買えるお金。ゴールドの代わりに使える場面も。"], ["ワイルドカード", "好きなカードに交換できるチケット。"]]
+  },
+
+  official: {
+    h: "公式ページで、もっと学ぶ",
+    lead: "ルールや用語を詳しく知りたいときは、公式サイトが一番確かです。",
+    list: [
+      ["スタートガイド", "動画で、マジックとは何かから順に学べます。", "https://mtg-jp.com/startguide/"],
+      ["遊び方", "ゲームの流れと基本ルールの解説。", "https://mtg-jp.com/howtoplay"],
+      ["マジックの基礎知識", "カードの種類や用語を調べられます。", "https://mtg-jp.com/startguide/knowledge"],
+      ["基本用語集", "分からない言葉を引けます。", "https://mtg-jp.com/startguide/glossary/"],
+      ["フォーマット一覧", "構築・リミテッド・チーム戦などの種類。", "https://mtg-jp.com/gameplay/format/"],
+      ["ウェルカムデッキ配布店舗", "実際のカードで始めたい方向け。", "https://mtg-jp.com/shop/"]
+    ]
   },
 
   formats: {
@@ -108,7 +135,8 @@ const JA = {
       ["アリーナの例", "スタンダード、エクスプローラー、ヒストリック など", "ドラフト、シールド"],
       ["向いている人", "強いデッキを研究して育てたい", "すぐ始めたい、カードを集めたくない"]
     ],
-    note: "どちらにも面白さがあります。このサイトは<b>リミテッド</b>を専門に扱っています。"
+    note: "どちらにも面白さがあります。このサイトは<b>リミテッド</b>を専門に扱っています。",
+    multi: "ほかに、2人1組で戦う<b>双頭巨人戦</b>（チームでライフ30を共有）や、3人以上で遊ぶ<b>コマンダー</b>など、人数の違う遊び方もあります。ただし、アリーナのリミテッドは<b>1対1</b>が基本です。"
   },
 
   limited: {
@@ -158,8 +186,12 @@ const JA = {
   next: {
     h: "次の一歩",
     lead: "ここまで読めば、遊び始める準備は十分です。",
+    mtgList: [
+      ["リミテッドとは", "このサイトが扱う「リミテッド」を、40枚デッキの組み方まで解説。", "limited.html", true],
+      ["MTGアリーナを入れる", "パソコンでもスマートフォンでも、無料で始められます。", "#arena", false]
+    ],
     list: [
-      ["MTGアリーナを入れる", "公式サイトで、無料で始められます。", "https://magic.wizards.com/ja/mtgarena", true],
+      ["MTGアリーナを入れる", "パソコンでもスマートフォンでも、無料で始められます。", "index.html#arena", true],
       ["シールドを練習する", "6パック分の仮想パックで、40枚デッキを組む練習。", "../", false],
       ["ドラフトを練習する", "8人卓を再現した仮想ドラフトで、ピックの練習。", "../draft.html", false],
       ["環境レポートを見る", "セットごとの強い色・強いカードを確認。", "../reports.html", false]
@@ -172,17 +204,28 @@ const JA = {
 };
 
 const EN = {
-  title: "MTG for Beginners | Magic: The Gathering, MTG Arena and Limited in one page",
-  desc: "What Magic: The Gathering is, how to start on MTG Arena, Constructed vs Limited, Sealed and Draft, how a 40-card deck is built, and why removal is so strong in Limited. A one-page illustrated guide for beginners.",
-  h1: "MTG for beginners",
-  lead: "What Magic: The Gathering is, what you do on Arena, and what Limited means — all on one page you can take in at a glance.",
-  toc: [["what", "What is MTG"], ["colors", "Five colors"], ["types", "Card types"], ["read", "Reading a card"], ["arena", "MTG Arena"], ["formats", "Formats"], ["limited", "Limited"], ["deck", "40-card deck"], ["removal", "Why removal"], ["next", "Next steps"]],
+  pages: {
+    mtg: {
+      title: "What is Magic: The Gathering? How to play and start on MTG Arena (beginners)",
+      desc: "What kind of game Magic: The Gathering is: the five colors, card types and how to read a card, Constructed vs Limited, and how to install MTG Arena on PC and mobile. An illustrated guide for beginners.",
+      h1: "What is MTG?",
+      lead: "What kind of game Magic: The Gathering is, how to read a card, the formats, and how to start on MTG Arena — at a glance.",
+      toc: [["what", "The game"], ["colors", "Five colors"], ["types", "Card types"], ["read", "Reading a card"], ["formats", "Formats"], ["arena", "MTG Arena"], ["official", "Official pages"], ["next", "Next steps"]]
+    },
+    limited: {
+      title: "What is Limited? Sealed and Draft, building a 40-card deck, and why removal is strong (MTG beginners)",
+      desc: "What MTG Limited (Sealed and Draft) is: building a deck from the packs you open, a guide to a 40-card deck, the mana curve, why removal is so strong in Limited, and how to find which cards are strong.",
+      h1: "What is Limited?",
+      lead: "Limited means playing with only the cards from packs you open. Sealed vs Draft, how to build 40 cards, and why removal is strong — on one page.",
+      toc: [["limited", "What is Limited"], ["deck", "40-card deck"], ["removal", "Why removal"], ["next", "Next steps"]]
+    }
+  },
 
   what: {
     h: "What kind of game is Magic?",
-    lead: "A card game for two players. The best part is building your own deck.",
+    lead: "A card game usually played one-on-one. The best part is building your own deck.",
     points: [
-      ["⚔️", "Two players", "Both start at 20 life. Bring your opponent to 0 and you win."],
+      ["⚔️", "Usually one-on-one", "Both start at 20 life; bring your opponent to 0 and you win. There are also team formats for pairs, and formats for three or more players."],
       ["🃏", "You build the deck", "Pick the cards you like and put together a deck that is yours."],
       ["🌍", "30+ years and still going", "Created in 1993, with tournaments held all over the world."]
     ],
@@ -236,9 +279,12 @@ const EN = {
 
   arena: {
     h: "Starting on MTG Arena",
-    lead: "The official digital version of Magic for PC and mobile. Free to play to start, and available in Japanese and English.",
+    lead: "The official digital version of Magic. It runs on <b>PC (Windows and Mac) and on phones and tablets (iPhone, iPad and Android)</b>, and it is free to play to start. Your account works across PC and mobile.",
+    installH: "Install it",
+    install: [["💻", "PC (Windows / Mac)", "Official page", "https://magic.wizards.com/en/mtgarena"], ["📱", "iPhone / iPad", "App Store", "https://apps.apple.com/app/id1496227521"], ["📱", "Android", "Google Play", "https://play.google.com/store/apps/details?id=com.wizards.mtga&hl=en_US"]],
+    installNote: "Check the official page and the store listing for supported devices and storage. The practice tools on this site work on a phone; the helper tools that read Arena's log are PC only.",
     stepsH: "Your first steps",
-    steps: [["Install", "Get the app from the official site and create an account."], ["Tutorial", "The game teaches you the rules step by step."], ["Color Challenge", "Try free decks in each of the five colors."], ["Pick a mode", "Play matches, Draft, Sealed and more."]],
+    steps: [["Install", "Get the app with the buttons above and create an account."], ["Tutorial", "The game teaches you the rules step by step."], ["Color Challenge", "Try free decks in each of the five colors."], ["Pick a mode", "Play matches, Draft, Sealed and more."]],
     why: [
       ["Rules handled for you", "The app resolves the hard parts, so you learn as you play."],
       ["Always an opponent", "Play people around the world whenever you like."],
@@ -246,6 +292,17 @@ const EN = {
     ],
     moneyH: "Words worth knowing",
     money: [["Gold", "In-game money you earn by playing."], ["Gems", "Money you can buy. Sometimes usable instead of gold."], ["Wildcards", "Tickets you trade for the cards of your choice."]]
+  },
+
+  official: {
+    h: "Learn more on the official site",
+    lead: "For the full rules and terms, the official site is the most reliable place.",
+    list: [
+      ["What is Magic?", "An introduction from Wizards of the Coast.", "https://magic.wizards.com/en/intro"],
+      ["How to play", "The flow of a game and the basic rules.", "https://magic.wizards.com/en/how-to-play"],
+      ["MTG Arena", "The official page, with downloads.", "https://magic.wizards.com/en/mtgarena"],
+      ["Getting started on Arena", "The official step-by-step start.", "https://magic.wizards.com/en/mtgarena/getting-started"]
+    ]
   },
 
   formats: {
@@ -259,7 +316,8 @@ const EN = {
       ["On Arena", "Standard, Explorer, Historic, etc.", "Draft, Sealed"],
       ["Good if you", "Want to research and refine strong decks", "Want to start now without collecting"]
     ],
-    note: "Both are fun. This site focuses on <b>Limited</b>."
+    note: "Both are fun. This site focuses on <b>Limited</b>.",
+    multi: "There are also formats with a different number of players, such as <b>Two-Headed Giant</b> (pairs share 30 life) and <b>Commander</b> (three or more). Limited on Arena, though, is <b>one-on-one</b>."
   },
 
   limited: {
@@ -309,8 +367,12 @@ const EN = {
   next: {
     h: "Next steps",
     lead: "You now have enough to get started.",
+    mtgList: [
+      ["What is Limited?", "The format this site covers, down to how to build 40 cards.", "limited.en.html", true],
+      ["Install MTG Arena", "Free to start, on PC or your phone.", "#arena", false]
+    ],
     list: [
-      ["Install MTG Arena", "Free to start from the official site.", "https://magic.wizards.com/en/mtgarena", true],
+      ["Install MTG Arena", "Free to start, on PC or your phone.", "index.en.html#arena", true],
       ["Practice Sealed", "Build a 40-card deck from six virtual packs.", "../", false],
       ["Practice Draft", "Practice picking in a simulated eight-player pod.", "../draft.html", false],
       ["Read the set reports", "See the strong colors and cards for each set.", "../reports.html", false]
@@ -438,6 +500,12 @@ const css = `<style>
   .cta a small{font-size:12.5px;color:var(--muted);line-height:1.5}
   .cta a.main{background:var(--gold);border-color:var(--gold)}
   .cta a.main b,.cta a.main small{color:#fff}
+  .inst{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:0 0 4px}
+  .inst a{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;background:var(--gold);color:#fff;text-decoration:none;border-radius:12px;padding:14px 12px;box-shadow:0 6px 16px -10px rgba(47,125,246,.9)}
+  .inst a:hover{background:#1F6AE0}
+  .inst .ii{font-size:24px;line-height:1.1}
+  .inst b{font-size:14.5px}
+  .inst small{font-size:12px;opacity:.9}
   .more{font-size:13px;margin:14px 0 0;padding-left:1.2em}
   .more a,.blk p a{color:var(--pine)}
   details.gl{margin:0 0 22px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 20px}
@@ -453,107 +521,109 @@ const css = `<style>
   }
 </style>`;
 
-function page(lang){
+function page(lang, kind){
   const T = lang === "ja" ? JA : EN;
   const en = lang === "en";
-  const self = en ? "index.en.html" : "index.html";
+  const P = T.pages[kind];
+  const base = kind === "mtg" ? "index" : "limited";
+  const self = `${base}${en ? ".en" : ""}.html`;
   const canonical = `${SITE}/start/${self}`;
-  const head = `<title>${esc(T.title)}</title>
-<meta name="description" content="${esc(T.desc)}">
+  const head = `<title>${esc(P.title)}</title>
+<meta name="description" content="${esc(P.desc)}">
 <link rel="canonical" href="${canonical}">
-<link rel="alternate" hreflang="ja" href="${SITE}/start/index.html">
-<link rel="alternate" hreflang="en" href="${SITE}/start/index.en.html">
-<meta property="og:title" content="${esc(T.title)}">
-<meta property="og:description" content="${esc(T.desc)}">
+<link rel="alternate" hreflang="ja" href="${SITE}/start/${base}.html">
+<link rel="alternate" hreflang="en" href="${SITE}/start/${base}.en.html">
+<meta property="og:title" content="${esc(P.title)}">
+<meta property="og:description" content="${esc(P.desc)}">
 <meta property="og:url" content="${canonical}">
 ${css}`;
-  const header = `    <h1>${esc(T.h1)}</h1>
-    <p>${esc(T.lead)}</p>`;
+  const header = `    <h1>${esc(P.h1)}</h1>
+    <p>${esc(P.lead)}</p>`;
 
-  const w = T.what, c = T.colors, ty = T.types, r = T.read, a = T.arena, f = T.formats, l = T.limited, d = T.deck, rm = T.removal, n = T.next;
+  const w = T.what, c = T.colors, ty = T.types, r = T.read, a = T.arena, f = T.formats, l = T.limited, d = T.deck, rm = T.removal, n = T.next, of = T.official;
+  const S = {};
 
-  const sections = [];
-
-  // 1. MTGとは
-  sections.push(`<section class="blk" id="what"><h2>${w.h}</h2><p class="lead">${w.lead}</p>
+  S.what = `<section class="blk" id="what"><h2>${w.h}</h2><p class="lead">${w.lead}</p>
 <div class="cards3">${w.points.map(p => `<div class="pt"><span class="ic">${p[0]}</span><b>${p[1]}</b><p>${p[2]}</p></div>`).join("")}</div>
 <h3 class="sub">${w.flowH}</h3>
 <ol class="flow">${w.flow.map(s => `<li><b>${s[0]}</b>${s[1]}</li>`).join("")}</ol>
-<p class="note">${w.flowNote}</p></section>`);
+<p class="note">${w.flowNote}</p></section>`;
 
-  // 2. 5色
-  sections.push(`<section class="blk" id="colors"><h2>${c.h}</h2><p class="lead">${c.lead}</p>
+  S.colors = `<section class="blk" id="colors"><h2>${c.h}</h2><p class="lead">${c.lead}</p>
 <div class="colors">${c.list.map(x => `<div class="col ${x[0]}"><div class="nm">${SYM(x[0]).replace('width="22" height="22"', 'width="30" height="30"')}${x[1]}</div><div class="tg">${x[2]}</div><p>${x[3]}</p></div>`).join("")}</div>
-<p class="note">${c.note}</p></section>`);
+<p class="note">${c.note}</p></section>`;
 
-  // 3. カードの種類
-  sections.push(`<section class="blk" id="types"><h2>${ty.h}</h2><p class="lead">${ty.lead}</p>
-<div class="types">${ty.list.map(x => `<div class="ty">${card(x[0])}<div class="tn">${en ? x[2] : x[2]}<small>${en ? x[1] : x[1] + "（" + x[0] + "）"}</small></div><p>${x[3]}</p></div>`).join("")}</div></section>`);
+  S.types = `<section class="blk" id="types"><h2>${ty.h}</h2><p class="lead">${ty.lead}</p>
+<div class="types">${ty.list.map(x => `<div class="ty">${card(x[0])}<div class="tn">${x[2]}<small>${en ? x[1] : x[1] + "（" + x[0] + "）"}</small></div><p>${x[3]}</p></div>`).join("")}</div></section>`;
 
-  // 4. カードの見方（番号バッジを標準のカード枠の位置に重ねる）
   const badges = [[11, 5.8], [88, 5.8], [50, 30], [11, 57.5], [50, 74], [89, 92.5]];
-  sections.push(`<section class="blk" id="read"><h2>${r.h}</h2><p class="lead">${r.lead}</p>
+  S.read = `<section class="blk" id="read"><h2>${r.h}</h2><p class="lead">${r.lead}</p>
 <div class="anat"><div class="cardwrap">${card("Serra Angel")}${badges.map((b, i) => `<span class="badge" style="left:${b[0]}%;top:${b[1]}%">${i + 1}</span>`).join("")}</div>
 <div><ol>${r.items.map(x => `<li><span>${x[0]}</span>${x[1]}</li>`).join("")}</ol>
-<h3 class="sub" style="margin-top:6px">${r.costH}</h3><p style="margin:0 0 8px">${r.costBody}</p><p style="margin:0">${r.ptBody}</p></div></div></section>`);
+<h3 class="sub" style="margin-top:6px">${r.costH}</h3><p style="margin:0 0 8px">${r.costBody}</p><p style="margin:0">${r.ptBody}</p></div></div></section>`;
 
-  // 5. アリーナ
-  sections.push(`<section class="blk" id="arena"><h2>${a.h}</h2><p class="lead">${a.lead}</p>
-<h3 class="sub" style="margin-top:6px">${a.stepsH}</h3>
+  S.formats = `<section class="blk" id="formats"><h2>${f.h}</h2><p class="lead">${f.lead}</p>
+<table class="cmp"><thead><tr>${f.colH.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>
+${f.rows.map(x => `<tr><th>${x[0]}</th><td>${x[1]}</td><td>${x[2]}</td></tr>`).join("\n")}</tbody></table>
+<p class="note">${f.multi}</p><p class="note">${f.note}</p></section>`;
+
+  S.arena = `<section class="blk" id="arena"><h2>${a.h}</h2><p class="lead">${a.lead}</p>
+<h3 class="sub" style="margin-top:6px">${a.installH}</h3>
+<div class="inst">${a.install.map(x => `<a href="${x[3]}" target="_blank" rel="noopener"><span class="ii">${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></a>`).join("")}</div>
+<p class="note">${a.installNote}</p>
+<h3 class="sub">${a.stepsH}</h3>
 <ol class="steps">${a.steps.map(s => `<li><b>${s[0]}</b>${s[1]}</li>`).join("")}</ol>
 <div class="cards3" style="margin-top:16px">${a.why.map(p => `<div class="pt"><b>${p[0]}</b><p>${p[1]}</p></div>`).join("")}</div>
 <h3 class="sub">${a.moneyH}</h3>
-<div class="cards3">${a.money.map(p => `<div class="pt"><b>${p[0]}</b><p>${p[1]}</p></div>`).join("")}</div></section>`);
+<div class="cards3">${a.money.map(p => `<div class="pt"><b>${p[0]}</b><p>${p[1]}</p></div>`).join("")}</div></section>`;
 
-  // 6. フォーマット
-  sections.push(`<section class="blk" id="formats"><h2>${f.h}</h2><p class="lead">${f.lead}</p>
-<table class="cmp"><thead><tr>${f.colH.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>
-${f.rows.map(x => `<tr><th>${x[0]}</th><td>${x[1]}</td><td>${x[2]}</td></tr>`).join("\n")}</tbody></table>
-<p class="note">${f.note}</p></section>`);
+  S.official = `<section class="blk" id="official"><h2>${of.h}</h2><p class="lead">${of.lead}</p>
+<div class="cta">${of.list.map(x => `<a href="${x[2]}" target="_blank" rel="noopener"><b>${x[0]} ↗</b><small>${x[1]}</small></a>`).join("")}</div></section>`;
 
-  // 7. リミテッド
-  sections.push(`<section class="blk" id="limited"><h2>${l.h}</h2><p class="lead">${l.lead}</p>
+  S.limited = `<section class="blk" id="limited"><h2>${l.h}</h2><p class="lead">${l.lead}</p>
 <div class="two">${l.cols.map(x => `<div class="box"><h3>${x[0]}</h3><p style="margin:0;font-size:13.5px">${x[1]}</p><ul>${x[2].map(i => `<li>${i}</li>`).join("")}</ul></div>`).join("")}</div>
-<p class="note"><b>${l.tipH}</b>　${l.tip}</p></section>`);
+<p class="note"><b>${l.tipH}</b>　${l.tip}</p></section>`;
 
-  // 8. 40枚の配分
   const total = d.bar.reduce((s, x) => s + x[1], 0), maxC = Math.max(...d.curve.map(x => x[1]));
-  sections.push(`<section class="blk" id="deck"><h2>${d.h}</h2><p class="lead">${d.lead}</p>
+  S.deck = `<section class="blk" id="deck"><h2>${d.h}</h2><p class="lead">${d.lead}</p>
 <div class="stack">${d.bar.map((x, i) => `<div class="s${i}" style="width:${(x[1] / total * 100).toFixed(1)}%"><b>${x[1]}</b>${x[0]}</div>`).join("")}</div>
 <p style="font-size:13px;color:var(--muted);margin:8px 0 18px">${d.barNote}</p>
 <h3 class="sub">${d.curveH}</h3>
 <div class="curve">${d.curve.map(x => `<div style="height:${Math.round(x[1] / maxC * 100)}%"><b>${x[1]}</b></div>`).join("")}</div>
 <div class="curvelab">${d.curve.map(x => `<span>${x[0]}${en ? " mana" : "マナ"}</span>`).join("")}</div>
 <p style="font-size:13px;color:var(--muted);margin:8px 0 14px">${d.curveNote}</p>
-<div class="cards3">${d.tips.map(p => `<div class="pt"><span class="ic">${p[0]}</span><b>${p[1]}</b><p>${p[2]}</p></div>`).join("")}</div></section>`);
+<div class="cards3">${d.tips.map(p => `<div class="pt"><span class="ic">${p[0]}</span><b>${p[1]}</b><p>${p[2]}</p></div>`).join("")}</div></section>`;
 
-  // 9. 除去
-  sections.push(`<section class="blk" id="removal"><h2>${rm.h}</h2><p class="lead">${rm.lead}</p>
+  S.removal = `<section class="blk" id="removal"><h2>${rm.h}</h2><p class="lead">${rm.lead}</p>
 <h3 class="sub" style="margin-top:6px">${rm.reasonsH}</h3>
 <div class="cards3">${rm.reasons.map((p, i) => `<div class="pt"><span class="ic">${["①", "②", "③"][i]}</span><b>${p[0]}</b><p>${p[1]}</p></div>`).join("")}</div>
 <h3 class="sub">${rm.exH}</h3>
-<div class="exs">${rm.ex.map(x => `<figure>${card(x[0])}<figcaption><b>${en ? x[1] : x[1]}</b>${x[2]}</figcaption></figure>`).join("")}</div>
+<div class="exs">${rm.ex.map(x => `<figure>${card(x[0])}<figcaption><b>${x[1]}</b>${x[2]}</figcaption></figure>`).join("")}</div>
 <h3 class="sub">${rm.rarityH}</h3><p style="margin:0 0 8px;font-size:13.5px">${rm.rarityLead}</p>
 <div class="rarg">${rm.rarity.map(x => `<div class="${x[1]}"><b>${x[0]}</b>${x[2]}</div>`).join("")}</div>
-<h3 class="sub">${rm.dataH}</h3><p style="margin:0;font-size:14px">${rm.data.replace(/href="\.\.\/reports(\.en)?\.html"/, `href="../reports.html"`)}</p></section>`);
+<h3 class="sub">${rm.dataH}</h3><p style="margin:0;font-size:14px">${rm.data.replace(/href="\.\.\/reports(\.en)?\.html"/, `href="../reports.html"`)}</p></section>`;
 
-  // 10. 次の一歩
-  sections.push(`<section class="blk" id="next"><h2>${n.h}</h2><p class="lead">${n.lead}</p>
-<div class="cta">${n.list.map(x => `<a class="${x[3] ? "main" : ""}" href="${x[2]}"${x[3] ? ` target="_blank" rel="noopener"` : ""}><b>${x[0]}</b><small>${x[1]}</small></a>`).join("")}</div>
-<p class="credit">${n.credit}</p></section>`);
+  const nextList = kind === "mtg" ? n.mtgList : n.list;
+  S.next = `<section class="blk" id="next"><h2>${n.h}</h2><p class="lead">${n.lead}</p>
+<div class="cta">${nextList.map(x => `<a class="${x[3] ? "main" : ""}" href="${x[2]}"><b>${x[0]}</b><small>${x[1]}</small></a>`).join("")}</div>
+<p class="credit">${n.credit}</p></section>`;
+
+  const order = kind === "mtg"
+    ? ["what", "colors", "types", "read", "formats", "arena", "official", "next"]
+    : ["limited", "deck", "removal", "next"];
 
   const gloss = `<details class="gl"><summary>${T.glossH}</summary><dl>${T.gloss.map(x => `<dt>${x[0]}</dt><dd>${x[1]}</dd>`).join("")}</dl></details>`;
-  const toc = `<ul class="toc">${T.toc.map(x => `<li><a href="#${x[0]}">${x[1]}</a></li>`).join("")}</ul>`;
-  const main = `${toc}\n${sections.join("\n")}\n${gloss}${en ? "" : JS_JA}`;
+  const toc = `<ul class="toc">${P.toc.map(x => `<li><a href="#${x[0]}">${x[1]}</a></li>`).join("")}</ul>`;
+  const main = `${toc}\n${order.map(k => S[k]).join("\n")}\n${kind === "mtg" ? gloss : ""}${en ? "" : JS_JA}`;
 
-  return shell(lang, "index", head, { header, main, noGoods: true });
+  return shell(lang, base, head, { header, main, noGoods: true });
 }
 
 await mkdir("start", { recursive: true });
-for(const lang of ["ja", "en"]){
-  let html = page(lang);
-  // 英語ページの言語切り替えと内部リンク（レポートは英語版へ）
-  if(lang === "en") html = html.replaceAll('href="../reports.html"', 'href="../reports.html"');
-  await writeFile(`start/index${lang === "en" ? ".en" : ""}.html`, html, "utf8");
+for(const kind of ["mtg", "limited"]){
+  for(const lang of ["ja", "en"]){
+    const base = kind === "mtg" ? "index" : "limited";
+    await writeFile(`start/${base}${lang === "en" ? ".en" : ""}.html`, page(lang, kind), "utf8");
+  }
 }
-console.log("入門ページを作りました: start/index.html, start/index.en.html");
+console.log("入門ページを作りました: start/index(.en).html（MTGとは）, start/limited(.en).html（リミテッドとは）");
