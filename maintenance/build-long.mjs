@@ -304,7 +304,7 @@ function buildScript(ctx){
   }
 
   scenes.push({ kind: "outro", art: true, chapter: null,
-    say: `次のセットも出すので、チャンネル登録をお願いします。`, tail: 1.0 });
+    say: `次のセットも出すので、チャンネル登録をお願いします。`, tail: 9 });
   return scenes;
 }
 
@@ -560,11 +560,9 @@ function sceneSvg(sc){
       return frame(s, sc);
     }
     case "outro": {
-      // 締めは「チャンネル登録をお願いします」だけ。クレジットや表記は概要欄に置く
-      return frame(
-        TS(W / 2, 420, "チャンネル登録をお願いします", { size: 108, anchor: "middle" }) +
-        `<rect x="${W / 2 - 340}" y="520" width="680" height="140" rx="70" fill="#E53935" stroke="#FFFFFF" stroke-width="6"/>` +
-        T(W / 2, 612, "▶ チャンネル登録", { size: 64, weight: 900, anchor: "middle", fill: "#FFFFFF" }), sc, { header: false });
+      // 締めは「チャンネル登録をお願いします」だけ。画面の下半分は、YouTube Studio の「終了画面」で
+      // 登録ボタンと次の動画を重ねるために、あえて空けてある（動画の絵としての登録ボタンは描かない）
+      return frame(TS(W / 2, 300, "チャンネル登録をお願いします", { size: 100, anchor: "middle" }), sc, { header: false });
     }
   }
   return frame("", sc);
