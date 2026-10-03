@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ミュータント タートルズ（TMT）リミテッド環境レポート｜MTGアリーナ ドラフト・シールドの勝率 — MTGアリーナ リミテッド・ワークベンチ</title>
-<meta name="description" content="MTGアリーナ「ミュータント タートルズ（TMT）」のドラフト・シールド環境を、17Landsの実戦データ（237,044試合）から読み解きます。環境の速さ、強い色、勝率の高い2色の組み合わせ、コモン・アンコモン・レアの強いカード、カード評価の一覧。">
+<title>ミュータント タートルズ（TMT）リミテッド カード点数ランキング・評価｜勝率で見る強いカード — MTGアリーナ リミテッド・ワークベンチ</title>
+<meta name="description" content="MTGアリーナ「ミュータント タートルズ（TMT）」のリミテッド（ドラフト・シールド）で強いカードを、17Landsの実戦データ（237,044試合）の勝率で採点。コモン・アンコモン・レア別のカード点数ランキングに加えて、環境の速さ、強い色、勝率の高い2色の組み合わせも分かります。">
 <link rel="canonical" href="https://sealed-workbench.com/sets/TMT.html">
 <link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/TMT.html">
 <link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/TMT.en.html">
 <link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/TMT.html">
-<meta property="og:title" content="ミュータント タートルズ（TMT）リミテッド環境レポート｜MTGアリーナ ドラフト・シールドの勝率">
-<meta property="og:description" content="MTGアリーナ「ミュータント タートルズ（TMT）」のドラフト・シールド環境を、17Landsの実戦データ（237,044試合）から読み解きます。環境の速さ、強い色、勝率の高い2色の組み合わせ、コモン・アンコモン・レアの強いカード、カード評価の一覧。">
+<meta property="og:title" content="ミュータント タートルズ（TMT）リミテッド カード点数ランキング・評価｜勝率で見る強いカード">
+<meta property="og:description" content="MTGアリーナ「ミュータント タートルズ（TMT）」のリミテッド（ドラフト・シールド）で強いカードを、17Landsの実戦データ（237,044試合）の勝率で採点。コモン・アンコモン・レア別のカード点数ランキングに加えて、環境の速さ、強い色、勝率の高い2色の組み合わせも分かります。">
 <meta property="og:url" content="https://sealed-workbench.com/sets/TMT.html">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
@@ -23,6 +23,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <script src="../analytics.js"></script>
+<script src="/navmenu.js" defer></script>
+<script src="/tip.js" defer></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#10304F">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Workbench">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
 <style>
   :root{--pine:#10304F;--pine-deep:#0A2038;--paper:#F5F8FC;--paper-2:#E8EEF6;--ink:#0D1B2A;--muted:#5C7185;--gold:#2F7DF6;--line:#D3DFEB;
         --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:8px}
@@ -117,6 +129,9 @@
   .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}
   footer a{color:var(--muted)}
+  .faq details{border-bottom:1px solid var(--line,#D7E2EE);padding:10px 2px}
+  .faq summary{cursor:pointer;font-weight:700;font-size:14.5px}
+  .faq p{margin:8px 0 2px;font-size:14px;line-height:1.8}
   @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
 </style>
 </head>
@@ -136,8 +151,8 @@
       <div class="ng"><span class="ngl">対戦する</span><span class="ngs">友達との対戦・大会の進行</span><a href="../table.html">対戦卓</a><a href="../swiss.html">スイスドロー</a></div>
       <div class="ng"><span class="ngl">買う</span><span class="ngs">日本で買えるMTG用品</span><a href="../goods/index.html">日本のサプライ</a></div>
     </nav>
-    <h1>ミュータント タートルズ｜リミテッド環境レポート <small class="code">TMT</small></h1>
-    <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。　発売 2026-03-06</p>
+    <h1>ミュータント タートルズ｜リミテッド カード点数ランキングと環境レポート <small class="code">TMT</small></h1>
+    <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。カードの点数（評価）は、この勝率で見られます。　発売 2026-03-06</p>
     <link rel="alternate" hreflang="en" href="TMT.en.html">
   </div>
 </header>
@@ -194,10 +209,10 @@
     <tr><td>7+</td><td class="num"><b>61.3%</b></td><td class="num">6</td><td class="num">31,213</td></tr>
     </tbody></table>
   </section>
-  <section><h3>レアリティ別の強いカード</h3><p class="lead">GIH勝率（そのカードが手札か戦場にあった試合の勝率）の高い順です。</p>
+  <section><h3>カード点数ランキング（レアリティ別）</h3><p class="lead">カードの「点数」は、実際の勝率（GIH勝率：そのカードが手札か戦場にあった試合の勝率）で見ます。高いほど強いカードです。レアリティごとに高い順に並べています。</p>
     <div class="grid">
       <div><h3><span class="rar mythic">神話レア</span></h3>
-      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--m)"></span>ラスト・ローニン</td><td class="num"><b>70.0%</b></td><td class="num">4,395</td></tr>
       <tr><td><span class="dot" style="background:var(--m)"></span>北風の守護者</td><td class="num"><b>63.5%</b></td><td class="num">4,133</td></tr>
       <tr><td><span class="dot" style="background:var(--m)"></span>ダーク・レオとシュレッダー</td><td class="num"><b>63.3%</b></td><td class="num">2,743</td></tr>
@@ -210,7 +225,7 @@
       <tr><td><span class="dot" style="background:var(--g)"></span>即興役者、ミケランジェロ</td><td class="num"><b>58.5%</b></td><td class="num">1,719</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">レア</span></h3>
-      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--w)"></span>ライオンクイーン、サリー・プライド</td><td class="num"><b>70.6%</b></td><td class="num">6,182</td></tr>
       <tr><td><span class="dot" style="background:var(--u)"></span>ハクティビスト、エイプリル・オニール</td><td class="num"><b>65.7%</b></td><td class="num">7,187</td></tr>
       <tr><td><span class="dot" style="background:var(--b)"></span>未来のサメ、アルマゴン</td><td class="num"><b>65.5%</b></td><td class="num">5,531</td></tr>
@@ -223,7 +238,7 @@
       <tr><td><span class="dot" style="background:var(--g)"></span>沼地のハンター、レザーヘッド</td><td class="num"><b>62.9%</b></td><td class="num">4,877</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">アンコモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--w)"></span>マイティ・ミュータニマルズ</td><td class="num"><b>65.6%</b></td><td class="num">16,681</td></tr>
       <tr><td><span class="dot" style="background:var(--b)"></span>悪夢のビーバー</td><td class="num"><b>65.3%</b></td><td class="num">15,180</td></tr>
       <tr><td><span class="dot" style="background:var(--m)"></span>ごちゃまぜピザ</td><td class="num"><b>65.1%</b></td><td class="num">20,847</td></tr>
@@ -236,7 +251,7 @@
       <tr><td><span class="dot" style="background:var(--m)"></span>人生の学び</td><td class="num"><b>61.6%</b></td><td class="num">14,774</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">コモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--g)"></span>カエルの執事</td><td class="num"><b>62.2%</b></td><td class="num">35,241</td></tr>
       <tr><td><span class="dot" style="background:var(--r)"></span>マウサー製造工場</td><td class="num"><b>60.9%</b></td><td class="num">33,570</td></tr>
       <tr><td><span class="dot" style="background:var(--r)"></span>マンホールミサイル</td><td class="num"><b>60.9%</b></td><td class="num">32,645</td></tr>
@@ -302,10 +317,10 @@
     <tr><td>7+</td><td class="num"><b>60.3%</b></td><td class="num">5</td><td class="num">5,348</td></tr>
     </tbody></table>
   </section>
-  <section><h3>レアリティ別の強いカード</h3><p class="lead">GIH勝率（そのカードが手札か戦場にあった試合の勝率）の高い順です。</p>
+  <section><h3>カード点数ランキング（レアリティ別）</h3><p class="lead">カードの「点数」は、実際の勝率（GIH勝率：そのカードが手札か戦場にあった試合の勝率）で見ます。高いほど強いカードです。レアリティごとに高い順に並べています。</p>
     <div class="grid">
       <div><h3><span class="rar mythic">神話レア</span></h3>
-      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--m)"></span>ラスト・ローニン</td><td class="num"><b>70.0%</b></td><td class="num">1,610</td></tr>
       <tr><td><span class="dot" style="background:var(--m)"></span>ダーク・レオとシュレッダー</td><td class="num"><b>65.7%</b></td><td class="num">1,270</td></tr>
       <tr><td><span class="dot" style="background:var(--w)"></span>トリケラトンの指揮官</td><td class="num"><b>64.1%</b></td><td class="num">1,384</td></tr>
@@ -318,7 +333,7 @@
       <tr><td><span class="dot" style="background:var(--c)"></span>ユートロムの武人、クランゲ</td><td class="num"><b>54.7%</b></td><td class="num">770</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">レア</span></h3>
-      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--w)"></span>ライオンクイーン、サリー・プライド</td><td class="num"><b>70.5%</b></td><td class="num">1,440</td></tr>
       <tr><td><span class="dot" style="background:var(--u)"></span>ハクティビスト、エイプリル・オニール</td><td class="num"><b>67.1%</b></td><td class="num">958</td></tr>
       <tr><td><span class="dot" style="background:var(--w)"></span>黒服の男、エージェント・ビショップ</td><td class="num"><b>66.7%</b></td><td class="num">1,239</td></tr>
@@ -331,7 +346,7 @@
       <tr><td><span class="dot" style="background:var(--u)"></span>ドラゴンの娘、キツネ</td><td class="num"><b>62.7%</b></td><td class="num">798</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">アンコモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--m)"></span>メタルヘッド</td><td class="num"><b>65.9%</b></td><td class="num">1,573</td></tr>
       <tr><td><span class="dot" style="background:var(--w)"></span>マイティ・ミュータニマルズ</td><td class="num"><b>65.5%</b></td><td class="num">2,493</td></tr>
       <tr><td><span class="dot" style="background:var(--m)"></span>ごちゃまぜピザ</td><td class="num"><b>65.1%</b></td><td class="num">1,704</td></tr>
@@ -344,7 +359,7 @@
       <tr><td><span class="dot" style="background:var(--m)"></span>人生の学び</td><td class="num"><b>62.5%</b></td><td class="num">1,282</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">コモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--r)"></span>マンホールミサイル</td><td class="num"><b>61.6%</b></td><td class="num">3,031</td></tr>
       <tr><td><span class="dot" style="background:var(--g)"></span>カエルの執事</td><td class="num"><b>61.5%</b></td><td class="num">5,253</td></tr>
       <tr><td><span class="dot" style="background:var(--c)"></span>オムニチーズピザ</td><td class="num"><b>61.3%</b></td><td class="num">3,978</td></tr>
@@ -359,6 +374,12 @@
     </div>
   </section>
 </article>
+<section class="faq"><h3>リミテッドのカードの点数について</h3>
+  <details><summary>リミテッドのカードの点数（評価）とは？</summary><p>そのカードがどれだけ強いかを数字で表したものを、点数や評価と呼びます。人が付ける点数には好みが入りますが、このページでは実際の対戦結果の勝率で見ています。</p></details>
+  <details><summary>点数（GIH勝率）はどう読めばいいですか？</summary><p>そのセット全体の勝率より高いカードは、入れたデッキが勝ちやすかったカードです。ただし、試合数が少ないカードは数字がぶれやすく、強いデッキに入りやすいカードは高く出る傾向があります。色や相性とあわせて、目安として使ってください。</p></details>
+  <details><summary>点数はいつ更新されますか？</summary><p>月に2回（6日と21日ごろ）、17Landsの最新データで更新します。</p></details>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"ja","mainEntity":[{"@type":"Question","name":"リミテッドのカードの点数（評価）とは？","acceptedAnswer":{"@type":"Answer","text":"そのカードがどれだけ強いかを数字で表したものを、点数や評価と呼びます。人が付ける点数には好みが入りますが、このページでは実際の対戦結果の勝率で見ています。"}},{"@type":"Question","name":"点数（GIH勝率）はどう読めばいいですか？","acceptedAnswer":{"@type":"Answer","text":"そのセット全体の勝率より高いカードは、入れたデッキが勝ちやすかったカードです。ただし、試合数が少ないカードは数字がぶれやすく、強いデッキに入りやすいカードは高く出る傾向があります。色や相性とあわせて、目安として使ってください。"}},{"@type":"Question","name":"点数はいつ更新されますか？","acceptedAnswer":{"@type":"Answer","text":"月に2回（6日と21日ごろ）、17Landsの最新データで更新します。"}}]}</script>
+</section>
 <section class="links"><h3>関連ページ</h3><ul>
   <li><a href="../reports.html?set=TMT">環境レポート（他のセットに切り替え）</a></li>
   <li><a href="../">シールド構築の練習</a>／<a href="../draft.html">ドラフト構築の練習</a>／<a href="../assistant.html">ドラフト補助（PC・Chrome/Edge）</a></li>

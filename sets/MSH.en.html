@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Marvel Super Heroes (MSH) Limited format report — MTG Arena Draft and Sealed win rates — MTG Arena Limited Workbench</title>
-<meta name="description" content="Marvel Super Heroes (MSH) Draft and Sealed on MTG Arena, read from 584,892 games of 17Lands public data: format speed, strongest colours, best two-colour archetypes, top commons, uncommons and rares, and a full card tier list.">
+<title>Marvel Super Heroes (MSH) Limited card ratings — best cards ranked by win rate (MTG Arena) — MTG Arena Limited Workbench</title>
+<meta name="description" content="Which cards are best in Marvel Super Heroes (MSH) Limited on MTG Arena? Card ratings by win rate from 584,892 games of 17Lands data, ranked by rarity — plus format speed, the strongest colours and the best two-colour pairs.">
 <link rel="canonical" href="https://sealed-workbench.com/sets/MSH.en.html">
 <link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/MSH.html">
 <link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/MSH.en.html">
 <link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/MSH.html">
-<meta property="og:title" content="Marvel Super Heroes (MSH) Limited format report — MTG Arena Draft and Sealed win rates">
-<meta property="og:description" content="Marvel Super Heroes (MSH) Draft and Sealed on MTG Arena, read from 584,892 games of 17Lands public data: format speed, strongest colours, best two-colour archetypes, top commons, uncommons and rares, and a full card tier list.">
+<meta property="og:title" content="Marvel Super Heroes (MSH) Limited card ratings — best cards ranked by win rate (MTG Arena)">
+<meta property="og:description" content="Which cards are best in Marvel Super Heroes (MSH) Limited on MTG Arena? Card ratings by win rate from 584,892 games of 17Lands data, ranked by rarity — plus format speed, the strongest colours and the best two-colour pairs.">
 <meta property="og:url" content="https://sealed-workbench.com/sets/MSH.en.html">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
@@ -23,6 +23,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <script src="../analytics.js"></script>
+<script src="/navmenu.js" defer></script>
+<script src="/tip.js" defer></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#10304F">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Workbench">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
 <style>
   :root{--pine:#10304F;--pine-deep:#0A2038;--paper:#F5F8FC;--paper-2:#E8EEF6;--ink:#0D1B2A;--muted:#5C7185;--gold:#2F7DF6;--line:#D3DFEB;
         --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:8px}
@@ -117,6 +129,9 @@
   .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}
   footer a{color:var(--muted)}
+  .faq details{border-bottom:1px solid var(--line,#D7E2EE);padding:10px 2px}
+  .faq summary{cursor:pointer;font-weight:700;font-size:14.5px}
+  .faq p{margin:8px 0 2px;font-size:14px;line-height:1.8}
   @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
 </style>
 </head>
@@ -136,8 +151,8 @@
       <div class="ng"><span class="ngl">Play</span><span class="ngs">Play friends or run a tournament</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
       <div class="ng"><span class="ngl">Shop</span><span class="ngs">MTG supplies sold in Japan</span><a href="../goods/index.en.html">Japanese supplies</a></div>
     </nav>
-    <h1>Marvel Super Heroes — Limited format report <small class="code">MSH</small></h1>
-    <p>Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data.　Released 2026-06-26</p>
+    <h1>Marvel Super Heroes | Limited card ratings and format report <small class="code">MSH</small></h1>
+    <p>Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data. Use them as card ratings: the higher the win rate, the stronger the card.　Released 2026-06-26</p>
     <link rel="alternate" hreflang="ja" href="MSH.html">
   </div>
 </header>
@@ -194,10 +209,10 @@
     <tr><td>7+</td><td class="num"><b>57.4%</b></td><td class="num">3</td><td class="num">59,286</td></tr>
     </tbody></table>
   </section>
-  <section><h3>Best cards by rarity</h3><p class="lead">Sorted by GIH win rate (games where the card was in hand or on the battlefield).</p>
+  <section><h3>Card ratings by rarity</h3><p class="lead">A card's rating is its real win rate (GIH win rate: games where the card was in hand or on the battlefield). Higher is stronger. Sorted from the top within each rarity.</p>
     <div class="grid">
       <div><h3><span class="rar mythic">Mythic</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--w)"></span>Captain Marvel, Earth's Protector</td><td class="num"><b>69.5%</b></td><td class="num">7,087</td></tr>
       <tr><td><span class="dot" style="background:var(--b)"></span>Doctor Doom</td><td class="num"><b>66.6%</b></td><td class="num">6,577</td></tr>
       <tr><td><span class="dot" style="background:var(--m)"></span>Jennifer Walters</td><td class="num"><b>66.5%</b></td><td class="num">6,992</td></tr>
@@ -210,7 +225,7 @@
       <tr><td><span class="dot" style="background:var(--m)"></span>King T'Challa</td><td class="num"><b>62.3%</b></td><td class="num">7,214</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">Rare</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--m)"></span>The Super Hero Civil War</td><td class="num"><b>70.4%</b></td><td class="num">15,409</td></tr>
       <tr><td><span class="dot" style="background:var(--u)"></span>Leader, Super-Genius</td><td class="num"><b>68.3%</b></td><td class="num">15,986</td></tr>
       <tr><td><span class="dot" style="background:var(--m)"></span>Wolverine, Fierce Fighter</td><td class="num"><b>65.1%</b></td><td class="num">10,370</td></tr>
@@ -223,7 +238,7 @@
       <tr><td><span class="dot" style="background:var(--m)"></span>Vision Quest</td><td class="num"><b>61.8%</b></td><td class="num">11,309</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">Uncommon</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--u)"></span>Justice, Vance Astrovik</td><td class="num"><b>64.2%</b></td><td class="num">41,267</td></tr>
       <tr><td><span class="dot" style="background:var(--g)"></span>Ka-Zar of the Savage Land</td><td class="num"><b>62.3%</b></td><td class="num">29,963</td></tr>
       <tr><td><span class="dot" style="background:var(--g)"></span>She-Hulk, Jade Defender</td><td class="num"><b>61.8%</b></td><td class="num">25,485</td></tr>
@@ -236,7 +251,7 @@
       <tr><td><span class="dot" style="background:var(--m)"></span>Spider-Woman, Secret Agent</td><td class="num"><b>60.3%</b></td><td class="num">34,301</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">Common</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--u)"></span>Trickster's Stratagem</td><td class="num"><b>61.3%</b></td><td class="num">85,955</td></tr>
       <tr><td><span class="dot" style="background:var(--w)"></span>Hero in Training</td><td class="num"><b>61.1%</b></td><td class="num">87,080</td></tr>
       <tr><td><span class="dot" style="background:var(--w)"></span>Murdock's Crusade</td><td class="num"><b>61.1%</b></td><td class="num">71,735</td></tr>
@@ -303,10 +318,10 @@
     <tr><td>7+</td><td class="num"><b>59.1%</b></td><td class="num">2</td><td class="num">5,785</td></tr>
     </tbody></table>
   </section>
-  <section><h3>Best cards by rarity</h3><p class="lead">Sorted by GIH win rate (games where the card was in hand or on the battlefield).</p>
+  <section><h3>Card ratings by rarity</h3><p class="lead">A card's rating is its real win rate (GIH win rate: games where the card was in hand or on the battlefield). Higher is stronger. Sorted from the top within each rarity.</p>
     <div class="grid">
       <div><h3><span class="rar mythic">Mythic</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--w)"></span>Captain Marvel, Earth's Protector</td><td class="num"><b>71.7%</b></td><td class="num">1,315</td></tr>
       <tr><td><span class="dot" style="background:var(--m)"></span>Jennifer Walters</td><td class="num"><b>68.2%</b></td><td class="num">1,101</td></tr>
       <tr><td><span class="dot" style="background:var(--m)"></span>Monica Rambeau</td><td class="num"><b>66.8%</b></td><td class="num">1,287</td></tr>
@@ -319,7 +334,7 @@
       <tr><td><span class="dot" style="background:var(--m)"></span>Tony Stark</td><td class="num"><b>63.8%</b></td><td class="num">719</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">Rare</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--m)"></span>The Super Hero Civil War</td><td class="num"><b>71.8%</b></td><td class="num">2,467</td></tr>
       <tr><td><span class="dot" style="background:var(--u)"></span>Leader, Super-Genius</td><td class="num"><b>69.2%</b></td><td class="num">2,364</td></tr>
       <tr><td><span class="dot" style="background:var(--w)"></span>Agent Phil Coulson</td><td class="num"><b>66.3%</b></td><td class="num">2,353</td></tr>
@@ -332,7 +347,7 @@
       <tr><td><span class="dot" style="background:var(--u)"></span>The Wondrous Wasp</td><td class="num"><b>63.1%</b></td><td class="num">1,978</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">Uncommon</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--m)"></span>Killmonger, Scourge of Wakanda</td><td class="num"><b>64.3%</b></td><td class="num">2,186</td></tr>
       <tr><td><span class="dot" style="background:var(--g)"></span>Ka-Zar of the Savage Land</td><td class="num"><b>64.2%</b></td><td class="num">3,403</td></tr>
       <tr><td><span class="dot" style="background:var(--u)"></span>Justice, Vance Astrovik</td><td class="num"><b>63.7%</b></td><td class="num">3,580</td></tr>
@@ -345,7 +360,7 @@
       <tr><td><span class="dot" style="background:var(--u)"></span>Falcon's Wing Harness</td><td class="num"><b>61.6%</b></td><td class="num">2,146</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">Common</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--w)"></span>Hero in Training</td><td class="num"><b>63.3%</b></td><td class="num">8,499</td></tr>
       <tr><td><span class="dot" style="background:var(--w)"></span>Murdock's Crusade</td><td class="num"><b>63.0%</b></td><td class="num">7,847</td></tr>
       <tr><td><span class="dot" style="background:var(--u)"></span>Trickster's Stratagem</td><td class="num"><b>62.9%</b></td><td class="num">6,425</td></tr>
@@ -360,6 +375,12 @@
     </div>
   </section>
 </article>
+<section class="faq"><h3>About Limited card ratings</h3>
+  <details><summary>What is a Limited card rating?</summary><p>A number that says how strong a card is. Ratings given by people include personal taste, so this page uses win rates from real games instead.</p></details>
+  <details><summary>How should I read the GIH win rate?</summary><p>A card above the set's overall win rate was in decks that won more often. Cards with few games swing a lot, and cards that go into strong decks tend to look better than they are, so treat it as a guide and read it together with colours and synergy.</p></details>
+  <details><summary>When are the ratings updated?</summary><p>Twice a month (around the 6th and 21st), from the latest 17Lands data.</p></details>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"en","mainEntity":[{"@type":"Question","name":"What is a Limited card rating?","acceptedAnswer":{"@type":"Answer","text":"A number that says how strong a card is. Ratings given by people include personal taste, so this page uses win rates from real games instead."}},{"@type":"Question","name":"How should I read the GIH win rate?","acceptedAnswer":{"@type":"Answer","text":"A card above the set's overall win rate was in decks that won more often. Cards with few games swing a lot, and cards that go into strong decks tend to look better than they are, so treat it as a guide and read it together with colours and synergy."}},{"@type":"Question","name":"When are the ratings updated?","acceptedAnswer":{"@type":"Answer","text":"Twice a month (around the 6th and 21st), from the latest 17Lands data."}}]}</script>
+</section>
 <section class="links"><h3>Related pages</h3><ul>
   <li><a href="../reports.html?set=MSH">Set reports (switch sets)</a></li>
   <li><a href="../">Sealed practice</a>／<a href="../draft.html">Draft practice</a>／<a href="../assistant.html">Draft assistant (PC, Chrome/Edge)</a></li>

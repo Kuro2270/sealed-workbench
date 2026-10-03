@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>セット別のリミテッド環境レポート — MTGアリーナ リミテッド・ワークベンチ</title>
-<meta name="description" content="セットを選ぶと、ドラフトとシールドの環境レポートが開きます。発売日の新しい順です。">
+<title>セット別のリミテッド カード点数ランキングと環境レポート — MTGアリーナ リミテッド・ワークベンチ</title>
+<meta name="description" content="セットを選ぶと、そのセットのカード点数ランキングと、ドラフト・シールドの環境レポートが開きます。発売日の新しい順です。">
 <link rel="canonical" href="https://sealed-workbench.com/sets/index.html">
 <link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/index.html">
 <link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/index.en.html">
 <link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/index.html">
-<meta property="og:title" content="セット別のリミテッド環境レポート">
+<meta property="og:title" content="セット別のリミテッド カード点数ランキングと環境レポート">
 <meta property="og:url" content="https://sealed-workbench.com/sets/index.html">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
@@ -22,6 +22,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <script src="../analytics.js"></script>
+<script src="/navmenu.js" defer></script>
+<script src="/tip.js" defer></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#10304F">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Workbench">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
 <style>
   :root{--pine:#10304F;--pine-deep:#0A2038;--paper:#F5F8FC;--paper-2:#E8EEF6;--ink:#0D1B2A;--muted:#5C7185;--gold:#2F7DF6;--line:#D3DFEB;
         --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:8px}
@@ -116,6 +128,9 @@
   .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}
   footer a{color:var(--muted)}
+  .faq details{border-bottom:1px solid var(--line,#D7E2EE);padding:10px 2px}
+  .faq summary{cursor:pointer;font-weight:700;font-size:14.5px}
+  .faq p{margin:8px 0 2px;font-size:14px;line-height:1.8}
   @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
 </style>
 </head>
@@ -135,13 +150,13 @@
       <div class="ng"><span class="ngl">対戦する</span><span class="ngs">友達との対戦・大会の進行</span><a href="../table.html">対戦卓</a><a href="../swiss.html">スイスドロー</a></div>
       <div class="ng"><span class="ngl">買う</span><span class="ngs">日本で買えるMTG用品</span><a href="../goods/index.html">日本のサプライ</a></div>
     </nav>
-    <h1>セット別のリミテッド環境レポート</h1>
-    <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。</p>
+    <h1>セット別のリミテッド カード点数ランキングと環境レポート</h1>
+    <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。カードの点数（評価）は、この勝率で見られます。</p>
     <link rel="alternate" hreflang="en" href="index.en.html">
   </div>
 </header>
 <main>
-<p class="lead">セットを選ぶと、ドラフトとシールドの環境レポートが開きます。発売日の新しい順です。</p>
+<p class="lead">セットを選ぶと、そのセットのカード点数ランキングと、ドラフト・シールドの環境レポートが開きます。発売日の新しい順です。</p>
 <ul class="setlist" style="margin-bottom:14px">
   <li><a href="FRA.profile.html">リアリティ・フラクチャー<small>FRA　2026-10-02　下見（勝率データ待ち）</small></a></li>
 </ul>

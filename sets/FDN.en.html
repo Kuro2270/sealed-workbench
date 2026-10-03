@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Foundations (FDN) Limited format report — MTG Arena Draft and Sealed win rates — MTG Arena Limited Workbench</title>
-<meta name="description" content="Foundations (FDN) Draft and Sealed on MTG Arena, read from 977,795 games of 17Lands public data: format speed, strongest colours, best two-colour archetypes, top commons, uncommons and rares, and a full card tier list.">
+<title>Foundations (FDN) Limited card ratings — best cards ranked by win rate (MTG Arena) — MTG Arena Limited Workbench</title>
+<meta name="description" content="Which cards are best in Foundations (FDN) Limited on MTG Arena? Card ratings by win rate from 977,795 games of 17Lands data, ranked by rarity — plus format speed, the strongest colours and the best two-colour pairs.">
 <link rel="canonical" href="https://sealed-workbench.com/sets/FDN.en.html">
 <link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/FDN.html">
 <link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/FDN.en.html">
 <link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/FDN.html">
-<meta property="og:title" content="Foundations (FDN) Limited format report — MTG Arena Draft and Sealed win rates">
-<meta property="og:description" content="Foundations (FDN) Draft and Sealed on MTG Arena, read from 977,795 games of 17Lands public data: format speed, strongest colours, best two-colour archetypes, top commons, uncommons and rares, and a full card tier list.">
+<meta property="og:title" content="Foundations (FDN) Limited card ratings — best cards ranked by win rate (MTG Arena)">
+<meta property="og:description" content="Which cards are best in Foundations (FDN) Limited on MTG Arena? Card ratings by win rate from 977,795 games of 17Lands data, ranked by rarity — plus format speed, the strongest colours and the best two-colour pairs.">
 <meta property="og:url" content="https://sealed-workbench.com/sets/FDN.en.html">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
@@ -23,6 +23,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <script src="../analytics.js"></script>
+<script src="/navmenu.js" defer></script>
+<script src="/tip.js" defer></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#10304F">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Workbench">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
 <style>
   :root{--pine:#10304F;--pine-deep:#0A2038;--paper:#F5F8FC;--paper-2:#E8EEF6;--ink:#0D1B2A;--muted:#5C7185;--gold:#2F7DF6;--line:#D3DFEB;
         --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:8px}
@@ -117,6 +129,9 @@
   .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}
   footer a{color:var(--muted)}
+  .faq details{border-bottom:1px solid var(--line,#D7E2EE);padding:10px 2px}
+  .faq summary{cursor:pointer;font-weight:700;font-size:14.5px}
+  .faq p{margin:8px 0 2px;font-size:14px;line-height:1.8}
   @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
 </style>
 </head>
@@ -136,8 +151,8 @@
       <div class="ng"><span class="ngl">Play</span><span class="ngs">Play friends or run a tournament</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
       <div class="ng"><span class="ngl">Shop</span><span class="ngs">MTG supplies sold in Japan</span><a href="../goods/index.en.html">Japanese supplies</a></div>
     </nav>
-    <h1>Foundations — Limited format report <small class="code">FDN</small></h1>
-    <p>Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data.　Released 2024-11-15</p>
+    <h1>Foundations | Limited card ratings and format report <small class="code">FDN</small></h1>
+    <p>Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data. Use them as card ratings: the higher the win rate, the stronger the card.　Released 2024-11-15</p>
     <link rel="alternate" hreflang="ja" href="FDN.html">
   </div>
 </header>
@@ -184,10 +199,10 @@
     <tr><td>7+</td><td class="num"><b>55.9%</b></td><td class="num">11</td><td class="num">184,317</td></tr>
     </tbody></table>
   </section>
-  <section><h3>Best cards by rarity</h3><p class="lead">Sorted by GIH win rate (games where the card was in hand or on the battlefield).</p>
+  <section><h3>Card ratings by rarity</h3><p class="lead">A card's rating is its real win rate (GIH win rate: games where the card was in hand or on the battlefield). Higher is stronger. Sorted from the top within each rarity.</p>
     <div class="grid">
       <div><h3><span class="rar mythic">Mythic</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--b)"></span>Liliana, Dreadhorde General</td><td class="num"><b>65.1%</b></td><td class="num">11,842</td></tr>
       <tr><td><span class="dot" style="background:var(--b)"></span>Bloodthirsty Conqueror</td><td class="num"><b>63.2%</b></td><td class="num">10,951</td></tr>
       <tr><td><span class="dot" style="background:var(--m)"></span>Zimone, Paradox Sculptor</td><td class="num"><b>63.2%</b></td><td class="num">10,423</td></tr>
@@ -200,7 +215,7 @@
       <tr><td><span class="dot" style="background:var(--w)"></span>Herald of Eternal Dawn</td><td class="num"><b>58.6%</b></td><td class="num">7,984</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">Rare</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--u)"></span>Curator of Destinies</td><td class="num"><b>62.8%</b></td><td class="num">25,673</td></tr>
       <tr><td><span class="dot" style="background:var(--w)"></span>Celestial Armor</td><td class="num"><b>62.8%</b></td><td class="num">23,268</td></tr>
       <tr><td><span class="dot" style="background:var(--g)"></span>Spinner of Souls</td><td class="num"><b>62.7%</b></td><td class="num">19,782</td></tr>
@@ -213,7 +228,7 @@
       <tr><td><span class="dot" style="background:var(--w)"></span>Giada, Font of Hope</td><td class="num"><b>61.0%</b></td><td class="num">20,855</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">Uncommon</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--m)"></span>Dreadwing Scavenger</td><td class="num"><b>60.9%</b></td><td class="num">48,263</td></tr>
       <tr><td><span class="dot" style="background:var(--u)"></span>Mischievous Mystic</td><td class="num"><b>60.0%</b></td><td class="num">59,030</td></tr>
       <tr><td><span class="dot" style="background:var(--u)"></span>Micromancer</td><td class="num"><b>59.7%</b></td><td class="num">47,010</td></tr>
@@ -226,7 +241,7 @@
       <tr><td><span class="dot" style="background:var(--w)"></span>Sun-Blessed Healer</td><td class="num"><b>59.0%</b></td><td class="num">48,834</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">Common</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--b)"></span>Stab</td><td class="num"><b>58.6%</b></td><td class="num">135,134</td></tr>
       <tr><td><span class="dot" style="background:var(--b)"></span>Bake into a Pie</td><td class="num"><b>58.5%</b></td><td class="num">122,453</td></tr>
       <tr><td><span class="dot" style="background:var(--r)"></span>Burst Lightning</td><td class="num"><b>58.5%</b></td><td class="num">108,978</td></tr>
@@ -282,10 +297,10 @@
     <tr><td>7+</td><td class="num"><b>55.4%</b></td><td class="num">11</td><td class="num">11,159</td></tr>
     </tbody></table>
   </section>
-  <section><h3>Best cards by rarity</h3><p class="lead">Sorted by GIH win rate (games where the card was in hand or on the battlefield).</p>
+  <section><h3>Card ratings by rarity</h3><p class="lead">A card's rating is its real win rate (GIH win rate: games where the card was in hand or on the battlefield). Higher is stronger. Sorted from the top within each rarity.</p>
     <div class="grid">
       <div><h3><span class="rar mythic">Mythic</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--b)"></span>Liliana, Dreadhorde General</td><td class="num"><b>66.7%</b></td><td class="num">1,134</td></tr>
       <tr><td><span class="dot" style="background:var(--m)"></span>Zimone, Paradox Sculptor</td><td class="num"><b>64.6%</b></td><td class="num">993</td></tr>
       <tr><td><span class="dot" style="background:var(--g)"></span>Vivien Reid</td><td class="num"><b>62.9%</b></td><td class="num">877</td></tr>
@@ -298,7 +313,7 @@
       <tr><td><span class="dot" style="background:var(--w)"></span>Ajani, Caller of the Pride</td><td class="num"><b>58.6%</b></td><td class="num">843</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">Rare</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--w)"></span>Celestial Armor</td><td class="num"><b>66.5%</b></td><td class="num">1,760</td></tr>
       <tr><td><span class="dot" style="background:var(--m)"></span>Elenda, Saint of Dusk</td><td class="num"><b>64.6%</b></td><td class="num">1,521</td></tr>
       <tr><td><span class="dot" style="background:var(--c)"></span>Leyline Axe</td><td class="num"><b>63.5%</b></td><td class="num">1,889</td></tr>
@@ -311,7 +326,7 @@
       <tr><td><span class="dot" style="background:var(--b)"></span>Blasphemous Edict</td><td class="num"><b>60.9%</b></td><td class="num">1,230</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">Uncommon</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--r)"></span>Fiery Annihilation</td><td class="num"><b>61.5%</b></td><td class="num">1,994</td></tr>
       <tr><td><span class="dot" style="background:var(--w)"></span>Angel of Finality</td><td class="num"><b>61.1%</b></td><td class="num">2,112</td></tr>
       <tr><td><span class="dot" style="background:var(--w)"></span>Sun-Blessed Healer</td><td class="num"><b>60.9%</b></td><td class="num">2,834</td></tr>
@@ -324,7 +339,7 @@
       <tr><td><span class="dot" style="background:var(--u)"></span>Skyship Buccaneer</td><td class="num"><b>59.2%</b></td><td class="num">1,478</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">Common</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="dot" style="background:var(--w)"></span>Luminous Rebuke</td><td class="num"><b>60.0%</b></td><td class="num">5,603</td></tr>
       <tr><td><span class="dot" style="background:var(--w)"></span>Dazzling Angel</td><td class="num"><b>59.7%</b></td><td class="num">6,182</td></tr>
       <tr><td><span class="dot" style="background:var(--w)"></span>Helpful Hunter</td><td class="num"><b>59.5%</b></td><td class="num">5,959</td></tr>
@@ -339,6 +354,12 @@
     </div>
   </section>
 </article>
+<section class="faq"><h3>About Limited card ratings</h3>
+  <details><summary>What is a Limited card rating?</summary><p>A number that says how strong a card is. Ratings given by people include personal taste, so this page uses win rates from real games instead.</p></details>
+  <details><summary>How should I read the GIH win rate?</summary><p>A card above the set's overall win rate was in decks that won more often. Cards with few games swing a lot, and cards that go into strong decks tend to look better than they are, so treat it as a guide and read it together with colours and synergy.</p></details>
+  <details><summary>When are the ratings updated?</summary><p>Twice a month (around the 6th and 21st), from the latest 17Lands data.</p></details>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"en","mainEntity":[{"@type":"Question","name":"What is a Limited card rating?","acceptedAnswer":{"@type":"Answer","text":"A number that says how strong a card is. Ratings given by people include personal taste, so this page uses win rates from real games instead."}},{"@type":"Question","name":"How should I read the GIH win rate?","acceptedAnswer":{"@type":"Answer","text":"A card above the set's overall win rate was in decks that won more often. Cards with few games swing a lot, and cards that go into strong decks tend to look better than they are, so treat it as a guide and read it together with colours and synergy."}},{"@type":"Question","name":"When are the ratings updated?","acceptedAnswer":{"@type":"Answer","text":"Twice a month (around the 6th and 21st), from the latest 17Lands data."}}]}</script>
+</section>
 <section class="links"><h3>Related pages</h3><ul>
   <li><a href="../reports.html?set=FDN">Set reports (switch sets)</a></li>
   <li><a href="../">Sealed practice</a>／<a href="../draft.html">Draft practice</a>／<a href="../assistant.html">Draft assistant (PC, Chrome/Edge)</a></li>
