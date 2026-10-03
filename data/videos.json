@@ -86,6 +86,14 @@
         "uploadedAt": "2026-10-02",
         "public": true,
         "publishedAt": "2026-10-02"
+      },
+      "sealed": {
+        "id": "4UsZ45ON7Ks",
+        "mode": "sealed",
+        "title": "【マーベル スーパー・ヒーローズ】1分でわかるシールド環境｜MTGアリーナ #Shorts",
+        "poster": "assets/video/MSH-ja-sealed.jpg",
+        "uploadedAt": "2026-10-03",
+        "public": false
       }
     },
     "en": {
@@ -95,6 +103,14 @@
         "public": true,
         "uploadedAt": "2026-10-02",
         "publishedAt": "2026-10-02"
+      },
+      "sealed": {
+        "id": "lDmqyFlgngU",
+        "mode": "sealed",
+        "title": "Marvel Super Heroes Sealed in 60 seconds | MTG Arena #Shorts",
+        "poster": "assets/video/MSH-en-sealed.jpg",
+        "uploadedAt": "2026-10-03",
+        "public": false
       }
     }
   }
