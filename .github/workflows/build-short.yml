@@ -4,6 +4,7 @@ name: 環境まとめ動画を作る
 #   ・ナレーションは日本語が VOICEVOX（ずんだもん）、英語が Kokoro。動画の最後にクレジットが入る
 #   ・背景のプレイ映像は Releases のタグ assets にある bg.mp4 を使う（無ければ紺色）
 #   ・セットのロゴを使うときは short/logo/<SET>.png をリポジトリに置く
+#   ・言語と形式を all にすると、日本語／英語 × ドラフト／シールド の 4 本を並行で作る（記事データが無い形式は飛ばす）
 # できた動画はこの実行ページの「Artifacts」から ZIP で落とせる（30日で消える）。
 # YouTube の許可（YT_REFRESH_TOKEN_JA）が登録されていれば、非公開で自動的に上げる。公開にするのは YouTube Studio で手で。
 # 勝率データが揃う前（発売から2週間ほど）は記事データが無いので作れない。
@@ -15,15 +16,15 @@ on:
         description: "セットコード（例: HOB）"
         required: true
       lang:
-        description: "動画の言語（ja = 日本語チャンネル、en = 英語チャンネル）"
+        description: "動画の言語（all = 日本語と英語の両方）"
         type: choice
-        options: [ja, en]
-        default: ja
+        options: [all, ja, en]
+        default: all
       mode:
-        description: "どちらのデータで作るか"
+        description: "どちらのデータで作るか（all = ドラフトとシールドの両方）"
         type: choice
-        options: [draft, sealed]
-        default: draft
+        options: [all, draft, sealed]
+        default: all
       speed:
         description: "読み上げの速さ（1.0 = ふつう、1.2 = 少し速め）"
         required: false
@@ -38,9 +39,34 @@ permissions:
   issues: write          # 公開と配信のリマインドを Issue で出すため（メールと GitHub アプリに通知が届く）
 
 jobs:
+  # 言語 × 形式 の組み合わせを決める（all なら 4 本を並行で作る）
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.m.outputs.matrix }}
+    steps:
+      - id: m
+        env:
+          LANG_IN: ${{ inputs.lang || 'all' }}
+          MODE_IN: ${{ inputs.mode || 'all' }}
+        run: |
+          langs="$LANG_IN"; [ "$langs" = "all" ] && langs="ja en"
+          modes="$MODE_IN"; [ "$modes" = "all" ] && modes="draft sealed"
+          items=""
+          for l in $langs; do for m in $modes; do items="$items{\"lang\":\"$l\",\"mode\":\"$m\"},"; done; done
+          echo "matrix=[${items%,}]" >> "$GITHUB_OUTPUT"
+          echo "作る動画: [${items%,}]"
+
   short:
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    strategy:
+      fail-fast: false            # 1 本失敗しても残りは作る
+      max-parallel: 4
+      matrix:
+        include: ${{ fromJson(needs.plan.outputs.matrix) }}
+    name: ${{ inputs.set }} ${{ matrix.lang }} ${{ matrix.mode }}
     services:
       voicevox:
         image: voicevox/voicevox_engine:cpu-ubuntu22.04-latest
@@ -71,11 +97,11 @@ jobs:
           fi
 
       - name: 英語の読み上げ（Kokoro）を入れる
-        if: inputs.lang == 'en'
+        if: matrix.lang == 'en'
         run: pip install --quiet kokoro-onnx soundfile
 
       - name: Kokoro のモデルを用意する（2回目からはキャッシュ）
-        if: inputs.lang == 'en'
+        if: matrix.lang == 'en'
         id: kokoro
         uses: actions/cache@v4
         with:
@@ -83,7 +109,7 @@ jobs:
           key: kokoro-model-v1.0
 
       - name: Kokoro のモデルを落とす
-        if: inputs.lang == 'en' && steps.kokoro.outputs.cache-hit != 'true'
+        if: matrix.lang == 'en' && steps.kokoro.outputs.cache-hit != 'true'
         run: |
           mkdir -p short/kokoro
           curl -sSL -o short/kokoro/kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
@@ -91,7 +117,7 @@ jobs:
           ls -la short/kokoro
 
       - name: VOICEVOX が起きるのを待つ
-        if: inputs.lang != 'en'
+        if: matrix.lang != 'en'
         run: |
           for i in $(seq 1 60); do
             if curl -sf -m 3 http://127.0.0.1:50021/version; then echo; exit 0; fi
@@ -104,8 +130,8 @@ jobs:
         env:
           # 入力はいちど環境変数に移す（コマンド行に直接埋め込まない）
           SET_IN: ${{ inputs.set }}
-          LANG_IN: ${{ inputs.lang || 'ja' }}
-          MODE_IN: ${{ inputs.mode || 'draft' }}
+          LANG_IN: ${{ matrix.lang }}
+          MODE_IN: ${{ matrix.mode }}
           VOICEVOX_SPEED: ${{ inputs.speed }}
           VOICEVOX_URL: http://127.0.0.1:50021
           KOKORO_DIR: short/kokoro
@@ -113,15 +139,17 @@ jobs:
           export SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"
           export VLANG="$LANG_IN" VMODE="$MODE_IN"
           export VTAG="$VLANG"; [ "$VMODE" = "sealed" ] && VTAG="$VLANG-sealed"
-          if [ ! -f "data/articles/${SET_CODE}_${VMODE}.json" ]; then
-            echo "::error::${SET_CODE} の ${VMODE} の記事データ（data/articles/${SET_CODE}_${VMODE}.json）がまだありません。勝率データ集計が終わってから作ってください。"
-            exit 1
-          fi
-          node maintenance/build-short.mjs "$SET_CODE" "$VLANG" "$VMODE"
           echo "SET_CODE=$SET_CODE" >> "$GITHUB_ENV"
           echo "VLANG=$VLANG" >> "$GITHUB_ENV"
           echo "VMODE=$VMODE" >> "$GITHUB_ENV"
           echo "VTAG=$VTAG" >> "$GITHUB_ENV"
+          if [ ! -f "data/articles/${SET_CODE}_${VMODE}.json" ]; then
+            echo "::warning::${SET_CODE} の ${VMODE} の記事データ（data/articles/${SET_CODE}_${VMODE}.json）がまだないので、この動画は作りません。勝率データ集計が終わってから作ってください。"
+            echo "## ${SET_CODE} の ${VLANG} / ${VMODE} は作りませんでした（記事データがまだ無い）" >> "$GITHUB_STEP_SUMMARY"
+            echo "SKIP=1" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          node maintenance/build-short.mjs "$SET_CODE" "$VLANG" "$VMODE"
           {
             echo "## ${SET_CODE} の動画ができました（${VLANG} / ${VMODE}）"
             echo
@@ -138,7 +166,7 @@ jobs:
 
       # X・Bluesky に動画そのものを添付するために、動画ファイルを Releases（タグ videos）にも置いておく
       - name: 動画ファイルを Releases に置く
-        if: inputs.upload == true
+        if: inputs.upload == true && env.SKIP != '1'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -149,7 +177,7 @@ jobs:
           gh release upload videos "short/$SET_CODE-$VTAG.mp4" --repo "$GITHUB_REPOSITORY" --clobber || echo "::warning::Releases に動画を置けませんでした。配信のときは YouTube のリンクで投稿します。"
 
       - name: YouTube に非公開で上げる（許可が登録されていれば）
-        if: inputs.upload == true
+        if: inputs.upload == true && env.SKIP != '1'
         env:
           SITE_URL: https://sealed-workbench.com
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
@@ -172,7 +200,7 @@ jobs:
 
       # 公開と「動画を配信」を忘れないように、担当者に割り当てた Issue を立てる（GitHub がメールとアプリで知らせる）
       - name: 公開のリマインドを Issue にする
-        if: inputs.upload == true
+        if: inputs.upload == true && env.SKIP != '1'
         uses: actions/github-script@v7
         with:
           script: |
@@ -202,7 +230,7 @@ jobs:
             });
 
       - name: 動画の記録をコミット
-        if: inputs.upload == true
+        if: inputs.upload == true && env.SKIP != '1'
         run: |
           if [ -n "$(git status --porcelain -- data/videos assets/video)" ]; then
             git config user.name "github-actions[bot]"
@@ -210,13 +238,15 @@ jobs:
             git add data/videos
             [ -d assets/video ] && git add assets/video
             git commit -m "動画の記録を更新（$SET_CODE $VLANG $VMODE）"
-            for i in 1 2 3; do
+            # 4 本が同時に押し込むことがあるので、少しずつ待ちながら何度か試す
+            for i in 1 2 3 4 5 6; do
               git pull --rebase origin main && git push origin main && break
-              echo "再試行 $i"; sleep 5
+              echo "再試行 $i"; sleep $((5 + RANDOM % 10))
             done
           fi
 
       - name: 動画を保存する
+        if: env.SKIP != '1'
         uses: actions/upload-artifact@v4
         with:
           name: short-${{ env.SET_CODE }}-${{ env.VTAG }}
