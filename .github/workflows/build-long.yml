@@ -1,12 +1,12 @@
 name: 長尺動画を作る（環境まとめ・3〜5分）
 
 # 「〇〇環境まとめ」の横長動画（1920×1080、3〜5分）を、集計済みのデータから作る（試作版・日本語のみ）。
-#   中身: 環境の速さ／色の強さ／色の組み合わせ／ドラフトとシールドの違い／ボム10枚／罠のカード／コモン除去の強さ順／デッキの組み方
+#   中身: 環境の速さ／色の強さ／色の組み合わせ／ドラフトとシールドの違い／ボム10枚／罠のカード／コモン除去の強さ順／まとめ
 #   ・ナレーションは VOICEVOX（ずんだもん）。動画の最後にクレジットが入る
 #   ・背景のプレイ映像は Releases のタグ assets にある bg.mp4（無ければ紺色）
 #   ・ドラフトとシールドの記事データ（data/articles）と勝率一覧（data/ratings）が両方そろっているセットだけ作れる
 # できた動画・目次（chapters.txt）・概要欄の下書き（description.txt）は、この実行ページの「Artifacts」から ZIP で落とせる（30日で消える）。
-# ショート動画の公開から1週間後に出す想定。YouTube への自動アップロードはまだしない（内容を確認してから手で上げる）。
+# ショート動画の公開から1週間後に出す想定。できたら YouTube に「非公開」で自動的に上げる（許可が登録されていれば）。内容を確認して、YouTube Studio で手で「公開」にする。
 
 on:
   workflow_dispatch:
@@ -18,6 +18,11 @@ on:
         description: "読み上げの速さ（1.2 = 少し速め。長すぎるときは上げる）"
         required: false
         default: "1.2"
+      upload:
+        description: "できたら YouTube に非公開で上げる（許可が登録されていれば。公開は YouTube Studio で手で）"
+        type: boolean
+        required: false
+        default: true
 
 permissions:
   contents: read
@@ -99,6 +104,26 @@ jobs:
             echo "読み違いがあれば short/yomi.json に「表記: 読み（カタカナ）」を足して、もう一度実行してください。"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: YouTube に非公開で上げる（許可が登録されていれば）
+        if: inputs.upload == true
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN_JA: ${{ secrets.YT_REFRESH_TOKEN_JA }}
+        run: |
+          node maintenance/youtube-upload-long.mjs "$SET_CODE" | tee yt.log
+          if [ -f "long/$SET_CODE/youtube.json" ]; then
+            URL=$(node -e 'console.log(require("./long/"+process.env.SET_CODE+"/youtube.json").url)')
+            {
+              echo
+              echo "### YouTube（非公開）"
+              echo
+              echo "$URL"
+              echo
+              echo "内容を確認して、YouTube Studio で「公開」にしてください。サムネイルが付かなかった場合は、Artifacts の thumbnail.jpg を Studio で付けてください。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: 動画を保存する
         uses: actions/upload-artifact@v4
         with:
@@ -108,6 +133,8 @@ jobs:
             long/${{ env.SET_CODE }}/chapters.txt
             long/${{ env.SET_CODE }}/description.txt
             long/${{ env.SET_CODE }}/thumbnail.jpg
+            long/${{ env.SET_CODE }}/title.txt
+            long/${{ env.SET_CODE }}/youtube.json
             long/${{ env.SET_CODE }}/script.json
           retention-days: 30
           if-no-files-found: error
