@@ -58,7 +58,7 @@ const COLOR_EN = { W: "White", U: "Blue", B: "Black", R: "Red", G: "Green" };
 const CN = JA ? COLOR_JA : COLOR_EN;                 // この言語での色の名前
 /* 画面とナレーションの決まり文句。言語ごとにここだけ変える */
 const UI = JA ? {
-  analysis: "リミテッド環境分析", arena: "MTGアリーナ", report: "リミテッド環境レポート", games: g => `${g}試合`, inOneMinute: "のデータが1分でわかる", hookA: "1分でわかる", hookC: m => m ? "シールド環境" : "ドラフト環境", hookD: "強いカード ・ 強い色",
+  analysis: "リミテッド環境分析", arena: "MTGアリーナ", report: "リミテッド環境レポート", games: g => `${g}試合`, inOneMinute: "のデータが1分でわかる", hookA: "1分でわかる", hookC: m => m ? "シールド環境" : "ドラフト環境", hookD1: g => `${g}試合を分析`, hookD2: "強い色とカードを紹介",
   whatIs: "リミテッドとは", whatIs1: "その場で開けたパックだけで", whatIs2: "デッキを組む遊び方", sealed: "シールド", draft: "ドラフト", thisVideo: "この動画はこちら",
   speedH: "環境の速さ", speedSub: "平均マナ総量ごとの勝率", under: m => `${m}未満`, between: (a, b) => `${a}〜${b}`, over: m => `${m}以上`,
   pace: { fast: "速い", "lean-fast": "やや速い", mid: "普通", even: "普通", "lean-slow": "やや遅い", slow: "遅い", slower: "かなり遅い" },
@@ -71,7 +71,7 @@ const UI = JA ? {
   wrRank: (v, r) => `勝率 ${v}%（${r}位）`, wr: v => `勝率 ${v}%`, usedOnly: (g, p) => `使われた試合は ${g}。全体の${p}%だけ`, vsAvg2: (sign, n) => `2色それぞれの平均より ${sign}${n}pt`,
   outroA: "チャンネル登録を", outroB: "お願いします", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん"
 } : {
-  analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute", hookA: "Limited in 1 minute", hookC: m => m ? "SEALED" : "DRAFT", hookD: "Best cards & colors",
+  analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute", hookA: "Limited in 1 minute", hookC: m => m ? "SEALED" : "DRAFT", hookD1: g => `${g} games analyzed`, hookD2: "Best colors & cards",
   whatIs: "What is Limited?", whatIs1: "Build a deck only from", whatIs2: "packs you just opened", sealed: "Sealed", draft: "Draft", thisVideo: "This video",
   speedH: "Format speed", speedSub: "Win rate by average mana value", under: m => `under ${m}`, between: (a, b) => `${a}–${b}`, over: m => `${m}+`,
   pace: { fast: "Fast", "lean-fast": "Leans fast", mid: "Average", even: "Average", "lean-slow": "Leans slow", slow: "Slow", slower: "Very slow" },
@@ -281,12 +281,12 @@ function wrapName(name, n){
   if(brk >= 2 && ch.length - brk - 1 <= n) return [ch.slice(0, brk + 1).join(""), ch.slice(brk + 1).join("")];
   return [ch.slice(0, n).join(""), ch.slice(n).join("")];
 }
-function wrap(s, n = 22){
+function wrap(s, n = 18){
   if(!JA){
     // 英語は単語で折り返す（1行 38 文字ほど）
     const words = s.split(/\s+/).filter(Boolean), out = []; let cur = "";
     for(const w of words){
-      if(cur && (cur + " " + w).length > 38){ out.push(cur); cur = w; } else cur = cur ? cur + " " + w : w;
+      if(cur && (cur + " " + w).length > 32){ out.push(cur); cur = w; } else cur = cur ? cur + " " + w : w;
     }
     if(cur) out.push(cur);
     return out.slice(0, 5);
@@ -307,9 +307,9 @@ function wrap(s, n = 22){
 const SAFE_BOTTOM = 300;
 function caption(say){
   const lines = wrap(say.replace(/パーセント/g, "%").replace(/ percent/g, "%"));
-  const lh = 62, boxH = lines.length * lh + 56, y0 = H - SAFE_BOTTOM - 40 - boxH;
+  const lh = 70, boxH = lines.length * lh + 58, y0 = H - SAFE_BOTTOM - 40 - boxH;
   return `<rect x="60" y="${y0}" width="${W - 120}" height="${boxH}" rx="22" fill="${DEEP}" opacity="0.92"/>` +
-    lines.map((l, i) => T(W / 2, y0 + 62 + i * lh, l, { size: 42, anchor: "middle", weight: 700 })).join("");
+    lines.map((l, i) => T(W / 2, y0 + 66 + i * lh, l, { size: 50, anchor: "middle", weight: 700 })).join("");
 }
 let HAS_BG = false;
 /* マナ・シンボル（Scryfall の SVG）。取れたものは SYM に入る。無い色は丸に文字で代用 */
@@ -360,13 +360,13 @@ function sceneSvg(sc){
       // 一目で「何の動画か」が分かるように：大きな縁取り文字を、上下の暗い帯の上に置く。絵は真ん中に見せる
       const parts = String(sc.title).includes(" ") && JA ? String(sc.title).split(/\s+/) : [sc.title];
       const longest = Math.max(...parts.map(p => [...p].length));
-      const fit = JA ? Math.min(190, Math.floor(980 / Math.max(longest, 4))) : Math.min(170, Math.floor(1000 / Math.max(longest * 0.62, 4)));
+      const fit = JA ? Math.min(150, Math.floor(980 / Math.max(longest, 4))) : Math.min(170, Math.floor(1000 / Math.max(longest * 0.62, 4)));
       const lines = parts.length > 1 ? parts : (JA && longest > 9 ? [[...sc.title].slice(0, Math.ceil(longest / 2)).join(""), [...sc.title].slice(Math.ceil(longest / 2)).join("")] : parts);
-      const sz = JA ? Math.min(190, Math.floor(980 / Math.max(...lines.map(l => [...l].length), 4))) : fit;
-      let y = 560;
+      const sz = JA ? Math.min(150, Math.floor(980 / Math.max(...lines.map(l => [...l].length), 4))) : fit;
+      let y = 520;
       let titleSvg = "";
-      for(const l of lines){ titleSvg += TS(W / 2, y, l, { size: sz, fill: "#FFD23F" }); y += Math.round(sz * 1.12); }
-      const modeY = y + 40;
+      for(const l of lines){ titleSvg += TS(W / 2, y, l, { size: sz, fill: "#FFD23F" }); y += Math.round(sz * 1.06); }
+      const modeY = y - 58;   // 動画ページでは中央に再生ボタンが載るので、真ん中（縦960付近）には文字を置かない
       return frame(
         `<defs>
            <linearGradient id="gt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050B14" stop-opacity="0.92"/><stop offset="0.75" stop-color="#050B14" stop-opacity="0.8"/><stop offset="1" stop-color="#050B14" stop-opacity="0"/></linearGradient>
@@ -374,13 +374,19 @@ function sceneSvg(sc){
          </defs>
          <rect x="0" y="0" width="${W}" height="${modeY + 190}" fill="url(#gt)"/>
          <rect x="0" y="1330" width="${W}" height="590" fill="url(#gb)"/>` +
-        T(W / 2, 250, UI.arena, { size: 54, weight: 900, anchor: "middle", fill: "#FFFFFF" }) +
-        TS(W / 2, 400, UI.hookA, { size: 104, fill: "#FFFFFF" }) +
+        (sc.arenaLogo ? `<image href="${sc.arenaLogo}" x="${W / 2 - 290}" y="50" width="580" height="204" preserveAspectRatio="xMidYMid meet"/>` : T(W / 2, 190, UI.arena, { size: 70, weight: 900, anchor: "middle", fill: "#FFFFFF" })) +
+        TS(W / 2, 372, UI.hookA, { size: 96, fill: "#FFFFFF" }) +
         titleSvg +
-        `<rect x="${W / 2 - 330}" y="${modeY - 96}" width="660" height="150" rx="75" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
-        T(W / 2, modeY + 8, UI.hookC(sc.isSealed), { size: 92, weight: 900, anchor: "middle", fill: "#06101C" }) +
-        TS(W / 2, 1470, UI.hookD, { size: 84, fill: "#FFFFFF" }) +
-        T(W / 2, 1565, UI.games(sc.games), { size: 44, fill: "#DCE8F5", anchor: "middle", weight: 700 }), null, { header: false });
+        `<rect x="${W / 2 - 280}" y="${modeY - 62}" width="560" height="100" rx="50" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
+        T(W / 2, modeY + 8, UI.hookC(sc.isSealed), { size: 66, weight: 900, anchor: "middle", fill: "#06101C" }) +
+        (() => {
+          const g = UI.hookD1(sc.games), n1 = String(sc.games), l1 = [...g].length, l2 = [...UI.hookD2].length;
+          const s1 = JA ? Math.min(150, Math.floor(1000 / l1)) : Math.min(116, Math.floor(1000 / (l1 * 0.58)));
+          const s2 = JA ? Math.min(120, Math.floor(1000 / l2)) : Math.min(104, Math.floor(1000 / (l2 * 0.58)));
+          const i = g.indexOf(n1), head = i >= 0 ? g.slice(0, i) : "", tail = i >= 0 ? g.slice(i + n1.length) : g;
+          return `<text x="${W / 2}" y="1290" font-size="${s1}" fill="#FFFFFF" font-weight="900" text-anchor="middle" stroke="#06101C" stroke-width="${Math.round(s1 * 0.16)}" stroke-linejoin="round" paint-order="stroke">${esc(head)}<tspan fill="#FFD23F">${esc(n1)}</tspan>${esc(tail)}</text>` +
+                 TS(W / 2, 1290 + Math.round(s2 * 1.35), UI.hookD2, { size: s2 });
+        })(), null, { header: false });
     }
     case "intro": {
       const box = (x, label, on) =>
@@ -437,7 +443,7 @@ function sceneSvg(sc){
     }
     case "top": {
       // 3枚を縦に並べ、左にカード、右に順位・名前・勝率。字幕の枠（下から 300+40+箱）にかからない範囲でカードをできるだけ大きく
-      const CW = 272, CH = 380, ROW = 388, Y0 = 236, TX = 396;
+      const CW = 266, CH = 372, ROW = 380, Y0 = 236, TX = 390;
       let s = T(80, 216, UI.topH(sc.label), { size: 36, fill: MUTED });
       sc.cards.forEach((c, i) => {
         const y = Y0 + i * ROW, col = COLOR[c.color] || MUTED;
