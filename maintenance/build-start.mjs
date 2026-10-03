@@ -616,7 +616,7 @@ ${f.rows.map(x => `<tr><th>${x[0]}</th><td>${x[1]}</td><td>${x[2]}</td></tr>`).j
   const toc = `<ul class="toc">${P.toc.map(x => `<li><a href="#${x[0]}">${x[1]}</a></li>`).join("")}</ul>`;
   const main = `${toc}\n${order.map(k => S[k]).join("\n")}\n${kind === "mtg" ? gloss : ""}${en ? "" : JS_JA}`;
 
-  return shell(lang, base, head, { header, main, noGoods: true });
+  return shell(lang, base, head, { header, main });
 }
 
 await mkdir("start", { recursive: true });
