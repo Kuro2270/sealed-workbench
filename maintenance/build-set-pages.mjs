@@ -273,6 +273,7 @@ ${head}
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <script src="../analytics.js"></script>
+<script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
