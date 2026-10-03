@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <script src="./i18n.js"></script>
 <script src="./analytics.js"></script>
+<script src="./tip.js" defer></script>
 <script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
@@ -347,6 +348,8 @@ async function loadIndex(){
     renderSetOptions();
     const want = new URLSearchParams(location.search).get("set");
     if(want && [...$("setSelect").options].some(o => o.value === want.toUpperCase())) $("setSelect").value = want.toUpperCase();
+    const wantMode = new URLSearchParams(location.search).get("mode");
+    if(wantMode === "draft" || wantMode === "sealed") mode = wantMode;
     updateModeTabs();
     syncStaticLink();
     if(index.length) load();
@@ -720,7 +723,7 @@ function render(){
         <h3>${t("rarity." + r)}</h3>
         <table><thead><tr>
           <th>${t("reports.col.card")}</th><th>${t("reports.col.cmc")}</th>
-          <th>${t("reports.col.wr")}</th><th>IWD</th><th>${t("reports.col.games")}</th>
+          <th><span data-tip="${esc(t("wr.gih.tip"))}" tabindex="0">${t("ratings.col.gih")}</span></th><th><span data-tip="${esc(t("iwd.tip"))}" tabindex="0">IWD</span></th><th>${t("reports.col.games")}</th>
         </tr></thead><tbody>
         ${list.map(c => {
           const col = (c.color || "").length === 1 ? c.color : ((c.color || "").length > 1 ? "M" : "C");
@@ -729,7 +732,7 @@ function render(){
             <td><span class="cname"><span class="dot" style="background:var(${def ? def.var : "--c"})"></span>
               <span class="nm">${esc(displayName(c.name))}</span></span></td>
             <td>${c.cmc ?? "—"}</td>
-            <td class="wr ${wrClass(c.gih, avg)}">${pct(c.gih)}</td>
+            <td class="wr ${wrClass(c.gih, avg)}" data-tip="${esc(t("tip.gih", {p: (c.gih * 100).toFixed(1), n: (c.games || 0).toLocaleString()}) + "\n" + t("wr.gih.tip"))}">${pct(c.gih)}</td>
             <td>${c.iwd == null ? "—" : (c.iwd >= 0 ? "+" : "") + (c.iwd * 100).toFixed(1)}</td>
             <td class="thin">${(c.games || 0).toLocaleString()}</td>
           </tr>`;
@@ -839,7 +842,16 @@ function hidePreview(){
 }
 
 /* ---------- イベント ---------- */
-$("setSelect").onchange = () => { updateModeTabs(); load(); };
+/* 選んだセットと形式をURLに残す（再読み込みしても、最新セットに戻らない。URLを共有もできる） */
+function rememberChoice(){
+  try{
+    const u = new URL(location.href);
+    u.searchParams.set("set", $("setSelect").value);
+    u.searchParams.set("mode", mode);
+    history.replaceState(null, "", u.pathname + u.search + u.hash);
+  }catch(e){}
+}
+$("setSelect").onchange = () => { updateModeTabs(); rememberChoice(); load(); };
 function syncStaticLink(){
   const code = $("setSelect").value;
   const suffix = I18N.lang === "en" ? ".en" : "";
@@ -851,6 +863,7 @@ document.querySelectorAll("#modeTabs .tab").forEach(b => {
     if(b.disabled || b.dataset.mode === mode) return;
     mode = b.dataset.mode;
     syncModeTabs();
+    rememberChoice();
     load();
   };
 });

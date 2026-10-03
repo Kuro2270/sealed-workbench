@@ -57,6 +57,7 @@ const L = {
     colorsH: "色の強さ", colorsLead: "その色のカードをデッキに入れた試合の勝率です。",
     archeH: "色の組み合わせ", archeLead: "2色の組み合わせごとの勝率です。試合数の多い順に並べています。",
     curveH: "マナ総量ごとの勝率", curveLead: "そのマナ総量のカードが手札か戦場にあった試合の勝率です。",
+    tipGih: "GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。",
     cardsH: "カード点数ランキング（レアリティ別）", cardsLead: "カードの「点数」は、実際の勝率（GIH勝率：そのカードが手札か戦場にあった試合の勝率）で見ます。高いほど強いカードです。レアリティごとに高い順に並べています。",
     faqH: "リミテッドのカードの点数について",
     faq: [
@@ -103,6 +104,7 @@ const L = {
     colorsH: "Colour strength", colorsLead: "Win rate of games where the deck included cards of that colour.",
     archeH: "Colour pairs", archeLead: "Win rate by two-colour pair, sorted by number of games.",
     curveH: "Win rate by mana value", curveLead: "Win rate of games where a card of that mana value was in hand or on the battlefield.",
+    tipGih: "GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data.",
     cardsH: "Card ratings by rarity", cardsLead: "A card's rating is its real win rate (GIH win rate: games where the card was in hand or on the battlefield). Higher is stronger. Sorted from the top within each rarity.",
     faqH: "About Limited card ratings",
     faq: [
@@ -286,6 +288,7 @@ ${head}
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <script src="../analytics.js"></script>
 <script src="/navmenu.js" defer></script>
+<script src="/tip.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
@@ -515,7 +518,7 @@ ${videoSection(lang, code, mode, setDisplay, videos)}`;
   if(d.top){
     const blocks = ["mythic","rare","uncommon","common"].filter(r => (d.top[r] || []).length).map(r => `
       <div><h3><span class="rar ${r}">${esc(T.rarity[r])}</span></h3>
-      <table><thead><tr><th>${esc(T.col.card)}</th><th class="num">${esc(T.col.score)}</th><th class="num">${esc(T.col.games)}</th></tr></thead><tbody>
+      <table><thead><tr><th>${esc(T.col.card)}</th><th class="num"><span data-tip="${esc(T.tipGih)}" tabindex="0">${esc(T.col.score)}</span></th><th class="num">${esc(T.col.games)}</th></tr></thead><tbody>
       ${d.top[r].map(c => `<tr><td><span class="dot" style="background:${dotOf(c.color || "")}"></span>${esc(cn(c.name))}</td><td class="num"><b>${pct(c.gih)}</b></td><td class="num">${(c.games || 0).toLocaleString()}</td></tr>`).join("\n      ")}
       </tbody></table></div>`).join("");
     out += `

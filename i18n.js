@@ -79,6 +79,8 @@
     "sel.set":          { ja:"セットを選ぶ",     en:"Choose a set" },
     "sel.sort":         { ja:"プールの並び順",   en:"Pool sort order" },
     "sel.event":        { ja:"形式",             en:"Format" },
+    "iwd.tip":          { ja:"IWD（Improvement When Drawn）：そのカードを引いた試合の勝率が、引かなかった試合に比べて何ポイント高いかです。プラスが大きいほど、引いたときに効いているカードです。",
+                          en:"IWD (Improvement When Drawn): how many points higher your win rate is in games where you drew this card, compared with games where you did not. A bigger plus means the card helps more when drawn." },
     "tip.gih":          { ja:"GIH勝率 {p}%（{n}試合）", en:"GIH win rate {p}% ({n} games)" },
     "tip.curve":        { ja:"{c}マナ：{n}枚",   en:"{c} mana: {n} cards" },
     "err.sets":         { ja:"セット一覧を取得できませんでした。再読み込みしてください。（{e}）",

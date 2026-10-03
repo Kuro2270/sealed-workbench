@@ -394,7 +394,10 @@ async function loadSets(){
 }
 
 function renderSetOptions(){
-  const sel = $("setSelect"), keep = sel.value;
+  const sel = $("setSelect");
+  let remembered = ""; try{ remembered = sessionStorage.getItem("sw.set.draft") || ""; }catch(e){}
+  const keep = sel.value || remembered;   // 再読み込みしても、選んでいたセットのまま
+  if(!sel.dataset.mem){ sel.dataset.mem = "1"; sel.addEventListener("change", () => { try{ sessionStorage.setItem("sw.set.draft", sel.value); }catch(e){} }); }
   sel.innerHTML = "";
   sets.forEach(s => {
     const o = document.createElement("option");
