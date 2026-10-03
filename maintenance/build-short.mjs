@@ -58,7 +58,7 @@ const COLOR_EN = { W: "White", U: "Blue", B: "Black", R: "Red", G: "Green" };
 const CN = JA ? COLOR_JA : COLOR_EN;                 // この言語での色の名前
 /* 画面とナレーションの決まり文句。言語ごとにここだけ変える */
 const UI = JA ? {
-  analysis: "リミテッド環境分析", arena: "MTGアリーナ", report: "リミテッド環境レポート", games: g => `${g}試合`, inOneMinute: "のデータが1分でわかる",
+  analysis: "リミテッド環境分析", arena: "MTGアリーナ", report: "リミテッド環境レポート", games: g => `${g}試合`, inOneMinute: "のデータが1分でわかる", hookA: "1分でわかる", hookC: m => m ? "シールド環境" : "ドラフト環境", hookD: "強いカード ・ 強い色",
   whatIs: "リミテッドとは", whatIs1: "その場で開けたパックだけで", whatIs2: "デッキを組む遊び方", sealed: "シールド", draft: "ドラフト", thisVideo: "この動画はこちら",
   speedH: "環境の速さ", speedSub: "平均マナ総量ごとの勝率", under: m => `${m}未満`, between: (a, b) => `${a}〜${b}`, over: m => `${m}以上`,
   pace: { fast: "速い", "lean-fast": "やや速い", mid: "普通", even: "普通", "lean-slow": "やや遅い", slow: "遅い", slower: "かなり遅い" },
@@ -69,9 +69,9 @@ const UI = JA ? {
   subscribe: "▶ チャンネル登録",
   surpriseH: "意外な事実", nobody: "誰も組んでいない", strongerTogether: "組むと強くなる", weakerTogether: "組むと弱くなる",
   wrRank: (v, r) => `勝率 ${v}%（${r}位）`, wr: v => `勝率 ${v}%`, usedOnly: (g, p) => `使われた試合は ${g}。全体の${p}%だけ`, vsAvg2: (sign, n) => `2色それぞれの平均より ${sign}${n}pt`,
-  outro1: "全カードの勝率は", outro2: "シールド／ドラフトの構築練習も無料", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん"
+  outroA: "チャンネル登録を", outroB: "お願いします", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん"
 } : {
-  analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute",
+  analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute", hookA: "Limited in 1 minute", hookC: m => m ? "SEALED" : "DRAFT", hookD: "Best cards & colors",
   whatIs: "What is Limited?", whatIs1: "Build a deck only from", whatIs2: "packs you just opened", sealed: "Sealed", draft: "Draft", thisVideo: "This video",
   speedH: "Format speed", speedSub: "Win rate by average mana value", under: m => `under ${m}`, between: (a, b) => `${a}–${b}`, over: m => `${m}+`,
   pace: { fast: "Fast", "lean-fast": "Leans fast", mid: "Average", even: "Average", "lean-slow": "Leans slow", slow: "Slow", slower: "Very slow" },
@@ -82,7 +82,7 @@ const UI = JA ? {
   subscribe: "▶ Subscribe",
   surpriseH: "One surprise", nobody: "Nobody plays it", strongerTogether: "Better together", weakerTogether: "Worse together",
   wrRank: (v, r) => `${v}% win rate (#${r})`, wr: v => `${v}% win rate`, usedOnly: (g, p) => `Only ${g} games — ${p}% of all decks`, vsAvg2: (sign, n) => `${sign}${n}pt vs each colour's average`,
-  outro1: "Every card's win rate at", outro2: "Free Sealed / Draft practice too", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS"
+  outroA: "Please subscribe", outroB: "", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS"
 };
 const FONT = "'Noto Sans CJK JP','Noto Sans JP',sans-serif";
 
@@ -185,7 +185,7 @@ function buildScript(d, nameJa, names){
   scenes.push({ kind: "hook", art: true,
     say: JA ? `MTGアリーナ、リミテッドの${nameJa}環境。${games}試合のデータが、1分でわかります。`
             : `MTG Arena Limited: ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} format. ${d.total_games >= 10000 ? Math.round(d.total_games / 1000) + " thousand" : manSay(d.total_games)} games of data, in one minute.`,
-    title: nameJa, games });
+    title: nameJa, games, isSealed: d.mode === "sealed" });
 
   // お決まりの前置き：リミテッドとは何か、シールドとドラフトのどちらのデータか
   const isSealed = d.mode === "sealed";
@@ -247,10 +247,8 @@ function buildScript(d, nameJa, names){
   if(sur) scenes.push({ kind: "surprise", say: sur.say, ...sur });
 
   scenes.push({ kind: "outro", art: true,
-    say: JA ? `全カードの勝率は、${SITE.replace(/\./g, " ドット ")} で。次のセットも出すので、チャンネル登録をお願いします。`
-            : `Every card's win rate is at ${SITE.replace(/\./g, " dot ").replace("-", " ")}. Subscribe for the next set.`,
-    cap: JA ? `全カードの勝率は、${SITE} で。次のセットも出すので、チャンネル登録をお願いします。` : `Every card's win rate is at ${SITE}. Subscribe for the next set.`,   // 字幕は読み上げ用の「ドット」ではなく本来の表記で
-    site: SITE, tail: 1.2 });
+    say: JA ? `次のセットも出すので、チャンネル登録をお願いします。` : `Subscribe for the next set.`,
+    site: SITE, tail: 1.0 });
   return scenes;
 }
 
@@ -259,6 +257,11 @@ function buildScript(d, nameJa, names){
 const T = (x, y, s, o = {}) =>
   `<text x="${x}" y="${y}" font-size="${o.size || 44}" fill="${o.fill || PAPER}" font-weight="${o.weight || 400}"` +
   `${o.anchor ? ` text-anchor="${o.anchor}"` : ""}${o.op != null ? ` opacity="${o.op}"` : ""}>${esc(s)}</text>`;
+
+/* 縁取り付きの大きな文字（背景の絵と混ざらないように、黒い縁を付ける） */
+const TS = (x, y, s, o = {}) =>
+  `<text x="${x}" y="${y}" font-size="${o.size || 100}" fill="${o.fill || "#FFFFFF"}" font-weight="900" text-anchor="middle"` +
+  ` stroke="${o.stroke || "#06101C"}" stroke-width="${o.sw || Math.round((o.size || 100) * 0.16)}" stroke-linejoin="round" paint-order="stroke">${esc(s)}</text>`;
 
 /* 字幕。句読点で折り返し、数字・英字のかたまりは途中で切らない */
 /* カード名を最大2行に折る（英語は単語で、日本語は文字数で） */
@@ -354,22 +357,30 @@ function frame(inner, say, opts = {}){
 function sceneSvg(sc){
   switch(sc.kind){
     case "hook": {
-      const n = [...sc.title].length, size = JA ? (n <= 5 ? 140 : n <= 8 ? 104 : 80) : (n <= 10 ? 120 : n <= 16 ? 90 : 68);
-      // MTGアリーナのロゴ画像（short/logo/arena.png）があれば文字の代わりに。無ければ文字
-      const arena = sc.arenaLogo
-        ? `<image href="${sc.arenaLogo}" x="${W / 2 - 320}" y="250" width="640" height="225" preserveAspectRatio="xMidYMid meet"/>`
-        : T(W / 2, 400, UI.arena, { size: 84, weight: 900, anchor: "middle" });
-      // セットのロゴ画像があれば、幅 900・高さ 300 の枠に収めて中央に。無ければセット名を文字で
-      const title = sc.logo
-        ? `<image href="${sc.logo}" x="${W / 2 - 450}" y="760" width="900" height="300" preserveAspectRatio="xMidYMid meet"/>`
-        : T(W / 2, 890, sc.title, { size, weight: 900, anchor: "middle", fill: BLUE });
+      // 一目で「何の動画か」が分かるように：大きな縁取り文字を、上下の暗い帯の上に置く。絵は真ん中に見せる
+      const parts = String(sc.title).includes(" ") && JA ? String(sc.title).split(/\s+/) : [sc.title];
+      const longest = Math.max(...parts.map(p => [...p].length));
+      const fit = JA ? Math.min(190, Math.floor(980 / Math.max(longest, 4))) : Math.min(170, Math.floor(1000 / Math.max(longest * 0.62, 4)));
+      const lines = parts.length > 1 ? parts : (JA && longest > 9 ? [[...sc.title].slice(0, Math.ceil(longest / 2)).join(""), [...sc.title].slice(Math.ceil(longest / 2)).join("")] : parts);
+      const sz = JA ? Math.min(190, Math.floor(980 / Math.max(...lines.map(l => [...l].length), 4))) : fit;
+      let y = 560;
+      let titleSvg = "";
+      for(const l of lines){ titleSvg += TS(W / 2, y, l, { size: sz, fill: "#FFD23F" }); y += Math.round(sz * 1.12); }
+      const modeY = y + 40;
       return frame(
-        arena +
-        T(W / 2, 590, UI.report, { size: 48, fill: MUTED, anchor: "middle" }) +
-        `<rect x="${W / 2 - 200}" y="640" width="400" height="6" fill="${BLUE}"/>` +
-        title +
-        T(W / 2, sc.logo ? 1210 : 1090, UI.games(sc.games), { size: 92, weight: 900, anchor: "middle" }) +
-        T(W / 2, sc.logo ? 1290 : 1170, UI.inOneMinute, { size: 44, fill: MUTED, anchor: "middle" }), null, { header: false });   // 冒頭は字幕なし（画面と同じ内容を読むだけなので）
+        `<defs>
+           <linearGradient id="gt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050B14" stop-opacity="0.92"/><stop offset="0.75" stop-color="#050B14" stop-opacity="0.8"/><stop offset="1" stop-color="#050B14" stop-opacity="0"/></linearGradient>
+           <linearGradient id="gb" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#050B14" stop-opacity="0.92"/><stop offset="0.7" stop-color="#050B14" stop-opacity="0.78"/><stop offset="1" stop-color="#050B14" stop-opacity="0"/></linearGradient>
+         </defs>
+         <rect x="0" y="0" width="${W}" height="${modeY + 190}" fill="url(#gt)"/>
+         <rect x="0" y="1330" width="${W}" height="590" fill="url(#gb)"/>` +
+        T(W / 2, 250, UI.arena, { size: 54, weight: 900, anchor: "middle", fill: "#FFFFFF" }) +
+        TS(W / 2, 400, UI.hookA, { size: 104, fill: "#FFFFFF" }) +
+        titleSvg +
+        `<rect x="${W / 2 - 330}" y="${modeY - 96}" width="660" height="150" rx="75" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
+        T(W / 2, modeY + 8, UI.hookC(sc.isSealed), { size: 92, weight: 900, anchor: "middle", fill: "#06101C" }) +
+        TS(W / 2, 1470, UI.hookD, { size: 84, fill: "#FFFFFF" }) +
+        T(W / 2, 1565, UI.games(sc.games), { size: 44, fill: "#DCE8F5", anchor: "middle", weight: 700 }), null, { header: false });
     }
     case "intro": {
       const box = (x, label, on) =>
@@ -458,19 +469,12 @@ function sceneSvg(sc){
         T(W / 2, 1010, sc.note, { size: JA ? 34 : 30, anchor: "middle", fill: MUTED }), sc.say);
     }
     case "outro": {
-      // 登録ボタンは「本物のボタン」ではなく、画面下のチャンネル名の横にある登録ボタンを押してもらうための案内。大きく、まわりを空けて描く
+      // 締めは「チャンネル登録をお願いします」だけ。クレジットや表記は概要欄に置く
       return frame(
-        T(W / 2, 400, UI.outro1, { size: 52, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 540, sc.site, { size: 78, weight: 900, anchor: "middle", fill: BLUE }) +
-        T(W / 2, 640, UI.outro2, { size: 40, anchor: "middle" }) +
-        `<rect x="${W / 2 - 300}" y="760" width="600" height="110" rx="55" fill="#E53935"/>` +
-        T(W / 2, 834, UI.subscribe, { size: 52, weight: 900, anchor: "middle", fill: "#FFFFFF" }) +
-        T(W / 2, 960, UI.data, { size: 30, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 1000, UI.voice + (sc.bgmCredit ? `　BGM: ${sc.bgmCredit}` : ""), { size: 30, fill: MUTED, anchor: "middle" }) +
-        // Wizards の Fan Content Policy が求める表記。外さないこと
-        T(W / 2, 1050, "Unofficial Fan Content permitted under the Fan Content Policy.", { size: 22, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 1082, "Not approved/endorsed by Wizards. Portions of the materials used", { size: 22, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 1114, "are property of Wizards of the Coast. ©Wizards of the Coast LLC.", { size: 22, fill: MUTED, anchor: "middle" }), sc.cap || sc.say);
+        TS(W / 2, 640, UI.outroA, { size: 112 }) +
+        (UI.outroB ? TS(W / 2, 780, UI.outroB, { size: 112 }) : "") +
+        `<rect x="${W / 2 - 340}" y="900" width="680" height="140" rx="70" fill="#E53935" stroke="#FFFFFF" stroke-width="6"/>` +
+        T(W / 2, 992, UI.subscribe, { size: 64, weight: 900, anchor: "middle", fill: "#FFFFFF" }), null, { header: false });
     }
   }
   return frame("", sc.say);
@@ -585,6 +589,7 @@ async function main(){
   }catch(e){ console.error("BGM: 無し"); }
   const outro = scenes.find(sc => sc.kind === "outro");
   if(outro && bgmCredit) outro.bgmCredit = bgmCredit;
+  await mkdir(`${OUT}/${TAG}`, { recursive: true }); await writeFile(`${OUT}/${TAG}/bgm.txt`, bgmCredit, "utf8");   // 概要欄に載せる
 
   // セットの顔になるカードのアート（冒頭・締めの背景）。神話レア→レアの順に勝率上位から探す
   let artPath = null;
@@ -644,10 +649,10 @@ async function main(){
     await sharp(Buffer.from(sceneSvg(scenes[0])), { density: 72 }).png().toFile(png);
     await mkdir("assets/video", { recursive: true });
     const out = `assets/video/${SET}-${TAG}.jpg`;
-    const args = HAS_BG
-      ? ["-ss", "1.0", "-i", BG, "-i", png, "-filter_complex",
-         `[0:v]scale=iw*sar:ih,setsar=1,scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},eq=saturation=0.7,gblur=sigma=5,setsar=1[bg0];` +
-         `color=c=0x0A2038@0.6:s=${W}x${H}[tint];[bg0][tint]overlay=shortest=1[bg];[1:v]scale=${W}:${H},format=rgba[fg];[bg][fg]overlay=shortest=1,scale=540:960[v]`]
+    const args = (artPath || HAS_BG)
+      ? (artPath ? ["-loop", "1", "-i", artPath] : ["-ss", "1.0", "-i", BG]).concat(["-i", png, "-filter_complex",
+         `[0:v]scale=iw*sar:ih,setsar=1,scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},eq=saturation=${artPath ? 1.0 : 0.7}${artPath ? "" : ",gblur=sigma=5"},setsar=1[bg0];` +
+         `color=c=0x0A2038@${artPath ? 0.12 : 0.6}:s=${W}x${H}[tint];[bg0][tint]overlay=shortest=1[bg];[1:v]scale=${W}:${H},format=rgba[fg];[bg][fg]overlay=shortest=1,scale=540:960[v]`])
       : ["-f", "lavfi", "-i", `color=c=0x0A2038:s=${W}x${H}`, "-i", png, "-filter_complex", `[0:v][1:v]overlay=shortest=1,scale=540:960[v]`];
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...args, "-map", "[v]", "-frames:v", "1", "-q:v", "4", out]);
     console.error(`サムネイルを作りました: ${out}`);
@@ -690,8 +695,8 @@ async function main(){
               "-filter_complex",
                 `[0:v]scale=${W * 2}:${H * 2}:force_original_aspect_ratio=increase,crop=${W * 2}:${H * 2},` +
                 `zoompan=z='1+0.08*on/${N}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${N}:s=${W}x${H}:fps=30,eq=saturation=0.9[bg0];` +
-                `color=c=0x0A2038@0.45:s=${W}x${H}:r=30[tint];[bg0][tint]overlay=shortest=1[bg];` +
-                `[1:v]scale=${W}:${H},format=rgba,fade=t=in:d=0.2:alpha=1[fg];` +
+                `color=c=0x0A2038@${sc.kind === "hook" ? 0.12 : 0.45}:s=${W}x${H}:r=30[tint];[bg0][tint]overlay=shortest=1[bg];` +
+                `[1:v]scale=${W}:${H},format=rgba${sc.kind === "hook" ? "" : ",fade=t=in:d=0.2:alpha=1"}[fg];` +
                 `[bg][fg]overlay=shortest=1,format=yuv420p[v];${audio}`];
     }else if(HAS_BG){
       // 横長の映像を縦に切り出し、暗くぼかして下に敷く。開始位置は前の場面の続きから

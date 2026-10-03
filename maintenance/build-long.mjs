@@ -53,6 +53,9 @@ const norm = p => [...p].sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b)).joi
 const T = (x, y, s, o = {}) =>
   `<text x="${x}" y="${y}" font-size="${o.size || 40}" fill="${o.fill || PAPER}" font-weight="${o.weight || 400}"` +
   `${o.anchor ? ` text-anchor="${o.anchor}"` : ""}${o.op != null ? ` opacity="${o.op}"` : ""}>${esc(s)}</text>`;
+const TS = (x, y, s, o = {}) =>
+  `<text x="${x}" y="${y}" font-size="${o.size || 100}" fill="${o.fill || "#FFFFFF"}" font-weight="900"${o.anchor ? ` text-anchor="${o.anchor}"` : ""}` +
+  ` stroke="#06101C" stroke-width="${Math.round((o.size || 100) * 0.16)}" stroke-linejoin="round" paint-order="stroke">${esc(s)}</text>`;
 function wrapName(name, n){
   const t = String(name), ch = [...t];
   if(ch.length <= n) return [t];
@@ -288,8 +291,7 @@ function buildScript(ctx){
        + `カードごとの勝率の一覧は、サイトで見られます。`, tail: 0.6 });
 
   scenes.push({ kind: "outro", art: true, chapter: null,
-    say: `全カードの勝率は、${SITE.replace(/\./g, " ドット ")} で見られます。シールドとドラフトの練習も無料です。次のセットも出すので、チャンネル登録をお願いします。`,
-    cap: `全カードの勝率は、${SITE} で見られます。シールドとドラフトの練習も無料です。次のセットも出すので、チャンネル登録をお願いします。`, site: SITE, tail: 1.2 });
+    say: `次のセットも出すので、チャンネル登録をお願いします。`, tail: 1.0 });
   return scenes;
 }
 
@@ -357,14 +359,20 @@ function paceChart(x0, x1, title, rows, color){
 function sceneSvg(sc){
   switch(sc.kind){
     case "hook": {
-      const n = [...sc.title].length, size = n <= 6 ? 170 : n <= 10 ? 130 : 96;
+      // サムネイルを兼ねる：左に大きな縁取り文字、右にカードの絵。左から暗くして文字を読みやすくする
+      const parts = String(sc.title).includes(" ") ? String(sc.title).split(/\s+/) : [sc.title];
+      const sz = Math.min(190, Math.floor(1000 / Math.max(...parts.map(p => [...p].length), 4)));
+      let y = 430, titleSvg = "";
+      for(const l of parts){ titleSvg += TS(90, y, l, { size: sz, fill: "#FFD23F" }); y += Math.round(sz * 1.12); }
       return frame(
-        T(W / 2, 330, "MTGアリーナ", { size: 74, weight: 900, anchor: "middle" }) +
-        T(W / 2, 410, "リミテッド環境まとめ", { size: 50, fill: MUTED, anchor: "middle" }) +
-        `<rect x="${W / 2 - 220}" y="450" width="440" height="6" fill="${BLUE}"/>` +
-        T(W / 2, 640, sc.title, { size, weight: 900, anchor: "middle", fill: BLUE }) +
-        T(W / 2, 760, "ボム10枚 ・ 罠カード ・ コモン除去 ・ 色の組み合わせ", { size: 52, weight: 700, anchor: "middle" }) +
-        T(W / 2, 850, `ドラフト ${man(sc.gamesD)}試合 ＋ シールド ${man(sc.gamesS)}試合のデータ`, { size: 40, fill: MUTED, anchor: "middle" }), sc, { header: false });
+        `<defs><linearGradient id="gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#050B14" stop-opacity="0.93"/><stop offset="0.62" stop-color="#050B14" stop-opacity="0.8"/><stop offset="1" stop-color="#050B14" stop-opacity="0.05"/></linearGradient></defs>
+         <rect x="0" y="0" width="${W}" height="${H}" fill="url(#gl)"/>` +
+        T(90, 128, "MTGアリーナ", { size: 56, weight: 900, fill: "#FFFFFF" }) +
+        TS(90, 262, "完全ガイド", { size: 110 }) +
+        titleSvg +
+        `<rect x="90" y="${y - 40}" width="760" height="130" rx="65" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
+        T(470, y + 50, "ドラフト＋シールド環境", { size: 64, weight: 900, anchor: "middle", fill: "#06101C" }) +
+        TS(90, y + 195, "ボム10枚 ・ 罠カード ・ 除去", { size: 66 }), sc, { header: false });
     }
     case "agenda": {
       let s = T(W / 2, 200, "この動画の流れ", { size: 52, weight: 900, anchor: "middle" });
@@ -521,17 +529,11 @@ function sceneSvg(sc){
       return frame(s, sc);
     }
     case "outro": {
+      // 締めは「チャンネル登録をお願いします」だけ。クレジットや表記は概要欄に置く
       return frame(
-        T(W / 2, 270, "全カードの勝率は", { size: 52, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 410, sc.site, { size: 110, weight: 900, anchor: "middle", fill: BLUE }) +
-        T(W / 2, 490, "シールド／ドラフトの構築練習も無料", { size: 44, anchor: "middle" }) +
-        `<rect x="${W / 2 - 300}" y="560" width="600" height="110" rx="55" fill="#E53935"/>` +
-        T(W / 2, 634, "▶ チャンネル登録", { size: 52, weight: 900, anchor: "middle", fill: "#FFFFFF" }) +
-        T(W / 2, 740, "データ: 17Lands 公開データ（CC BY 4.0）", { size: 30, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 780, "音声: VOICEVOX:ずんだもん" + (sc.bgmCredit ? `　BGM: ${sc.bgmCredit}` : ""), { size: 30, fill: MUTED, anchor: "middle" }) +
-        // Wizards の Fan Content Policy が求める表記。外さないこと
-        T(W / 2, 830, "Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards.", { size: 22, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 860, "Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.", { size: 22, fill: MUTED, anchor: "middle" }), sc, { header: false });
+        TS(W / 2, 420, "チャンネル登録をお願いします", { size: 108, anchor: "middle" }) +
+        `<rect x="${W / 2 - 340}" y="520" width="680" height="140" rx="70" fill="#E53935" stroke="#FFFFFF" stroke-width="6"/>` +
+        T(W / 2, 612, "▶ チャンネル登録", { size: 64, weight: 900, anchor: "middle", fill: "#FFFFFF" }), sc, { header: false });
     }
   }
   return frame("", sc);
@@ -713,12 +715,12 @@ async function main(){
     const useArt = sc.art && artPath;
     const first = useArt ? ["-loop", "1", "-framerate", "30", "-i", artPath] : HAS_BG ? ["-stream_loop", "-1", "-ss", (total % bgDur).toFixed(2), "-i", BG] : ["-f", "lavfi", "-i", `color=c=0x0A2038:s=${W}x${H}:r=30`];
     const bgFilter = useArt
-      ? `[0:v]scale=${W * 2}:${H * 2}:force_original_aspect_ratio=increase,crop=${W * 2}:${H * 2},zoompan=z='1+0.08*on/${N}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${N}:s=${W}x${H}:fps=30,eq=saturation=0.9[b0];color=c=0x0A2038@0.5:s=${W}x${H}:r=30[tint];[b0][tint]overlay=shortest=1[bg]`
+      ? `[0:v]scale=${W * 2}:${H * 2}:force_original_aspect_ratio=increase,crop=${W * 2}:${H * 2},zoompan=z='1+0.08*on/${N}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${N}:s=${W}x${H}:fps=30,eq=saturation=0.9[b0];color=c=0x0A2038@${sc.kind === "hook" ? 0.1 : 0.5}:s=${W}x${H}:r=30[tint];[b0][tint]overlay=shortest=1[bg]`
       : HAS_BG
         ? `[0:v]fps=30,scale=iw*sar:ih,setsar=1,scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},eq=saturation=0.7,gblur=sigma=5,setsar=1[b0];color=c=0x0A2038@0.6:s=${W}x${H}:r=30[tint];[b0][tint]overlay=shortest=1[bg]`
         : `[0:v]null[bg]`;
     const inputs = [...first, "-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", base + ".wav", ...caps.flatMap(c => ["-loop", "1", "-framerate", "30", "-i", c.f])];
-    let fc = `${bgFilter};[1:v]format=rgba,fade=t=in:d=0.2:alpha=1[fg];[bg][fg]overlay=shortest=1[v0]`;
+    let fc = `${bgFilter};[1:v]format=rgba${sc.kind === "hook" ? "" : ",fade=t=in:d=0.2:alpha=1"}[fg];[bg][fg]overlay=shortest=1[v0]`;
     caps.forEach((c, k) => { fc += `;[v${k}][${3 + k}:v]overlay=0:${CAP_Y}:enable='between(t,${c.a.toFixed(2)},${c.b.toFixed(2)})':shortest=1[v${k + 1}]`; });
     fc += `;[v${caps.length}]format=yuv420p[v];[2:a]apad=pad_dur=${pad.toFixed(2)},aformat=sample_rates=48000:channel_layouts=stereo[a]`;
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...inputs, "-filter_complex", fc, "-map", "[v]", "-map", "[a]", "-t", String(len),
@@ -743,7 +745,7 @@ https://${SITE}/
 
 データ: 17Lands Public Data (CC BY 4.0)
 音声: VOICEVOX:ずんだもん
-Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.
+${bgmCredit ? `BGM: ${bgmCredit}\n` : ""}Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.
 `, "utf8");
   console.error(`目次:\n${chapters.map(c => `  ${ts(c.at)} ${c.title}`).join("\n")}`);
   if(STILLS){ console.error(`画像だけ作りました。合計の目安 ${ts(total)}`); return; }
@@ -757,8 +759,11 @@ Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endo
       `[0:a]asplit[v1][v2];[bg][v2]sidechaincompress=threshold=0.05:ratio=6:attack=40:release=400[duck];[v1][duck]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`,
       "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-t", String(total), "-movflags", "+faststart", `${OUT}/ja.mp4`]);
   }
-  // サムネイル（冒頭の場面）
-  try{ execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-ss", "2.0", "-i", `${OUT}/ja.mp4`, "-frames:v", "1", "-q:v", "3", `${OUT}/thumbnail.jpg`]); }catch(e){}
+  // サムネイル（冒頭の場面。字幕の入る前の画面を、カードの絵に重ねる）
+  try{
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...(artPath ? ["-loop", "1", "-i", artPath] : ["-ss", "2.0", "-i", `${OUT}/ja.mp4`]), "-i", `${OUT}/scene-0.png`, "-filter_complex",
+      `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1[b];[1:v]scale=${W}:${H},format=rgba[f];[b][f]overlay=shortest=1`, "-frames:v", "1", "-q:v", "2", `${OUT}/thumbnail.jpg`]);
+  }catch(e){}
   console.error(`\n${OUT}/ja.mp4  合計 ${ts(total)}（${total.toFixed(0)} 秒）`);
 }
 

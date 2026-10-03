@@ -54,6 +54,7 @@ const name0 = await setName();
 const name = { ja: shortName(name0.ja), en: shortName(name0.en) };   // 長いセット名は後半だけ（タイトルが一覧で切れないように）
 let games = 0, mode = MODE;
 try{ const d = JSON.parse(await readFile(`data/articles/${SET}_${MODE}.json`, "utf8")); games = d.total_games || 0; }catch(e){}
+const bgmCredit = (await readFile(`short/${SET}/${TAG}/bgm.txt`, "utf8").catch(() => "")).trim();
 const gamesTxt = games ? games.toLocaleString(LANG === "ja" ? "ja-JP" : "en-US") : "";
 
 const pageUrl = `${SITE}/sets/${SET}${LANG === "en" ? ".en" : ""}.html`;
@@ -70,6 +71,7 @@ const meta = LANG === "ja" ? {
     ``,
     `データ: 17Lands Public Data（CC BY 4.0） https://www.17lands.com/`,
     `音声: VOICEVOX:ずんだもん`,
+    ...(bgmCredit ? [`BGM: ${bgmCredit}`] : []),
     `カード画像・マナシンボル: Scryfall`,
     ``,
     `Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.`,
