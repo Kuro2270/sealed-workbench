@@ -764,6 +764,7 @@ async function main(){
   const ts = s => { const m = Math.floor(s / 60), r = Math.floor(s % 60); return `${m}:${String(r).padStart(2, "0")}`; };
   await writeFile(`${OUT}/chapters.txt`, chapters.map(c => `${ts(c.at)} ${c.title}`).join("\n") + "\n", "utf8");
   const gD = man(dd.total_games), gS = man(ds.total_games);
+  await writeFile(`${OUT}/title.txt`, `【${nameJa}】環境まとめ｜強い色・ボム10枚・罠カード・コモン除去【MTGアリーナ リミテッド】`, "utf8");   // YouTube に上げるときの題
   await writeFile(`${OUT}/description.txt`,
 `MTGアリーナ、リミテッドの${nameJa}環境を、17Landsの実戦データ（ドラフト${gD}試合・シールド${gS}試合）でまるごと解説します。
 最強の色の組み合わせ、ボムのレア10枚、罠のカード、強いコモンの除去まで。
@@ -777,6 +778,8 @@ https://${SITE}/
 データ: 17Lands Public Data (CC BY 4.0)
 音声: VOICEVOX:ずんだもん
 ${bgmCredit ? `BGM: ${bgmCredit}\n` : ""}Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.
+
+#MTGアリーナ #MTGA #リミテッド #${String(nameJa).replace(/[\s・]/g, "")}
 `, "utf8");
   console.error(`目次:\n${chapters.map(c => `  ${ts(c.at)} ${c.title}`).join("\n")}`);
   if(STILLS){ console.error(`画像だけ作りました。合計の目安 ${ts(total)}`); return; }
