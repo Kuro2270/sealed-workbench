@@ -18,6 +18,16 @@ const cardUrl = name => `https://api.scryfall.com/cards/named?format=image&versi
 const card = (name, cls = "") =>
   `<span class="cimg ${cls}" data-name="${esc(name)}"><img src="${cardUrl(name)}" alt="${esc(name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>${esc(name)}</i></span>`;
 
+
+/* ストア・OSの小さなアイコン（白い角丸の台の上に置く）。自作の簡易図形で、公式バッジそのものではない */
+const ICON = {
+  win:  `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#0078D4" d="M3 3h8.5v8.5H3zM12.5 3H21v8.5h-8.5zM3 12.5h8.5V21H3zM12.5 12.5H21V21h-8.5z"/></svg>`,
+  apple:`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#111" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>`,
+  appstore:`<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="asg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#18BFFB"/><stop offset="1" stop-color="#2072F3"/></linearGradient></defs><rect width="24" height="24" rx="5.5" fill="url(#asg)"/><path d="M7.2 17.6 12.4 8.4M16.8 17.6 11.6 8.4M8.6 14.4h6.8M9.6 6.6l.6-1.1" stroke="#fff" stroke-width="1.9" stroke-linecap="round" fill="none"/></svg>`,
+  play: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00A0FF" d="M3.6 2.5 13.4 12l-9.8 9.5c-.4-.3-.6-.8-.6-1.4V3.9c0-.6.2-1.1.6-1.4z"/><path fill="#00D95F" d="M3.6 2.5 13.4 12l3.4-3.3L5.2 2.1c-.6-.3-1.2-.2-1.6.4z"/><path fill="#FF3A44" d="M3.6 21.5 13.4 12l3.4 3.3L5.2 21.9c-.6.3-1.2.2-1.6-.4z"/><path fill="#FFC800" d="m16.8 8.7 4 2.3c.8.5.8 1.5 0 2l-4 2.3-3.4-3.3z"/></svg>`
+};
+const chips = keys => keys.map(k => `<span class="chip">${ICON[k]}</span>`).join("");
+
 /* ------------------------------------------------------------------ 文面 */
 
 const JA = {
@@ -98,7 +108,7 @@ const JA = {
     h: "MTGアリーナ（デジタル版）で始める",
     lead: "MTGの公式デジタル版です。<b>パソコン（Windows・Mac）でも、スマートフォン・タブレット（iPhone・iPad・Android）でも</b>遊べて、基本プレイ無料、日本語に対応しています。PC版とスマホ版は、同じアカウントのデータで遊べます。",
     installH: "インストールする",
-    install: [["💻", "パソコン（Windows・Mac）", "公式ページへ", "https://mtg-jp.com/mtgarena/"], ["📱", "iPhone・iPad", "App Store", "https://apps.apple.com/jp/app/magic-the-gathering-arena/id1496227521"], ["📱", "Android", "Google Play", "https://play.google.com/store/apps/details?id=com.wizards.mtga&hl=ja"]],
+    install: [[["win", "apple"], "パソコン（Windows・Mac）", "公式ページへ", "https://mtg-jp.com/mtgarena/"], [["appstore"], "iPhone・iPad", "App Store", "https://apps.apple.com/jp/app/magic-the-gathering-arena/id1496227521"], [["play"], "Android", "Google Play", "https://play.google.com/store/apps/details?id=com.wizards.mtga&hl=ja"]],
     installNote: "対応する機種や必要な容量は、公式ページとストアの案内で確認してください。このサイトの練習ツールはスマートフォンでも使えますが、アリーナのログを読む補助ツールはパソコン専用です。",
     stepsH: "はじめの一歩",
     steps: [["インストール", "上のボタンからアプリを入れて、アカウントを作ります。"], ["チュートリアル", "ゲーム内で、ルールを順に教えてくれます。"], ["カラーチャレンジ", "5色それぞれの無料デッキで、色の違いを体験できます。"], ["好きなモードへ", "対戦、ドラフト、シールドなどを選んで遊びます。"]],
@@ -281,7 +291,7 @@ const EN = {
     h: "Starting on MTG Arena",
     lead: "The official digital version of Magic. It runs on <b>PC (Windows and Mac) and on phones and tablets (iPhone, iPad and Android)</b>, and it is free to play to start. Your account works across PC and mobile.",
     installH: "Install it",
-    install: [["💻", "PC (Windows / Mac)", "Official page", "https://magic.wizards.com/en/mtgarena"], ["📱", "iPhone / iPad", "App Store", "https://apps.apple.com/app/id1496227521"], ["📱", "Android", "Google Play", "https://play.google.com/store/apps/details?id=com.wizards.mtga&hl=en_US"]],
+    install: [[["win", "apple"], "PC (Windows / Mac)", "Official page", "https://magic.wizards.com/en/mtgarena"], [["appstore"], "iPhone / iPad", "App Store", "https://apps.apple.com/app/id1496227521"], [["play"], "Android", "Google Play", "https://play.google.com/store/apps/details?id=com.wizards.mtga&hl=en_US"]],
     installNote: "Check the official page and the store listing for supported devices and storage. The practice tools on this site work on a phone; the helper tools that read Arena's log are PC only.",
     stepsH: "Your first steps",
     steps: [["Install", "Get the app with the buttons above and create an account."], ["Tutorial", "The game teaches you the rules step by step."], ["Color Challenge", "Try free decks in each of the five colors."], ["Pick a mode", "Play matches, Draft, Sealed and more."]],
@@ -503,7 +513,9 @@ const css = `<style>
   .inst{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:0 0 4px}
   .inst a{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;background:var(--gold);color:#fff;text-decoration:none;border-radius:12px;padding:14px 12px;box-shadow:0 6px 16px -10px rgba(47,125,246,.9)}
   .inst a:hover{background:#1F6AE0}
-  .inst .ii{font-size:24px;line-height:1.1}
+  .inst .ii{display:flex;gap:8px;margin-bottom:4px}
+  .chip{display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:11px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+  .chip svg{width:26px;height:26px;display:block}
   .inst b{font-size:14.5px}
   .inst small{font-size:12px;opacity:.9}
   .more{font-size:13px;margin:14px 0 0;padding-left:1.2em}
@@ -569,7 +581,7 @@ ${f.rows.map(x => `<tr><th>${x[0]}</th><td>${x[1]}</td><td>${x[2]}</td></tr>`).j
 
   S.arena = `<section class="blk" id="arena"><h2>${a.h}</h2><p class="lead">${a.lead}</p>
 <h3 class="sub" style="margin-top:6px">${a.installH}</h3>
-<div class="inst">${a.install.map(x => `<a href="${x[3]}" target="_blank" rel="noopener"><span class="ii">${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></a>`).join("")}</div>
+<div class="inst">${a.install.map(x => `<a href="${x[3]}" target="_blank" rel="noopener"><span class="ii">${chips(x[0])}</span><b>${x[1]}</b><small>${x[2]}</small></a>`).join("")}</div>
 <p class="note">${a.installNote}</p>
 <h3 class="sub">${a.stepsH}</h3>
 <ol class="steps">${a.steps.map(s => `<li><b>${s[0]}</b>${s[1]}</li>`).join("")}</ol>
