@@ -9,7 +9,7 @@
  *       途中生成物（台本 script.json、場面ごとの png / wav）
  *
  * 中身: 環境の速さ → 色の強さ → 2色の組み合わせ（上位3つを深堀り＋最弱）→ ドラフトとシールドの違い
- *       → 神話レア・レアのボム上位10枚 → 罠カード → コモンの除去の強さ順 → デッキの組み方 → まとめ
+ *       → 神話レア・レアのボム上位10枚 → 罠カード → コモンの除去の強さ順 → まとめ
  *       ドラフトとシールドの両方のデータ（data/articles と data/ratings）を使う。
  *
  * 材料
@@ -144,7 +144,9 @@ function buildScript(ctx){
   const avgD = rd.overall_win_rate, avgS = rs.overall_win_rate;
   const cardOf = (list, name) => list.find(c => c.name === name);
 
-  const pairsD = pairRows(dd), pairsS = pairRows(ds);
+  // 試合数がごく少ない組み合わせ（全体の3%未満・1500試合未満）は、勝率がぶれるので順位に入れない
+  const enough = rows => { const tot = rows.reduce((n, p) => n + p.games, 0) || 1; const f = rows.filter(p => p.games >= Math.max(1500, tot * 0.03)); return f.length >= 3 ? f : rows; };
+  const pairsD = enough(pairRows(dd)), pairsS = enough(pairRows(ds));
   const bestD = pairsD[0];
   const totalPG = pairsD.reduce((n, p) => n + p.games, 0) || 1;
   const solid = pairsD.filter(p => p.games >= Math.max(2000, totalPG * 0.04));
@@ -158,8 +160,8 @@ function buildScript(ctx){
   scenes.push({ kind: "hook", art: true, chapter: "はじめに",
     say: `MTGアリーナ、リミテッドの${nameJa}環境を、${man(gamesD + gamesS)}試合のデータでまるごと解説します。最強の色の組み合わせ、迷わず取っていいボムのレア十枚、見た目に反して勝てない罠のカード、そして強いコモンの除去まで。ドラフトとシールドの両方のデータで見ていきます。`,
     title: nameJa, gamesD, gamesS, tail: 0.6 });
-  scenes.push({ kind: "agenda", say: `今日の流れは、環境の速さ、色の強さ、色の組み合わせ、ドラフトとシールドの違い、ボム十枚、罠のカード、コモンの除去、そしてデッキの組み方です。`,
-    items: ["環境の速さ", "色の強さ", "色の組み合わせ", "ドラフトとシールドの違い", "ボムのレア10枚", "罠のカード", "コモンの除去の強さ順", "デッキの組み方"], tail: 0.4 });
+  scenes.push({ kind: "agenda", say: `今日の流れは、環境の速さ、色の強さ、色の組み合わせ、ドラフトとシールドの違い、ボム十枚、罠のカード、そしてコモンの除去です。`,
+    items: ["環境の速さ", "色の強さ", "色の組み合わせ", "ドラフトとシールドの違い", "ボムのレア10枚", "罠のカード", "コモンの除去の強さ順"], tail: 0.4 });
 
   /* --- 速さ --- */
   const paceRows = d => (d.speed || []).filter(s => s.wr != null && s.games).map((s, i, a) => ({
@@ -189,7 +191,7 @@ function buildScript(ctx){
   /* --- 色の組み合わせ --- */
   if(pairsD.length){
     scenes.push({ kind: "pairs", chapter: "色の組み合わせ", pairsD, rankS, bestD, worstD,
-      say: `色の組み合わせです。ドラフトで一番強いのは${pairName(bestD.pair)}、勝率${pt(bestD.wr)}パーセント。上位三つは、${pairsD.slice(0, 3).map(p => pairName(p.pair)).join("、")}です。ひし形はシールドでの勝率で、ドラフトと比べて順位が入れ替わっているのが分かります。`,
+      say: `色の組み合わせです。ドラフトで一番強いのは${pairName(bestD.pair)}、勝率${pt(bestD.wr)}パーセント。上位三つは、${pairsD.slice(0, 3).map(p => pairName(p.pair)).join("、")}です。青い棒がドラフト、黄色い棒がシールドの勝率です。シールドでは順位が入れ替わっているのが分かります。`,
       tail: 0.6 });
   }
 
@@ -273,22 +275,33 @@ function buildScript(ctx){
     }
   }
 
-  /* --- デッキの組み方 --- */
-  if((dd.curve || []).length){
-    const cv = dd.curve.filter(r => r.cmc <= 7);
-    scenes.push({ kind: "deck", chapter: "デッキの組み方", curve: cv,
-      say: `最後に、デッキの組み方。基本は、四十枚のうち、土地十七枚、クリーチャー十七枚、それ以外の呪文六枚です。クリーチャーを多めにするのが、最近の流れです。マナカーブは、一から二マナを八枚、三マナを五枚、四マナを四枚、五マナ以上を六枚が目安です。重いカードの勝率が高く出るのは、重いカードほど強く作られているからで、軽いカードで序盤を支えることが前提です。`, tail: 0.6 });
-  }
-
   /* --- まとめ --- */
-  scenes.push({ kind: "summary", chapter: "まとめ",
-    points: [
-      bestD ? { h: "組むなら", v: pairName(bestD.pair), s: `勝率${pt(bestD.wr)}%` } : null,
-      bombs[0] ? { h: "迷わず取る", v: bombs[0].label, s: `GIH勝率${pt(bombs[0].gih)}%` } : null,
-      ctx.topRemoval ? { h: "強いコモン除去", v: ctx.topRemoval.label, s: `GIH勝率${pt(ctx.topRemoval.gih)}%` } : null
-    ].filter(Boolean),
-    say: `まとめです。` + (bestD ? `組むなら${pairName(bestD.pair)}。` : "") + (bombs[0] ? `迷わず取るのは${bombs[0].label}。` : "") + (ctx.topRemoval ? `コモンの除去では${ctx.topRemoval.label}が頼れます。` : "")
-       + `カードごとの勝率の一覧は、サイトで見られます。`, tail: 0.6 });
+  {
+    const paceSc = scenes.find(x => x.kind === "pace");
+    const bestMono = monoD[0];
+    const sealedBest = bestD ? (pairsS.find(x => x.pair === bestD.pair) || {}).wr : null;
+    const b3 = bombs.slice(0, 3), t3 = traps.slice(0, 3);
+    const remSc = scenes.find(x => x.kind === "removal"), r3 = remSc ? remSc.cards.slice(0, 3) : [];
+    const sum = {
+      kind: "summary", chapter: "まとめ",
+      pace: paceSc ? { word: paceSc.word, sub: paceSc.sub } : null,
+      mono: bestMono ? { color: bestMono.color, wr: bestMono.wr } : null,
+      best: bestD ? { pair: bestD.pair, wr: bestD.wr, sWr: sealedBest } : null,
+      worst: worstD && worstD !== bestD ? { pair: worstD.pair, wr: worstD.wr } : null,
+      b3, t3, r3, cards: [...b3, ...t3, ...r3]
+    };
+    sum.say = `まとめです。` +
+      (sum.pace ? `この環境は、${sum.pace.word}環境です。` : "") +
+      (sum.mono ? `色では${pairName(sum.mono.color)}が最も強く、` : "") +
+      (sum.best ? `組み合わせなら${pairName(sum.best.pair)}。ドラフトの勝率は${pt(sum.best.wr)}パーセントです。` : "") +
+      (sum.worst ? `反対に${pairName(sum.worst.pair)}は${pt(sum.worst.wr)}パーセントで、無理に目指さなくて大丈夫です。` : "") +
+      (b3.length ? `迷わず取るボムは、${b3.map(c => c.label).join("、")}。` : "") +
+      (t3.length ? `罠になりやすいのは、${t3.slice(0, 2).map(c => c.label).join("、")}です。` : "") +
+      (r3.length >= 2 ? `コモンの除去では、${r3[0].label}と${r3[1].label}が頼れます。` : "") +
+      `カードごとの勝率の一覧は、サイトで見られます。`;
+    sum.tail = 0.8;
+    scenes.push(sum);
+  }
 
   scenes.push({ kind: "outro", art: true, chapter: null,
     say: `次のセットも出すので、チャンネル登録をお願いします。`, tail: 1.0 });
@@ -332,9 +345,9 @@ function cardRow(cards, stats, accent, y0 = 140){
     s += cardImg(c, x, y0, CW, CH);
     s += `<circle cx="${x + 34}" cy="${y0 + 34}" r="30" fill="${DEEP}" stroke="${accent}" stroke-width="4"/>` + T(x + 34, y0 + 48, String(c.rank || i + 1), { size: 38, weight: 900, anchor: "middle", fill: accent });
     const lines = wrapName(c.label, 10);
-    lines.forEach((l, j) => { s += T(x + CW / 2, y0 + CH + 52 + j * 40, l, { size: 32, weight: 900, anchor: "middle" }); });
-    const base = y0 + CH + 52 + (lines.length - 1) * 40 + 54;
-    stats(c).forEach((st, j) => { s += T(x + CW / 2, base + j * 44, st.t, { size: st.size || 34, weight: st.w || 700, anchor: "middle", fill: st.fill || PAPER }); });
+    lines.forEach((l, j) => { s += T(x + CW / 2, y0 + CH + 50 + j * 38, l, { size: 30, weight: 900, anchor: "middle" }); });
+    const base = y0 + CH + 50 + 38 + 66;   // 名前が1行でも2行でも、数字は同じ高さにそろえる（名前と重ならないよう2行ぶん空ける）
+    stats(c).forEach((st, j) => { s += T(x + CW / 2, base + j * 50, st.t, { size: st.size || 34, weight: st.w || 700, anchor: "middle", fill: st.fill || PAPER }); });
   });
   return s;
 }
@@ -518,14 +531,32 @@ function sceneSvg(sc){
       return frame(s, sc);
     }
     case "summary": {
-      let s = T(W / 2, 200, "この環境の結論", { size: 56, weight: 900, anchor: "middle" });
-      sc.points.forEach((p, i) => {
-        const x = 130 + i * 580;
-        s += panel(x, 270, 540, 420, BLUE) + T(x + 270, 345, p.h, { size: 38, fill: MUTED, anchor: "middle" });
-        const lines = wrapName(p.v, 7);
-        lines.forEach((l, j) => { s += T(x + 270, 460 + j * 72, l, { size: lines.length > 1 ? 56 : [...p.v].length > 5 ? 70 : 90, weight: 900, anchor: "middle", fill: GOLD }); });
-        s += T(x + 270, 640, p.s, { size: 40, anchor: "middle", fill: UP, weight: 700 });
-      });
+      // 上段：環境の速さ・最強の色・組むなら・避けるなら。下段：ボム／罠／コモン除去を、カード画像つきで3枚ずつ
+      let s = "";
+      const PX = 50, PW = 440, PG = 20, PY = 125, PH = 235;
+      const box = (i, label, inner) => { const x = PX + i * (PW + PG); return panel(x, PY, PW, PH, BLUE) + T(x + PW / 2, PY + 46, label, { size: 30, fill: MUTED, anchor: "middle" }) + inner(x + PW / 2); };
+      if(sc.pace) s += box(0, "環境の速さ", cx => T(cx, PY + 140, sc.pace.word, { size: 84, weight: 900, anchor: "middle", fill: GOLD }) + T(cx, PY + 198, sc.pace.sub || "", { size: 28, anchor: "middle", fill: PAPER }));
+      if(sc.mono) s += box(1, "一番強い色", cx => symbol(sc.mono.color, cx - 70, PY + 125, 84) + T(cx - 10, PY + 150, pairName(sc.mono.color), { size: 76, weight: 900, fill: GOLD }) + T(cx, PY + 205, `勝率 ${pt(sc.mono.wr)}%`, { size: 32, anchor: "middle", fill: UP, weight: 700 }));
+      if(sc.best) s += box(2, "組むなら", cx => pairSymbols(sc.best.pair, cx - 175, PY + 108, 70) + T(cx - 20, PY + 130, pairName(sc.best.pair), { size: 64, weight: 900, fill: GOLD }) +
+        T(cx, PY + 182, `ドラフト ${pt(sc.best.wr)}%`, { size: 28, anchor: "middle", fill: UP, weight: 700 }) +
+        (sc.best.sWr != null ? T(cx, PY + 218, `シールド ${pt(sc.best.sWr)}%`, { size: 28, anchor: "middle", fill: GOLD, weight: 700 }) : ""));
+      if(sc.worst) s += box(3, "無理に目指さない", cx => pairSymbols(sc.worst.pair, cx - 175, PY + 120, 70) + T(cx - 20, PY + 142, pairName(sc.worst.pair), { size: 64, weight: 900, fill: PAPER }) +
+        T(cx, PY + 205, `ドラフト ${pt(sc.worst.wr)}%`, { size: 30, anchor: "middle", fill: DOWN, weight: 700 }));
+      const colsDef = [["迷わず取るボム", sc.b3, UP, GOLD], ["罠になりやすいレア", sc.t3, DOWN, DOWN], ["強いコモン除去", sc.r3, GREEN, GREEN]].filter(d => d[1] && d[1].length);
+      const CG = 25, CX = 50, CWd = Math.floor((1820 - CG * (colsDef.length - 1)) / colsDef.length), CY = 385, ROWH = 172;
+      const col = (i, label, cards, fill, accent, rate) => {
+        const x = CX + i * (CWd + CG);
+        let o = panel(x, CY, CWd, 580, accent) + T(x + 24, CY + 50, label, { size: 34, weight: 900, fill: accent });
+        cards.forEach((c, j) => {
+          const ry = CY + 68 + j * ROWH;
+          o += cardImg(c, x + 20, ry, 105, 147);
+          const lines = wrapName(c.label, 11);
+          lines.forEach((l, k) => { o += T(x + 145, ry + 40 + k * 38, l, { size: 32, weight: 900 }); });
+          o += T(x + 145, ry + 132, rate(c), { size: 32, weight: 700, fill });
+        });
+        return o;
+      };
+      colsDef.forEach((d, i) => { s += col(i, d[0], d[1], d[2], d[3], c => `GIH勝率 ${pt(c.gih)}%`); });
       return frame(s, sc);
     }
     case "outro": {
