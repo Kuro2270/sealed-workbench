@@ -49,6 +49,20 @@
   nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
   nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
   @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0} }
+  /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
+  .ng{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;column-gap:7px;row-gap:5px;justify-content:start;align-items:center;padding-top:0}
+  .ng:has(.ngs){padding-top:0}
+  .ngl,.ngs{position:static;grid-column:1/-1;white-space:nowrap}
+  .ngl{grid-row:1;left:auto}
+  .ngs{grid-row:2;left:auto;top:auto;font-size:11.5px;color:#A9BFD8;margin-top:-2px}
+  nav a{grid-row:3;padding:8px 16px;border-radius:10px;font-weight:700;background:linear-gradient(180deg,#2A5F96,#1C4A7C);border:1px solid #4A83BF;color:#FFFFFF;box-shadow:0 2px 0 #12365C,0 4px 10px rgba(0,0,0,.28);-webkit-font-smoothing:auto;text-shadow:none;letter-spacing:.02em}
+  nav a:not(.on):hover{background:linear-gradient(180deg,#3573B3,#25609F);border-color:#6FA3DA}
+  nav a:active{box-shadow:0 1px 0 #12365C}
+  nav a.on{box-shadow:0 2px 0 rgba(0,0,0,.35),0 4px 10px rgba(0,0,0,.28)}
+  @media (max-width:760px){
+    .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+    .ngl,.ngs{flex:0 0 100%}
+  }
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   .lang{margin-top:12px;font-size:13px}
@@ -115,12 +129,12 @@
         <option value="EOE.en.html">English</option>
       </select></div>
     <nav>
-      <div class="ng"><span class="ngl">はじめに</span><a href="../start/index.html">MTGとは</a><a href="../start/limited.html">リミテッドとは</a><a href="../guide.html">サイトの機能</a></div>
+      <div class="ng"><span class="ngl">はじめに</span><span class="ngs">MTGの基本と、このサイトの使い方</span><a href="../start/index.html">MTGとは</a><a href="../start/limited.html">リミテッドとは</a><a href="../guide.html">サイトの機能</a></div>
       <div class="ng"><span class="ngl">練習する</span><span class="ngs">仮想パックで練習</span><a href="../">シールド練習</a><a href="../draft.html">ドラフト練習</a></div>
       <div class="ng"><span class="ngl">MTGアリーナで使う</span><span class="ngs">実戦のログを読んで助ける・PC専用</span><a href="../sealed-assist.html">シールド補助<b class="pcb">PC</b></a><a href="../assistant.html">ドラフト補助<b class="pcb">PC</b></a></div>
-      <div class="ng"><span class="ngl">データを見る</span><a href="../reports.html">環境レポート</a></div>
-      <div class="ng"><span class="ngl">対戦する</span><a href="../table.html">対戦卓</a><a href="../swiss.html">スイスドロー</a></div>
-      <div class="ng"><span class="ngl">買う</span><a href="../goods/index.html">日本のサプライ</a></div>
+      <div class="ng"><span class="ngl">データを見る</span><span class="ngs">セットごとの強さ・速さを確認</span><a href="../reports.html">環境レポート</a></div>
+      <div class="ng"><span class="ngl">対戦する</span><span class="ngs">友達との対戦・大会の進行</span><a href="../table.html">対戦卓</a><a href="../swiss.html">スイスドロー</a></div>
+      <div class="ng"><span class="ngl">買う</span><span class="ngs">日本で買えるMTG用品</span><a href="../goods/index.html">日本のサプライ</a></div>
     </nav>
     <h1>エッジ・オブ・エタニティーズ｜リミテッド環境レポート <small class="code">EOE</small></h1>
     <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。　発売 2025-08-01</p>
@@ -130,7 +144,7 @@
 <main>
 <article class="mode">
   <h2>ドラフト <small>総試合数 631,747／全体勝率 55.9%</small></h2>
-  <p class="built">集計 2026-09-18</p>
+  <p class="built">集計 2026-10-03</p>
   <p class="summary">エッジ・オブ・エタニティーズのドラフトは631,747試合のデータで、全体勝率は55.9%。環境は速さでは差がつきにくいです。色は緑（56.4%）と青（55.9%）が強く、2色の組み合わせでは青緑が57.7%で最強、青黒が55.6%で最弱です。カード単位ではコモンは「氷（こおり）魔（ま）法（ほう）の秘（ひ）宝（ほう）」、アンコモンは「疑（うたが）わしい珍（ちん）味（み）」、レアは「エレジーの見（み）習（なら）い」が最も勝率が高いカードです。</p>
 
   <section><h3>環境の速さ</h3>
@@ -229,7 +243,7 @@
 </article>
 <article class="mode">
   <h2>シールド <small>総試合数 64,029／全体勝率 57.4%</small></h2>
-  <p class="built">集計 2026-09-18</p>
+  <p class="built">集計 2026-10-03</p>
   <p class="summary">エッジ・オブ・エタニティーズのシールドは64,029試合のデータで、全体勝率は57.4%。環境は速さでは差がつきにくいです。色は白（57.7%）と緑（57.5%）が強く、2色の組み合わせでは青緑が59.9%で最強、赤緑が57.2%で最弱です。カード単位ではコモンは「氷（こおり）魔（ま）法（ほう）の秘（ひ）宝（ほう）」、アンコモンは「惑（わく）星（せい）契（ちぎ）りの威（い）嚇（かく）屋（や）」、レアは「エレジーの見（み）習（なら）い」が最も勝率が高いカードです。</p>
 
   <section><h3>環境の速さ</h3>

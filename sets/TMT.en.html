@@ -49,6 +49,20 @@
   nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
   nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
   @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0} }
+  /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
+  .ng{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;column-gap:7px;row-gap:5px;justify-content:start;align-items:center;padding-top:0}
+  .ng:has(.ngs){padding-top:0}
+  .ngl,.ngs{position:static;grid-column:1/-1;white-space:nowrap}
+  .ngl{grid-row:1;left:auto}
+  .ngs{grid-row:2;left:auto;top:auto;font-size:11.5px;color:#A9BFD8;margin-top:-2px}
+  nav a{grid-row:3;padding:8px 16px;border-radius:10px;font-weight:700;background:linear-gradient(180deg,#2A5F96,#1C4A7C);border:1px solid #4A83BF;color:#FFFFFF;box-shadow:0 2px 0 #12365C,0 4px 10px rgba(0,0,0,.28);-webkit-font-smoothing:auto;text-shadow:none;letter-spacing:.02em}
+  nav a:not(.on):hover{background:linear-gradient(180deg,#3573B3,#25609F);border-color:#6FA3DA}
+  nav a:active{box-shadow:0 1px 0 #12365C}
+  nav a.on{box-shadow:0 2px 0 rgba(0,0,0,.35),0 4px 10px rgba(0,0,0,.28)}
+  @media (max-width:760px){
+    .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+    .ngl,.ngs{flex:0 0 100%}
+  }
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   .lang{margin-top:12px;font-size:13px}
@@ -115,12 +129,12 @@
         <option value="TMT.en.html" selected>English</option>
       </select></div>
     <nav>
-      <div class="ng"><span class="ngl">Start</span><a href="../start/index.en.html">What is MTG?</a><a href="../start/limited.en.html">What is Limited?</a><a href="../guide.html">Site features</a></div>
+      <div class="ng"><span class="ngl">Start</span><span class="ngs">MTG basics &amp; how to use this site</span><a href="../start/index.en.html">What is MTG?</a><a href="../start/limited.en.html">What is Limited?</a><a href="../guide.html">Site features</a></div>
       <div class="ng"><span class="ngl">Practice</span><span class="ngs">Virtual packs</span><a href="../">Sealed practice</a><a href="../draft.html">Draft practice</a></div>
       <div class="ng"><span class="ngl">Use with MTG Arena</span><span class="ngs">Reads your log in real play · PC only</span><a href="../sealed-assist.html">Sealed assistant<b class="pcb">PC</b></a><a href="../assistant.html">Draft assistant<b class="pcb">PC</b></a></div>
-      <div class="ng"><span class="ngl">Data</span><a href="../reports.html">Set reports</a></div>
-      <div class="ng"><span class="ngl">Play</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
-      <div class="ng"><span class="ngl">Shop</span><a href="../goods/index.en.html">Japanese supplies</a></div>
+      <div class="ng"><span class="ngl">Data</span><span class="ngs">How strong and fast each set is</span><a href="../reports.html">Set reports</a></div>
+      <div class="ng"><span class="ngl">Play</span><span class="ngs">Play friends or run a tournament</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
+      <div class="ng"><span class="ngl">Shop</span><span class="ngs">MTG supplies sold in Japan</span><a href="../goods/index.en.html">Japanese supplies</a></div>
     </nav>
     <h1>Teenage Mutant Ninja Turtles — Limited format report <small class="code">TMT</small></h1>
     <p>Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data.　Released 2026-03-06</p>
@@ -130,11 +144,21 @@
 <main>
 <article class="mode">
   <h2>Draft <small>204,452 games · overall win rate 57.8%</small></h2>
-  <p class="built">Built 2026-09-18</p>
-  <p class="summary">Teenage Mutant Ninja Turtles Draft on MTG Arena: 204,452 games, 57.8% overall win rate. On speed, speed makes little difference. White (58.4%) and Red (58.2%) are the strongest colours; the best two-colour pair is White/Black at 59.7%, and the weakest is Black/Green at 56.2%. By card, the top common is Frog Butler, the top uncommon is Mighty Mutanimals, the top rare is Sally Pride, Lioness Leader (game-in-hand win rate).</p>
+  <p class="built">Built 2026-10-03</p>
+  <p class="summary">Teenage Mutant Ninja Turtles Draft on MTG Arena: 204,452 games, 57.8% overall win rate. On speed, it leans fast — lighter decks win a little more. White (58.4%) and Red (58.2%) are the strongest colours; the best two-colour pair is White/Black at 59.7%, and the weakest is Black/Green at 56.2%. By card, the top common is Frog Butler, the top uncommon is Mighty Mutanimals, the top rare is Sally Pride, Lioness Leader (game-in-hand win rate).</p>
+<section class="video"><div class="yt" data-id="DjALvFTmJ6k">
+    <img src="/assets/video/TMT-en.jpg" alt="Teenage Mutant Ninja Turtles Draft in 60 seconds | MTG Arena #Shorts" loading="lazy" width="270" height="480">
+    <button type="button" aria-label="Play"><span></span></button>
+  </div>
+  <div class="vtext"><h3>The format in 60 seconds (video)</h3><p class="lead">The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.</p>
+    <p><a href="https://www.youtube.com/shorts/DjALvFTmJ6k" target="_blank" rel="noopener">Watch on YouTube</a></p>
+  </div>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoObject","name":"Teenage Mutant Ninja Turtles Draft in 60 seconds | MTG Arena #Shorts","description":"The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.","thumbnailUrl":["https://sealed-workbench.com/assets/video/TMT-en.jpg"],"uploadDate":"2026-10-03","duration":"PT1M","contentUrl":"https://www.youtube.com/shorts/DjALvFTmJ6k","embedUrl":"https://www.youtube-nocookie.com/embed/DjALvFTmJ6k","inLanguage":"en"}</script>
+  <script>document.querySelectorAll(".video .yt button").forEach(function(btn){ if(btn.dataset.wired) return; btn.dataset.wired="1"; btn.addEventListener("click",function(){var b=this.parentNode,f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+b.dataset.id+"?autoplay=1&playsinline=1";f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title=this.getAttribute("aria-label");b.innerHTML="";b.appendChild(f);});});</script>
+</section>
 
   <section><h3>Format speed</h3>
-    <div class="verdict"><b>Speed does not decide much here. What goes in the deck matters more.</b><span class="gap">Decks averaging under 2.9 mana value have the highest win rate, at 58.6%. Games last 9.3 turns on average, on the long side of the last 8 sets.</span></div>
+    <div class="verdict"><b>Leans fast. The gap is small, but lighter decks win a little more at every step.</b><span class="gap">Decks averaging under 2.9 mana value have the highest win rate, at 58.6%. Games last 9.3 turns on average, on the long side of the last 8 sets.</span></div>
   </section>
   <section><h3>Colour strength</h3><p class="lead">Win rate of games where the deck included cards of that colour.</p>
     <table><thead><tr><th>Colour</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
@@ -229,8 +253,18 @@
 </article>
 <article class="mode">
   <h2>Sealed <small>32,592 games · overall win rate 58.1%</small></h2>
-  <p class="built">Built 2026-09-18</p>
+  <p class="built">Built 2026-10-03</p>
   <p class="summary">Teenage Mutant Ninja Turtles Sealed on MTG Arena: 32,592 games, 58.1% overall win rate. On speed, speed makes little difference. White (59.4%) and Black (58.7%) are the strongest colours; the best two-colour pair is White/Black at 61.0%, and the weakest is Black/Green at 56.7%. By card, the top common is Manhole Missile, the top uncommon is Metalhead, the top rare is Sally Pride, Lioness Leader (game-in-hand win rate).</p>
+<section class="video"><div class="yt" data-id="LCEY5bEjuLI">
+    <img src="/assets/video/TMT-en-sealed.jpg" alt="Teenage Mutant Ninja Turtles Sealed in 60 seconds | MTG Arena #Shorts" loading="lazy" width="270" height="480">
+    <button type="button" aria-label="Play"><span></span></button>
+  </div>
+  <div class="vtext"><h3>The format in 60 seconds (video)</h3><p class="lead">The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.</p>
+    <p><a href="https://www.youtube.com/shorts/LCEY5bEjuLI" target="_blank" rel="noopener">Watch on YouTube</a></p>
+  </div>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoObject","name":"Teenage Mutant Ninja Turtles Sealed in 60 seconds | MTG Arena #Shorts","description":"The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.","thumbnailUrl":["https://sealed-workbench.com/assets/video/TMT-en-sealed.jpg"],"uploadDate":"2026-10-03","duration":"PT1M","contentUrl":"https://www.youtube.com/shorts/LCEY5bEjuLI","embedUrl":"https://www.youtube-nocookie.com/embed/LCEY5bEjuLI","inLanguage":"en"}</script>
+  <script>document.querySelectorAll(".video .yt button").forEach(function(btn){ if(btn.dataset.wired) return; btn.dataset.wired="1"; btn.addEventListener("click",function(){var b=this.parentNode,f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+b.dataset.id+"?autoplay=1&playsinline=1";f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title=this.getAttribute("aria-label");b.innerHTML="";b.appendChild(f);});});</script>
+</section>
 
   <section><h3>Format speed</h3>
     <div class="verdict"><b>Speed does not decide much here. What goes in the deck matters more.</b><span class="gap">Decks averaging 3.5 mana value or more have the highest win rate, at 58.8%. Games last 9.3 turns on average, on the long side of the last 8 sets.</span></div>
