@@ -40,10 +40,10 @@ const pct = v => v == null ? "—" : (v * 100).toFixed(1) + "%";
 const L = {
   ja: {
     site: "MTGアリーナ リミテッド・ワークベンチ",
-    title: (s, c) => `${s}（${c}）リミテッド環境レポート｜MTGアリーナ ドラフト・シールドの勝率`,
-    desc: (s, g, c) => `MTGアリーナ「${s}（${c}）」のドラフト・シールド環境を、17Landsの実戦データ（${g}試合）から読み解きます。環境の速さ、強い色、勝率の高い2色の組み合わせ、コモン・アンコモン・レアの強いカード、カード評価の一覧。`,
-    h1: s => `${s}｜リミテッド環境レポート`,
-    lead: "マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。",
+    title: (s, c) => `${s}（${c}）リミテッド カード点数ランキング・評価｜勝率で見る強いカード`,
+    desc: (s, g, c) => `MTGアリーナ「${s}（${c}）」のリミテッド（ドラフト・シールド）で強いカードを、17Landsの実戦データ（${g}試合）の勝率で採点。コモン・アンコモン・レア別のカード点数ランキングに加えて、環境の速さ、強い色、勝率の高い2色の組み合わせも分かります。`,
+    h1: s => `${s}｜リミテッド カード点数ランキングと環境レポート`,
+    lead: "マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。カードの点数（評価）は、この勝率で見られます。",
     mode: { draft: "ドラフト", sealed: "シールド" },
     games: (n, d) => `総試合数 ${n}／全体勝率 ${d}`,
     built: d => `集計 ${d}`,
@@ -57,9 +57,15 @@ const L = {
     colorsH: "色の強さ", colorsLead: "その色のカードをデッキに入れた試合の勝率です。",
     archeH: "色の組み合わせ", archeLead: "2色の組み合わせごとの勝率です。試合数の多い順に並べています。",
     curveH: "マナ総量ごとの勝率", curveLead: "そのマナ総量のカードが手札か戦場にあった試合の勝率です。",
-    cardsH: "レアリティ別の強いカード", cardsLead: "GIH勝率（そのカードが手札か戦場にあった試合の勝率）の高い順です。",
+    cardsH: "カード点数ランキング（レアリティ別）", cardsLead: "カードの「点数」は、実際の勝率（GIH勝率：そのカードが手札か戦場にあった試合の勝率）で見ます。高いほど強いカードです。レアリティごとに高い順に並べています。",
+    faqH: "リミテッドのカードの点数について",
+    faq: [
+      ["リミテッドのカードの点数（評価）とは？", "そのカードがどれだけ強いかを数字で表したものを、点数や評価と呼びます。人が付ける点数には好みが入りますが、このページでは実際の対戦結果の勝率で見ています。"],
+      ["点数（GIH勝率）はどう読めばいいですか？", "そのセット全体の勝率より高いカードは、入れたデッキが勝ちやすかったカードです。ただし、試合数が少ないカードは数字がぶれやすく、強いデッキに入りやすいカードは高く出る傾向があります。色や相性とあわせて、目安として使ってください。"],
+      ["点数はいつ更新されますか？", "月に2回（6日と21日ごろ）、17Landsの最新データで更新します。"]
+    ],
     rarity: { mythic:"神話レア", rare:"レア", uncommon:"アンコモン", common:"コモン" },
-    col: { color:"色", pair:"色の組み合わせ", cmc:"マナ総量", wr:"勝率", games:"試合数", card:"カード", cards:"種類数" },
+    col: { color:"色", pair:"色の組み合わせ", cmc:"マナ総量", wr:"勝率", score:"点数（GIH勝率）", games:"試合数", card:"カード", cards:"種類数" },
     colorName: { W:"白", U:"青", B:"黒", R:"赤", G:"緑" },
     videoH: "1分でわかる環境（動画）", videoLead: "この環境の要点を1分のショート動画にまとめました。再生ボタンで YouTube の動画を読み込みます。", videoPlay: "再生", videoOpen: "YouTube で見る",
     links: "関連ページ",
@@ -67,8 +73,8 @@ const L = {
     linkReports: "環境レポート（他のセットに切り替え）",
     linkSealed: "シールド構築の練習", linkDraft: "ドラフト構築の練習", linkAssist: "ドラフト補助（PC・Chrome/Edge）",
     linkIndex: "セット一覧",
-    indexH1: "セット別のリミテッド環境レポート",
-    indexLead: "セットを選ぶと、ドラフトとシールドの環境レポートが開きます。発売日の新しい順です。",
+    indexH1: "セット別のリミテッド カード点数ランキングと環境レポート",
+    indexLead: "セットを選ぶと、そのセットのカード点数ランキングと、ドラフト・シールドの環境レポートが開きます。発売日の新しい順です。",
     source: "出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。",
     none: "このセットのデータはまだありません。",
     nav: { start:"MTGとは", limited:"リミテッドとは", guide:"サイトの機能", sealed:"シールド練習", draft:"ドラフト練習", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", sassist:"シールド補助", table:"対戦卓", privacy:"プライバシー", goods:"日本のサプライ" },
@@ -80,10 +86,10 @@ const L = {
   },
   en: {
     site: "MTG Arena Limited Workbench",
-    title: (s, c) => `${s} (${c}) Limited format report — MTG Arena Draft and Sealed win rates`,
-    desc: (s, g, c) => `${s} (${c}) Draft and Sealed on MTG Arena, read from ${g} games of 17Lands public data: format speed, strongest colours, best two-colour archetypes, top commons, uncommons and rares, and a full card tier list.`,
-    h1: s => `${s} — Limited format report`,
-    lead: "Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data.",
+    title: (s, c) => `${s} (${c}) Limited card ratings — best cards ranked by win rate (MTG Arena)`,
+    desc: (s, g, c) => `Which cards are best in ${s} (${c}) Limited on MTG Arena? Card ratings by win rate from ${g} games of 17Lands data, ranked by rarity — plus format speed, the strongest colours and the best two-colour pairs.`,
+    h1: s => `${s} | Limited card ratings and format report`,
+    lead: "Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data. Use them as card ratings: the higher the win rate, the stronger the card.",
     mode: { draft: "Draft", sealed: "Sealed" },
     games: (n, d) => `${n} games · overall win rate ${d}`,
     built: d => `Built ${d}`,
@@ -97,9 +103,15 @@ const L = {
     colorsH: "Colour strength", colorsLead: "Win rate of games where the deck included cards of that colour.",
     archeH: "Colour pairs", archeLead: "Win rate by two-colour pair, sorted by number of games.",
     curveH: "Win rate by mana value", curveLead: "Win rate of games where a card of that mana value was in hand or on the battlefield.",
-    cardsH: "Best cards by rarity", cardsLead: "Sorted by GIH win rate (games where the card was in hand or on the battlefield).",
+    cardsH: "Card ratings by rarity", cardsLead: "A card's rating is its real win rate (GIH win rate: games where the card was in hand or on the battlefield). Higher is stronger. Sorted from the top within each rarity.",
+    faqH: "About Limited card ratings",
+    faq: [
+      ["What is a Limited card rating?", "A number that says how strong a card is. Ratings given by people include personal taste, so this page uses win rates from real games instead."],
+      ["How should I read the GIH win rate?", "A card above the set's overall win rate was in decks that won more often. Cards with few games swing a lot, and cards that go into strong decks tend to look better than they are, so treat it as a guide and read it together with colours and synergy."],
+      ["When are the ratings updated?", "Twice a month (around the 6th and 21st), from the latest 17Lands data."]
+    ],
     rarity: { mythic:"Mythic", rare:"Rare", uncommon:"Uncommon", common:"Common" },
-    col: { color:"Colour", pair:"Pair", cmc:"Mana value", wr:"Win rate", games:"Games", card:"Card", cards:"Cards" },
+    col: { color:"Colour", pair:"Pair", cmc:"Mana value", wr:"Win rate", score:"Rating (GIH WR)", games:"Games", card:"Card", cards:"Cards" },
     colorName: { W:"White", U:"Blue", B:"Black", R:"Red", G:"Green" },
     videoH: "The format in 60 seconds (video)", videoLead: "The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.", videoPlay: "Play", videoOpen: "Watch on YouTube",
     links: "Related pages",
@@ -107,8 +119,8 @@ const L = {
     linkReports: "Set reports (switch sets)",
     linkSealed: "Sealed practice", linkDraft: "Draft practice", linkAssist: "Draft assistant (PC, Chrome/Edge)",
     linkIndex: "All sets",
-    indexH1: "Limited format reports by set",
-    indexLead: "Pick a set to open its Draft and Sealed report. Newest first.",
+    indexH1: "Limited card ratings and format reports by set",
+    indexLead: "Pick a set to open its card ratings and its Draft and Sealed report. Newest first.",
     source: "Source: 17Lands Public Data (CC BY 4.0), aggregated by this site. Card data via Scryfall.",
     none: "No data for this set yet.",
     nav: { start:"What is MTG?", limited:"What is Limited?", guide:"Site features", sealed:"Sealed practice", draft:"Draft practice", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", sassist:"Sealed assistant", table:"Play table", privacy:"Privacy", goods:"Japanese supplies" },
@@ -370,6 +382,9 @@ ${head}
   footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
 ${GOODS_CSS}
   footer a{color:var(--muted)}
+  .faq details{border-bottom:1px solid var(--line,#D7E2EE);padding:10px 2px}
+  .faq summary{cursor:pointer;font-weight:700;font-size:14.5px}
+  .faq p{margin:8px 0 2px;font-size:14px;line-height:1.8}
   @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
 </style>
 </head>
@@ -500,7 +515,7 @@ ${videoSection(lang, code, mode, setDisplay, videos)}`;
   if(d.top){
     const blocks = ["mythic","rare","uncommon","common"].filter(r => (d.top[r] || []).length).map(r => `
       <div><h3><span class="rar ${r}">${esc(T.rarity[r])}</span></h3>
-      <table><thead><tr><th>${esc(T.col.card)}</th><th class="num">${esc(T.col.wr)}</th><th class="num">${esc(T.col.games)}</th></tr></thead><tbody>
+      <table><thead><tr><th>${esc(T.col.card)}</th><th class="num">${esc(T.col.score)}</th><th class="num">${esc(T.col.games)}</th></tr></thead><tbody>
       ${d.top[r].map(c => `<tr><td><span class="dot" style="background:${dotOf(c.color || "")}"></span>${esc(cn(c.name))}</td><td class="num"><b>${pct(c.gih)}</b></td><td class="num">${(c.games || 0).toLocaleString()}</td></tr>`).join("\n      ")}
       </tbody></table></div>`).join("");
     out += `
@@ -535,13 +550,19 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos){
   const body = modes.length
     ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay, videos)).join("\n")
     : `<p>${esc(T.none)}</p>`;
+  const faqLd = { "@context": "https://schema.org", "@type": "FAQPage", inLanguage: lang,
+    mainEntity: T.faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) };
+  const faq = modes.length ? `<section class="faq"><h3>${esc(T.faqH)}</h3>
+${T.faq.map(([q, a]) => `  <details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("\n")}
+  <script type="application/ld+json">${JSON.stringify(faqLd)}</script>
+</section>` : "";
   const links = `<section class="links"><h3>${esc(T.links)}</h3><ul>
   <li><a href="../reports.html?set=${code}">${esc(T.linkReports)}</a></li>
   <li><a href="../">${esc(T.linkSealed)}</a>／<a href="../draft.html">${esc(T.linkDraft)}</a>／<a href="../assistant.html">${esc(T.linkAssist)}</a></li>
   <li><a href="index${lang === "en" ? ".en" : ""}.html">${esc(T.linkIndex)}</a></li>
 </ul></section>
 <p class="source">${esc(T.source)}</p>`;
-  return shell(lang, code, head, { header, main: body + "\n" + links }, `${SITE}/${OUT}/og/${code}-${lang}.png`);
+  return shell(lang, code, head, { header, main: body + "\n" + faq + "\n" + links }, `${SITE}/${OUT}/og/${code}-${lang}.png`);
 }
 
 /* 環境まとめ動画（YouTube ショート）。押すまで YouTube を読み込まない軽い埋め込みと、検索向けの VideoObject */
