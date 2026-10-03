@@ -1,0 +1,113 @@
+name: 長尺動画を作る（環境まとめ・3〜5分）
+
+# 「〇〇環境まとめ」の横長動画（1920×1080、3〜5分）を、集計済みのデータから作る（試作版・日本語のみ）。
+#   中身: 環境の速さ／色の強さ／色の組み合わせ／ドラフトとシールドの違い／ボム10枚／罠のカード／コモン除去の強さ順／デッキの組み方
+#   ・ナレーションは VOICEVOX（ずんだもん）。動画の最後にクレジットが入る
+#   ・背景のプレイ映像は Releases のタグ assets にある bg.mp4（無ければ紺色）
+#   ・ドラフトとシールドの記事データ（data/articles）と勝率一覧（data/ratings）が両方そろっているセットだけ作れる
+# できた動画・目次（chapters.txt）・概要欄の下書き（description.txt）は、この実行ページの「Artifacts」から ZIP で落とせる（30日で消える）。
+# ショート動画の公開から1週間後に出す想定。YouTube への自動アップロードはまだしない（内容を確認してから手で上げる）。
+
+on:
+  workflow_dispatch:
+    inputs:
+      set:
+        description: "セットコード（例: TMT）"
+        required: true
+      speed:
+        description: "読み上げの速さ（1.2 = 少し速め。長すぎるときは上げる）"
+        required: false
+        default: "1.2"
+
+permissions:
+  contents: read
+
+jobs:
+  long:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      voicevox:
+        image: voicevox/voicevox_engine:cpu-ubuntu22.04-latest
+        ports:
+          - 50021:50021
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: ffmpeg と画像合成ライブラリを入れる
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ffmpeg fonts-noto-cjk
+          npm install --no-save sharp
+
+      - name: 背景のプレイ映像を Releases から落とす
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p short
+          if gh release download assets --repo "$GITHUB_REPOSITORY" --pattern bg.mp4 --dir short --clobber; then
+            ls -la short/bg.mp4
+          else
+            echo "::warning::Releases（タグ assets）に bg.mp4 が無いので、紺色の背景で作ります。"
+          fi
+
+      - name: VOICEVOX が起きるのを待つ
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf -m 3 http://127.0.0.1:50021/version; then echo; exit 0; fi
+            sleep 3
+          done
+          echo "::error::VOICEVOX ENGINE が起動しませんでした。"
+          exit 1
+
+      - name: 動画を作る
+        env:
+          SET_IN: ${{ inputs.set }}
+          VOICEVOX_SPEED: ${{ inputs.speed }}
+          VOICEVOX_URL: http://127.0.0.1:50021
+        run: |
+          export SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"
+          echo "SET_CODE=$SET_CODE" >> "$GITHUB_ENV"
+          for f in "data/articles/${SET_CODE}_draft.json" "data/articles/${SET_CODE}_sealed.json" "data/ratings/${SET_CODE}_PremierDraft.json" "data/ratings/${SET_CODE}_Sealed.json"; do
+            if [ ! -f "$f" ]; then
+              echo "::error::$f がまだありません。勝率データ集計が終わってから作ってください。"
+              exit 1
+            fi
+          done
+          node maintenance/build-long.mjs "$SET_CODE" 2>&1 | tee long.log
+          {
+            echo "## ${SET_CODE} の長尺動画ができました"
+            echo
+            echo "下の Artifacts から \`long-${SET_CODE}\` を落として、ja.mp4 を確認してください。目次は chapters.txt、概要欄の下書きは description.txt です。"
+            echo
+            echo "### 長さと目次"
+            echo
+            echo '```'
+            sed -n '/^目次:/,$p' long.log
+            echo '```'
+            echo
+            echo "### 読み上げの台本（読みの確認用）"
+            echo
+            echo '```'
+            node -e 'const s=require("./long/"+process.env.SET_CODE+"/script.json");let t=0;for(const x of s){t+=+x.dur;console.log(`${x.kind.padEnd(8)} ${(+x.dur).toFixed(1)}s  ${x.say}\n         ${x.kana||""}`)}console.log("\n読み上げ合計 "+t.toFixed(0)+" 秒")'
+            echo '```'
+            echo
+            echo "読み違いがあれば short/yomi.json に「表記: 読み（カタカナ）」を足して、もう一度実行してください。"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 動画を保存する
+        uses: actions/upload-artifact@v4
+        with:
+          name: long-${{ env.SET_CODE }}
+          path: |
+            long/${{ env.SET_CODE }}/ja.mp4
+            long/${{ env.SET_CODE }}/chapters.txt
+            long/${{ env.SET_CODE }}/description.txt
+            long/${{ env.SET_CODE }}/thumbnail.jpg
+            long/${{ env.SET_CODE }}/script.json
+          retention-days: 30
+          if-no-files-found: error
