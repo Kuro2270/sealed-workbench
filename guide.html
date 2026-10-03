@@ -120,6 +120,20 @@
     nav a{white-space:nowrap}
     .cta a{flex:1 1 100%;text-align:center}
   }
+  /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
+  .ng{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;column-gap:7px;row-gap:5px;justify-content:start;align-items:center;padding-top:0}
+  .ng:has(.ngs){padding-top:0}
+  .ngl,.ngs{position:static;grid-column:1/-1;white-space:nowrap}
+  .ngl{grid-row:1;left:auto}
+  .ngs{grid-row:2;left:auto;top:auto;font-size:11.5px;color:#A9BFD8;margin-top:-2px}
+  nav a{grid-row:3;padding:8px 16px;border-radius:10px;font-weight:700;background:linear-gradient(180deg,#2A5F96,#1C4A7C);border:1px solid #4A83BF;color:#FFFFFF;box-shadow:0 2px 0 #12365C,0 4px 10px rgba(0,0,0,.28);transition:transform .12s,box-shadow .12s,filter .12s}
+  nav a:not(.on):hover{filter:brightness(1.18);transform:translateY(-1px);box-shadow:0 3px 0 #12365C,0 6px 12px rgba(0,0,0,.32)}
+  nav a:active{transform:translateY(1px);box-shadow:0 1px 0 #12365C}
+  nav a.on{box-shadow:0 2px 0 rgba(0,0,0,.35),0 4px 10px rgba(0,0,0,.28)}
+  @media (max-width:760px){
+    .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+    .ngl,.ngs{flex:0 0 100%}
+  }
 </style>
 </head>
 <body>
@@ -131,7 +145,7 @@
       <select id="langSelect" class="langsel" data-i18n-label="lang.label"><option value="ja">日本語</option><option value="en">English</option></select>
     </div>
     <nav>
-      <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span><span class="ngs" data-i18n="navsub.start">MTGの基本と、このサイトの使い方</span>
         <a href="./start/index.html" data-start-link data-i18n="nav.start">MTGとは</a>
         <a href="./start/limited.html" data-limited-link data-i18n="nav.limited">リミテッドとは</a>
         <a href="./guide.html" class="on" data-i18n="nav.guide">サイトの機能</a></div>
@@ -141,12 +155,12 @@
       <div class="ng"><span class="ngl" data-i18n="navgrp.assist">MTGアリーナで使う</span><span class="ngs" data-i18n="navsub.assist">実戦のログを読んで助ける・PC専用</span>
         <a href="./sealed-assist.html"><span data-i18n="nav.sassist">シールド補助</span><b class="pcb" data-i18n="nav.pc">PC</b></a>
         <a href="./assistant.html"><span data-i18n="nav.assist">ドラフト補助</span><b class="pcb" data-i18n="nav.pc">PC</b></a></div>
-      <div class="ng"><span class="ngl" data-i18n="navgrp.data">データを見る</span>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.data">データを見る</span><span class="ngs" data-i18n="navsub.data">セットごとの強さ・速さを確認</span>
         <a href="./reports.html" data-i18n="nav.reports">環境レポート</a></div>
-      <div class="ng"><span class="ngl" data-i18n="navgrp.play">対戦する</span>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.play">対戦する</span><span class="ngs" data-i18n="navsub.play">友達との対戦・大会の進行</span>
         <a href="./table.html" data-i18n="nav.table">対戦卓</a>
         <a href="./swiss.html" data-i18n="nav.swiss">スイスドロー</a></div>
-    <div class="ng"><span class="ngl" data-i18n="navgrp.shop">買う</span>
+    <div class="ng"><span class="ngl" data-i18n="navgrp.shop">買う</span><span class="ngs" data-i18n="navsub.shop">日本で買えるMTG用品</span>
         <a href="./goods/index.html" data-goods-link data-i18n="nav.goods">日本のサプライ</a></div>
     </nav>
     <div class="head-top">

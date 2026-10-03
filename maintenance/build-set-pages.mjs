@@ -73,7 +73,7 @@ const L = {
     none: "このセットのデータはまだありません。",
     nav: { start:"MTGとは", limited:"リミテッドとは", guide:"サイトの機能", sealed:"シールド練習", draft:"ドラフト練習", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", sassist:"シールド補助", table:"対戦卓", privacy:"プライバシー", goods:"日本のサプライ" },
     navgrp: { start:"はじめに", build:"練習する", assist:"MTGアリーナで使う", data:"データを見る", play:"対戦する", shop:"買う" },
-    navsub: { build:"仮想パックで練習", assist:"実戦のログを読んで助ける・PC専用" },
+    navsub: { start:"MTGの基本と、このサイトの使い方", build:"仮想パックで練習", assist:"実戦のログを読んで助ける・PC専用", data:"セットごとの強さ・速さを確認", play:"友達との対戦・大会の進行", shop:"日本で買えるMTG用品" },
     pc: "PC",
     foot: 'データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。<br><a href="../goods/index.html">日本の TCG サプライ（スリーブ・デッキケース）</a>',
     otherLang: "English", otherHref: c => `${c}.en.html`
@@ -113,7 +113,7 @@ const L = {
     none: "No data for this set yet.",
     nav: { start:"What is MTG?", limited:"What is Limited?", guide:"Site features", sealed:"Sealed practice", draft:"Draft practice", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", sassist:"Sealed assistant", table:"Play table", privacy:"Privacy", goods:"Japanese supplies" },
     navgrp: { start:"Start", build:"Practice", assist:"Use with MTG Arena", data:"Data", play:"Play", shop:"Shop" },
-    navsub: { build:"Virtual packs", assist:"Reads your log in real play · PC only" },
+    navsub: { start:"MTG basics & how to use this site", build:"Virtual packs", assist:"Reads your log in real play · PC only", data:"How strong and fast each set is", play:"Play friends or run a tournament", shop:"MTG supplies sold in Japan" },
     pc: "PC",
     foot: 'Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a>',
     otherLang: "日本語", otherHref: c => `${c}.html`
@@ -299,6 +299,20 @@ ${head}
   nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
   nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
   @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0} }
+  /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
+  .ng{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;column-gap:7px;row-gap:5px;justify-content:start;align-items:center;padding-top:0}
+  .ng:has(.ngs){padding-top:0}
+  .ngl,.ngs{position:static;grid-column:1/-1;white-space:nowrap}
+  .ngl{grid-row:1;left:auto}
+  .ngs{grid-row:2;left:auto;top:auto;font-size:11.5px;color:#A9BFD8;margin-top:-2px}
+  nav a{grid-row:3;padding:8px 16px;border-radius:10px;font-weight:700;background:linear-gradient(180deg,#2A5F96,#1C4A7C);border:1px solid #4A83BF;color:#FFFFFF;box-shadow:0 2px 0 #12365C,0 4px 10px rgba(0,0,0,.28);transition:transform .12s,box-shadow .12s,filter .12s}
+  nav a:not(.on):hover{filter:brightness(1.18);transform:translateY(-1px);box-shadow:0 3px 0 #12365C,0 6px 12px rgba(0,0,0,.32)}
+  nav a:active{transform:translateY(1px);box-shadow:0 1px 0 #12365C}
+  nav a.on{box-shadow:0 2px 0 rgba(0,0,0,.35),0 4px 10px rgba(0,0,0,.28)}
+  @media (max-width:760px){
+    .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+    .ngl,.ngs{flex:0 0 100%}
+  }
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   .lang{margin-top:12px;font-size:13px}
