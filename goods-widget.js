@@ -10,6 +10,8 @@
     : { h: "日本の TCG サプライ", lead: "日本のプレイヤーが使っている定番と、今週のキャラクタースリーブ。", buy: "楽天市場で見る", more: "もっと見る →", pr: "PR" };
   var goodsHref = "./goods/index" + (lang === "en" ? ".en" : "") + ".html";
   document.querySelectorAll("a[data-goods-link]").forEach(function(a){ a.href = goodsHref; });
+  var startHref = "./start/index" + (lang === "en" ? ".en" : "") + ".html";
+  document.querySelectorAll("a[data-start-link]").forEach(function(a){ a.href = startHref; });
 
   var box = document.getElementById("goodsStrip");
   if(!box) return;

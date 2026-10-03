@@ -71,7 +71,7 @@ const L = {
     indexLead: "セットを選ぶと、ドラフトとシールドの環境レポートが開きます。発売日の新しい順です。",
     source: "出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。",
     none: "このセットのデータはまだありません。",
-    nav: { guide:"使い方", sealed:"シールド練習", draft:"ドラフト練習", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", sassist:"シールド補助", table:"対戦卓", privacy:"プライバシー", goods:"日本のサプライ" },
+    nav: { start:"はじめての方へ", guide:"使い方", sealed:"シールド練習", draft:"ドラフト練習", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", sassist:"シールド補助", table:"対戦卓", privacy:"プライバシー", goods:"日本のサプライ" },
     navgrp: { start:"はじめに", build:"練習する", assist:"MTGアリーナで使う", data:"データを見る", play:"対戦する", shop:"買う" },
     navsub: { build:"仮想パックで練習", assist:"実戦のログを読んで助ける・PC専用" },
     pc: "PC",
@@ -111,7 +111,7 @@ const L = {
     indexLead: "Pick a set to open its Draft and Sealed report. Newest first.",
     source: "Source: 17Lands Public Data (CC BY 4.0), aggregated by this site. Card data via Scryfall.",
     none: "No data for this set yet.",
-    nav: { guide:"Guide", sealed:"Sealed practice", draft:"Draft practice", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", sassist:"Sealed assistant", table:"Play table", privacy:"Privacy", goods:"Japanese supplies" },
+    nav: { start:"New to MTG?", guide:"Guide", sealed:"Sealed practice", draft:"Draft practice", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", sassist:"Sealed assistant", table:"Play table", privacy:"Privacy", goods:"Japanese supplies" },
     navgrp: { start:"Start", build:"Practice", assist:"Use with MTG Arena", data:"Data", play:"Play", shop:"Shop" },
     navsub: { build:"Virtual packs", assist:"Reads your log in real play · PC only" },
     pc: "PC",
@@ -241,7 +241,7 @@ function shell(lang, code, head, body, ogImage){
   const self = lang === "ja" ? `${code}.html` : `${code}.en.html`;
   const og = ogImage || `${SITE}/ogp-${lang}.png`;
   // ナビはカテゴリごとにまとめる（本体のページと同じ並び）
-  const HREF = { guide:"../guide.html", sealed:"../", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", sassist:"../sealed-assist.html", table:"../table.html",
+  const HREF = { start: lang === "en" ? "../start/index.en.html" : "../start/index.html", guide:"../guide.html", sealed:"../", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", sassist:"../sealed-assist.html", table:"../table.html",
                  goods: lang === "en" ? "../goods/index.en.html" : "../goods/index.html" };
   const PC = new Set(["assist", "sassist"]);   // ログを読む機能はスマホでは使えないので「PC」の札を付ける
   const navGroup = (label, keys) =>
@@ -249,7 +249,7 @@ function shell(lang, code, head, body, ogImage){
     (T.navsub[label] ? `<span class="ngs">${esc(T.navsub[label])}</span>` : "") +
     keys.map(k => `<a href="${HREF[k]}">${esc(T.nav[k])}${PC.has(k) ? `<b class="pcb">${esc(T.pc)}</b>` : ""}</a>`).join("") + `</div>`;
   const nav = [
-    navGroup("start", ["guide"]),
+    navGroup("start", ["start", "guide"]),
     navGroup("build", ["sealed", "draft"]),
     navGroup("assist", ["sassist", "assist"]),
     navGroup("data", ["reports"]),

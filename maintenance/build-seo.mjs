@@ -66,6 +66,15 @@ async function main(){
     ].join("\n");
   });
 
+  // はじめての方へ（入門ページ）
+  try{
+    await stat("start/index.html");
+    for(const f of ["index.html", "index.en.html"]){
+      entries.push(["  <url>", `    <loc>${SITE}/start/${f}</loc>`, `    <lastmod>${day}</lastmod>`, "    <changefreq>monthly</changefreq>", "    <priority>0.8</priority>",
+        `    <xhtml:link rel="alternate" hreflang="ja" href="${SITE}/start/index.html"/>`, `    <xhtml:link rel="alternate" hreflang="en" href="${SITE}/start/index.en.html"/>`, "  </url>"].join("\n"));
+    }
+  }catch(e){}
+
   // 商品ページ（goods/index.html が日本語、goods/index.en.html が英語）
   try{
     await stat("goods/index.html");

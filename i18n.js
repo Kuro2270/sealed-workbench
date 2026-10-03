@@ -197,6 +197,7 @@
     "nav.pc":           { ja:"PC", en:"PC" },
     "navgrp.data":      { ja:"データを見る", en:"Data" },
     "navgrp.play":      { ja:"対戦する", en:"Play" },
+    "nav.start":        { ja:"はじめての方へ", en:"New to MTG?" },
     "nav.guide":        { ja:"使い方",  en:"Guide" },
     "navgrp.shop":      { ja:"買う", en:"Shop" },
     "nav.goods":        { ja:"日本のサプライ", en:"Japanese supplies" },
