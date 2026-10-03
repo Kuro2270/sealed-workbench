@@ -51,7 +51,7 @@ const BG = process.env.SHORT_BG || "short/bg.mp4";        // 背景のプレイ�
 /* 画面 */
 const W = 1080, H = 1920, SCALE = 2;                            // 2倍で描いて縮小すると字がきれい
 const PINE = "#10304F", DEEP = "#0A2038", BLUE = "#2F7DF6", PAPER = "#F5F8FC", MUTED = "#A9C2DE";
-const UP = "#5B9BFF", DOWN = "#F08A3E";
+const UP = "#5B9BFF", DOWN = "#F08A3E", GOLD = "#F2C94C";
 const COLOR = { W: "#F3EAC6", U: "#4A90E2", B: "#6B5E7A", R: "#E1553E", G: "#3E9B5B" };
 const COLOR_JA = { W: "白", U: "青", B: "黒", R: "赤", G: "緑" };
 const COLOR_EN = { W: "White", U: "Blue", B: "Black", R: "Red", G: "Green" };
@@ -63,7 +63,8 @@ const UI = JA ? {
   speedH: "環境の速さ", speedSub: "平均マナ総量ごとの勝率", under: m => `${m}未満`, between: (a, b) => `${a}〜${b}`, over: m => `${m}以上`,
   pace: { fast: "速い", "lean-fast": "やや速い", mid: "普通", even: "普通", "lean-slow": "やや遅い", slow: "遅い", slower: "かなり遅い" },
   noCurve: "カーブで差がつかない", light: n => `軽いデッキが${n}pt有利`, heavy: n => `重いデッキが${n}pt有利`, lighter: "軽いほど勝つ", heavier: "重いほど勝つ",
-  colorsH: "色の強さ", bestPair: "一番強い組み合わせ", worsePair: "一番弱い組み合わせ", vsAvg: (sign, n) => `2色の平均より ${sign}${n}pt`,
+  colorsH: "色の強さ", bestPair: "一番強い組み合わせ", targetPair: "狙い目（強いのに空いている）", worsePair: "一番弱い組み合わせ", vsAvg: (sign, n) => `2色の平均より ${sign}${n}pt`,
+  share: (s, a, r) => `勝率${r}位・使用率 ${s}%（平均 ${a}%）`, targetH: "ドラフトの狙い目", targetT: "強いのに空いている", shareNote: (s, a) => `使っている人は ${s}%（平均 ${a}%）`,
   topH: label => `${label} 勝率トップ3`, common: "コモン", uncommon: "アンコモン", rank: i => `${i}位`, gih: v => `GIH勝率 ${v}%`,
   subscribe: "▶ チャンネル登録",
   surpriseH: "意外な事実", nobody: "誰も組んでいない", strongerTogether: "組むと強くなる", weakerTogether: "組むと弱くなる",
@@ -75,7 +76,8 @@ const UI = JA ? {
   speedH: "Format speed", speedSub: "Win rate by average mana value", under: m => `under ${m}`, between: (a, b) => `${a}–${b}`, over: m => `${m}+`,
   pace: { fast: "Fast", "lean-fast": "Leans fast", mid: "Average", even: "Average", "lean-slow": "Leans slow", slow: "Slow", slower: "Very slow" },
   noCurve: "Curve barely matters", light: n => `Light decks +${n}pt`, heavy: n => `Heavy decks +${n}pt`, lighter: "Lighter wins", heavier: "Heavier wins",
-  colorsH: "Colour strength", bestPair: "Best pair", worsePair: "Weakest pair", vsAvg: (sign, n) => `vs 2-colour avg ${sign}${n}pt`,
+  colorsH: "Colour strength", bestPair: "Best pair", targetPair: "Aim for this (strong, under-drafted)", worsePair: "Weakest pair", vsAvg: (sign, n) => `vs 2-colour avg ${sign}${n}pt`,
+  share: (s, a, r) => `#${r} by win rate · drafted ${s}% (avg ${a}%)`, targetH: "Draft pick to aim for", targetT: "Strong, but under-drafted", shareNote: (s, a) => `Drafted by ${s}% (average ${a}%)`,
   topH: label => `Top 3 ${label}s by win rate`, common: "common", uncommon: "uncommon", rank: i => `#${i}`, gih: v => `GIH WR ${v}%`,
   subscribe: "▶ Subscribe",
   surpriseH: "One surprise", nobody: "Nobody plays it", strongerTogether: "Better together", weakerTogether: "Worse together",
@@ -114,9 +116,9 @@ function pairRows(d){
 /* 「意外な事実」をデータから1つ選ぶ */
 /* 「意外な事実」をデータから1つ選ぶ。最強・最弱の組み合わせは「色」の場面で言うので、ここでは出さない。
    候補が無ければ null（場面ごと割愛） */
-function surprise(d, pairs, best, worst){
+function surprise(d, pairs, best, worst, target){
   const totalPair = pairs.reduce((n, p) => n + p.games, 0) || 1;
-  const skip = p => (best && p.pair === best.pair) || (worst && p.pair === worst.pair);
+  const skip = p => (best && p.pair === best.pair) || (worst && p.pair === worst.pair) || (target && p.pair === target.pair);
   // 1) 上位3位以内なのに、ほとんど使われていない組み合わせ（狙い目）
   const sleeper = pairs.slice(0, 3).find(p => !skip(p) && p.games / totalPair < 0.05 && p.games >= 2000);
   if(sleeper){
@@ -164,10 +166,19 @@ function buildScript(d, nameJa, names){
   const totalPairGames = pairs.reduce((n, p) => n + p.games, 0);
   const solidPairs = pairs.filter(p => p.games >= Math.max(2000, totalPairGames * 0.04));
   const worst = (solidPairs.length ? solidPairs : pairs).slice().sort((a, b) => a.wr - b.wr)[0];
+  // 狙い目（ドラフトだけ）：最強ではないが勝率が最強に近く（−1.5pt 以内）、使う人が平均より少ない組み合わせ。
+  // 人気の色はカードの取り合いになるので、勝率が高くて空いている色を勧める
+  let target = null;
+  if(MODE === "draft" && best && pairs.length >= 4){
+    const avgShare = 1 / pairs.length;
+    const cand = pairs.filter(p => p !== best && p.games >= 2000 && p.wr >= best.wr - 0.015 && p.games / totalPairGames <= avgShare * 0.8)
+      .sort((a, b) => b.wr - a.wr || a.games - b.games);
+    if(cand.length) target = { ...cand[0], share: cand[0].games / totalPairGames, rank: pairs.indexOf(cand[0]) + 1, avgShare };
+  }
   const top3 = list => (list || []).slice(0, 3)
     .map(c => ({ ...c, label: JA ? ((names.names || {})[c.name] || c.name) : c.name, img: JA ? (names.images || {})[c.name] : null }));
   const commons = top3(d.top && d.top.common), uncommons = top3(d.top && d.top.uncommon);
-  const sur = surprise(d, pairs, best, worst);
+  const sur = surprise(d, pairs, best, worst, target);
   const games = man(d.total_games);
 
   const scenes = [];
@@ -210,6 +221,16 @@ function buildScript(d, nameJa, names){
     if(worst && worst !== best) say += JA ? `逆に一番弱いのは${pairName(worst.pair)}で、${pt(worst.wr)}パーセントです。`
                                          : ` The weakest pair is ${pairName(worst.pair)}, at ${pt(worst.wr)} percent.`;
     scenes.push({ kind: "colors", say, colors, best, worst: worst && worst !== best ? worst : null });
+    // 狙い目（ドラフトだけ）：人気の色は取り合いになるので、強いのに空いている組み合わせを勧める。
+    // 「意外な事実」がある回はそちらを出し、無い回にこの場面を入れる（動画の長さを揃えるため）
+    if(target && !sur){
+      const sh = Math.round(target.share * 100), av = Math.round(target.avgShare * 100);
+      scenes.push({ kind: "target", heading: UI.targetH, title: UI.targetT,
+        pair: target.pair, big: pairName(target.pair), sub: UI.wrRank(pt(target.wr), target.rank), note: UI.shareNote(sh, av),
+        say: JA ? `狙い目は${pairName(target.pair)}。勝率${pt(target.wr)}パーセントで${target.rank}位ですが、使っている人は${sh}パーセントと平均より少なめ。人気の色は取り合いになるので、カードが流れてきやすいこの色が狙い目です。`
+                : `Aim for ${pairName(target.pair)}. It wins ${pt(target.wr)} percent, number ${target.rank}, yet only ${sh} percent of drafters take it. Popular colours get fought over; this one's cards come to you.`,
+        tail: 0.8 });
+    }
   }
 
   // カード名は読まず画面に任せる。読むと忙しいので、どの色が強いかだけ言う
@@ -362,21 +383,28 @@ function sceneSvg(sc){
       return frame(s, sc.say);
     }
     case "colors": {
-      let s = T(80, 230, UI.colorsH, { size: 40, fill: MUTED });
+      const three = !!sc.target;
+      const cy = three ? 320 : 350;   // 3枚のときは全体を少し上に
+      let s = T(80, three ? 215 : 230, UI.colorsH, { size: 40, fill: MUTED });
       sc.colors.forEach((c, i) => {
         const x = 130 + i * 205;
-        s += symbol(c.color, x, 350, 132);
-        s += T(x, 480, pt(c.wr) + "%", { size: 40, anchor: "middle", weight: i < 2 ? 900 : 400, fill: i < 2 ? PAPER : MUTED });
+        s += symbol(c.color, x, cy, three ? 120 : 132);
+        s += T(x, cy + 130, pt(c.wr) + "%", { size: 40, anchor: "middle", weight: i < 2 ? 900 : 400, fill: i < 2 ? PAPER : MUTED });
       });
-      const card = (y, title, p, col) =>
-        `<rect x="80" y="${y}" width="${W - 160}" height="210" rx="28" fill="${DEEP}" fill-opacity="${HAS_BG ? 0.72 : 0.25}" stroke="${col}" stroke-width="4"/>` +
-        T(120, y + 62, title, { size: 34, fill: col, weight: 700 }) +
-        pairSymbols(p.pair, 120, y + 128, 96) +
-        T(350, y + 160, pairName(p.pair), { size: JA ? 60 : 48, weight: 900 }) +
-        T(W - 120, y + 148, pt(p.wr) + "%", { size: 80, weight: 900, anchor: "end", fill: col }) +
-        T(W - 120, y + 190, UI.vsAvg(p.gap > 0 ? "+" : "−", Math.abs(p.gap * 100).toFixed(1)), { size: 30, anchor: "end", fill: MUTED });
-      s += card(560, UI.bestPair, sc.best, UP);
-      if(sc.worst) s += card(810, UI.worsePair, sc.worst, DOWN);
+      const CH = three ? 184 : 210;
+      const card = (y, title, p, col, note) =>
+        `<rect x="80" y="${y}" width="${W - 160}" height="${CH}" rx="28" fill="${DEEP}" fill-opacity="${HAS_BG ? 0.72 : 0.25}" stroke="${col}" stroke-width="4"/>` +
+        T(120, y + 56, title, { size: three ? 30 : 34, fill: col, weight: 700 }) +
+        pairSymbols(p.pair, 120, y + (three ? 112 : 128), three ? 84 : 96) +
+        T(three ? 330 : 350, y + (three ? 140 : 160), pairName(p.pair), { size: JA ? (three ? 52 : 60) : (three ? 42 : 48), weight: 900 }) +
+        T(W - 120, y + (three ? 128 : 148), pt(p.wr) + "%", { size: three ? 70 : 80, weight: 900, anchor: "end", fill: col }) +
+        T(W - 120, y + (three ? 168 : 190), note || UI.vsAvg(p.gap > 0 ? "+" : "−", Math.abs(p.gap * 100).toFixed(1)), { size: 28, anchor: "end", fill: MUTED });
+      // 最強 → 狙い目（あれば）→ 最弱
+      const gap = three ? 202 : 250;
+      let y = three ? 500 : 560;
+      s += card(y, UI.bestPair, sc.best, UP); y += gap;
+      if(sc.target){ s += card(y, UI.targetPair, sc.target, GOLD, UI.share(Math.round(sc.target.share * 100), Math.round(sc.target.avgShare * 100), sc.target.rank)); y += gap; }
+      if(sc.worst) s += card(y, UI.worsePair, sc.worst, DOWN);
       return frame(s, sc.say);
     }
     case "top": {
@@ -400,10 +428,11 @@ function sceneSvg(sc){
       });
       return frame(s, sc.say);
     }
-    case "surprise": {
+    case "surprise":
+    case "target": {
       return frame(
-        T(W / 2, 420, UI.surpriseH, { size: 44, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 560, sc.title, { size: JA ? 72 : 64, weight: 900, anchor: "middle", fill: DOWN }) +
+        T(W / 2, 420, sc.heading || UI.surpriseH, { size: 44, fill: MUTED, anchor: "middle" }) +
+        T(W / 2, 560, sc.title, { size: JA ? 72 : 64, weight: 900, anchor: "middle", fill: sc.kind === "target" ? GOLD : DOWN }) +
         `<rect x="120" y="640" width="${W - 240}" height="420" rx="32" fill="${DEEP}" fill-opacity="${HAS_BG ? 0.72 : 0.25}" stroke="${BLUE}" stroke-width="4"/>` +
         (sc.pair ? pairSymbols(sc.pair, W / 2 - 132 - 6, 740, 132) + T(W / 2, 866, sc.big, { size: JA ? 60 : 50, weight: 900, anchor: "middle" })
                  : T(W / 2, 810, sc.big, { size: 140, weight: 900, anchor: "middle" })) +
