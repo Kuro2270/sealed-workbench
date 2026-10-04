@@ -21,6 +21,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <script src="../analytics.js"></script>
+<script src="/navmenu.js" defer></script>
+<script src="/tip.js" defer></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#10304F">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Workbench">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
 <style>
   :root{--pine:#10304F;--pine-deep:#0A2038;--paper:#F5F8FC;--paper-2:#E8EEF6;--ink:#0D1B2A;--muted:#5C7185;--gold:#2F7DF6;--line:#D3DFEB;
         --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:8px}
@@ -47,6 +59,20 @@
   nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
   nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
   @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0} }
+  /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
+  .ng{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;column-gap:7px;row-gap:5px;justify-content:start;align-items:center;padding-top:0}
+  .ng:has(.ngs){padding-top:0}
+  .ngl,.ngs{position:static;grid-column:1/-1;white-space:nowrap}
+  .ngl{grid-row:1;left:auto}
+  .ngs{grid-row:2;left:auto;top:auto;font-size:11.5px;color:#A9BFD8;margin-top:-2px}
+  nav a{grid-row:3;padding:8px 16px;border-radius:10px;font-weight:700;background:linear-gradient(180deg,#2A5F96,#1C4A7C);border:1px solid #4A83BF;color:#FFFFFF;box-shadow:0 2px 0 #12365C,0 4px 10px rgba(0,0,0,.28);-webkit-font-smoothing:auto;text-shadow:none;letter-spacing:.02em}
+  nav a:not(.on):hover{background:linear-gradient(180deg,#3573B3,#25609F);border-color:#6FA3DA}
+  nav a:active{box-shadow:0 1px 0 #12365C}
+  nav a.on{box-shadow:0 2px 0 rgba(0,0,0,.35),0 4px 10px rgba(0,0,0,.28)}
+  @media (max-width:760px){
+    .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+    .ngl,.ngs{flex:0 0 100%}
+  }
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   .lang{margin-top:12px;font-size:13px}
@@ -70,6 +96,7 @@
   section h3{font-size:16px;margin:0 0 4px}
   .lead{color:var(--muted);font-size:13px;margin:0 0 8px}
   .verdict{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;font-size:14.5px}
+  .verdict .gap{display:block;font-size:12.5px;color:var(--muted);margin-top:5px;font-weight:400}
   table{width:100%;border-collapse:collapse;font-size:14px}
   th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
   td{padding:6px 8px;border-bottom:1px solid var(--paper-2)}
@@ -85,25 +112,46 @@
   .setlist li a{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
   .setlist li a:hover{border-color:var(--gold)}
   .setlist small{display:block;color:var(--muted);font-size:12px}
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .langsel{background:#0F2A44;color:var(--paper);border:1px solid #2E5A86;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:13px}
+  .summary{font-size:14.5px;line-height:1.8;margin:0 0 16px;padding:12px 16px;background:var(--paper-2);border-radius:8px}
+  header h1 .code{font-size:14px;font-weight:600;color:#A9C2DE;margin-left:8px;letter-spacing:.06em}
   footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+
+  .gstrip{margin:28px 0 0;padding:16px 0 0;border-top:1px solid var(--line)}
+  .gstrip .gh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 4px}.gstrip h2{font-size:15px;margin:0}.gstrip .gpr{font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px}
+  .gstrip .gmore{margin-left:auto;font-size:12.5px}.gstrip .glead{font-size:12.5px;color:var(--muted);margin:0 0 10px}
+  .gstrip ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+  .gstrip li{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px;display:flex;gap:8px;align-items:flex-start}
+  .gstrip .gi{flex:none;width:64px;height:64px;border-radius:6px;overflow:hidden;background:var(--paper-2)}.gstrip .gi img{width:100%;height:100%;object-fit:contain;display:block}
+  .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}
   footer a{color:var(--muted)}
+  .faq details{border-bottom:1px solid var(--line,#D7E2EE);padding:10px 2px}
+  .faq summary{cursor:pointer;font-weight:700;font-size:14.5px}
+  .faq p{margin:8px 0 2px;font-size:14px;line-height:1.8}
   @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
 </style>
 </head>
 <body>
 <header>
   <div class="wrap">
-    <div class="brand"><a href="../">MTG Arena Limited Workbench</a></div>
+    <div class="brandrow"><div class="brand"><a href="../">MTG Arena Limited Workbench</a></div>
+      <select class="langsel" aria-label="Language" onchange="location.href=this.value">
+        <option value="FRA.profile.html">日本語</option>
+        <option value="FRA.profile.en.html" selected>English</option>
+      </select></div>
     <nav>
-      <div class="ng"><span class="ngl">Start</span><a href="../guide.html">Guide</a></div>
+      <div class="ng"><span class="ngl">Start</span><span class="ngs">MTG basics &amp; how to use this site</span><a href="../start/index.en.html">What is MTG?</a><a href="../start/limited.en.html">What is Limited?</a><a href="../guide.html">Site features</a></div>
       <div class="ng"><span class="ngl">Practice</span><span class="ngs">Virtual packs</span><a href="../">Sealed practice</a><a href="../draft.html">Draft practice</a></div>
       <div class="ng"><span class="ngl">Use with MTG Arena</span><span class="ngs">Reads your log in real play · PC only</span><a href="../sealed-assist.html">Sealed assistant<b class="pcb">PC</b></a><a href="../assistant.html">Draft assistant<b class="pcb">PC</b></a></div>
-      <div class="ng"><span class="ngl">Data</span><a href="../reports.html">Set reports</a></div>
-      <div class="ng"><span class="ngl">Play</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
+      <div class="ng"><span class="ngl">Data</span><span class="ngs">How strong and fast each set is</span><a href="../reports.html">Set reports</a></div>
+      <div class="ng"><span class="ngl">Play</span><span class="ngs">Play friends or run a tournament</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
+      <div class="ng"><span class="ngl">Shop</span><span class="ngs">MTG supplies sold in Japan</span><a href="../goods/index.en.html">Japanese supplies</a></div>
     </nav>
     <h1>Reality Fracture — Limited preview (pre-data)</h1>
     <p>Win-rate data lands about two weeks after release. Until then, we count every card in the set to see the shape of the format.</p>
-    <div class="lang"><a href="FRA.profile.html" hreflang="ja">日本語</a></div>
+    <link rel="alternate" hreflang="ja" href="FRA.profile.html">
   </div>
 </header>
 <main>
@@ -187,7 +235,9 @@
   <li><a href="FRA.en.html">Format report (when data lands)</a></li>
 </ul></section>
 <p class="source">Card data: Scryfall. Counts by this site.</p>
+<div id="goodsStrip"></div>
+<script src="../goods-widget.js?v=6" defer></script>
 </main>
-<footer>Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.</footer>
+<footer>Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a></footer>
 </body>
 </html>
