@@ -750,13 +750,12 @@ async function main(){
   execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", `${OUT}/${TAG}/list.txt`,
     "-c", "copy", "-movflags", "+faststart", bgm ? `${OUT}/${TAG}/nobgm.mp4` : `${OUT}/${TAG}.mp4`]);
   if(bgm){
-    // BGM を薄く敷く。ナレーションが鳴っている間は自動で少し下げ（ダッキング）、最後の2秒でフェードアウト
+    // BGM を薄く敷く。音量は一定にする（ナレーションに合わせて上げ下げすると、場面の切れ目で「ぼふっ」と膨らむため）。最後の2秒でフェードアウト
     const vol = process.env.BGM_VOLUME || "0.07";
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", `${OUT}/${TAG}/nobgm.mp4`, "-stream_loop", "-1", "-i", bgm,
       "-filter_complex",
         `[1:a]aformat=sample_rates=48000:channel_layouts=stereo,volume=${vol},afade=t=in:d=1,afade=t=out:st=${Math.max(0, total - 2).toFixed(2)}:d=2[bg];` +
-        `[0:a]asplit[v1][v2];[bg][v2]sidechaincompress=threshold=0.05:ratio=6:attack=40:release=400[duck];` +
-        `[v1][duck]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`,
+        `[0:a][bg]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`,
       "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-t", String(total), "-movflags", "+faststart", `${OUT}/${TAG}.mp4`]);
   }
   // サイトの埋め込み用のサムネイル（冒頭のタイトル場面）。assets/video/<SET>-<TAG>.jpg に置き、ページはこれを使う

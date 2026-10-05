@@ -799,7 +799,7 @@ ${bgmCredit ? `BGM: ${bgmCredit}\n` : ""}Unofficial Fan Content permitted under 
     const vol = process.env.BGM_VOLUME || "0.08";
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", `${OUT}/nobgm.mp4`, "-stream_loop", "-1", "-i", bgm, "-filter_complex",
       `[1:a]aformat=sample_rates=48000:channel_layouts=stereo,volume=${vol},afade=t=in:d=1,afade=t=out:st=${Math.max(0, total - 2).toFixed(2)}:d=2[bg];` +
-      `[0:a]asplit[v1][v2];[bg][v2]sidechaincompress=threshold=0.05:ratio=6:attack=40:release=400[duck];[v1][duck]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`,
+      `[0:a][bg]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`,
       "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-t", String(total), "-movflags", "+faststart", `${OUT}/ja.mp4`]);
   }
   // サムネイル（冒頭の場面。字幕の入る前の画面を、カードの絵に重ねる）
