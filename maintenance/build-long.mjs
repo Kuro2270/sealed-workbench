@@ -317,10 +317,14 @@ function header(sc){
   return band + T(76, 82, HEADER.title, { size: 42, fill: BLUE, weight: 900 }) +
     T(W - 76, 80, sc.crumb || "リミテッド環境分析", { size: 34, fill: MUTED, weight: 700, anchor: "end" });
 }
-const panel = (x, y, w, h, stroke) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="26" fill="${DEEP}" fill-opacity="${HAS_BG ? 0.72 : 0.3}" stroke="${stroke || MUTED}" stroke-opacity="${stroke ? 1 : 0.3}" stroke-width="3"/>`;
+/* 1990年代のRPG風の青いウィンドウ（青のグラデーション＋白い二重の枠）。accent を渡すと内側の細い線がその色になる */
+const panel = (x, y, w, h, accent) =>
+  `<rect x="${x + 5}" y="${y + 7}" width="${w}" height="${h}" rx="22" fill="#000" opacity="0.35"/>` +
+  `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="22" fill="url(#ffw)" fill-opacity="${HAS_BG ? 0.93 : 0.9}" stroke="#F4F7FF" stroke-width="5"/>` +
+  `<rect x="${x + 10}" y="${y + 10}" width="${w - 20}" height="${h - 20}" rx="14" fill="none" stroke="${accent || "#8FA8F0"}" stroke-width="2" opacity="0.8"/>`;
 function frame(inner, sc, o = {}){
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W * SCALE}" height="${H * SCALE}" viewBox="0 0 ${W} ${H}" font-family="${FONT}">
-  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${PINE}"/><stop offset="1" stop-color="${DEEP}"/></linearGradient></defs>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${PINE}"/><stop offset="1" stop-color="${DEEP}"/></linearGradient><linearGradient id="ffw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A4FC4"/><stop offset="1" stop-color="#0B1763"/></linearGradient></defs>
   ${HAS_BG ? "" : `<rect width="${W}" height="${H}" fill="url(#bg)"/>`}
   ${o.header === false ? "" : header(sc)}
   ${inner}
@@ -543,16 +547,16 @@ function sceneSvg(sc){
       if(sc.worst) s += box(3, "無理に目指さない", cx => pairSymbols(sc.worst.pair, cx - 175, PY + 120, 70) + T(cx - 20, PY + 142, pairName(sc.worst.pair), { size: 64, weight: 900, fill: PAPER }) +
         T(cx, PY + 205, `ドラフト ${pt(sc.worst.wr)}%`, { size: 30, anchor: "middle", fill: DOWN, weight: 700 }));
       const colsDef = [["迷わず取るボム", sc.b3, UP, GOLD], ["罠になりやすいレア", sc.t3, DOWN, DOWN], ["強いコモン除去", sc.r3, GREEN, GREEN]].filter(d => d[1] && d[1].length);
-      const CG = 25, CX = 50, CWd = Math.floor((1820 - CG * (colsDef.length - 1)) / colsDef.length), CY = 385, ROWH = 172;
+      const CG = 25, CX = 50, CWd = Math.floor((1820 - CG * (colsDef.length - 1)) / colsDef.length), CY = 375, ROWH = 150;
       const col = (i, label, cards, fill, accent, rate) => {
         const x = CX + i * (CWd + CG);
-        let o = panel(x, CY, CWd, 580, accent) + T(x + 24, CY + 50, label, { size: 34, weight: 900, fill: accent });
+        let o = panel(x, CY, CWd, 515, accent) + T(x + 24, CY + 46, label, { size: 34, weight: 900, fill: accent });
         cards.forEach((c, j) => {
-          const ry = CY + 68 + j * ROWH;
-          o += cardImg(c, x + 20, ry, 105, 147);
+          const ry = CY + 62 + j * ROWH;
+          o += cardImg(c, x + 24, ry, 92, 128);
           const lines = wrapName(c.label, 11);
-          lines.forEach((l, k) => { o += T(x + 145, ry + 40 + k * 38, l, { size: 32, weight: 900 }); });
-          o += T(x + 145, ry + 132, rate(c), { size: 32, weight: 700, fill });
+          lines.forEach((l, k) => { o += T(x + 132, ry + 36 + k * 36, l, { size: 31, weight: 900 }); });
+          o += T(x + 132, ry + 118, rate(c), { size: 31, weight: 700, fill });
         });
         return o;
       };
@@ -592,10 +596,14 @@ function capSvg(page){
     const idx = [...page].map((c, i) => (c === "、" || c === "。") ? i + 1 : -1).filter(i => i > 0).sort((a, b) => Math.abs(a - half) - Math.abs(b - half))[0] || half;
     lines = [chars.slice(0, idx).join(""), chars.slice(idx).join("")];
   }
-  const lh = 56, boxH = lines.length * lh + 40;
+  const lh = 56, boxH = lines.length * lh + 44, x0 = 120, bw = W - 240;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H - CAP_Y}" viewBox="0 0 ${W} ${H - CAP_Y}" font-family="${FONT}">
-  <rect x="120" y="0" width="${W - 240}" height="${boxH}" rx="20" fill="${DEEP}" opacity="0.92"/>
-  ${lines.map((l, i) => T(W / 2, 50 + i * lh, l, { size: 42, anchor: "middle", weight: 700 })).join("")}
+  <defs><linearGradient id="ffw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A4FC4"/><stop offset="1" stop-color="#0B1763"/></linearGradient></defs>
+  <rect x="${x0 + 5}" y="8" width="${bw}" height="${boxH}" rx="18" fill="#000" opacity="0.4"/>
+  <rect x="${x0}" y="3" width="${bw}" height="${boxH}" rx="18" fill="url(#ffw)" stroke="#F4F7FF" stroke-width="5"/>
+  <rect x="${x0 + 10}" y="13" width="${bw - 20}" height="${boxH - 20}" rx="10" fill="none" stroke="#8FA8F0" stroke-width="2" opacity="0.8"/>
+  ${lines.map((l, i) => `<text x="${W / 2 + 2}" y="${52 + i * lh + 2}" font-size="42" fill="#050B33" font-weight="700" text-anchor="middle">${l.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</text>` + T(W / 2, 52 + i * lh, l, { size: 42, anchor: "middle", weight: 700 })).join("")}
+  <polygon points="${x0 + bw - 54},${boxH - 26} ${x0 + bw - 30},${boxH - 26} ${x0 + bw - 42},${boxH - 10}" fill="#F4F7FF"/>
 </svg>`;
 }
 
@@ -669,8 +677,11 @@ async function main(){
   let bgm = null, bgmCredit = "";
   try{
     const { readdir } = await import("node:fs/promises");
-    const files = (await readdir("short/bgm")).filter(f => /\.(mp3|m4a|wav|ogg)$/i.test(f)).sort();
-    if(files.length){ const pick = files[[...SET].reduce((n, ch) => n + ch.charCodeAt(0), 0) % files.length]; bgm = `short/bgm/${pick}`; bgmCredit = (await readJson("short/bgm/credits.json", {}))[pick] || ""; console.error(`BGM: ${pick}`); }
+    const isAudio = f => /\.(mp3|m4a|wav|ogg)$/i.test(f);
+    // 長尺は long/bgm/ の曲（フィールド曲）を優先。無ければ short/bgm/ を使う
+    let dir = "long/bgm", files = []; try{ files = (await readdir(dir)).filter(isAudio).sort(); }catch(e){}
+    if(!files.length){ dir = "short/bgm"; files = (await readdir(dir)).filter(isAudio).sort(); }
+    if(files.length){ const pick = files[[...SET].reduce((n, ch) => n + ch.charCodeAt(0), 0) % files.length]; bgm = `${dir}/${pick}`; bgmCredit = (await readJson(`${dir}/credits.json`, {}))[pick] || ""; console.error(`BGM: ${pick}`); }
   }catch(e){}
   const outro = scenes.find(sc => sc.kind === "outro"); if(outro && bgmCredit) outro.bgmCredit = bgmCredit;
 
@@ -751,7 +762,7 @@ async function main(){
     const inputs = [...first, "-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", base + ".wav", ...caps.flatMap(c => ["-loop", "1", "-framerate", "30", "-i", c.f])];
     let fc = `${bgFilter};[1:v]format=rgba${sc.kind === "hook" ? "" : ",fade=t=in:d=0.2:alpha=1"}[fg];[bg][fg]overlay=shortest=1[v0]`;
     caps.forEach((c, k) => { fc += `;[v${k}][${3 + k}:v]overlay=0:${CAP_Y}:enable='between(t,${c.a.toFixed(2)},${c.b.toFixed(2)})':shortest=1[v${k + 1}]`; });
-    fc += `;[v${caps.length}]format=yuv420p[v];[2:a]apad=pad_dur=${pad.toFixed(2)},aformat=sample_rates=48000:channel_layouts=stereo[a]`;
+    fc += `;[v${caps.length}]format=yuv420p[v];[2:a]apad=pad_dur=${pad.toFixed(2)},afade=t=in:d=0.012,afade=t=out:st=${(len - 0.03).toFixed(3)}:d=0.03,aformat=sample_rates=48000:channel_layouts=stereo[a]`;
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...inputs, "-filter_complex", fc, "-map", "[v]", "-map", "[a]", "-t", String(len),
       "-c:v", "libx264", "-preset", "fast", "-crf", "21", "-c:a", "aac", "-b:a", "160k", base + ".mp4"]);
     segs.push(`file 'scene-${i}.mp4'`); total += len;
