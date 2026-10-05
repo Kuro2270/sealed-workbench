@@ -304,12 +304,19 @@ function wrap(s, n = 18){
   return out.slice(0, 5);
 }
 /* YouTube Shorts は下 20% 弱にタイトルやボタンが重なるので、字幕はその上に置く */
-const SAFE_BOTTOM = 300;
+const SAFE_BOTTOM = 270;
 function caption(say){
   const lines = wrap(say.replace(/パーセント/g, "%").replace(/ percent/g, "%"));
-  const lh = 70, boxH = lines.length * lh + 58, y0 = H - SAFE_BOTTOM - 40 - boxH;
-  return `<rect x="60" y="${y0}" width="${W - 120}" height="${boxH}" rx="22" fill="${DEEP}" opacity="0.92"/>` +
-    lines.map((l, i) => T(W / 2, y0 + 66 + i * lh, l, { size: 50, anchor: "middle", weight: 700 })).join("");
+  const lh = 70, boxH = lines.length * lh + 64, y0 = H - SAFE_BOTTOM - 40 - boxH, x0 = 56, bw = W - 112;
+  /* 1990年代のRPG風の青いメッセージウィンドウ（青のグラデーション＋白い二重の枠＋右下の送りカーソル）。ロゴや既存ゲームの素材は使わない */
+  return `<defs><linearGradient id="ffw" x1="0" y1="0" x2="0" y2="1">` +
+      `<stop offset="0" stop-color="#2A4FC4"/><stop offset="1" stop-color="#0B1763"/></linearGradient></defs>` +
+    `<rect x="${x0 + 6}" y="${y0 + 8}" width="${bw}" height="${boxH}" rx="18" fill="#000" opacity="0.45"/>` +
+    `<rect x="${x0}" y="${y0}" width="${bw}" height="${boxH}" rx="18" fill="url(#ffw)" stroke="#F4F7FF" stroke-width="6"/>` +
+    `<rect x="${x0 + 12}" y="${y0 + 12}" width="${bw - 24}" height="${boxH - 24}" rx="10" fill="none" stroke="#8FA8F0" stroke-width="2" opacity="0.8"/>` +
+    lines.map((l, i) => `<text x="${W / 2 + 3}" y="${y0 + 66 + i * lh + 3}" font-size="50" fill="#050B33" font-weight="700" text-anchor="middle">${esc(l)}</text>` +
+                        T(W / 2, y0 + 66 + i * lh, l, { size: 50, anchor: "middle", weight: 700 })).join("") +
+    `<polygon points="${x0 + bw - 52},${y0 + boxH - 38} ${x0 + bw - 28},${y0 + boxH - 38} ${x0 + bw - 40},${y0 + boxH - 22}" fill="#F4F7FF"/>`;
 }
 let HAS_BG = false;
 /* マナ・シンボル（Scryfall の SVG）。取れたものは SYM に入る。無い色は丸に文字で代用 */
@@ -443,7 +450,7 @@ function sceneSvg(sc){
     }
     case "top": {
       // 3枚を縦に並べ、左にカード、右に順位・名前・勝率。字幕の枠（下から 300+40+箱）にかからない範囲でカードをできるだけ大きく
-      const CW = 266, CH = 372, ROW = 380, Y0 = 236, TX = 390;
+      const CW = 250, CH = 349, ROW = 358, Y0 = 236, TX = 372;
       let s = T(80, 216, UI.topH(sc.label), { size: 36, fill: MUTED });
       sc.cards.forEach((c, i) => {
         const y = Y0 + i * ROW, col = COLOR[c.color] || MUTED;
@@ -691,13 +698,22 @@ async function main(){
     await sharp(Buffer.from(svg), { density: 72 }).png().toFile(base + ".png");
     if(process.env.SHORT_STILLS){ console.error(`${i} ${sc.kind} → ${base}.png（画像だけ）`); continue; }   // 見た目の確認用。動画は作らない
     // 読み終わってすぐ切り替えず少し置く。画面に見せたい場面は最低の長さを保つ
+    // 効果音（short/sfx/*.wav）。場面の頭に、ナレーションより小さく重ねる。無ければ何もしない
+    const seName = { hook: "start", outro: "fanfare", top: "appear", colors: "appear" }[sc.kind] || "cursor";
+    const sePath = `short/sfx/${seName}.wav`;
+    const wavIn = await readFile(sePath).then(() => true, () => false) ? base + ".mix.wav" : base + ".wav";
+    if(wavIn !== base + ".wav"){
+      execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", base + ".wav", "-i", sePath, "-filter_complex",
+        `[1:a]volume=${process.env.SE_VOLUME || "0.22"},aformat=sample_rates=24000:channel_layouts=mono[se];[0:a]aformat=sample_rates=24000:channel_layouts=mono[n];` +
+        `[n][se]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[o]`, "-map", "[o]", wavIn]);
+    }
     const len = dur + (sc.tail || 0.35), pad = len - dur, N = Math.ceil(len * 30);   // 読み終わりに少し置く（カードを見せる場面は長め）
     const audio = `[${(sc.art && artPath) || HAS_BG ? 2 : 1}:a]apad=pad_dur=${pad.toFixed(2)},aformat=sample_rates=48000:channel_layouts=stereo[a]`;
     let args;
     if(sc.art && artPath){
       // カードアートを縦いっぱいに敷き、ゆっくり寄る。膜は薄めにして絵を見せる
       args = ["-loop", "1", "-framerate", "30", "-i", artPath,
-              "-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", base + ".wav",
+              "-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", wavIn,
               "-filter_complex",
                 `[0:v]scale=${W * 2}:${H * 2}:force_original_aspect_ratio=increase,crop=${W * 2}:${H * 2},` +
                 `zoompan=z='1+0.08*on/${N}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${N}:s=${W}x${H}:fps=30,eq=saturation=0.9[bg0];` +
@@ -708,7 +724,7 @@ async function main(){
       // 横長の映像を縦に切り出し、暗くぼかして下に敷く。開始位置は前の場面の続きから
       const ss = (total % bgDur).toFixed(2);
       args = ["-stream_loop", "-1", "-ss", ss, "-i", BG,
-              "-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", base + ".wav",
+              "-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", wavIn,
               "-filter_complex",
                 `[0:v]fps=30,scale=iw*sar:ih,setsar=1,scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},` +   // 縦長ピクセルの録画（1440×1080 など）も正しい比率に直す
                 `eq=saturation=0.7,gblur=sigma=5,setsar=1[bg0];` +
@@ -716,7 +732,7 @@ async function main(){
                 `[1:v]scale=${W}:${H},format=rgba,fade=t=in:d=0.2:alpha=1[fg];` +
                 `[bg][fg]overlay=shortest=1,format=yuv420p[v];${audio}`];
     }else{
-      args = ["-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", base + ".wav",
+      args = ["-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", wavIn,
               "-filter_complex",
                 `[0:v]zoompan=z='1+0.05*on/${N}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${N}:s=${W}x${H}:fps=30,` +
                 `fade=t=in:d=0.15,format=yuv420p[v];${audio}`];
@@ -735,7 +751,7 @@ async function main(){
     "-c", "copy", "-movflags", "+faststart", bgm ? `${OUT}/${TAG}/nobgm.mp4` : `${OUT}/${TAG}.mp4`]);
   if(bgm){
     // BGM を薄く敷く。ナレーションが鳴っている間は自動で少し下げ（ダッキング）、最後の2秒でフェードアウト
-    const vol = process.env.BGM_VOLUME || "0.10";
+    const vol = process.env.BGM_VOLUME || "0.05";
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", `${OUT}/${TAG}/nobgm.mp4`, "-stream_loop", "-1", "-i", bgm,
       "-filter_complex",
         `[1:a]aformat=sample_rates=48000:channel_layouts=stereo,volume=${vol},afade=t=in:d=1,afade=t=out:st=${Math.max(0, total - 2).toFixed(2)}:d=2[bg];` +
