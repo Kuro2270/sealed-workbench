@@ -234,11 +234,23 @@ function buildScript(d, nameJa, names){
   }
 
   // カード名は読まず画面に任せる。読むと忙しいので、どの色が強いかだけ言う
+  let prevTop = null;   // 前の枠（コモン）の結果。アンコモンのセリフを「〜も」とつなげるために使う
   const topScene = (cards, label) => {
     if(!cards.length) return;
     const same = cards[0].color && cards.filter(c => c.color === cards[0].color).length >= 2;
-    const lead = JA ? (same ? `${CN[cards[0].color]}が強いです。` : "色はばらけています。")
-                    : (same ? `${CN[cards[0].color]} is strong here.` : "The colours are spread out.");
+    const col = same ? cards[0].color : null;
+    let lead;
+    if(!prevTop){
+      lead = JA ? (same ? `${CN[col]}が強いです。` : "色はばらけています。")
+                : (same ? `${CN[col]} is strong here.` : "The colours are spread out.");
+    }else if(JA){
+      lead = !same ? (prevTop.col ? `${label}は色がばらけています。` : `${label}も色がばらけています。`)
+           : (prevTop.col === col ? `${label}も${CN[col]}が強いです。` : `${label}では${CN[col]}が強いです。`);
+    }else{
+      lead = !same ? (prevTop.col ? `${label[0].toUpperCase() + label.slice(1)}s are spread out.` : `${label[0].toUpperCase() + label.slice(1)}s are spread out too.`)
+           : (prevTop.col === col ? `${CN[col]} is strong here too.` : `${CN[col]} leads here.`);
+    }
+    prevTop = { col };
     scenes.push({ kind: "top", label, say: JA ? `${label}のトップ3はこちら。${lead}` : `Here are the top three ${label}s. ${lead}`, cards, tail: 1.0 });
   };
   topScene(commons, UI.common);
