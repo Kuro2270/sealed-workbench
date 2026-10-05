@@ -700,7 +700,7 @@ async function main(){
     // 読み終わってすぐ切り替えず少し置く。画面に見せたい場面は最低の長さを保つ
     // 効果音（short/sfx/*.wav）。場面の頭に、ナレーションより小さく重ねる。無ければ何もしない
     const seName = { hook: "start", outro: "fanfare", top: "appear", colors: "appear" }[sc.kind];   // それ以外の場面の切り替えでは鳴らさない（ノイズに聞こえるため）
-    const sePath = seName ? `short/sfx/${seName}.wav` : "";
+    const sePath = seName && process.env.SE_ON === "1" ? `short/sfx/${seName}.wav` : "";   // 効果音は初期状態ではオフ（SE_ON=1 で有効）。エコーが「ぼふふ」というノイズに聞こえたため
     const wavIn = sePath && await readFile(sePath).then(() => true, () => false) ? base + ".mix.wav" : base + ".wav";
     if(wavIn !== base + ".wav"){
       execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", base + ".wav", "-i", sePath, "-filter_complex",
