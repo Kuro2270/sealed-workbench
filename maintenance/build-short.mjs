@@ -699,16 +699,16 @@ async function main(){
     if(process.env.SHORT_STILLS){ console.error(`${i} ${sc.kind} → ${base}.png（画像だけ）`); continue; }   // 見た目の確認用。動画は作らない
     // 読み終わってすぐ切り替えず少し置く。画面に見せたい場面は最低の長さを保つ
     // 効果音（short/sfx/*.wav）。場面の頭に、ナレーションより小さく重ねる。無ければ何もしない
-    const seName = { hook: "start", outro: "fanfare", top: "appear", colors: "appear" }[sc.kind] || "cursor";
-    const sePath = `short/sfx/${seName}.wav`;
-    const wavIn = await readFile(sePath).then(() => true, () => false) ? base + ".mix.wav" : base + ".wav";
+    const seName = { hook: "start", outro: "fanfare", top: "appear", colors: "appear" }[sc.kind];   // それ以外の場面の切り替えでは鳴らさない（ノイズに聞こえるため）
+    const sePath = seName ? `short/sfx/${seName}.wav` : "";
+    const wavIn = sePath && await readFile(sePath).then(() => true, () => false) ? base + ".mix.wav" : base + ".wav";
     if(wavIn !== base + ".wav"){
       execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", base + ".wav", "-i", sePath, "-filter_complex",
-        `[1:a]volume=${process.env.SE_VOLUME || "0.22"},aformat=sample_rates=24000:channel_layouts=mono[se];[0:a]aformat=sample_rates=24000:channel_layouts=mono[n];` +
+        `[1:a]volume=${process.env.SE_VOLUME || "0.31"},aformat=sample_rates=24000:channel_layouts=mono[se];[0:a]aformat=sample_rates=24000:channel_layouts=mono[n];` +
         `[n][se]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[o]`, "-map", "[o]", wavIn]);
     }
     const len = dur + (sc.tail || 0.35), pad = len - dur, N = Math.ceil(len * 30);   // 読み終わりに少し置く（カードを見せる場面は長め）
-    const audio = `[${(sc.art && artPath) || HAS_BG ? 2 : 1}:a]apad=pad_dur=${pad.toFixed(2)},aformat=sample_rates=48000:channel_layouts=stereo[a]`;
+    const audio = `[${(sc.art && artPath) || HAS_BG ? 2 : 1}:a]apad=pad_dur=${pad.toFixed(2)},afade=t=in:d=0.012,afade=t=out:st=${(len - 0.03).toFixed(3)}:d=0.03,aformat=sample_rates=48000:channel_layouts=stereo[a]`;   // 頭と終わりを短くなだらかに（つなぎ目のプチ音対策）
     let args;
     if(sc.art && artPath){
       // カードアートを縦いっぱいに敷き、ゆっくり寄る。膜は薄めにして絵を見せる
@@ -751,7 +751,7 @@ async function main(){
     "-c", "copy", "-movflags", "+faststart", bgm ? `${OUT}/${TAG}/nobgm.mp4` : `${OUT}/${TAG}.mp4`]);
   if(bgm){
     // BGM を薄く敷く。ナレーションが鳴っている間は自動で少し下げ（ダッキング）、最後の2秒でフェードアウト
-    const vol = process.env.BGM_VOLUME || "0.05";
+    const vol = process.env.BGM_VOLUME || "0.07";
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", `${OUT}/${TAG}/nobgm.mp4`, "-stream_loop", "-1", "-i", bgm,
       "-filter_complex",
         `[1:a]aformat=sample_rates=48000:channel_layouts=stereo,volume=${vol},afade=t=in:d=1,afade=t=out:st=${Math.max(0, total - 2).toFixed(2)}:d=2[bg];` +
