@@ -373,7 +373,7 @@ function sceneSvg(sc){
       let y = 520;
       let titleSvg = "";
       for(const l of lines){ titleSvg += TS(W / 2, y, l, { size: sz, fill: "#FFD23F" }); y += Math.round(sz * 1.06); }
-      const modeY = y - 58;   // 動画ページでは中央に再生ボタンが載るので、真ん中（縦960付近）には文字を置かない
+      const modeY = y - 58 + 44;   // タイトルとの間に余裕を持たせる（+44）。動画ページでは中央に再生ボタンが載るので、真ん中（縦960付近）には文字を置かない
       return frame(
         `<defs>
            <linearGradient id="gt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050B14" stop-opacity="0.92"/><stop offset="0.75" stop-color="#050B14" stop-opacity="0.8"/><stop offset="1" stop-color="#050B14" stop-opacity="0"/></linearGradient>
