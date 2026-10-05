@@ -239,6 +239,7 @@
     .ngl,.ngs{flex:0 0 100%}
   }
 </style>
+<link rel="stylesheet" href="/assets/mana/mana.min.css">
 </head>
 <body>
 
@@ -556,10 +557,16 @@ function paceLine(){
   return ` ${t("reports.pace." + key, {n: mine.toFixed(1), c: grp.count || (grp.sets || []).length})}`;
 }
 
-function barRow(label, wr, games, cls, dotVar){
+/* マナシンボル（mana-font：SIL OFL / MIT。assets/mana/ に同梱）。W U B R G は各色、M は多色、C は無色・土地 */
+function manaI(k){
+  k = String(k || "C").toUpperCase();
+  const cls = k === "M" ? "ms-multicolor mfi-m" : "ms-" + k.toLowerCase();
+  return `<i class="ms ms-cost ${cls} mfi" aria-hidden="true"></i>`;
+}
+function barRow(label, wr, games, cls, iconHtml){
   const w = wr == null ? 0 : Math.max(2, ((wr - 0.45) / 0.20) * 100);   // 45%〜65%を横幅に割り当てる
   return `<div class="bar">
-    <span class="lbl">${dotVar ? `<span class="dot" style="background:var(${dotVar})"></span>` : ""}${esc(label)}</span>
+    <span class="lbl">${iconHtml || ""}${esc(label)}</span>
     <span class="track"><i class="${cls || ""}" style="width:${Math.min(100, w)}%"></i></span>
     <span class="val">${pct(wr)}</span>
     <span class="n">${games != null ? games.toLocaleString() : ""}</span>
@@ -687,7 +694,7 @@ function render(){
       <p class="lead">${t("reports.colors.lead")}</p>
       <div class="bars">${d.colors.map(c => {
         const def = COLORS.find(x => x.key === c.color);
-        return barRow(t("color." + c.color), c.wr, c.games, wrClass(c.wr, avg), def && def.var);
+        return barRow(t("color." + c.color), c.wr, c.games, wrClass(c.wr, avg), manaI(c.color));
       }).join("")}</div>
     </section>`);
   }
@@ -698,7 +705,7 @@ function render(){
       <h2>${t("reports.arche.h")}</h2>
       <p class="lead">${t("reports.arche.lead")}</p>
       <div class="bars">${d.archetypes.map(a =>
-        barRow([...a.colors].map(k => t("color." + k)).join(I18N.isJa() ? "／" : " / "), a.wr, a.games, wrClass(a.wr, avg))).join("")}</div>
+        barRow([...a.colors].map(k => t("color." + k)).join(I18N.isJa() ? "／" : " / "), a.wr, a.games, wrClass(a.wr, avg), [...a.colors].map(manaI).join(""))).join("")}</div>
       ${d.notes?.archetypes ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.archetypes[I18N.lang] || "")}</p></div>` : ""}
     </section>`);
   }
@@ -729,7 +736,7 @@ function render(){
           const col = (c.color || "").length === 1 ? c.color : ((c.color || "").length > 1 ? "M" : "C");
           const def = COLORS.find(x => x.key === col);
           return `<tr data-card="${esc(c.name)}">
-            <td><span class="cname"><span class="dot" style="background:var(${def ? def.var : "--c"})"></span>
+            <td><span class="cname">${manaI(col)}
               <span class="nm">${esc(displayName(c.name))}</span></span></td>
             <td>${c.cmc ?? "—"}</td>
             <td class="wr ${wrClass(c.gih, avg)}" data-tip="${esc(t("tip.gih", {p: (c.gih * 100).toFixed(1), n: (c.games || 0).toLocaleString()}) + "\n" + t("wr.gih.tip"))}">${pct(c.gih)}</td>

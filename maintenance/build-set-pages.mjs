@@ -286,6 +286,7 @@ ${head}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/mana/mana.min.css">
 <script src="../analytics.js"></script>
 <script src="/navmenu.js" defer></script>
 <script src="/tip.js" defer></script>
@@ -456,7 +457,8 @@ function summaryText(lang, mode, d, setDisplay, cn, pairLabel, colorLabel){
 function modeSection(lang, code, mode, d, speedIndex, names, setDisplay, videos){
   const T = L[lang];
   const cn = n => (lang === "ja" && names[n]) ? names[n] : n;
-  const dotOf = c => c.length === 0 ? "var(--c)" : c.length > 1 ? "var(--m)" : `var(--${c.toLowerCase()})`;
+  /* 色のマークは、色つきの丸ではなくマナシンボル（assets/mana/ の mana-font）で出す。1色は各色、2色以上は多色、無色は無色のシンボル */
+  const manaOf = c => { const k = !c ? "C" : c.length > 1 ? "M" : c.toUpperCase(); return `<i class="ms ms-cost ${k === "M" ? "ms-multicolor mfi-m" : "ms-" + k.toLowerCase()} mfi" aria-hidden="true"></i>`; };
   const colorLabel = k => T.colorName[k] || k;
   const pairLabel = p => p.split("").map(colorLabel).join(lang === "ja" ? "" : "/");
 
@@ -491,7 +493,7 @@ ${videoSection(lang, code, mode, setDisplay, videos)}`;
     out += `
   <section><h3>${esc(T.colorsH)}</h3><p class="lead">${esc(T.colorsLead)}</p>
     <table><thead><tr><th>${esc(T.col.color)}</th><th class="num">${esc(T.col.wr)}</th><th class="num">${esc(T.col.games)}</th></tr></thead><tbody>
-    ${d.colors.slice().sort((a, b) => b.wr - a.wr).map(c => `<tr><td><span class="dot" style="background:${dotOf(c.color)}"></span>${esc(colorLabel(c.color))}</td><td class="num"><b>${pct(c.wr)}</b></td><td class="num">${(c.games || 0).toLocaleString()}</td></tr>`).join("\n    ")}
+    ${d.colors.slice().sort((a, b) => b.wr - a.wr).map(c => `<tr><td>${manaOf(c.color)}${esc(colorLabel(c.color))}</td><td class="num"><b>${pct(c.wr)}</b></td><td class="num">${(c.games || 0).toLocaleString()}</td></tr>`).join("\n    ")}
     </tbody></table>
   </section>`;
   }
@@ -519,7 +521,7 @@ ${videoSection(lang, code, mode, setDisplay, videos)}`;
     const blocks = ["mythic","rare","uncommon","common"].filter(r => (d.top[r] || []).length).map(r => `
       <div><h3><span class="rar ${r}">${esc(T.rarity[r])}</span></h3>
       <table><thead><tr><th>${esc(T.col.card)}</th><th class="num"><span data-tip="${esc(T.tipGih)}" tabindex="0">${esc(T.col.score)}</span></th><th class="num">${esc(T.col.games)}</th></tr></thead><tbody>
-      ${d.top[r].map(c => `<tr><td><span class="dot" style="background:${dotOf(c.color || "")}"></span>${esc(cn(c.name))}</td><td class="num"><b>${pct(c.gih)}</b></td><td class="num">${(c.games || 0).toLocaleString()}</td></tr>`).join("\n      ")}
+      ${d.top[r].map(c => `<tr><td>${manaOf(c.color || "")}${esc(cn(c.name))}</td><td class="num"><b>${pct(c.gih)}</b></td><td class="num">${(c.games || 0).toLocaleString()}</td></tr>`).join("\n      ")}
       </tbody></table></div>`).join("");
     out += `
   <section><h3>${esc(T.cardsH)}</h3><p class="lead">${esc(T.cardsLead)}</p>

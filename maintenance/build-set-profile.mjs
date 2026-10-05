@@ -16,6 +16,7 @@
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
+const manaI = k => `<i class="ms ms-cost ${k === "M" ? "ms-multicolor mfi-m" : "ms-" + (k === "L" ? "c" : k.toLowerCase())} mfi" aria-hidden="true"></i>`;   // 色の見出しはマナシンボルで（mana-font）
 import { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE } from "./build-set-pages.mjs";
 
 const ARG = (process.argv[2] || "").toUpperCase();
@@ -247,7 +248,7 @@ function cardList(lang, p, T){
     if(lang !== "ja") return main;
     return main.split(/\s+/).map(w => T.typeName[w] || (w === "Legendary" ? "伝説の" : w === "Basic" ? "基本" : w === "Snow" ? "氷雪" : w)).join("");
   };
-  const dotOf = g => g === "M" ? `<span class="dot" style="background:linear-gradient(90deg,#D7B55C,#8B6D2F)"></span>` : g === "C" || g === "L" ? `<span class="dot" style="background:#B9C3CC"></span>` : `<span class="dot" style="background:${COLOR_CSS[g]}"></span>`;
+  const dotOf = g => manaI(g);
   // 上に色のタブ。押した色だけを表示する（最初は白）
   const present = GROUPS.filter(g => p.cards.some(c => c.group === g));
   let out = `<div class="ctabs" role="tablist">` + present.map((g, i) => `<button type="button" class="ctab${i === 0 ? " on" : ""}" data-grp="${g}" role="tab" aria-selected="${i === 0}">${dotOf(g)}${esc(T.groupName[g])} <small>${p.cards.filter(c => c.group === g).length}</small></button>`).join("") + `</div>`;
@@ -285,13 +286,13 @@ function page(lang, p, nameJa, dataDate){
 <meta property="og:url" content="${canonical}">`;
   const header = `    <h1>${esc(T.h1(name))}</h1>
     <p>${esc(T.lead)}</p>`;
-  const row = c => { const b = p.byColor[c]; return `<tr><td><span class="dot" style="background:${COLOR_CSS[c]}"></span>${esc(T.colorName[c])}</td>
+  const row = c => { const b = p.byColor[c]; return `<tr><td>${manaI(c)}${esc(T.colorName[c])}</td>
 <td class="num">${b.cu}</td><td class="num">${b.creatures} <small>(${Math.round(b.creatureShare * 100)}%)</small></td><td class="num"><b>${b.removal}</b></td><td class="num"><b>${b.flyers}</b></td><td class="num">${b.tricks}</td><td class="num">${b.draw}</td><td class="num">${b.avgPower.toFixed(1)}/${b.avgToughness.toFixed(1)}</td><td class="num">${b.avgCmc.toFixed(2)}</td></tr>`; };
-  const pairRows = p.pairs.map(x => `<tr><td>${[...x.pair].map(c => `<span class="dot" style="background:${COLOR_CSS[c]}"></span>`).join("")}${[...x.pair].map(c => esc(T.colorName[c])).join(lang === "ja" ? "" : "-")}</td><td class="num">${x.count}</td><td><small>${esc(x.uncommons.slice(0, 3).join(", "))}${x.uncommons.length > 3 ? "…" : ""}</small></td></tr>`).join("\n");
+  const pairRows = p.pairs.map(x => `<tr><td>${[...x.pair].map(c => `${manaI(c)}`).join("")}${[...x.pair].map(c => esc(T.colorName[c])).join(lang === "ja" ? "" : "-")}</td><td class="num">${x.count}</td><td><small>${esc(x.uncommons.slice(0, 3).join(", "))}${x.uncommons.length > 3 ? "…" : ""}</small></td></tr>`).join("\n");
   const removalRows = COLORS.map(c => p.byColor[c].removalCards.map(r => {
     const nm = lang === "ja" ? (r.ja || r.name) : r.name;
     const img = (lang === "ja" ? (r.imgJa || r.img) : r.img) || "";
-    return `<tr${img ? ` data-img="${esc(img)}"` : ""}><td><span class="dot" style="background:${COLOR_CSS[c]}"></span>${esc(T.colorName[c])}</td><td><span class="rar ${r.rarity}">${T.rarity[r.rarity]}</span><span class="cn">${esc(nm)}</span>${lang === "ja" && r.ja ? ` <small class="en">${esc(r.name)}</small>` : ""}</td><td class="num cost">${manaHtml(r.cost)}</td></tr>`;
+    return `<tr${img ? ` data-img="${esc(img)}"` : ""}><td>${manaI(c)}${esc(T.colorName[c])}</td><td><span class="rar ${r.rarity}">${T.rarity[r.rarity]}</span><span class="cn">${esc(nm)}</span>${lang === "ja" && r.ja ? ` <small class="en">${esc(r.name)}</small>` : ""}</td><td class="num cost">${manaHtml(r.cost)}</td></tr>`;
   }).join("\n")).join("\n");
   const main = `<article class="mode">
   <p class="verdict">${esc(T.when(dataDate))}</p>
@@ -299,7 +300,7 @@ function page(lang, p, nameJa, dataDate){
   <div style="overflow-x:auto"><table><thead><tr><th>${esc(T.th.color)}</th><th class="num">${esc(T.th.cards)}</th><th class="num">${esc(T.th.creatures)}</th><th class="num">${esc(T.th.removal)}</th><th class="num">${esc(T.th.flyers)}</th><th class="num">${esc(T.th.tricks)}</th><th class="num">${esc(T.th.draw)}</th><th class="num">${esc(T.th.size)}</th><th class="num">${esc(T.th.cmc)}</th></tr></thead>
   <tbody>${COLORS.map(row).join("\n")}</tbody></table></div></section>
   <section><h3>${esc(T.curveH)}</h3><p class="lead">${esc(T.curveLead)}</p>${curveSvg(p.byColor, lang)}
-  <p class="lead">${COLORS.map(c => `<span class="dot" style="background:${COLOR_CSS[c]}"></span>${esc(T.colorName[c])}`).join("　")}</p></section>
+  <p class="lead">${COLORS.map(c => `${manaI(c)}${esc(T.colorName[c])}`).join("　")}</p></section>
   <section><h3>${esc(T.listH)}</h3><p class="lead">${esc(T.listLead)}</p>${cardList(lang, p, T)}</section>
 </article>
 <div id="preview" aria-hidden="true"></div>

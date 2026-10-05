@@ -1,0 +1,5 @@
+Mana (https://mana.andrewgioia.com) by Andrew Gioia
+ - Font (mana.woff2): SIL Open Font License 1.1  http://scripts.sil.org/OFL
+ - CSS (mana.min.css, base part): MIT License     http://opensource.org/licenses/mit-license.html
+The last block of mana.min.css (.mfi) is this site's own addition.
+Magic: The Gathering and its mana symbols are property of Wizards of the Coast LLC. Used under the Fan Content Policy.
