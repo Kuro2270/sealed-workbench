@@ -15,6 +15,7 @@
 <script src="./cardzoom.js"></script>
 <script src="./analytics.js"></script>
 <script src="/navmenu.js" defer></script>
+<script src="/poolsave.js"></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
@@ -170,6 +171,21 @@
   .wr{font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);text-align:right}
   .rar{width:6px;height:14px;border-radius:1px;background:#2A3B4C}
   .rar.uncommon{background:#9FB3C4}.rar.rare{background:var(--gold)}.rar.mythic{background:#C4552C}
+  /* レアリティ：カードの外ふち（スマホで小さなアイコン色が見分けにくいため） */
+  .tile.r-common img,.tile.r-common .noimg{box-shadow:0 0 0 2px #55677A}
+  .tile.r-uncommon img,.tile.r-uncommon .noimg{box-shadow:0 0 0 3px #B4C6D4}
+  .tile.r-rare img,.tile.r-rare .noimg{box-shadow:0 0 0 3px #E0AE2E}
+  .tile.r-mythic img,.tile.r-mythic .noimg{box-shadow:0 0 0 3px #E8582B}
+  .card-row.r-common{box-shadow:inset 0 0 0 1.5px rgba(85,103,122,.45)}
+  .card-row.r-uncommon{box-shadow:inset 0 0 0 1.5px #B4C6D4}
+  .card-row.r-rare{box-shadow:inset 0 0 0 1.5px #E0AE2E}
+  .card-row.r-mythic{box-shadow:inset 0 0 0 1.5px #E8582B}
+  .hist{margin-top:10px;font-size:13px}
+  .hist summary{cursor:pointer;color:var(--muted)}
+  .hist ul{margin:8px 0 0;display:grid;gap:6px}
+  .hist li{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
+  .hist li span{flex:1;min-width:150px}
+  .hist button{font-size:12px;padding:5px 10px;min-height:0}
 
   .lands{padding:10px 16px;border-top:1px solid var(--line)}
   .lands-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
@@ -284,6 +300,7 @@
         <button id="startBtn" disabled data-i18n="draft.start">ドラフト開始</button>
         <label class="toggle"><input type="checkbox" id="wrToggle" checked><span data-i18n="opt.wr" data-i18n-title="wr.gih.tip">勝率を表示</span></label>
       </div>
+      <div class="hist" id="histBox" hidden></div>
     </div>
   </div>
 </header>
@@ -363,6 +380,7 @@ let packsAll = [], seats = [], phase = "idle";
 let packNo = 0, pickNo = 0, current = [];
 let pool = [], deck = [], side = [], landCount = {};
 let target = "main";           // 構築画面でカードを押したときの追加先（main / side）
+let poolSet = "";              // いまのドラフトのセット
 const SIDE_MAX = 15;
 
 const $ = id => document.getElementById(id);
@@ -389,7 +407,7 @@ async function loadSets(){
     renderSetOptions();
     $("startBtn").disabled = !$("setSelect").value;
   }catch(e){
-    setStatus(t("err.sets", {e: e.message}), true);
+    setStatus((pool.length ? t("save.restored", {n: pool.length}) + " " : "") + t("err.sets", {e: e.message}), !pool.length);
   }
 }
 
@@ -602,6 +620,8 @@ async function start(){
       setCode = code;
     }
 
+    archiveCurrent();                       // 始め直す前に、いまのプールを残す
+    poolSet = code;
     seats = Array.from({length: PLAYERS}, (_, i) => ({
       id: i, picked: [], colorScore: {W:0,U:0,B:0,R:0,G:0}
     }));
@@ -691,6 +711,61 @@ function finishDraft(){
   render();
 }
 
+
+/* ---------- 途中経過の保存と復元（リロード・電波切れ対策） ---------- */
+function snapDraft(){
+  const arrs = {pool, deck, side, basic:Object.values(basicCards)};
+  const meta = {v:1, setCode:poolSet, phase, packNo, pickNo, target, landCount, ts:Date.now(), n:pool.length};
+  if(phase === "draft"){                 // ドラフト途中は、卓の全パックも保存して続きから再開できるようにする
+    packsAll.forEach((pk, p) => pk.forEach((a, s) => { arrs["p" + p + "_" + s] = a; }));
+    seats.forEach((st, i) => { arrs["s" + i] = st.picked; });
+    meta.colorScore = seats.map(st => st.colorScore);
+    meta.np = packsAll.length;
+  }
+  return PoolSave.pack(meta, arrs);
+}
+function persistDraft(){ if(pool.length && (phase === "draft" || phase === "build")) PoolSave.save("draft", snapDraft()); }
+function archiveCurrent(){
+  if(!pool.length || (phase !== "draft" && phase !== "build")) return;
+  PoolSave.archive("draft", snapDraft());
+  if(PoolSave.redraw) PoolSave.redraw();
+}
+function applySnap(s, msgKey){
+  const u = PoolSave.unpack(s);
+  pool = u.pool || []; deck = u.deck || []; side = u.side || [];
+  basicCards = {}; (u.basic || []).forEach(c => { basicCards[c.name] = c; });
+  landCount = s.landCount || {};
+  poolSet = s.setCode || ""; setCode = "";
+  phase = s.phase; packNo = s.packNo || 0; pickNo = s.pickNo || 0;
+  packsAll = []; seats = [];
+  if(phase === "draft"){
+    for(let p = 0; p < (s.np || 0); p++) packsAll.push(Array.from({length: PLAYERS}, (_, i) => u["p" + p + "_" + i] || []));
+    seats = Array.from({length: PLAYERS}, (_, i) => ({id:i, picked:u["s" + i] || [], colorScore:(s.colorScore && s.colorScore[i]) || {W:0,U:0,B:0,R:0,G:0}}));
+    current = packsAll[packNo];
+  }
+  $("intro").hidden = true;
+  const building = phase === "build";
+  $("startBtn").disabled = !$("setSelect").value;
+  $("phase").hidden = building; $("bar").hidden = building; $("colors").hidden = false;
+  $("lands").hidden = !building; $("exportWrap").hidden = !building;
+  $("targetRow").hidden = !building; $("sbHead").hidden = !building; $("sbBody").hidden = !building;
+  $("sideTitle").textContent = building ? t("deck.title") : t("draft.picked");
+  target = s.target || "main";
+  document.querySelectorAll("#targetSeg button").forEach(x => x.classList.toggle("on", x.dataset.target === target));
+  setStatus(t(msgKey, {n: pool.length}));
+  render();
+  if(poolSet){
+    Promise.resolve().then(async () => {
+      try{ await loadJapanese(poolSet); await loadWinRates(poolSet); render(); }catch(e){}
+    });
+  }
+}
+function restoreCurrent(){
+  const s = PoolSave.load("draft");
+  if(s && s.n && (s.phase === "draft" || s.phase === "build")){ applySnap(s, "save.restored"); return true; }
+  return false;
+}
+
 /* ---------- 表示 ---------- */
 function jaCard(c){
   return (I18N.isJa() && jaMap[c.collector_number]) || null;
@@ -739,7 +814,7 @@ function wrOf(c){
 
 function tile(c, onClick){
   const li = document.createElement("li");
-  li.className = "tile";
+  li.className = "tile r-" + c.rarity;
   li.tabIndex = 0;
   li._card = c;                                    // 長押しで拡大するときに使う
   const name = displayName(c);
@@ -834,6 +909,7 @@ function cardSection(c){
 }
 
 function renderSide(){
+  persistDraft();
   const list = phase === "build" ? deck : pool;
   const lands = Object.values(landCount).reduce((a,b) => a+b, 0);
   const cnt = $("sideCount");
@@ -890,7 +966,7 @@ function renderSide(){
 /* 右欄の1行。where は pick（ドラフト中）／ main／ side */
 function sideRow(c, where){
   const li = document.createElement("li");
-  li.className = "card-row";
+  li.className = "card-row r-" + c.rarity;
   li._card = c;                                    // 長押しで拡大するときに使う
   const w = wrOf(c);
   li.innerHTML =
@@ -1066,6 +1142,8 @@ $("copyBtn").onclick = async () => {
 };
 
 loadSets();
+PoolSave.mountHistory("draft", $("histBox"), snap => { archiveCurrent(); applySnap(snap, "save.switched"); });
+restoreCurrent();
 </script>
 <script src="./goods-widget.js?v=6" defer></script>
 </body>

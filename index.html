@@ -15,6 +15,7 @@
 <script src="./cardzoom.js"></script>
 <script src="./analytics.js"></script>
 <script src="/navmenu.js" defer></script>
+<script src="/poolsave.js"></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
@@ -153,6 +154,21 @@
   .name small{color:var(--muted);font-size:12px;margin-left:6px}
   .rar{width:6px;height:14px;border-radius:1px;background:#2A3B4C}
   .rar.uncommon{background:#9FB3C4}.rar.rare{background:var(--gold)}.rar.mythic{background:#C4552C}
+  /* レアリティ：カードの外ふち（スマホで小さなアイコン色が見分けにくいため） */
+  .tile.r-common img,.tile.r-common .noimg{box-shadow:0 0 0 2px #55677A}
+  .tile.r-uncommon img,.tile.r-uncommon .noimg{box-shadow:0 0 0 3px #B4C6D4}
+  .tile.r-rare img,.tile.r-rare .noimg{box-shadow:0 0 0 3px #E0AE2E}
+  .tile.r-mythic img,.tile.r-mythic .noimg{box-shadow:0 0 0 3px #E8582B}
+  .card-row.r-common{box-shadow:inset 0 0 0 1.5px rgba(85,103,122,.45)}
+  .card-row.r-uncommon{box-shadow:inset 0 0 0 1.5px #B4C6D4}
+  .card-row.r-rare{box-shadow:inset 0 0 0 1.5px #E0AE2E}
+  .card-row.r-mythic{box-shadow:inset 0 0 0 1.5px #E8582B}
+  .hist{margin-top:10px;font-size:13px}
+  .hist summary{cursor:pointer;color:var(--muted)}
+  .hist ul{margin:8px 0 0;display:grid;gap:6px}
+  .hist li{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
+  .hist li span{flex:1;min-width:150px}
+  .hist button{font-size:12px;padding:5px 10px;min-height:0}
 
   /* ---------- deck ---------- */
   .deck{position:sticky;top:16px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
@@ -336,6 +352,7 @@
         <label class="toggle"><input type="checkbox" id="textToggle"><span data-i18n="opt.text">テキストで一覧表示</span></label>
         <label class="toggle"><input type="checkbox" id="wrToggle" checked><span data-i18n="opt.wr" data-i18n-title="wr.gih.tip">勝率を表示</span></label>
       </div>
+      <div class="hist" id="histBox" hidden></div>
     </div>
   </div>
 </header>
@@ -397,6 +414,7 @@ const landLabel = en => t("land." + en);
 
 let setCode = "", boosterCards = [], basicCards = {}, pool = [], deck = [], side = [], landCount = {}, jaMap = {}, availableSets = [];
 let target = "main";           // プールのカードを押したときの追加先（main / side）
+let poolSet = "";              // いまのプールを開けたセット
 const SIDE_MAX = 15;
 let wrMap = {}, wrSource = "", wrAvg = null;
 
@@ -443,7 +461,7 @@ async function loadSets(){
     $("openBtn").disabled = !$("setSelect").value;
     setStatus(t("index.ready"));
   }catch(e){
-    setStatus(t("err.sets", {e: e.message}), true);
+    setStatus((pool.length ? t("save.restored", {n: pool.length}) + " " : "") + t("err.sets", {e: e.message}), !pool.length);
   }
 }
 
@@ -580,7 +598,9 @@ async function openPacks(){
       setCode = code;
     }
     if(!boosterCards.length) throw new Error(t("err.booster"));
+    archiveCurrent();                       // 開け直す前に、いまのプールを残す
     pool = []; deck = []; side = []; landCount = {};
+    poolSet = code;
     for(let i = 0; i < 6; i++) pool.push(...buildPack());
     const jaN = Object.keys(jaMap).length;
     const wrN = Object.keys(wrMap).length;
@@ -595,6 +615,40 @@ async function openPacks(){
   }finally{
     $("openBtn").disabled = false;
   }
+}
+
+
+/* ---------- プールの保存と復元（リロード・電波切れ対策） ---------- */
+function snapPool(){
+  return PoolSave.pack({v:1, setCode:poolSet, target, landCount, ts:Date.now(), n:pool.length},
+                       {pool, deck, side, basic:Object.values(basicCards)});
+}
+function persistPool(){ if(pool.length){ PoolSave.save("sealed", snapPool()); } }
+function archiveCurrent(){
+  if(!pool.length) return;
+  PoolSave.archive("sealed", snapPool());
+  if(PoolSave.redraw) PoolSave.redraw();
+}
+function applySnap(s, msgKey){
+  const u = PoolSave.unpack(s);
+  pool = u.pool || []; deck = u.deck || []; side = u.side || [];
+  basicCards = {}; (u.basic || []).forEach(c => { basicCards[c.name] = c; });
+  landCount = s.landCount || {};
+  poolSet = s.setCode || "";
+  setCode = "";                       // カード一覧は読み込み直す（次に開けるときに取り直す）
+  setTarget(s.target || "main");
+  setStatus(t(msgKey, {n: pool.length}));
+  render();
+  if(poolSet){                        // 日本語名・勝率はつながっていれば後から付ける
+    Promise.resolve().then(async () => {
+      try{ await loadJapanese(poolSet); await loadWinRates(poolSet); render(); }catch(e){}
+    });
+  }
+}
+function restoreCurrent(){
+  const s = PoolSave.load("sealed");
+  if(s && s.n){ applySnap(s, "save.restored"); return true; }
+  return false;
 }
 
 /* ---------- 表示 ---------- */
@@ -681,7 +735,7 @@ function cardRow(entry, where){
   const c = entry.card;
   const w = wrOf(c);
   const li = document.createElement("li");
-  li.className = "card-row";
+  li.className = "card-row r-" + c.rarity;
   li.innerHTML =
     '<span class="rar ' + c.rarity + '"></span>' +
     '<span class="name">' + esc(displayName(c)) + '</span>' +
@@ -788,7 +842,7 @@ function cardTile(entry, where){
   const inDeck = where !== "pool";
   const c = entry.card;
   const li = document.createElement("li");
-  li.className = "tile";
+  li.className = "tile r-" + c.rarity;
   li.tabIndex = 0;
   li._card = c;                                    // 長押しで拡大するときに使う
   const name = displayName(c);
@@ -887,6 +941,7 @@ function render(){
 }
 
 function renderDeck(){
+  persistPool();
   const lands = Object.values(landCount).reduce((a,b) => a + b, 0);
   const total = deck.length + lands;
   const cnt = $("deckCount");
@@ -1064,7 +1119,8 @@ CardZoom.setup({
 });
 CardZoom.hint();
 loadSets();
-renderDeck();
+PoolSave.mountHistory("sealed", $("histBox"), snap => { archiveCurrent(); applySnap(snap, "save.switched"); });
+if(!restoreCurrent()) renderDeck();
 </script>
 <script src="./goods-widget.js?v=6" defer></script>
 </body>
