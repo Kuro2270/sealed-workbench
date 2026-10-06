@@ -21,6 +21,22 @@
   function init(){
     var nav = document.querySelector("nav");
     if (!nav || !nav.querySelector(".ng") || document.querySelector(".navtoggle")) return;
+    /* どのページにも「このサイトについて」（よくある質問・お問い合わせ）を出す */
+    if (!nav.querySelector("[data-about]")) {
+      var here = location.pathname.replace(/\/+$/, "");
+      var g = document.createElement("div");
+      g.className = "ng"; g.setAttribute("data-about", "");
+      g.innerHTML = '<span class="ngl" data-i18n="navgrp.about">このサイトについて</span>' +
+        '<span class="ngs" data-i18n="navsub.about">質問・連絡・規約</span>' +
+        '<a href="/faq.html" data-i18n="nav.faq">よくある質問</a>' +
+        '<a href="/contact.html" data-i18n="nav.contact">お問い合わせ</a>' +
+        '<a href="/privacy.html" data-i18n="nav.privacy">プライバシー</a>';
+      Array.prototype.forEach.call(g.querySelectorAll("a"), function(a){
+        if (here === a.getAttribute("href")) a.classList.add("on");
+      });
+      nav.appendChild(g);
+      if (window.I18N && I18N.apply) I18N.apply(g);
+    }
     var btn = document.createElement("button");
     btn.type = "button"; btn.className = "navtoggle"; btn.setAttribute("aria-expanded", "false");
     btn.innerHTML = '<span class="bars"><i></i><i></i><i></i></span><span class="lbl"></span><span class="cur"></span>';

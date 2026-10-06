@@ -199,6 +199,8 @@
     "ev.PickTwoDraft":  { ja:"2枚ピックドラフト",           en:"Pick Two Draft" },
 
     /* ---- フッター ---- */
+    "navgrp.about":     { ja:"このサイトについて", en:"About" },
+    "navsub.about":     { ja:"質問・連絡・規約", en:"FAQ, contact, policy" },
     "navgrp.start":     { ja:"はじめに", en:"Start" },
     "navgrp.build":     { ja:"練習する", en:"Practice" },
     "navsub.build":     { ja:"仮想パックで練習", en:"Virtual packs" },
