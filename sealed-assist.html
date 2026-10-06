@@ -121,6 +121,10 @@
   .pipbar.on .pipicon{color:#1E7A52}
   .pipbar.on .pipgo{background:#fff;color:var(--ink);border-color:var(--line);font-weight:600}
   .pipbar.off .pipgo{display:none}
+  /* データがまだ揃っていないときの案内（小窓にも出る） */
+  .readynote{background:#FFF7E0;border:1px solid #E5C76B;border-left:4px solid #D9A400;border-radius:8px;padding:10px 12px;margin:8px 0;font-size:13px;line-height:1.65;color:#4A3B00}
+  .readynote b{display:block;font-size:14px;margin-bottom:3px}
+  .readynote p{margin:3px 0}
 
   /* 準備の手順は、一度うまくいったらたたんでおく */
   #setupSteps > summary{cursor:pointer;color:var(--ink);font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;
@@ -346,6 +350,7 @@
       <span class="sub" id="pickSub"></span>
       <span class="tabs" id="viewTabs" hidden></span>
     </div>
+    <div class="readynote" id="readyNote" hidden></div>
     <div class="colors" id="colorBar"></div>
     <div class="best" id="best" hidden></div>
     <ul class="pack" id="pack"></ul>
@@ -401,9 +406,34 @@ const D = {                 // ドラフトの状態
 let view = "deck";          // シールドはデッキ案だけを出す
 let deckChoice = 0;         // 何番目の候補を見せているか
 let noArena = false;        // カード情報がまだ揃っていない（発売直後）
+let wrChecked = false;      // 勝率ファイルを探し終えたか
+let cardsMissing = false;   // プールのカードが、どれも引けなかった（発売直後）
+let noPoolMsg = false;      // ログにシールドのプールが入っていなかった
 let setEnName = "";         // セットの英語名（カード情報から拾う）
 /* 発売直後でカード情報が揃っていないときの案内。専門用語を使わず、セット名と目安の日付で伝える。
    勝率は 17Lands の規約で紙の発売日から12日後（アリーナ発売から15日ほど）に加わるので、その日付も添える。 */
+/* 勝率が加わる日の目安（アリーナの発売日＝イベント名の日付 + 15日）。分からなければ空 */
+function winrateDate(){
+  const m = String(D.event || "").match(/_(\d{4})(\d{2})(\d{2})$/);
+  if(!m) return "";
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3] + 15));
+  return I18N.lang === "ja" ? `${d.getUTCMonth() + 1}月${d.getUTCDate()}日` : d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+}
+/* 「まだデータが無い」ことと「いつ以降か」を、パネル（小窓にも写る）の上に出す */
+function renderReadyNote(){
+  const el = $("readyNote");
+  const noWr = !!D.set && wrChecked && loadedSet === D.set && Object.keys(wr).length === 0;
+  if(!D.set || !(noArena || cardsMissing || noWr || noPoolMsg)){ el.hidden = true; el.innerHTML = ""; return; }
+  const name = I18N.setName(String(D.set).toLowerCase(), setEnName || D.set);
+  const when = winrateDate();
+  const lines = [];
+  if(noPoolMsg) lines.push(t("sassist.pendNoPool"));
+  if(noArena || cardsMissing) lines.push(t("sassist.pendCards"));
+  if(noWr) lines.push(t(when ? "sassist.pendWrWhen" : "sassist.pendWr", { when }));
+  if(noArena || cardsMissing || noWr) lines.push(t("sassist.pendAuto"));
+  el.innerHTML = `<b>${esc(t("sassist.pendTitle", { set: name }))}</b>` + lines.map(l => `<p>${esc(l)}</p>`).join("");
+  el.hidden = false;
+}
 function notReadyMsg(code){
   const name = I18N.setName(String(code).toLowerCase(), setEnName || code);
   const m = String(D.event || "").match(/_(\d{4})(\d{2})(\d{2})$/);
@@ -589,7 +619,18 @@ async function loadLogFile(file){
   const { hit, found } = parseSealedLog(text);
   log(`file: ${file.name} (${Math.round(file.size / 1024)} KB), CardPool x${found.length}: ` +
       found.map(f => `${f.event || "?"}=${f.ids.length}`).join(", ") + `, "Sealed" x${(text.match(/Sealed/g) || []).length}`);
-  if(!hit){ setStatus(t("sassist.notFound"), "bad"); return; }
+  if(!hit){
+    // プールは無くても、参加した（または見た）シールドのイベント名はログに残っていることがある。
+    // セットが分かれば、「まだデータが無い」ことと「いつ以降か」を案内できる
+    const evs = [...text.matchAll(/"(?:InternalEventName|EventName|eventName)"\s*:\s*"(Sealed_([A-Za-z0-9]{3,5})_(\d{8}))"/g)];
+    const last = evs.length ? evs[evs.length - 1] : null;
+    noPoolMsg = true;
+    if(last){ D.set = last[2].toUpperCase(); D.event = last[1]; D.picked = []; D.pack = []; }
+    setStatus(t("sassist.notFound"), "bad");
+    render();
+    return;
+  }
+  noPoolMsg = false;
   D.set = hit.code; D.event = hit.event; D.pack = []; D.packNo = 0; D.pickNo = 0;
   D.picked = hit.ids.slice(); D.done = true; view = "deck"; deckChoice = 0;
   // 提出済みのデッキ（あれば）。プールの手前にある CourseDeck の MainDeck
@@ -621,13 +662,14 @@ async function ensureSet(code){
   if(!code || code === loadedSet) return;
   loadedSet = code;
   setStatus(t("assist.loadingSet", {set: code}));
-  cards = {}; wr = {};
+  cards = {}; wr = {}; wrChecked = false;
   // 勝率（ドラフトの統合データ）
   try{
     let r = await fetch(`./data/ratings/${code}_sealed.json`, {cache: "no-cache"});
     if(!r.ok) r = await fetch(`./data/ratings/${code}_draft.json`, {cache: "no-cache"});
     if(r.ok){ const d = await r.json(); (d.cards || []).forEach(c => { wr[c.name] = { gih: c.gih, games: c.games, byPair: c.by_pair || {} }; }); }
   }catch(e){}
+  wrChecked = true;
   // 環境の速さ（環境レポートと同じデータ）：最も勝率の高い区分を採用する
   pace = ""; archetypes = {}; avgWR = 0;
   try{
@@ -657,6 +699,7 @@ async function ensureSet(code){
     if(en && !en.ja){ en.ja = c.printed_name || (c.card_faces?.[0]?.printed_name) || ""; en.imgJa = imgOf(c); }
   });
   if(noArena) setStatus(notReadyMsg(code), "bad");
+  else if(noPoolMsg && !D.picked.length) setStatus(t("sassist.notFound"), "bad");
   else setStatus(D.picked.length ? t("sassist.loaded", {n: D.picked.length, set: code}) : t("sassist.idle"), D.picked.length ? "live" : "");
   render();
 }
@@ -725,7 +768,9 @@ async function ensureCards(ids){
   }
   const still = ids.filter(id => !cards[id]).length;
   if(missing.length){ log(`lookup by arena id: ${missing.length} tried, ${missing.filter(id => cards[id]).length} found`); render(); }
-  if(still && ids.length && still === ids.length) setStatus(notReadyMsg(D.set || ""), "bad");
+  cardsMissing = !!(ids.length && still === ids.length);
+  if(cardsMissing) setStatus(notReadyMsg(D.set || ""), "bad");
+  if(missing.length) renderReadyNote();
 }
 
 /* ================= 推奨 =================
@@ -1234,6 +1279,7 @@ function render(){
 
   const has = D.pack.length > 0;
   $("pickTitle").textContent = D.picked.length ? t("sassist.loadedTitle", {n: D.picked.length}) : t("sassist.waiting");
+  renderReadyNote();
   $("pickSub").textContent = D.set ? (t("assist.setLabel", {set: D.set}) + (D.event ? "　" + D.event : "")) : "";
   $("packEmpty").hidden = has;
   $("packEmpty").textContent = D.picked.length && !D.done ? t("assist.packEmptyNext") : t("assist.packEmpty");
