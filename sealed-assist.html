@@ -430,7 +430,6 @@ function renderReadyNote(){
   if(noPoolMsg) lines.push(t("sassist.pendNoPool"));
   if(noArena || cardsMissing) lines.push(t("sassist.pendCards"));
   if(noWr) lines.push(t(when ? "sassist.pendWrWhen" : "sassist.pendWr", { when }));
-  if(noArena || cardsMissing || noWr) lines.push(t("sassist.pendAuto"));
   el.innerHTML = `<b>${esc(t("sassist.pendTitle", { set: name }))}</b>` + lines.map(l => `<p>${esc(l)}</p>`).join("");
   el.hidden = false;
   syncPip();      // 小窓にも同じ案内を写す（後からカード情報が引けなかったと分かったときのため）
