@@ -7,7 +7,9 @@
         "title": "【ホビット】1分でわかるリミテッド環境｜MTGアリーナ #Shorts",
         "uploadedAt": "2026-10-01",
         "public": true,
-        "publishedAt": "2026-10-01"
+        "publishedAt": "2026-10-01",
+        "comment": true,
+        "comment2": true
       },
       "sealed": {
         "id": "q9kzpEIyaKM",
@@ -15,7 +17,9 @@
         "title": "【ホビット】1分でわかるシールド環境｜MTGアリーナ #Shorts",
         "uploadedAt": "2026-10-01",
         "public": true,
-        "publishedAt": "2026-10-01"
+        "publishedAt": "2026-10-01",
+        "comment": true,
+        "comment2": true
       }
     },
     "en": {
@@ -25,7 +29,9 @@
         "title": "The Hobbit Limited in 60 seconds | MTG Arena #Shorts",
         "uploadedAt": "2026-10-01",
         "public": true,
-        "publishedAt": "2026-10-01"
+        "publishedAt": "2026-10-01",
+        "comment": true,
+        "comment2": true
       },
       "sealed": {
         "id": "fMW-aRZLplI",
@@ -33,7 +39,9 @@
         "title": "The Hobbit Sealed in 60 seconds | MTG Arena #Shorts",
         "uploadedAt": "2026-10-01",
         "public": true,
-        "publishedAt": "2026-10-01"
+        "publishedAt": "2026-10-01",
+        "comment": true,
+        "comment2": true
       }
     }
   },
@@ -46,7 +54,8 @@
         "uploadedAt": "2026-10-02",
         "public": true,
         "publishedAt": "2026-10-02",
-        "comment": true
+        "comment": true,
+        "comment2": true
       },
       "sealed": {
         "id": "NZe0B10ju1w",
@@ -54,7 +63,8 @@
         "public": true,
         "uploadedAt": "2026-10-02",
         "publishedAt": "2026-10-02",
-        "comment": true
+        "comment": true,
+        "comment2": true
       }
     },
     "ja": {
@@ -64,7 +74,8 @@
         "public": true,
         "uploadedAt": "2026-10-02",
         "publishedAt": "2026-10-02",
-        "comment": true
+        "comment": true,
+        "comment2": true
       },
       "sealed": {
         "id": "CzJIt0_cwLQ",
@@ -72,7 +83,8 @@
         "public": true,
         "uploadedAt": "2026-10-02",
         "publishedAt": "2026-10-02",
-        "comment": true
+        "comment": true,
+        "comment2": true
       }
     }
   },
@@ -85,7 +97,9 @@
         "poster": "assets/video/MSH-ja.jpg",
         "uploadedAt": "2026-10-02",
         "public": true,
-        "publishedAt": "2026-10-02"
+        "publishedAt": "2026-10-02",
+        "comment": true,
+        "comment2": true
       },
       "sealed": {
         "id": "4UsZ45ON7Ks",
@@ -95,7 +109,8 @@
         "uploadedAt": "2026-10-03",
         "public": true,
         "publishedAt": "2026-10-03",
-        "comment": true
+        "comment": true,
+        "comment2": true
       }
     },
     "en": {
@@ -104,7 +119,9 @@
         "mode": "draft",
         "public": true,
         "uploadedAt": "2026-10-02",
-        "publishedAt": "2026-10-02"
+        "publishedAt": "2026-10-02",
+        "comment": true,
+        "comment2": true
       },
       "sealed": {
         "id": "lDmqyFlgngU",
@@ -114,7 +131,8 @@
         "uploadedAt": "2026-10-03",
         "public": true,
         "publishedAt": "2026-10-03",
-        "comment": true
+        "comment": true,
+        "comment2": true
       }
     }
   },
@@ -128,7 +146,8 @@
         "uploadedAt": "2026-10-03",
         "public": true,
         "publishedAt": "2026-10-03",
-        "comment": true
+        "comment": true,
+        "comment2": true
       },
       "sealed": {
         "id": "LCEY5bEjuLI",
@@ -138,19 +157,18 @@
         "uploadedAt": "2026-10-03",
         "public": true,
         "publishedAt": "2026-10-03",
-        "comment": true
+        "comment": true,
+        "comment2": true
       }
     },
     "ja": {
       "draft": {
-        "id": "p9z98aW8fHY",
+        "id": "ptMd6YMdqq0",
         "mode": "draft",
         "title": "【ミュータント タートルズ】1分でわかるドラフト環境｜MTGアリーナ #Shorts",
         "poster": "assets/video/TMT-ja.jpg",
-        "uploadedAt": "2026-10-03",
-        "public": true,
-        "publishedAt": "2026-10-03",
-        "comment": true
+        "uploadedAt": "2026-10-05",
+        "public": false
       },
       "sealed": {
         "id": "MubjE3LB5sw",
@@ -160,7 +178,8 @@
         "uploadedAt": "2026-10-03",
         "public": true,
         "publishedAt": "2026-10-03",
-        "comment": true
+        "comment": true,
+        "comment2": true
       }
     }
   }
