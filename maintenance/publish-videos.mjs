@@ -107,6 +107,15 @@ async function commentText(lang, S, mode){
     : `Thanks for watching.\n\nEvery card's win rate for ${name} ${modeName} — colours, two-colour pairs, the best commons and rares — is here (free, no sign-up):\n${page}\n\nFree Sealed / Draft practice too → ${SITE}\n\nIf a colour surprised you, or the data doesn't match your experience, tell me in the comments. It helps shape the next set's video.`;
   return text;
 }
+/* 2件目：お気に入りのカードやコンボを、コメント欄で共有してもらうための呼びかけ。
+   1件目（サイトの案内）と分けて付ける。案内と呼びかけが1つの長いコメントに混ざると、返信が付きにくい */
+async function commentText2(lang, S, mode){
+  const name = shortName(await setNameFor(S, lang));
+  const modeName = lang === "ja" ? (mode === "sealed" ? "シールド" : "ドラフト") : (mode === "sealed" ? "Sealed" : "Draft");
+  return lang === "ja"
+    ? `${name}の${modeName}で、お気に入りのカードや、うまくいったコンボはありますか？\n「このカードが思った以上に強かった」「この組み合わせで勝てた」など、一言だけでも大丈夫です。ぜひコメントで教えてください。`
+    : `What's your favourite card or combo in ${name} ${modeName}?\nEven a one-liner is great: "this card overperformed", "this pair won me the run". Share it in the comments!`;
+}
 async function postComment(lang, id, text){
   const tok = await accessToken(lang);
   if(!tok) return "no-token";
@@ -119,6 +128,22 @@ async function postComment(lang, id, text){
 }
 
 const comments = [], posted = [];
+/* 案内（1件目）と呼びかけ（2件目）を、付いていないほうだけ付ける。付けられなければ文面をまとめに出す */
+async function addComments(S, L, M, v){
+  const steps = [["comment", await (!v.comment ? commentText(L, S, M) : "")], ["comment2", await (!v.comment2 ? commentText2(L, S, M) : "")]];
+  let blocked = null;
+  for(const [key, text] of steps){
+    if(!text) continue;
+    const label = key === "comment" ? "" : "（2件目）";
+    const c = blocked || await postComment(L, v.id, text);
+    if(c === "ok"){ v[key] = true; posted.push({ set: S, lang: L, mode: M, id: v.id, n: key === "comment" ? 1 : 2 }); console.log(`  ${key === "comment" ? "案内" : "呼びかけ"}コメントを付けました${label}`); }
+    else{
+      if(!blocked) blocked = c;        // 1件目が付けられなかったら、2件目も同じ理由で付かないので試さない
+      comments.push({ set: S, lang: L, mode: M, id: v.id, text, why: c, n: key === "comment" ? 1 : 2 });
+      console.log(`  コメント${label}は付けられませんでした（${c === "no-scope" ? "許可にコメントの権限がありません。「YouTube 投稿許可」をデスクトップ アプリの方式でやり直すと付きます" : c}）。文面をまとめに出します`);
+    }
+  }
+}
 const published = [], waiting = [], failed = [];
 for(const S of Object.keys(all).sort()){
   if(ONLY && S !== ONLY) continue;
@@ -133,12 +158,7 @@ for(const S of Object.keys(all).sort()){
         v.public = true; v.publishedAt = v.publishedAt || new Date().toISOString().slice(0, 10);
         published.push({ set: S, lang: L, mode: M, id: v.id });
         console.log(`配信: ${S} ${L} ${M} https://www.youtube.com/shorts/${v.id}`);
-        if(!v.comment){
-          const text = await commentText(L, S, M);
-          const c = await postComment(L, v.id, text);
-          if(c === "ok"){ v.comment = true; posted.push({ set: S, lang: L, mode: M, id: v.id }); console.log(`  案内コメントを付けました（固定は YouTube Studio で）`); }
-          else{ comments.push({ set: S, lang: L, mode: M, id: v.id, text, why: c }); console.log(`  コメントは付けられませんでした（${c === "no-scope" ? "許可にコメントの権限がありません。「YouTube 投稿許可」をデスクトップ アプリの方式でやり直すと付きます" : c}）。文面をまとめに出します`); }
-        }
+        if(!v.comment || !v.comment2) await addComments(S, L, M, v);
       }else if(st === "missing"){
         failed.push({ set: S, lang: L, mode: M, id: v.id, why: "YouTube に見つかりません（削除した？）" });
         console.log(`見つからない: ${S} ${L} ${M} ${v.id}`);
@@ -152,16 +172,17 @@ for(const S of Object.keys(all).sort()){
 
 // 配信済みの動画の固定コメントの文面だけ出す（COMMENTS_FOR=SET。配信や投稿はしない）
 const CF = (process.env.COMMENTS_FOR || "").trim().toUpperCase();
-if(CF && all[CF]){
-  for(const L of ["ja", "en"]) for(const M of ["draft", "sealed"]){
-    const v = all[CF][L] && all[CF][L][M];
-    if(!(v && v.id && v.public) || v.comment || comments.some(c => c.id === v.id)) continue;
-    const text = await commentText(L, CF, M);
-    const c = await postComment(L, v.id, text);
-    if(c === "ok"){ v.comment = true; posted.push({ set: CF, lang: L, mode: M, id: v.id }); console.log(`${CF} ${L} ${M}: 案内コメントを付けました`); }
-    else comments.push({ set: CF, lang: L, mode: M, id: v.id, text, why: c });
+/* ALL を入れると、配信済みのすべての動画について、付いていないほうのコメント（案内・呼びかけ）を付ける */
+if(CF && (CF === "ALL" || all[CF])){
+  for(const S of (CF === "ALL" ? Object.keys(all).sort() : [CF])){
+    for(const L of ["ja", "en"]) for(const M of ["draft", "sealed"]){
+      const v = all[S][L] && all[S][L][M];
+      if(!(v && v.id && v.public) || (v.comment && v.comment2) || comments.some(c => c.id === v.id)) continue;
+      console.log(`${S} ${L} ${M}`);
+      await addComments(S, L, M, v);
+    }
   }
-  console.log(`固定コメント: ${CF} … 付けた ${posted.length} 本／文面をまとめに出す ${comments.length} 本`);
+  console.log(`コメント: ${CF} … 付けた ${posted.length} 件／文面をまとめに出す ${comments.length} 件`);
 }
 
 await writeFile("data/videos.json", JSON.stringify(all, null, 2) + "\n", "utf8");
@@ -201,7 +222,7 @@ if(!published.length && !waiting.length && !failed.length) lines.push("未配信
 if(posted.length){ lines.push(""); lines.push(`### 案内コメントを付けました（${posted.length}本）。YouTube Studio → コメント で「固定」にしてください`); for(const p of posted) lines.push(`- ${p.set} ${p.lang} ${p.mode}: https://www.youtube.com/shorts/${p.id}`); }
 if(comments.length){
   lines.push(""); lines.push("### 自動で付けられなかった固定コメントの文面（各動画のコメント欄に貼って「固定」にしてください）");
-  for(const c of comments){ lines.push(""); lines.push(`**${c.set} ${c.lang} ${c.mode}** — https://www.youtube.com/shorts/${c.id}`); lines.push(""); lines.push("```"); lines.push(c.text); lines.push("```"); }
+  for(const c of comments){ lines.push(""); lines.push(`**${c.set} ${c.lang} ${c.mode}${c.n === 2 ? "（2件目：呼びかけ）" : ""}** — https://www.youtube.com/shorts/${c.id}`); lines.push(""); lines.push("```"); lines.push(c.text); lines.push("```"); }
 }
 if(process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
 await writeFile("publish-result.json", JSON.stringify({ published, waiting, failed }), "utf8");
