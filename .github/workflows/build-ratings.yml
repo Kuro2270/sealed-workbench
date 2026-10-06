@@ -2,7 +2,7 @@ name: 勝率データ集計
 
 on:
   schedule:
-    - cron: "0 18 5,20 * *"   # 毎月6日・21日 03:00（日本時間）
+    - cron: "0 18 * * 0"      # 毎週月曜 03:00（日本時間）。UTC の日曜 18:00
   workflow_dispatch:
     inputs:
       set:
@@ -114,8 +114,16 @@ jobs:
           echo "プッシュに失敗しました。"
           exit 1
 
-      - name: 月次のデータ更新を投稿（定期実行のときだけ）
-        if: github.event_name == 'schedule' && steps.build.outputs.status == '0'
+      # 毎週走るようになったので、「月次のデータ更新」の SNS 投稿は、その月の最初の月曜（1〜7日）だけにする
+      - name: 月初の週かどうか確かめる
+        id: firstweek
+        run: |
+          D=$(TZ=Asia/Tokyo date +%-d)
+          if [ "$D" -le 7 ]; then echo "yes=1" >> "$GITHUB_OUTPUT"; fi
+          echo "日本時間の日付: $D"
+
+      - name: 月次のデータ更新を投稿（定期実行の、月の最初の月曜だけ）
+        if: github.event_name == 'schedule' && steps.firstweek.outputs.yes == '1' && steps.build.outputs.status == '0'
         env:
           SITE_URL: https://sealed-workbench.com
           X_API_KEY: ${{ secrets.X_API_KEY }}
