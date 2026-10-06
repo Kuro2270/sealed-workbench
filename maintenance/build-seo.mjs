@@ -25,6 +25,8 @@ const PRIORITY = {
   "assistant.html": "0.7",
   "sealed-assist.html": "0.7",
   "table.html": "0.7",
+  "faq.html": "0.6",
+  "contact.html": "0.3",
   "privacy.html": "0.3"
 };
 

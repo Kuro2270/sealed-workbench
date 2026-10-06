@@ -82,7 +82,7 @@ const L = {
     navgrp: { start:"はじめに", build:"練習する", assist:"MTGアリーナで使う", data:"データを見る", play:"対戦する", shop:"買う" },
     navsub: { start:"MTGの基本と、このサイトの使い方", build:"仮想パックで練習", assist:"実戦のログを読んで助ける・PC専用", data:"セットごとの強さ・速さを確認", play:"友達との対戦・大会の進行", shop:"日本で買えるMTG用品" },
     pc: "PC",
-    foot: 'データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。<br><a href="../goods/index.html">日本の TCG サプライ（スリーブ・デッキケース）</a>',
+    foot: 'データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。<br><a href="../faq.html">よくある質問</a>・<a href="../contact.html">お問い合わせ</a><br><a href="../goods/index.html">日本の TCG サプライ（スリーブ・デッキケース）</a>',
     otherLang: "English", otherHref: c => `${c}.en.html`
   },
   en: {
@@ -129,7 +129,7 @@ const L = {
     navgrp: { start:"Start", build:"Practice", assist:"Use with MTG Arena", data:"Data", play:"Play", shop:"Shop" },
     navsub: { start:"MTG basics & how to use this site", build:"Virtual packs", assist:"Reads your log in real play · PC only", data:"How strong and fast each set is", play:"Play friends or run a tournament", shop:"MTG supplies sold in Japan" },
     pc: "PC",
-    foot: 'Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a>',
+    foot: 'Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../faq.html">FAQ</a> · <a href="../contact.html">Contact</a><br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a>',
     otherLang: "日本語", otherHref: c => `${c}.html`
   }
 };
