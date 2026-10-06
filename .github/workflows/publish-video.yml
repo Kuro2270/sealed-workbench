@@ -22,7 +22,7 @@ on:
         description: "記録に無い動画を足す：「セット 言語 形式 動画ID」（例: HOB ja sealed g7u5JVhJgFk）"
         required: false
       comments:
-        description: "配信済みの動画に案内コメントを付ける：セットコード（例: SOS）。配信や SNS 投稿はしない"
+        description: "配信済みの動画に、付いていないコメント（案内・呼びかけ）を付ける：セットコード（例: SOS）。すべてなら ALL。配信や SNS 投稿はしない"
         required: false
 
 permissions:
