@@ -66,7 +66,7 @@
       const d = document.createElement("details"); d.open = !!open;
       const sm = document.createElement("summary"); sm.textContent = tt("save.hist", {n: h.length});
       d.appendChild(sm);
-      const note = document.createElement("div"); note.style.cssText = "color:var(--muted);margin-top:6px"; note.textContent = tt("save.note");
+      const note = document.createElement("div"); note.style.cssText = "color:#A9C2DE;margin-top:6px"; note.textContent = tt("save.note");
       d.appendChild(note);
       const ul = document.createElement("ul");
       h.forEach((snap, i) => {
