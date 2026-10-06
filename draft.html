@@ -122,6 +122,10 @@
   .tile{position:relative;cursor:pointer;border-radius:8px;line-height:0}
   .tile img{width:100%;height:auto;border-radius:7px;display:block}
   .tile:hover img,.tile:focus-visible img{outline:2px solid var(--gold);outline-offset:2px}
+
+  /* 同じセットの平均より5ポイント以上高い勝率（ボム級）は、金色に光らせる */
+  .tile .wrbadge.bomb{background:linear-gradient(180deg,#FBE08A,#E0AE2E);color:#2A1D00;box-shadow:0 0 0 2px #FFF3C4,0 0 10px 2px rgba(242,190,50,.8),0 1px 4px rgba(0,0,0,.35)}
+  .wr.bomb{color:#6B4600;font-weight:700;background:#FFF1C2;border-radius:6px;padding:0 6px;box-shadow:inset 0 0 0 1px #E0AE2E}
   .tile .wrbadge{
     position:absolute;left:50%;transform:translateX(-50%);bottom:6px;
     background:rgba(24,36,31,.92);color:#F5F8FC;font-size:12px;font-weight:700;line-height:1;
@@ -376,6 +380,17 @@ const RAR_BASE = { common:52.0, uncommon:53.5, rare:55.0, mythic:56.0 };
 
 let sets = [], setCode = "";
 let boosterCards = [], basicCards = {}, jaMap = {}, wrMap = {}, wrAvg = null, wrSource = "";
+/* ボム級＝そのセットの平均（土地を除く、試合数で重みづけ）より5ポイント以上高いGIH勝率。
+   50%や60%の固定ではなく平均との差で見るのは、セットやシールド／ドラフトで平均が56〜60%ほど動くため。 */
+const BOMB_PT = 0.05;
+let wrBase = null;
+function calcWrBase(){
+  let g = 0, s = 0, n = 0;
+  Object.values(wrMap).forEach(v => { if(!v.land && v.games >= 1000){ g += v.games; s += v.gih * v.games; n++; } });
+  wrBase = (n >= 30 && g) ? s / g : null;
+}
+function isBomb(w){ return !!(w && wrBase != null && !w.land && w.gih >= wrBase + BOMB_PT); }
+
 let packsAll = [], seats = [], phase = "idle";
 let packNo = 0, pickNo = 0, current = [];
 let pool = [], deck = [], side = [], landCount = {};
@@ -497,7 +512,8 @@ async function loadWinRates(code){
       if(!res.ok) continue;
       const d = await res.json();
       if(!Array.isArray(d.cards)) continue;
-      d.cards.forEach(c => { if(c.gih != null && c.games >= 200) wrMap[c.name] = {gih:c.gih, games:c.games}; });
+      d.cards.forEach(c => { if(c.gih != null && c.games >= 200) wrMap[c.name] = {gih:c.gih, games:c.games, land:!!c.land}; });
+      calcWrBase();
       const vals = Object.values(wrMap).map(v => v.gih);
       if(!vals.length) continue;
       wrAvg = vals.reduce((a,b) => a+b, 0) / vals.length;
@@ -832,9 +848,9 @@ function tile(c, onClick){
   const w = wrOf(c);
   if(w){
     const b = document.createElement("span");
-    b.className = "wrbadge";
+    b.className = "wrbadge" + (isBomb(w) ? " bomb" : "");
     b.textContent = (w.gih * 100).toFixed(1) + "%";
-    b.title = t("tip.gih", {p: (w.gih * 100).toFixed(1), n: w.games.toLocaleString()}) + "\n" + t("wr.gih.tip");
+    b.title = t("tip.gih", {p: (w.gih * 100).toFixed(1), n: w.games.toLocaleString()}) + "\n" + t("wr.gih.tip") + (isBomb(w) ? "\n" + t("tip.bomb") : "");
     li.appendChild(b);
   }
   li.onclick = onClick;
@@ -972,7 +988,7 @@ function sideRow(c, where){
   li.innerHTML =
     `<span class="rar ${c.rarity}"></span>` +
     `<span class="name">${esc(displayName(c))}</span>` +
-    `<span class="wr"${w ? ` title="${t("wr.gih.tip")}"` : ""}>${w ? (w.gih*100).toFixed(1) + "%" : ""}</span>` +
+    `<span class="wr${isBomb(w) ? " bomb" : ""}"${w ? ` title="${t("wr.gih.tip")}${isBomb(w) ? "\n" + t("tip.bomb") : ""}"` : ""}>${w ? (w.gih*100).toFixed(1) + "%" : ""}</span>` +
     `<span style="font-size:12px;color:var(--muted)">${esc(c.mana_cost || "")}</span>`;
   li.onmouseenter = ev => showPreview(c, ev.clientX, ev.clientY);
   li.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
