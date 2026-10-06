@@ -420,7 +420,7 @@ function renderSetOptions(){
   sets.forEach(s => {
     const o = document.createElement("option");
     o.value = s.code;
-    o.textContent = I18N.setName(s.code, s.name) + "（" + s.code.toUpperCase() + "）";
+    o.textContent = I18N.setLabel(s.code, s.name);
     sel.appendChild(o);
   });
   // 選び直しのときだけ元の選択を戻す。初回や該当が無いときは最新セットのまま。

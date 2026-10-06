@@ -714,8 +714,8 @@
   /* セット名の日本語表記。Scryfall は英語名しか持たないためここで持つ。
      未登録のセットは英語名のまま表示する。 */
   const SET_JA = {
-    msh:"マジック：ザ・ギャザリング｜マーベル スーパー・ヒーローズ",
-    spm:"マジック：ザ・ギャザリング｜マーベル スパイダーマン",
+    msh:"マーベル スーパー・ヒーローズ",
+    spm:"マーベル スパイダーマン",
     om1:"領界路の彼方", eoe:"エッジ・オブ・エタニティーズ", fin:"ファイナルファンタジー",
     tdm:"タルキール：龍嵐録", dft:"霊気走破", fdn:"基本セット：ファウンデーションズ",
     dsk:"ダスクモーン：戦慄の館", blb:"ブルームバロウ", mh3:"モダンホライゾン3",
@@ -729,6 +729,19 @@
     hob:"ホビット", sos:"ストリクスヘイヴンの秘密", tmt:"ミュータント タートルズ",
     ecl:"ローウィンの昏明", tla:"アバター 伝説の少年アン",
     fra:"リアリティ・フラクチャー"
+  };
+
+  /* 英語表示でプルダウンに出すセット名（コードだけが並ばないように）。Scryfall から名前が取れるページでは、そちらを優先する */
+  const SET_EN = {
+    msh:"Marvel Super Heroes", spm:"Marvel's Spider-Man", om1:"Through the Omenpaths", eoe:"Edge of Eternities",
+    fin:"Final Fantasy", tdm:"Tarkir: Dragonstorm", dft:"Aetherdrift", fdn:"Foundations", dsk:"Duskmourn: House of Horror",
+    blb:"Bloomburrow", mh3:"Modern Horizons 3", otj:"Outlaws of Thunder Junction", mkm:"Murders at Karlov Manor",
+    lci:"The Lost Caverns of Ixalan", woe:"Wilds of Eldraine", ltr:"The Lord of the Rings: Tales of Middle-earth",
+    mom:"March of the Machine", one:"Phyrexia: All Will Be One", bro:"The Brothers' War", dmu:"Dominaria United",
+    snc:"Streets of New Capenna", neo:"Kamigawa: Neon Dynasty", vow:"Innistrad: Crimson Vow", mid:"Innistrad: Midnight Hunt",
+    afr:"Adventures in the Forgotten Realms", stx:"Strixhaven: School of Mages", khm:"Kaldheim", znr:"Zendikar Rising",
+    hob:"The Hobbit", sos:"Secrets of Strixhaven", tmt:"Teenage Mutant Ninja Turtles", ecl:"Lorwyn Eclipsed",
+    tla:"Avatar: The Last Airbender", fra:"Reality Fracture"
   };
 
   const KEY = "sw.lang";
@@ -753,8 +766,17 @@
   }
 
   function setName(code, englishName){
-    if(lang !== "ja") return englishName;
-    return SET_JA[String(code).toLowerCase()] || englishName;
+    const c = String(code).toLowerCase();
+    if(lang !== "ja"){
+      // 渡された名前がコードそのまま（名前が取れていない）のときだけ、こちらの英語名を使う
+      return (!englishName || String(englishName).toLowerCase() === c) ? (SET_EN[c] || englishName || code) : englishName;
+    }
+    return SET_JA[c] || englishName;
+  }
+  /* プルダウンの表示：「名前（CODE）」。英語は半角のかっこ */
+  function setLabel(code, englishName){
+    const n = setName(code, englishName), C = String(code).toUpperCase();
+    return lang === "ja" ? n + "（" + C + "）" : n + " (" + C + ")";
   }
 
   function apply(root){
@@ -844,7 +866,7 @@
   window.I18N = {
     get lang(){ return lang; },
     isJa(){ return lang === "ja"; },
-    t, set, apply, setName,
+    t, set, apply, setName, setLabel,
     onChange(fn){ listeners.push(fn); }
   };
   window.t = t;

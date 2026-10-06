@@ -374,7 +374,7 @@ function renderSetOptions(){
   sets.forEach(code => {
     const o = document.createElement("option");
     o.value = code;
-    o.textContent = I18N.setName(code, code) + "（" + code + "）" + "";
+    o.textContent = I18N.setLabel(code, code);
     sel.appendChild(o);
   });
   if(keep && sets.includes(keep)) sel.value = keep;
