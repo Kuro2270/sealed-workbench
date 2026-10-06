@@ -599,6 +599,13 @@ async function showProfile(code){
     }
     const box = $("body");
     box.innerHTML = `<div class="profile">${html}</div>`;
+    // 以前に作られた下見ページ（色が丸のもの）も、表示のときにマナシンボルへ置き換える
+    box.querySelectorAll(".profile .dot").forEach(d => {
+      const bg = d.getAttribute("style") || "";
+      const m = bg.match(/var\(--([wubrg])\)/i);
+      const k = m ? m[1].toUpperCase() : /linear-gradient/.test(bg) ? "M" : "C";
+      d.outerHTML = manaI(k);
+    });
     // 固定ページ冒頭の「勝率データは〇月〇日ごろから」は、上の案内文に合わせて1つにまとめる
     let when = "";
     const first = box.querySelector(".profile > .verdict");
