@@ -63,7 +63,7 @@ const L = {
     faq: [
       ["リミテッドのカードの点数（評価）とは？", "そのカードがどれだけ強いかを数字で表したものを、点数や評価と呼びます。人が付ける点数には好みが入りますが、このページでは実際の対戦結果の勝率で見ています。"],
       ["点数（GIH勝率）はどう読めばいいですか？", "そのセット全体の勝率より高いカードは、入れたデッキが勝ちやすかったカードです。ただし、試合数が少ないカードは数字がぶれやすく、強いデッキに入りやすいカードは高く出る傾向があります。色や相性とあわせて、目安として使ってください。"],
-      ["点数はいつ更新されますか？", "月に2回（6日と21日ごろ）、17Landsの最新データで更新します。"]
+      ["点数はいつ更新されますか？", "毎週月曜日に、17Landsの最新データで更新します。"]
     ],
     rarity: { mythic:"神話レア", rare:"レア", uncommon:"アンコモン", common:"コモン" },
     col: { color:"色", pair:"色の組み合わせ", cmc:"マナ総量", wr:"勝率", score:"点数（GIH勝率）", games:"試合数", card:"カード", cards:"種類数" },
@@ -110,7 +110,7 @@ const L = {
     faq: [
       ["What is a Limited card rating?", "A number that says how strong a card is. Ratings given by people include personal taste, so this page uses win rates from real games instead."],
       ["How should I read the GIH win rate?", "A card above the set's overall win rate was in decks that won more often. Cards with few games swing a lot, and cards that go into strong decks tend to look better than they are, so treat it as a guide and read it together with colours and synergy."],
-      ["When are the ratings updated?", "Twice a month (around the 6th and 21st), from the latest 17Lands data."]
+      ["When are the ratings updated?", "Every Monday (Japan time), from the latest 17Lands data."]
     ],
     rarity: { mythic:"Mythic", rare:"Rare", uncommon:"Uncommon", common:"Common" },
     col: { color:"Colour", pair:"Pair", cmc:"Mana value", wr:"Win rate", score:"Rating (GIH WR)", games:"Games", card:"Card", cards:"Cards" },
