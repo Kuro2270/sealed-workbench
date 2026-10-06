@@ -60,13 +60,12 @@
     btn.innerHTML = '<span class="bars"><i></i><i></i><i></i></span><span class="lbl"></span><span class="cur"></span>';
     nav.parentNode.insertBefore(btn, nav);
     nav.classList.add("navfold");
-    /* パソコン用：グループごとにまとめる。リンクが1つだけのグループと「練習する」は、そのまま並べる */
+    /* パソコン用：グループごとにまとめる。リンクが1つだけのグループは、そのまま並べる */
     var groups = Array.prototype.slice.call(nav.querySelectorAll(".ng"));
     groups.forEach(function(g){
       var links = g.querySelectorAll(":scope > a");
       var lab = g.querySelector(".ngl");
-      var core = lab && lab.getAttribute("data-i18n") === "navgrp.build";
-      if (!lab || links.length <= 1 || core) { g.classList.add("direct"); return; }
+      if (!lab || links.length <= 1) { g.classList.add("direct"); return; }
       var panel = document.createElement("div"); panel.className = "ngpanel";
       var sub = g.querySelector(".ngs"); if (sub) panel.appendChild(sub);
       Array.prototype.forEach.call(links, function(a){ panel.appendChild(a); });
