@@ -423,7 +423,7 @@ function winrateDate(){
 function renderReadyNote(){
   const el = $("readyNote");
   const noWr = !!D.set && wrChecked && loadedSet === D.set && Object.keys(wr).length === 0;
-  if(!D.set || !(noArena || cardsMissing || noWr || noPoolMsg)){ el.hidden = true; el.innerHTML = ""; return; }
+  if(!D.set || !(noArena || cardsMissing || noWr || noPoolMsg)){ el.hidden = true; el.innerHTML = ""; syncPip(); return; }
   const name = I18N.setName(String(D.set).toLowerCase(), setEnName || D.set);
   const when = winrateDate();
   const lines = [];
@@ -433,6 +433,7 @@ function renderReadyNote(){
   if(noArena || cardsMissing || noWr) lines.push(t("sassist.pendAuto"));
   el.innerHTML = `<b>${esc(t("sassist.pendTitle", { set: name }))}</b>` + lines.map(l => `<p>${esc(l)}</p>`).join("");
   el.hidden = false;
+  syncPip();      // 小窓にも同じ案内を写す（後からカード情報が引けなかったと分かったときのため）
 }
 function notReadyMsg(code){
   const name = I18N.setName(String(code).toLowerCase(), setEnName || code);
