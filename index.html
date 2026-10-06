@@ -143,6 +143,8 @@
   .wr{font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);min-width:42px;text-align:right}
   /* 同じセットの平均より5ポイント以上高い勝率（ボム級）は、金色に光らせる */
   .tile .wrbadge.bomb{background:linear-gradient(180deg,#FBE08A,#E0AE2E);color:#2A1D00;box-shadow:0 0 0 2px #FFF3C4,0 0 10px 2px rgba(242,190,50,.8),0 1px 4px rgba(0,0,0,.35)}
+  .tile .wrbadge.alt{background:rgba(24,36,31,.72);color:#C9D6E6;font-weight:600;box-shadow:0 0 0 1px rgba(255,255,255,.55) inset}
+  .wr.alt{font-style:italic;opacity:.8}
   .wr.bomb{color:#6B4600;font-weight:700;background:#FFF1C2;border-radius:6px;padding:0 6px;box-shadow:inset 0 0 0 1px #E0AE2E}
   .tile .wrbadge{
     position:absolute;left:50%;transform:translateX(-50%);bottom:6px;
@@ -419,7 +421,7 @@ let setCode = "", boosterCards = [], basicCards = {}, pool = [], deck = [], side
 let target = "main";           // プールのカードを押したときの追加先（main / side）
 let poolSet = "";              // いまのプールを開けたセット
 const SIDE_MAX = 15;
-let wrMap = {}, wrSource = "", wrAvg = null;
+let wrMap = {}, wrMapAlt = {}, wrSource = "", wrAvg = null;
 /* ボム級＝そのセットの平均（土地を除く、試合数で重みづけ）より5ポイント以上高いGIH勝率。
    50%や60%の固定ではなく平均との差で見るのは、セットやシールド／ドラフトで平均が56〜60%ほど動くため。 */
 const BOMB_PT = 0.05;
@@ -429,7 +431,7 @@ function calcWrBase(){
   Object.values(wrMap).forEach(v => { if(!v.land && v.games >= 1000){ g += v.games; s += v.gih * v.games; n++; } });
   wrBase = (n >= 30 && g) ? s / g : null;
 }
-function isBomb(w){ return !!(w && wrBase != null && !w.land && w.gih >= wrBase + BOMB_PT); }
+function isBomb(w){ return !!(w && !w.alt && wrBase != null && !w.land && w.gih >= wrBase + BOMB_PT); }
 
 
 function renderSetOptions(){
@@ -697,7 +699,7 @@ function tally(list){
 
 /* ---------- 勝率データ ---------- */
 async function loadWinRates(code){
-  wrMap = {}; wrSource = ""; wrAvg = null;
+  wrMap = {}; wrMapAlt = {}; wrSource = ""; wrAvg = null;
   // シールド戦のツールなので Sealed を優先し、無ければドラフトのデータを使う
   const order = ["sealed", "draft"];
 
@@ -712,6 +714,16 @@ async function loadWinRates(code){
       const vals = Object.values(wrMap).map(v => v.gih);
       wrAvg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
       wrSource = t("mode." + ev);
+      // シールドは試合数が少ないカードが多いので、足りないぶんはドラフトの勝率で補う（参考値として表示）
+      if(ev === "sealed"){
+        try{
+          const r2 = await fetch(`./data/ratings/${code.toUpperCase()}_draft.json`, {cache:"no-cache"});
+          if(r2.ok){
+            const d2 = await r2.json();
+            if(Array.isArray(d2.cards)) d2.cards.forEach(c => { if(c.gih != null) wrMapAlt[c.name] = { gih: c.gih, games: c.games, land: !!c.land }; });
+          }
+        }catch(e){ /* 補えなくても、そのまま続ける */ }
+      }
       return;
     }catch(e){ /* 次の候補へ */ }
   }
@@ -719,26 +731,38 @@ async function loadWinRates(code){
 
 /* 出来事・両面・分割カードは、集計データ側が表面の名前だけを持っている。
    「A // B」のままでは引けないので、表面の名前でも探す。 */
-function wrEntry(c){
+function lookupWr(map, c){
   if(!c) return null;
   const cands = [c.name];
   if(c.name && c.name.includes(" // ")) cands.push(c.name.split(" // ")[0].trim());
   if(Array.isArray(c.card_faces)) c.card_faces.forEach(f => { if(f.name) cands.push(f.name); });
-  for(const n of cands){ if(wrMap[n]) return wrMap[n]; }
+  for(const n of cands){ if(map[n]) return map[n]; }
   return null;
 }
+function wrEntry(c){ return lookupWr(wrMap, c); }
 
 function wrOf(c){
   if(!$("wrToggle").checked) return null;
   const e = wrEntry(c);
-  return (e && e.games >= 200) ? e : null;
+  if(e && e.games >= 200) return e;
+  // 試合数が足りないときは、ドラフトの勝率を参考値として出す（alt=true）
+  const e2 = lookupWr(wrMapAlt, c);
+  return (e2 && e2.games >= 200) ? Object.assign({}, e2, { alt: true }) : null;
 }
 
 
+/* 並べ替え用の勝率。試合数が足りなければドラフトの勝率で補い、それも足りなければ最後に回す */
+function wrSortVal(c){
+  const e = wrEntry(c);
+  if(e && e.games >= 200) return e.gih;
+  const e2 = lookupWr(wrMapAlt, c);
+  return (e2 && e2.games >= 200) ? e2.gih : -1;
+}
+
 function poolSorter(a, b){
   if($("sortSelect").value === "wr"){
-    const x = wrEntry(a.card)?.gih ?? -1;
-    const y = wrEntry(b.card)?.gih ?? -1;
+    const x = wrSortVal(a.card);
+    const y = wrSortVal(b.card);
     if(x !== y) return y - x;
   }
   return cmcOf(a.card) - cmcOf(b.card)
@@ -754,7 +778,7 @@ function cardRow(entry, where){
   li.innerHTML =
     '<span class="rar ' + c.rarity + '"></span>' +
     '<span class="name">' + esc(displayName(c)) + '</span>' +
-    '<span class="wr' + (isBomb(w) ? " bomb" : "") + '"' + (w ? ' title="' + t("wr.gih.tip") + (isBomb(w) ? "\n" + t("tip.bomb") : "") + '"' : "") + '>' + (w ? (w.gih * 100).toFixed(1) + "%" : "") + '</span>' +
+    '<span class="wr' + (isBomb(w) ? " bomb" : "") + (w && w.alt ? " alt" : "") + '"' + (w ? ' title="' + t("wr.gih.tip") + (isBomb(w) ? "\n" + t("tip.bomb") : "") + (w.alt ? "\n" + t("tip.alt") : "") + '"' : "") + '>' + (w ? (w.gih * 100).toFixed(1) + "%" : "") + '</span>' +
     '<span class="cost">' + esc(c.mana_cost || "") + '</span>' +
     '<span class="qty">' + (entry.n > 1 ? "×" + entry.n : "") + '</span>';
   li.title = (c.type_line || "") + (w ? "\n" + t("tip.gih", {p: (w.gih*100).toFixed(1), n: w.games.toLocaleString()}) : "");
@@ -885,9 +909,9 @@ function cardTile(entry, where){
   const w = wrOf(c);
   if(w){
     const b = document.createElement("span");
-    b.className = "wrbadge" + (isBomb(w) ? " bomb" : "");
+    b.className = "wrbadge" + (isBomb(w) ? " bomb" : "") + (w.alt ? " alt" : "");
     b.textContent = (w.gih * 100).toFixed(1) + "%";
-    b.title = t("tip.gih", {p: (w.gih * 100).toFixed(1), n: w.games.toLocaleString()}) + "\n" + t("wr.gih.tip") + (isBomb(w) ? "\n" + t("tip.bomb") : "");
+    b.title = t("tip.gih", {p: (w.gih * 100).toFixed(1), n: w.games.toLocaleString()}) + "\n" + t("wr.gih.tip") + (isBomb(w) ? "\n" + t("tip.bomb") : "") + (w.alt ? "\n" + t("tip.alt") : "");
     li.appendChild(b);
   }
 
