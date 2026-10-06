@@ -16,7 +16,25 @@
     "nav.navfold.open{display:flex !important;margin:0 0 16px;padding:14px 14px 10px;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(6,22,40,.55)}" +
     "nav.navfold.open .ng{width:100%;padding-left:0;border-left:none;margin-bottom:6px}" +
     "}";
-  var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
+
+  var deskCss =
+    "nav.navfold .ngpanel{display:contents}" +
+    "@media (min-width:1025px){" +
+    "nav.navfold{display:flex !important;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 16px;position:relative;z-index:40}" +
+    "nav.navfold .ng{display:flex !important;flex-wrap:nowrap;gap:8px;align-items:center;padding:0 !important;border:none !important;position:relative;width:auto}" +
+    "nav.navfold .ng.direct > .ngl,nav.navfold .ng.direct > .ngs{display:none !important}" +
+    "nav.navfold .ng.dd > .ngl{display:inline-flex !important;align-items:center;position:static;margin:0;padding:8px 14px;border-radius:10px;border:1px solid #4A83BF;background:linear-gradient(180deg,#2A5F96,#1C4A7C);box-shadow:0 2px 0 #12365C,0 4px 10px rgba(0,0,0,.28);color:#fff;font-size:13px;font-weight:700;letter-spacing:0;text-transform:none;line-height:1;white-space:nowrap;cursor:pointer;user-select:none}" +
+    "nav.navfold .ng.dd > .ngl::after{content:'';display:inline-block;width:6px;height:6px;margin:-3px 0 0 9px;border-right:2px solid #CFE3FA;border-bottom:2px solid #CFE3FA;transform:rotate(45deg);transition:transform .15s}" +
+    "nav.navfold .ng.dd.open > .ngl::after{transform:rotate(225deg);margin-top:3px}" +
+    "nav.navfold .ng.dd > .ngl:hover,nav.navfold .ng.dd.open > .ngl{background:linear-gradient(180deg,#3573B3,#25609F);border-color:#6FA3DA}" +
+    "nav.navfold .ng.dd.has-on > .ngl{background:#2F7DF6;border-color:#2F7DF6}" +
+    "nav.navfold .ngpanel{display:none;position:absolute;top:calc(100% + 8px);left:0;min-width:230px;flex-direction:column;align-items:stretch;gap:8px;padding:12px;border:1px solid #2C4D74;border-radius:12px;background:#0A2038;box-shadow:0 14px 30px rgba(0,0,0,.45);z-index:60}" +
+    "nav.navfold .ngpanel::before{content:'';position:absolute;left:0;right:0;top:-10px;height:10px}" +
+    "nav.navfold .ng.open .ngpanel{display:flex}" +
+    "nav.navfold .ngpanel .ngs{display:block !important;position:static;margin:0 0 2px;font-size:11.5px;line-height:1.5;color:#A9BFD8;white-space:normal;grid-column:auto}" +
+    "nav.navfold .ngpanel a{width:100%;justify-content:flex-start;grid-row:auto}" +
+    "}";
+  var st = document.createElement("style"); st.textContent = css + deskCss; document.head.appendChild(st);
 
   function init(){
     var nav = document.querySelector("nav");
@@ -42,6 +60,47 @@
     btn.innerHTML = '<span class="bars"><i></i><i></i><i></i></span><span class="lbl"></span><span class="cur"></span>';
     nav.parentNode.insertBefore(btn, nav);
     nav.classList.add("navfold");
+    /* パソコン用：グループごとにまとめる。リンクが1つだけのグループと「練習する」は、そのまま並べる */
+    var groups = Array.prototype.slice.call(nav.querySelectorAll(".ng"));
+    groups.forEach(function(g){
+      var links = g.querySelectorAll(":scope > a");
+      var lab = g.querySelector(".ngl");
+      var core = lab && lab.getAttribute("data-i18n") === "navgrp.build";
+      if (!lab || links.length <= 1 || core) { g.classList.add("direct"); return; }
+      var panel = document.createElement("div"); panel.className = "ngpanel";
+      var sub = g.querySelector(".ngs"); if (sub) panel.appendChild(sub);
+      Array.prototype.forEach.call(links, function(a){ panel.appendChild(a); });
+      g.appendChild(panel);
+      g.classList.add("dd");
+      lab.setAttribute("role", "button"); lab.setAttribute("tabindex", "0"); lab.setAttribute("aria-haspopup", "true");
+      if (panel.querySelector("a.on")) g.classList.add("has-on");
+    });
+    var desk = window.matchMedia ? matchMedia("(min-width:1025px)") : { matches: false };
+    function closeAll(except){
+      groups.forEach(function(g){ if (g !== except) g.classList.remove("open"); });
+    }
+    var timer = 0;
+    groups.forEach(function(g){
+      if (!g.classList.contains("dd")) return;
+      var lab = g.querySelector(".ngl");
+      lab.addEventListener("click", function(){
+        if (!desk.matches) return;
+        /* ホバーで開いた直後のクリックは、閉じずに開いたままにする */
+        if (Date.now() - (g._hov || 0) < 600) { closeAll(g); g.classList.add("open"); return; }
+        var o = !g.classList.contains("open"); closeAll(g); g.classList.toggle("open", o);
+      });
+      lab.addEventListener("keydown", function(e){
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); lab.click(); }
+      });
+      g.addEventListener("mouseenter", function(){
+        if (!desk.matches) return; clearTimeout(timer); closeAll(g); g._hov = Date.now(); g.classList.add("open");
+      });
+      g.addEventListener("mouseleave", function(){
+        if (!desk.matches) return; clearTimeout(timer); timer = setTimeout(function(){ g.classList.remove("open"); }, 180);
+      });
+    });
+    document.addEventListener("click", function(e){ if (!nav.contains(e.target)) closeAll(); });
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeAll(); });
     function label(){
       var ja = (document.documentElement.lang || "ja").indexOf("ja") === 0;
       btn.querySelector(".lbl").textContent = ja ? "メニュー" : "Menu";
