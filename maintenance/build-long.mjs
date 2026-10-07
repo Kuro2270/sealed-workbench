@@ -168,8 +168,8 @@ function buildScript(ctx){
   scenes.push({ kind: "hook", art: true, chapter: "はじめに",
     say: `MTGアリーナ、リミテッドの${nameJa}環境を、${man(gamesD + gamesS)}試合のデータでまるごと解説します。最強の色の組み合わせ、迷わず取っていいボムのレア十枚、見た目に反して勝てない罠なレアカード、そして、コモンとアンコモンの強い除去まで。ドラフトとシールドの両方のデータで見ていきます。`,
     title: nameJa, gamesD, gamesS, tail: 0.6 });
-  scenes.push({ kind: "agenda", say: `順番に、環境の速さ、色の組み合わせとデッキの速さ、ボム、罠なレアカード、色別のおすすめ、除去、そして入れてはいけないカードまで見ていきます。`,
-    items: ["環境の速さ", "色の強さ", "色の組み合わせと速さ", "狙い目の色", "ドラフトとシールドの違い", "ボムのレア10枚", "罠なレアカード", "色別のコモン・アンコモン", "除去（コモン・アンコモン）", "入れてはいけないカード"], tail: 0.4 });
+  scenes.push({ kind: "agenda", say: `順番に、環境の速さ、色の組み合わせとデッキの速さ、ボム、罠なレアカード、色別のおすすめ、除去まで見ていきます。`,
+    items: ["環境の速さ", "色の強さ", "色の組み合わせと速さ", "狙い目の色", "ドラフトとシールドの違い", "ボムのレア10枚", "罠なレアカード", "色別（多色・無色も）のコモン・アンコモン", "除去（コモン・アンコモン）"], tail: 0.4 });
 
   /* --- 速さ --- */
   const paceRows = d => (d.speed || []).filter(s => s.wr != null && s.games).map((s, i, a) => ({
@@ -393,16 +393,19 @@ function buildScript(ctx){
   {
     const avgOf = rarity => { const pool = rd.cards.filter(c => c.rarity === rarity && !c.land && c.games >= 1500); return pool.reduce((n, c) => n + c.gih * c.games, 0) / (pool.reduce((n, c) => n + c.games, 0) || 1); };
     const comAvg = avgOf("common"), uncAvg = avgOf("uncommon");
-    const topIn = (col, rarity) => rd.cards.filter(c => !c.land && c.color === col && c.rarity === rarity && c.games >= 1500)
+    // 単色は色ごと。"M" はマルチカラー（2色以上）、"C" は無色（土地は除く）
+    const inKey = (key, c) => key === "M" ? (c.color || "").length >= 2 : key === "C" ? !c.color : c.color === key;
+    const topIn = (col, rarity) => rd.cards.filter(c => !c.land && inKey(col, c) && c.rarity === rarity && c.games >= 1500)
       .sort((a, b) => b.gih - a.gih).slice(0, 5).map((c, i) => ({ ...c, label: J(c.name), rank: i + 1 }));
-    const order = monoD.length ? monoD.map(c => c.color).filter(c => "WUBRG".includes(c)) : ["W", "U", "B", "R", "G"];
+    const order = [...(monoD.length ? monoD.map(c => c.color).filter(c => "WUBRG".includes(c)) : ["W", "U", "B", "R", "G"]), "M", "C"];
+    const KJ = { ...CJ, M: "マルチカラー", C: "無色" };
     const list = [];
-    for(const col of order){ const com = topIn(col, "common"), unc = topIn(col, "uncommon"); if(com.length >= 3 && unc.length >= 3) list.push({ col, com, unc }); }
+    for(const col of order){ const com = topIn(col, "common"), unc = topIn(col, "uncommon"); if((col === "M" || col === "C") ? com.length + unc.length >= 3 : (com.length >= 3 && unc.length >= 3)) list.push({ col, com, unc }); }   // 多色・無色は、枚数が少ない（コモンが無い）環境もあるので、合わせて3枚以上あれば出す
     list.forEach((e, i) => {
       const two = a => a.slice(0, 2).map(c => `${c.label}、${pt(c.gih)}パーセント`).join("。次に、");
       scenes.push({ kind: "colortop", chapter: i === 0 ? "色別のコモン・アンコモン" : null, color: e.col, com: e.com, unc: e.unc, comAvg, uncAvg,
-        say: (i === 0 ? `次は、色別のおすすめです。コモンとアンコモンを、引いた試合の勝率が高い順に、五枚ずつ並べました。` : "") +
-             `${CJ[e.col]}です。コモンの一位は、${two(e.com)}。アンコモンの一位は、${two(e.unc)}。五枚の一覧は、画面で確認してください。`, tail: 0.5 });
+        say: (i === 0 ? `次は、色別のおすすめです。五色に加えて、マルチカラーと無色も紹介します。コモンとアンコモンを、引いた試合の勝率が高い順に、五枚ずつ並べました。` : "") +
+             `${KJ[e.col]}です。` + (e.com.length ? `コモンの一位は、${two(e.com)}。` : `コモンの${KJ[e.col]}は、この環境にありません。`) + (e.unc.length ? `アンコモンの一位は、${two(e.unc)}。` : `アンコモンの${KJ[e.col]}は、この環境にありません。`) + `一覧は、画面で確認してください。`, tail: 0.5 });
     });
   }
 
@@ -428,17 +431,6 @@ function buildScript(ctx){
   if(remC) scenes.push(remC);
   if(remU){ if(remC) remU.chapter = null; scenes.push(remU); }
 
-
-  /* --- 入れてはいけないコモン・アンコモン：引いたときの勝率の上がり方（IWD）が低い順に5枚。試合数の少ないカードは除く --- */
-  const avoid = rd.cards.filter(c => !c.land && (c.rarity === "common" || c.rarity === "uncommon") && c.games >= 2500 && c.iwd != null && c.iwd < 0)
-    .sort((a, b) => a.iwd - b.iwd).slice(0, 5).map((c, i) => ({ ...c, label: J(c.name), rank: i + 1 }));
-  if(avoid.length >= 3){
-    const RJ = { common: "コモン", uncommon: "アンコモン" };
-    scenes.push({ kind: "avoid", chapter: "入れてはいけないカード", cards: avoid, avgD,
-      say: `最後に、入れてはいけない、コモンとアンコモンのワースト五枚です。引いたときの勝率が、引いていないときより、低くなったカードを選びました。` +
-           avoid.map(c => `${c.rank}位、${c.label}。${RJ[c.rarity]}で、引いた試合の勝率は${pt(c.gih)}パーセント。`).join("") +
-           `どれも、入れないほうが、勝率が上がる、という数字です。デッキの枚数が足りなくて、どうしても必要なとき以外は、サイドボードに置いておきましょう。`, tail: 0.6 });
-  }
 
   /* --- まとめ --- */
   {
@@ -702,10 +694,14 @@ function sceneSvg(sc){
       return frame(s, sc);
     }
     case "colortop": {
-      let s = symbol(sc.color, 120, 180, 80) + T(190, 196, `${CJ[sc.color]}のおすすめ コモン・アンコモン 5枚ずつ`, { size: 50, weight: 900 }) +
+      const badge = sc.color === "M" ? { t: "多", f: "#C9A227" } : sc.color === "C" ? { t: "無", f: "#8D97A3" } : null;
+      const kname = sc.color === "M" ? "マルチカラー" : sc.color === "C" ? "無色" : CJ[sc.color];
+      let s = (badge ? `<circle cx="120" cy="180" r="40" fill="${badge.f}" stroke="${PAPER}" stroke-width="3"/>` + T(120, 196, badge.t, { size: 44, weight: 900, anchor: "middle", fill: DEEP }) : symbol(sc.color, 120, 180, 80)) +
+              T(190, 196, `${kname}のおすすめ コモン・アンコモン`, { size: 50, weight: 900 }) +
               T(W - 80, 196, "引いた試合の勝率（GIH）の高い順", { size: 30, fill: MUTED, anchor: "end" });
       const panelFor = (x, title, list, avg, accent) => {
         let t = panel(x, 240, 860, 640, accent) + T(x + 50, 310, title, { size: 46, weight: 900, fill: accent }) + T(x + 810, 310, `全体の平均 ${pt(avg)}%`, { size: 28, fill: MUTED, anchor: "end" });
+        if(!list.length) t += T(x + 430, 600, "この環境には、ありません", { size: 38, anchor: "middle", fill: MUTED });
         list.forEach((c, i) => {
           const y = 395 + i * 96;
           t += `<circle cx="${x + 68}" cy="${y - 10}" r="24" fill="${DEEP}" stroke="${accent}" stroke-width="3"/>` + T(x + 68, y + 1, String(c.rank), { size: 28, weight: 900, anchor: "middle", fill: accent });
@@ -715,15 +711,6 @@ function sceneSvg(sc){
         return t;
       };
       s += panelFor(60, "コモン", sc.com, sc.comAvg, GOLD) + panelFor(980, "アンコモン", sc.unc, sc.uncAvg, GREEN);
-      return frame(s, sc);
-    }
-    case "avoid": {
-      let s = T(80, 175, `入れてはいけないコモン・アンコモン ワースト5（引いたときの勝率の上がり方が低い順）`, { size: 38, fill: MUTED });
-      s += cardRow(sc.cards, c => [
-        { t: `引いた試合 ${pt(c.gih)}%`, size: 34, w: 900, fill: DOWN },
-        { t: `引くと ${sgn(c.iwd)}pt`, size: 32, fill: DOWN, w: 700 },
-        { t: `${c.rarity === "common" ? "コモン" : "アンコモン"}・マナ総量 ${c.cmc ?? "—"}`, size: 26, fill: MUTED, w: 400 }
-      ], DOWN, 250);
       return frame(s, sc);
     }
     case "removal": {
@@ -1074,7 +1061,7 @@ async function main(){
   await writeFile(`${OUT}/title.txt`, `【${nameJa}】リミテッド環境まとめ｜強い色・狙い目の色・ボム10枚・罠なレアカード・除去【MTGアリーナ】`, "utf8");   // YouTube に上げるときの題
   await writeFile(`${OUT}/description.txt`,
 `MTGアリーナ、リミテッドの${nameJa}環境を、17Landsの実戦データ（ドラフト${gD}試合・シールド${gS}試合）でまるごと解説します。
-最強の色の組み合わせとデッキの速さ、狙い目の色、ボムのレア10枚、罠なレアカード、色別のおすすめコモン・アンコモン、強い除去、入れてはいけないカードまで。
+最強の色の組み合わせとデッキの速さ、狙い目の色、ボムのレア10枚、罠なレアカード、色別のおすすめコモン・アンコモン、強い除去まで。
 
 ▼ 目次
 ${chapters.map(c => `${ts(c.at)} ${c.title}`).join("\n")}
