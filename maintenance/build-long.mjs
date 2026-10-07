@@ -454,27 +454,25 @@ function paceChart(x0, x1, title, rows, color, tag){
 function sceneSvg(sc){
   switch(sc.kind){
     case "hook": {
-      // サムネイルを兼ねる：左に大きな縁取り文字、右にカードの絵。左から暗くして文字を読みやすくする
-      const parts = String(sc.title).includes(" ") ? String(sc.title).split(/\s+/) : [sc.title];
-      // 文字の大きさは、横幅（左半分）と、縦に収まる高さ（下の字幕に掛からない）の両方から決める
-      const sz = Math.min(150, Math.floor(860 / Math.max(...parts.map(p => [...p].length), 4)), Math.floor(340 / (1.12 * parts.length)));
-      let y = 390, titleSvg = "";
-      for(const l of parts){ titleSvg += TS(90, y, l, { size: sz, fill: "#FFD23F" }); y += Math.round(sz * 1.12); }
+      // サムネイルを兼ねる。上：ロゴとセット名を横いっぱいに1行で大きく／左下：リミテッド完全ガイド／右下：勝率の高いボム3枚を大きく。
+      // 下の字幕（y=900〜）は動画のときだけ出る。画面の下端の説明文は入れない
+      const title = String(sc.title).replace(/\s+/g, " ");
+      const sz = Math.min(190, Math.floor(1800 / Math.max([...title].length, 6)));
+      const cards = (sc.cards && sc.cards.length ? sc.cards.slice(0, 3) : []);
+      const CW = 350, CH = 488, step = 320, cx0 = W - 80 - (CW + step * (cards.length - 1));
       return frame(
-        `<defs><linearGradient id="gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#050B14" stop-opacity="0.93"/><stop offset="0.62" stop-color="#050B14" stop-opacity="0.8"/><stop offset="1" stop-color="#050B14" stop-opacity="0.05"/></linearGradient></defs>
+        `<defs><linearGradient id="gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#050B14" stop-opacity="0.93"/><stop offset="0.62" stop-color="#050B14" stop-opacity="0.8"/><stop offset="1" stop-color="#050B14" stop-opacity="0.25"/></linearGradient></defs>
          <rect x="0" y="0" width="${W}" height="${H}" fill="url(#gl)"/>` +
-        // 左上：MTGアリーナのロゴ（short/logo/arena.png があれば）。無ければ文字で。その下に「リミテッド完全ガイド」
-        (sc.arenaLogo ? `<image href="${sc.arenaLogo}" x="82" y="14" width="380" height="133" preserveAspectRatio="xMinYMid meet"/>` + TS(90, 245, "リミテッド完全ガイド", { size: 84 })
-                      : T(90, 112, "MTGアリーナ リミテッド", { size: 52, weight: 900, fill: "#FFFFFF" }) + TS(90, 235, "完全ガイド", { size: 100 })) +
-        titleSvg +
-        `<rect x="90" y="${y - 60}" width="720" height="110" rx="55" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
-        T(450, y + 20, "ドラフト＋シールド環境", { size: 58, weight: 900, anchor: "middle", fill: "#06101C" }) +
-        TS(90, y + 130, "ボム10枚 ・ 罠カード ・ 除去", { size: 60 }) +
-        // 右：勝率の高いボムを3枚、少し傾けて並べる（拡大した絵ではなく、カードそのものを見せて、何の動画かを分かるようにする）
-        (sc.cards && sc.cards.length ? sc.cards.slice(0, 3).map((c, i, a) => {
-          const CW = 310, CH = 432, x = 1000 + i * 285, yy = 290 + (i === 1 ? -30 : 0), rot = (i - (a.length - 1) / 2) * 5;
+        (sc.arenaLogo ? `<image href="${sc.arenaLogo}" x="82" y="14" width="400" height="140" preserveAspectRatio="xMinYMid meet"/>` : T(90, 110, "MTGアリーナ", { size: 64, weight: 900, fill: "#FFFFFF" })) +
+        TS(90, 340, title, { size: sz, fill: "#FFD23F" }) +
+        TS(90, 540, "リミテッド", { size: 120 }) + TS(90, 670, "完全ガイド", { size: 120 }) +
+        `<rect x="90" y="720" width="680" height="104" rx="52" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
+        T(430, 790, "ドラフト＋シールド環境", { size: 54, weight: 900, anchor: "middle", fill: "#06101C" }) +
+        // 右下：勝率の高いボム。拡大した絵ではなく、カードそのものを少し傾けて並べる
+        cards.map((c, i) => {
+          const x = cx0 + i * step, yy = 395 + (i === 1 ? -26 : 0), rot = (i - (cards.length - 1) / 2) * 4;
           return `<g transform="rotate(${rot} ${x + CW / 2} ${yy + CH / 2})"><rect x="${x + 8}" y="${yy + 12}" width="${CW}" height="${CH}" rx="18" fill="#000" opacity="0.45"/>${cardImg(c, x, yy, CW, CH)}</g>`;
-        }).join("") : ""), sc, { header: false });
+        }).join(""), sc, { header: false });
     }
     case "agenda": {
       let s = T(W / 2, 185, "この動画の流れ", { size: 52, weight: 900, anchor: "middle" });
