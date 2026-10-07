@@ -222,6 +222,18 @@ function buildScript(ctx){
   /* --- 上位3つ＋最弱の深堀り --- */
   // 鍵になるカード：レアは引きにくいので、コモンとアンコモンだけで選ぶ。2色のどちらのカードも入れる
   //   （各色の単色カードの最上位を1枚ずつ → 残りを、勝率の高い順に、2色の取り合わせで埋める。合計4枚）
+  // コモンを最低1枚は入れる（アンコモンだけだと「それは強いだろう」と思われるため）。入っていなければ、勝率の最も高いコモンを入れ、いちばん勝率の低い1枚と入れ替える
+  //   （2色の両方のカードを入れる決まりは保つ。コモンが1枚も無いときだけ、そのまま）
+  const withCommon = (picked, list, n, keepColors = []) => {
+    if(picked.some(c => c.rarity === "common")) return picked;
+    const com = list.find(c => c.rarity === "common" && !picked.includes(c));
+    if(!com) return picked;
+    const out = picked.slice(0, n), cover = col => out.filter(c => c.color === col).length;
+    const drop = [...out].sort((a, b) => a.pg - b.pg).find(c => !keepColors.includes(c.color) || cover(c.color) > 1) || out[out.length - 1];
+    if(out.length < n){ out.push(com); return out; }
+    out[out.indexOf(drop)] = com;
+    return out;
+  };
   const keyCards = (pair, n = 4) => {
     const [A, B] = [...pair];
     const inPair = c => !!c.color && [...c.color].every(ch => pair.includes(ch));   // 無色は入れない。相手の2色に入っていない色のカード（タッチで入る他の色）も除く
@@ -231,7 +243,7 @@ function buildScript(ctx){
     for(const col of [A, B]){ const c = list.find(x => x.color === col && !picked.includes(x)); if(c) picked.push(c); }
     for(const c of list){ if(picked.length >= n) break; if(!picked.includes(c)) picked.push(c); }
     const cols = c => c.color === A ? A : c.color === B ? B : "";
-    return picked.slice(0, n).sort((x, y) => y.pg - x.pg).map(c => ({ ...c, label: J(c.name), side: cols(c) }));
+    return withCommon(picked.slice(0, n), list, n, [A, B]).sort((x, y) => y.pg - x.pg).map(c => ({ ...c, label: J(c.name), side: cols(c) }));
   };
   // 勝ちにくい組み合わせでは、2色のうち「弱いほうの色」のカードから選ぶ（強い色のカードを紹介すると、勝てない理由と合わなくなる）
   //   弱い色の単色カードを勝率の高い順に。足りなければ、2色のカード（その弱い色を含む）で埋める
@@ -245,7 +257,7 @@ function buildScript(ctx){
       .map(c => ({ ...c, pg: c.by_pair[pair][0], pgames: c.by_pair[pair][1] })).sort((x, y) => y.pg - x.pg);
     const picked = [...list.filter(c => c.color === weak).slice(0, n)];
     for(const c of list){ if(picked.length >= n) break; if(!picked.includes(c)) picked.push(c); }
-    return picked.sort((x, y) => y.pg - x.pg).map(c => ({ ...c, label: J(c.name), side: c.color === weak ? weak : "" }));
+    return withCommon(picked.slice(0, n), list, n, [weak]).sort((x, y) => y.pg - x.pg).map(c => ({ ...c, label: J(c.name), side: c.color === weak ? weak : "" }));
   };
   // 鍵になるカードを、色ごとに言い分けた一文にする
   // 鍵になるカードの言い方。コモン・アンコモンで集めやすい、という説明は最初の1回だけ丁寧に言い、2回目以降は言い回しを変えて、くり返しに聞こえないようにする
