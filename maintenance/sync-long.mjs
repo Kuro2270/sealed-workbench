@@ -88,6 +88,22 @@ for(const v of vs.sort((a, b) => String(a.snippet.publishedAt).localeCompare(Str
   console.log(`登録しました: ${set} ${v.id}（目次 ${long[set].ja.chapters.length} 件）${title}`);
   changed++;
 }
+/* この動画に、呼びかけのコメントがすでにあるか。あれば true、無ければ false、一覧を読めなければ null。
+   文面の決まった部分（「お気に入りのカードや、うまくいったコンボ」）で判定するので、手で付けたものも見つかる */
+const CALL_KEY = "お気に入りのカードや、うまくいったコンボ";
+async function hasCall(videoId){
+  try{
+    let page = "";
+    for(let i = 0; i < 3; i++){
+      const j = await yt(`commentThreads?part=snippet&maxResults=100&order=time&textFormat=plainText&videoId=${encodeURIComponent(videoId)}${page}`);
+      if((j.items || []).some(t => String(((t.snippet || {}).topLevelComment || {}).snippet && t.snippet.topLevelComment.snippet.textOriginal || "").includes(CALL_KEY))) return true;
+      if(!j.nextPageToken) return false;
+      page = `&pageToken=${encodeURIComponent(j.nextPageToken)}`;
+    }
+    return false;
+  }catch(e){ return null; }
+}
+
 /* 呼びかけのコメント（まだ付けていない登録済みの長尺すべて）。コメントが付けられなくても、登録そのものは続ける */
 const callText = name => `${name ? name + "の" : ""}ドラフトやシールドで、お気に入りのカードや、うまくいったコンボはありますか？\n「このカードが思った以上に強かった」「この組み合わせで勝てた」など、一言だけでも大丈夫です。ぜひコメントで教えてください。`;
 for(const [S, ent] of Object.entries(long)){
@@ -97,6 +113,10 @@ for(const [S, ent] of Object.entries(long)){
   const pub = vs.find(x => x.id === v.id);
   if(pub && pub.status.privacyStatus !== "public") continue;                  // 公開になってから付ける
   const text = callText(titleName(v.title));
+  // 記録（comment2）が残っていなくても、YouTube 上にすでに同じ呼びかけがあれば、付けない（再実行や記録の取りこぼしで重複しないように）
+  const already = await hasCall(v.id);
+  if(already === true){ v.comment2 = true; changed++; console.log(`呼びかけのコメントは、すでに付いています: ${S} ${v.id}`); continue; }
+  if(already === null) console.log(`::warning::${S} ${v.id} のコメント一覧を読めなかったので、記録（comment2）だけで判断します。`);
   const r = await fetch(`${API}/youtube/v3/commentThreads?part=snippet`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify({ snippet: { videoId: v.id, topLevelComment: { snippet: { textOriginal: text } } } }) });
   if(r.ok){ v.comment2 = true; changed++; console.log(`呼びかけのコメントを付けました: ${S} ${v.id}`); }
