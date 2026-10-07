@@ -233,6 +233,20 @@ function buildScript(ctx){
     const cols = c => c.color === A ? A : c.color === B ? B : "";
     return picked.slice(0, n).sort((x, y) => y.pg - x.pg).map(c => ({ ...c, label: J(c.name), side: cols(c) }));
   };
+  // 勝ちにくい組み合わせでは、2色のうち「弱いほうの色」のカードから選ぶ（強い色のカードを紹介すると、勝てない理由と合わなくなる）
+  //   弱い色の単色カードを勝率の高い順に。足りなければ、2色のカード（その弱い色を含む）で埋める
+  const weakColorOf = pair => {
+    const [A, B] = [...pair], w = col => (monoD.find(c => c.color === col) || {}).wr;
+    return (w(A) ?? 1) <= (w(B) ?? 1) ? A : B;
+  };
+  const keyCardsWeak = (pair, weak, n = 4) => {
+    const inPair = c => !!c.color && [...c.color].every(ch => pair.includes(ch)) && c.color.includes(weak);
+    const list = rd.cards.filter(c => !c.land && inPair(c) && (c.rarity === "common" || c.rarity === "uncommon") && c.by_pair && c.by_pair[pair] && c.by_pair[pair][1] >= 250)
+      .map(c => ({ ...c, pg: c.by_pair[pair][0], pgames: c.by_pair[pair][1] })).sort((x, y) => y.pg - x.pg);
+    const picked = [...list.filter(c => c.color === weak).slice(0, n)];
+    for(const c of list){ if(picked.length >= n) break; if(!picked.includes(c)) picked.push(c); }
+    return picked.sort((x, y) => y.pg - x.pg).map(c => ({ ...c, label: J(c.name), side: c.color === weak ? weak : "" }));
+  };
   // 鍵になるカードを、色ごとに言い分けた一文にする
   // 鍵になるカードの言い方。コモン・アンコモンで集めやすい、という説明は最初の1回だけ丁寧に言い、2回目以降は言い回しを変えて、くり返しに聞こえないようにする
   let keyN = 0;
@@ -259,7 +273,8 @@ function buildScript(ctx){
   };
   const deep = (p, i, kind) => {
     const share = p.games / totalPG, avgShare = 1 / pairsD.length;
-    const ks = keyCards(p.pair);
+    const weak = kind === "worst" ? weakColorOf(p.pair) : null;
+    const ks = kind === "worst" ? keyCardsWeak(p.pair, weak) : keyCards(p.pair);
     const sealedWr = (pairsS.find(x => x.pair === p.pair) || {}).wr;
     const ordinal = ["一番", "二番目に", "三番目に"][i];
     const sleeperSay = () => {
@@ -269,9 +284,9 @@ function buildScript(ctx){
         `カードの取り合いになりにくいので、強い色が流れてこないときの、狙い目です。` + keySay(ks, p.pair) + (sealedWr != null ? `シールドの勝率は${pt(sealedWr)}パーセントです。` : "");
     };
     const say = kind === "sleeper" ? sleeperSay() : kind === "worst"
-      ? `反対に、一番勝ちにくいのは${pairName(p.pair)}で、勝率${pt(p.wr)}パーセント。` + (ks.length ? `それでも、${ks[0].label}のように、この色で光るカードはあります。` : "") + `カードが流れてきた、という理由がなければ、無理に目指さなくて大丈夫です。`
+      ? `反対に、一番勝ちにくいのは${pairName(p.pair)}で、勝率${pt(p.wr)}パーセント。` + (ks.length ? `それでも、${CJ[weak]}の「${ks[0].label}」のように、この組み合わせで光るカードはあります。` : "") + `カードが流れてきた、という理由がなければ、無理に目指さなくて大丈夫です。`
       : `${ordinal}強い${pairName(p.pair)}。ドラフトの勝率は${pt(p.wr)}パーセントで、使われているのは全体の${Math.round(share * 100)}パーセントです。` + keySay(ks, p.pair) + (sealedWr != null ? `シールドの勝率は${pt(sealedWr)}パーセントです。` : "");
-    return { kind: "deep", chapter: null, variant: kind, pair: p.pair, wr: p.wr, sealedWr, share, avgShare, rank: rankD[p.pair], cards: ks, say, tail: 0.5 };
+    return { kind: "deep", chapter: null, variant: kind, weak, pair: p.pair, wr: p.wr, sealedWr, share, avgShare, rank: rankD[p.pair], cards: ks, say, tail: 0.5 };
   };
   // 上位3つの深堀り（狙い目に回るものは、そちらで紹介するので、ここでは飛ばす）。順位の言い方は、実際の順位から決める
   pairsD.slice(0, 3).forEach((p, i) => { if(!sleepers.includes(p)) scenes.push(deep(p, i, "top")); });
@@ -541,7 +556,7 @@ function sceneSvg(sc){
       s += T(90, 730, sc.sealedWr != null ? `シールド ${pt(sc.sealedWr)}%` : "シールド —", { size: 44, weight: 700, fill: GOLD });
       s += T(90, 800, `使用率 ${Math.round(sc.share * 100)}%（平均 ${Math.round(sc.avgShare * 100)}%）`, { size: 38, fill: sleeper ? GREEN : PAPER, weight: sleeper ? 900 : 400 });
       if(sc.cards.length){
-        s += T(740, 175, sc.variant === "sleeper" ? "狙える、コモン・アンコモン" : "この組み合わせで勝っている、コモン・アンコモン", { size: 38, fill: MUTED });
+        s += T(740, 175, sc.variant === "sleeper" ? "狙える、コモン・アンコモン" : worst && sc.weak ? `${CJ[sc.weak]}のカードで勝っている、コモン・アンコモン` : "この組み合わせで勝っている、コモン・アンコモン", { size: 38, fill: MUTED });
         const n = sc.cards.length, CW = 245, CH = 342, g = 28, x0 = 740;
         sc.cards.forEach((c, i) => {
           const x = x0 + i * (CW + g);
