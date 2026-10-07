@@ -461,13 +461,14 @@ function sceneSvg(sc){
       const cards = (sc.cards && sc.cards.length ? sc.cards.slice(0, 3) : []);
       const CW = 350, CH = 488, step = 320, cx0 = W - 80 - (CW + step * (cards.length - 1));
       return frame(
-        `<defs><linearGradient id="gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#050B14" stop-opacity="0.93"/><stop offset="0.62" stop-color="#050B14" stop-opacity="0.8"/><stop offset="1" stop-color="#050B14" stop-opacity="0.25"/></linearGradient></defs>
+        `<defs><linearGradient id="gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#050B14" stop-opacity="${sc.artMode === "key" ? 0.72 : 0.84}"/><stop offset="0.55" stop-color="#050B14" stop-opacity="${sc.artMode === "key" ? 0.38 : 0.55}"/><stop offset="1" stop-color="#050B14" stop-opacity="0"/></linearGradient></defs>
          <rect x="0" y="0" width="${W}" height="${H}" fill="url(#gl)"/>` +
         (sc.arenaLogo ? `<image href="${sc.arenaLogo}" x="82" y="14" width="400" height="140" preserveAspectRatio="xMinYMid meet"/>` : T(90, 110, "MTGアリーナ", { size: 64, weight: 900, fill: "#FFFFFF" })) +
-        TS(90, 340, title, { size: sz, fill: "#FFD23F" }) +
-        TS(90, 540, "リミテッド", { size: 120 }) + TS(90, 670, "完全ガイド", { size: 120 }) +
-        `<rect x="90" y="720" width="680" height="104" rx="52" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
-        T(430, 790, "ドラフト＋シールド環境", { size: 54, weight: 900, anchor: "middle", fill: "#06101C" }) +
+        (sc.setLogo ? `<image href="${sc.setLogo}" x="82" y="152" width="1100" height="248" preserveAspectRatio="xMinYMid meet"/>`
+                    : TS(90, 340, title, { size: sz, fill: "#FFD23F" })) +
+        TS(90, 590, "リミテッド", { size: 120 }) + TS(90, 718, "完全ガイド", { size: 120 }) +
+        `<rect x="90" y="764" width="680" height="100" rx="50" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
+        T(430, 832, "ドラフト＋シールド環境", { size: 54, weight: 900, anchor: "middle", fill: "#06101C" }) +
         // 右下：勝率の高いボム。拡大した絵ではなく、カードそのものを少し傾けて並べる
         cards.map((c, i) => {
           const x = cx0 + i * step, yy = 395 + (i === 1 ? -26 : 0), rot = (i - (cards.length - 1) / 2) * 4;
@@ -756,6 +757,11 @@ async function main(){
   const commonRem = removal ? rd.cards.filter(c => c.rarity === "common" && removal.names.includes(c.name) && c.games >= 1500).sort((a, b) => b.gih - a.gih)[0] : null;
   const ctx = { dd, ds, rd, rs, nm, nameJa, removal, topRemoval: commonRem ? { ...commonRem, label: (nm.names || {})[commonRem.name] || commonRem.name } : null };
   const scenes = buildScript(ctx);
+  {  // セット名のロゴ（ショートと同じ short/logo/<SET>.png。置いてあれば、セット名の文字の代わりに使う）
+    const lb = await readFile(`short/logo/${SET}.png`).catch(() => null);
+    if(lb && scenes[0] && scenes[0].kind === "hook"){ scenes[0].setLogo = "data:image/png;base64," + lb.toString("base64"); console.error(`セットのロゴ: short/logo/${SET}.png`); }
+    else console.error(`セットのロゴ: 無し（short/logo/${SET}.png を置けば使います。今回は文字で出す）`);
+  }
   if(arenaBuf && scenes[0] && scenes[0].kind === "hook") scenes[0].arenaLogo = "data:image/png;base64," + arenaBuf.toString("base64");
   // 図に使う追加情報
   const pairsS = pairRows(ds), sealedMap = Object.fromEntries(pairsS.map(p => [p.pair, p.wr]));
@@ -774,20 +780,41 @@ async function main(){
   }catch(e){}
   const outro = scenes.find(sc => sc.kind === "outro"); if(outro && bgmCredit) outro.bgmCredit = bgmCredit;
 
-  // 背景アート（冒頭・締め）：勝率上位のレア
-  let artPath = null;
+  // 背景アート（冒頭・締め）：勝率上位のレア3枚の絵を縦に並べて、1枚の背景にする（取れた枚数だけ）
+  let artPath = null, artMode = "blur";
   {
-    const cands = rd.cards.filter(c => c.rarity === "mythic" || c.rarity === "rare").sort((a, b) => b.gih - a.gih);
-    for(const c of cands){
-      const url = (nm.images || {})[c.name]; if(!url) continue;
-      try{
-        const r = await fetch(url.replace("/normal/", "/art_crop/"), { headers: UA }); if(!r.ok) continue;
-        artPath = `${OUT}/art.jpg`; await writeFile(artPath, Buffer.from(await r.arrayBuffer())); console.error(`背景アート: ${c.name}`); break;
-      }catch(e){}
+    const bufs = [];
+    if(process.env.LONG_TEST_ARTS){ for(const f of process.env.LONG_TEST_ARTS.split(",")) bufs.push(await readFile(f)); }   // レイアウト確認用
+    else{
+      const cands = rd.cards.filter(c => c.rarity === "mythic" || c.rarity === "rare").sort((a, b) => b.gih - a.gih);
+      for(const c of cands){
+        if(bufs.length >= 3) break;
+        const url = (nm.images || {})[c.name]; if(!url) continue;
+        try{
+          const r = await fetch(url.replace("/normal/", "/art_crop/"), { headers: UA }); if(!r.ok) continue;
+          bufs.push(Buffer.from(await r.arrayBuffer())); console.error(`背景アート: ${c.name}`);
+        }catch(e){}
+      }
     }
-    if(!artPath && await readFile(`${OUT}/art.jpg`).then(() => true, () => false)) artPath = `${OUT}/art.jpg`;
-    if(!artPath) console.error("背景アート: 取得できず");
+    if(bufs.length){
+      const n = bufs.length, pw = Math.ceil(W / n);
+      const panels = await Promise.all(bufs.map(b => sharp(b).resize(pw, H, { fit: "cover", position: "attention" }).modulate({ saturation: 1.15 }).toBuffer()));
+      artPath = `${OUT}/art.jpg`;
+      await sharp({ create: { width: W, height: H, channels: 3, background: "#0A2038" } })
+        .composite(panels.map((input, i) => ({ input, left: i * pw, top: 0 }))).jpeg({ quality: 92 }).toFile(artPath);
+      artMode = "collage";
+    }else if(await readFile(`${OUT}/art.jpg`).then(() => true, () => false)){ artPath = `${OUT}/art.jpg`; artMode = "collage"; }
+    else console.error("背景アート: 取得できず");
   }
+  // 公式のキーアート（置いてあれば、冒頭・締めの背景にぼかさず大きく使う）：short/bg/<セットコード>.jpg（png・webp も可）
+  let keyArt = false;     // 公式の絵を置いたとき true
+  for(const ext of ["jpg", "jpeg", "png", "webp"]){
+    const f = `short/bg/${SET}.${ext}`;
+    if(await readFile(f).then(() => true, () => false)){ artPath = f; keyArt = true; console.error(`背景：公式のキーアート ${f}`); break; }
+  }
+  if(keyArt) artMode = "key";
+  if(scenes[0]) scenes[0].artMode = artMode;
+  if(!keyArt) console.error(`背景：勝率上位のカードの絵を並べて使う（公式の絵に替えるなら short/bg/${SET}.jpg を置く）`);
 
   // カード画像：全場面で使うカードを一度だけ取って使い回す
   const imgCache = new Map();
@@ -844,7 +871,7 @@ async function main(){
     const useArt = sc.art && artPath;
     const first = useArt ? ["-loop", "1", "-framerate", "30", "-i", artPath] : HAS_BG ? ["-stream_loop", "-1", "-ss", (total % bgDur).toFixed(2), "-i", BG] : ["-f", "lavfi", "-i", `color=c=0x0A2038:s=${W}x${H}:r=30`];
     const bgFilter = useArt
-      ? `[0:v]scale=${W * 2}:${H * 2}:force_original_aspect_ratio=increase,crop=${W * 2}:${H * 2},zoompan=z='1+0.04*on/${N}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${N}:s=${W}x${H}:fps=30,eq=saturation=0.8,gblur=sigma=${sc.kind === "hook" ? 14 : 6}[b0];color=c=0x0A2038@${sc.kind === "hook" ? 0.45 : 0.5}:s=${W}x${H}:r=30[tint];[b0][tint]overlay=shortest=1[bg]`
+      ? `[0:v]scale=${W * 2}:${H * 2}:force_original_aspect_ratio=increase,crop=${W * 2}:${H * 2},zoompan=z='1+0.04*on/${N}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${N}:s=${W}x${H}:fps=30,eq=saturation=${sc.kind === "hook" ? 1.05 : 0.9},gblur=sigma=${sc.kind === "hook" ? (artMode === "key" ? 0.6 : 1.5) : 7}[b0];color=c=0x0A2038@${sc.kind === "hook" ? (artMode === "key" ? 0.12 : 0.18) : 0.5}:s=${W}x${H}:r=30[tint];[b0][tint]overlay=shortest=1[bg]`
       : HAS_BG
         ? `[0:v]fps=30,scale=iw*sar:ih,setsar=1,scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},eq=saturation=0.7,gblur=sigma=5,setsar=1[b0];color=c=0x0A2038@0.6:s=${W}x${H}:r=30[tint];[b0][tint]overlay=shortest=1[bg]`
         : `[0:v]null[bg]`;
@@ -894,7 +921,7 @@ ${bgmCredit ? `BGM: ${bgmCredit}\n` : ""}Unofficial Fan Content permitted under 
   // サムネイル（冒頭の場面。字幕の入る前の画面を、カードの絵に重ねる）
   try{
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...(artPath ? ["-loop", "1", "-i", artPath] : ["-ss", "2.0", "-i", `${OUT}/ja.mp4`]), "-i", `${OUT}/scene-0.png`, "-filter_complex",
-      `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1,gblur=sigma=14,eq=brightness=-0.08[b];[1:v]scale=${W}:${H},format=rgba[f];[b][f]overlay=shortest=1`, "-frames:v", "1", "-q:v", "2", `${OUT}/thumbnail.jpg`]);
+      `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1,gblur=sigma=${artMode === "key" ? 0.6 : 1.5},eq=brightness=0[b];[1:v]scale=${W}:${H},format=rgba[f];[b][f]overlay=shortest=1`, "-frames:v", "1", "-q:v", "2", `${OUT}/thumbnail.jpg`]);
   }catch(e){}
   console.error(`\n${OUT}/ja.mp4  合計 ${ts(total)}（${total.toFixed(0)} 秒）`);
 }
