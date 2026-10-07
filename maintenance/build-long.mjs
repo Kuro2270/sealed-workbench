@@ -166,10 +166,10 @@ function buildScript(ctx){
 
   /* --- 冒頭 --- */
   scenes.push({ kind: "hook", art: true, chapter: "はじめに",
-    say: `MTGアリーナ、リミテッドの${nameJa}環境を、${man(gamesD + gamesS)}試合のデータでまるごと解説します。最強の色の組み合わせ、迷わず取っていいボムのレア十枚、見た目に反して勝てない罠のカード、そして、コモンとアンコモンの強い除去まで。ドラフトとシールドの両方のデータで見ていきます。`,
+    say: `MTGアリーナ、リミテッドの${nameJa}環境を、${man(gamesD + gamesS)}試合のデータでまるごと解説します。最強の色の組み合わせ、迷わず取っていいボムのレア十枚、見た目に反して勝てない罠なレアカード、そして、コモンとアンコモンの強い除去まで。ドラフトとシールドの両方のデータで見ていきます。`,
     title: nameJa, gamesD, gamesS, tail: 0.6 });
-  scenes.push({ kind: "agenda", say: `順番に、環境の速さ、色の組み合わせ、ボム、罠、除去まで見ていきます。`,
-    items: ["環境の速さ", "色の強さ", "色の組み合わせ", "狙い目の色", "ドラフトとシールドの違い", "ボムのレア10枚", "罠のカード", "コモンの除去", "アンコモンの除去"], tail: 0.4 });
+  scenes.push({ kind: "agenda", say: `順番に、環境の速さ、色の組み合わせ、ボム、罠なレアカード、除去まで見ていきます。`,
+    items: ["環境の速さ", "色の強さ", "色の組み合わせ", "狙い目の色", "ドラフトとシールドの違い", "ボムのレア10枚", "罠なレアカード", "除去（コモン・アンコモン）"], tail: 0.4 });
 
   /* --- 速さ --- */
   const paceRows = d => (d.speed || []).filter(s => s.wr != null && s.games).map((s, i, a) => ({
@@ -341,8 +341,8 @@ function buildScript(ctx){
       return { ...c, label: J(c.name), sGih: s && s.games >= 300 ? s.gih : null };
     });
   if(traps.length >= 3){
-    scenes.push({ kind: "traps", chapter: "罠のカード", cards: traps, avgD, rareAvg,
-      say: `次は、罠のカード。レアなのに、引いた試合の勝率がレア全体の平均より低いものです。レアの平均は${pt(rareAvg)}パーセント。` +
+    scenes.push({ kind: "traps", chapter: "罠なレアカード", cards: traps, avgD, rareAvg,
+      say: `次は、罠なレアカード。レアなのに、引いた試合の勝率がレア全体の平均より低いものです。レアの平均は${pt(rareAvg)}パーセント。` +
            traps.map((c, i) => `${c.label}は${pt(c.gih)}パーセント。`).join("") +
            `弱いカードという意味ではなく、デッキに入れて、うまく使えていないことが多い、ということです。ほかに強いカードがあるなら、無理に使わなくていいです。`, tail: 0.6 });
   }
@@ -364,9 +364,10 @@ function buildScript(ctx){
     return { kind: "removal", chapter, rarity, jp, cards: rem, avgD, commonAvg: avg,
       say: intro + why + rem.map(c => `${c.rank}位、${c.label}、${pt(c.gih)}パーセント。`).join("") + `${jp}全体の平均が${pt(avg)}パーセントです。` + tail, tail: 0.6 };
   };
-  const remC = remScene("common", "コモン", "コモン除去の強さ順"), remU = remScene("uncommon", "アンコモン", "アンコモン除去の強さ順");
+  const remC = remScene("common", "コモン", "除去の強さ順"), remU = remScene("uncommon", "アンコモン", "除去の強さ順");
+  // 章は1つにまとめる（目次には、最初のほうだけ出る）
   if(remC) scenes.push(remC);
-  if(remU) scenes.push(remU);
+  if(remU){ if(remC) remU.chapter = null; scenes.push(remU); }
 
   /* --- まとめ --- */
   {
@@ -598,7 +599,7 @@ function sceneSvg(sc){
       return frame(s, sc);
     }
     case "traps": {
-      let s = T(80, 175, `罠のカード（レア全体の平均 ${pt(sc.rareAvg)}% より低いレア）`, { size: 38, fill: MUTED });
+      let s = T(80, 175, `罠なレアカード（レア全体の平均 ${pt(sc.rareAvg)}% より低いレア）`, { size: 38, fill: MUTED });
       s += cardRow(sc.cards.map((c, i) => ({ ...c, rank: i + 1 })), c => [
         { t: `ドラフト ${pt(c.gih)}%`, size: 40, w: 900, fill: DOWN },
         { t: `レア平均より ${sgn(c.gih - sc.rareAvg)}pt`, size: 30, fill: DOWN },
@@ -951,10 +952,10 @@ async function main(){
   const ts = s => { const m = Math.floor(s / 60), r = Math.floor(s % 60); return `${m}:${String(r).padStart(2, "0")}`; };
   await writeFile(`${OUT}/chapters.txt`, chapters.map(c => `${ts(c.at)} ${c.title}`).join("\n") + "\n", "utf8");
   const gD = man(dd.total_games), gS = man(ds.total_games);
-  await writeFile(`${OUT}/title.txt`, `【${nameJa}】環境まとめ｜強い色・狙い目の色・ボム10枚・罠カード・除去【MTGアリーナ リミテッド】`, "utf8");   // YouTube に上げるときの題
+  await writeFile(`${OUT}/title.txt`, `【${nameJa}】環境まとめ｜強い色・狙い目の色・ボム10枚・罠なレアカード・除去【MTGアリーナ リミテッド】`, "utf8");   // YouTube に上げるときの題
   await writeFile(`${OUT}/description.txt`,
 `MTGアリーナ、リミテッドの${nameJa}環境を、17Landsの実戦データ（ドラフト${gD}試合・シールド${gS}試合）でまるごと解説します。
-最強の色の組み合わせ、狙い目の色、ボムのレア10枚、罠のカード、コモンとアンコモンの強い除去まで。
+最強の色の組み合わせ、狙い目の色、ボムのレア10枚、罠なレアカード、コモンとアンコモンの強い除去まで。
 
 ▼ 目次
 ${chapters.map(c => `${ts(c.at)} ${c.title}`).join("\n")}
