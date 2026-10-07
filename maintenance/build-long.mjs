@@ -445,7 +445,7 @@ function sceneSvg(sc){
       // サムネイルを兼ねる：左に大きな縁取り文字、右にカードの絵。左から暗くして文字を読みやすくする
       const parts = String(sc.title).includes(" ") ? String(sc.title).split(/\s+/) : [sc.title];
       // 文字の大きさは、横幅（左半分）と、縦に収まる高さ（下の字幕に掛からない）の両方から決める
-      const sz = Math.min(150, Math.floor(900 / Math.max(...parts.map(p => [...p].length), 4)), Math.floor(340 / (1.12 * parts.length)));
+      const sz = Math.min(150, Math.floor(860 / Math.max(...parts.map(p => [...p].length), 4)), Math.floor(340 / (1.12 * parts.length)));
       let y = 390, titleSvg = "";
       for(const l of parts){ titleSvg += TS(90, y, l, { size: sz, fill: "#FFD23F" }); y += Math.round(sz * 1.12); }
       return frame(
@@ -459,9 +459,9 @@ function sceneSvg(sc){
         TS(90, y + 115, "ボム10枚 ・ 罠カード ・ 除去", { size: 60 }) +
         // 右：勝率の高いボムを3枚、少し傾けて並べる（拡大した絵ではなく、カードそのものを見せて、何の動画かを分かるようにする）
         (sc.cards && sc.cards.length ? sc.cards.slice(0, 3).map((c, i, a) => {
-          const CW = 280, CH = 390, x = 1060 + i * 270, yy = 250 + (i === 1 ? -24 : 0), rot = (i - (a.length - 1) / 2) * 5;
-          return `<g transform="rotate(${rot} ${x + CW / 2} ${yy + CH / 2})"><rect x="${x + 6}" y="${yy + 10}" width="${CW}" height="${CH}" rx="16" fill="#000" opacity="0.45"/>${cardImg(c, x, yy, CW, CH)}</g>`;
-        }).join("") + T(1475, 760, "データで選んだ 勝率トップのボム", { size: 36, weight: 700, anchor: "middle", fill: "#FFFFFF" }) : ""), sc, { header: false });
+          const CW = 310, CH = 432, x = 1000 + i * 285, yy = 290 + (i === 1 ? -30 : 0), rot = (i - (a.length - 1) / 2) * 5;
+          return `<g transform="rotate(${rot} ${x + CW / 2} ${yy + CH / 2})"><rect x="${x + 8}" y="${yy + 12}" width="${CW}" height="${CH}" rx="18" fill="#000" opacity="0.45"/>${cardImg(c, x, yy, CW, CH)}</g>`;
+        }).join("") : ""), sc, { header: false });
     }
     case "agenda": {
       let s = T(W / 2, 185, "この動画の流れ", { size: 52, weight: 900, anchor: "middle" });
