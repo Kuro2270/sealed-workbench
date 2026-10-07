@@ -444,18 +444,19 @@ function sceneSvg(sc){
     case "hook": {
       // サムネイルを兼ねる：左に大きな縁取り文字、右にカードの絵。左から暗くして文字を読みやすくする
       const parts = String(sc.title).includes(" ") ? String(sc.title).split(/\s+/) : [sc.title];
-      const sz = Math.min(190, Math.floor(900 / Math.max(...parts.map(p => [...p].length), 4)));
-      let y = 430, titleSvg = "";
+      // 文字の大きさは、横幅（左半分）と、縦に収まる高さ（下の字幕に掛からない）の両方から決める
+      const sz = Math.min(150, Math.floor(900 / Math.max(...parts.map(p => [...p].length), 4)), Math.floor(340 / (1.12 * parts.length)));
+      let y = 390, titleSvg = "";
       for(const l of parts){ titleSvg += TS(90, y, l, { size: sz, fill: "#FFD23F" }); y += Math.round(sz * 1.12); }
       return frame(
         `<defs><linearGradient id="gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#050B14" stop-opacity="0.93"/><stop offset="0.62" stop-color="#050B14" stop-opacity="0.8"/><stop offset="1" stop-color="#050B14" stop-opacity="0.05"/></linearGradient></defs>
          <rect x="0" y="0" width="${W}" height="${H}" fill="url(#gl)"/>` +
-        T(90, 128, "MTGアリーナ リミテッド", { size: 56, weight: 900, fill: "#FFFFFF" }) +
-        TS(90, 262, "完全ガイド", { size: 110 }) +
+        T(90, 112, "MTGアリーナ リミテッド", { size: 52, weight: 900, fill: "#FFFFFF" }) +
+        TS(90, 235, "完全ガイド", { size: 100 }) +
         titleSvg +
-        `<rect x="90" y="${y - 40}" width="760" height="130" rx="65" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
-        T(470, y + 50, "ドラフト＋シールド環境", { size: 64, weight: 900, anchor: "middle", fill: "#06101C" }) +
-        TS(90, y + 195, "ボム10枚 ・ 罠カード ・ 除去", { size: 66 }) +
+        `<rect x="90" y="${y - 75}" width="720" height="110" rx="55" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
+        T(450, y + 5, "ドラフト＋シールド環境", { size: 58, weight: 900, anchor: "middle", fill: "#06101C" }) +
+        TS(90, y + 115, "ボム10枚 ・ 罠カード ・ 除去", { size: 60 }) +
         // 右：勝率の高いボムを3枚、少し傾けて並べる（拡大した絵ではなく、カードそのものを見せて、何の動画かを分かるようにする）
         (sc.cards && sc.cards.length ? sc.cards.slice(0, 3).map((c, i, a) => {
           const CW = 280, CH = 390, x = 1060 + i * 270, yy = 250 + (i === 1 ? -24 : 0), rot = (i - (a.length - 1) / 2) * 5;
@@ -494,7 +495,7 @@ function sceneSvg(sc){
       return frame(s, sc);
     }
     case "pairs": {
-      let s = T(80, 175, "2色の組み合わせ 勝率（試合数の多いもの）", { size: 40, fill: MUTED }) + `<rect x="1380" y="140" width="22" height="22" rx="4" fill="${UP}"/>` + T(1412, 160, "ドラフト", { size: 28, fill: MUTED }) +
+      let s = T(80, 175, "2色の組み合わせ 勝率（高い順）", { size: 40, fill: MUTED }) + `<rect x="1380" y="140" width="22" height="22" rx="4" fill="${UP}"/>` + T(1412, 160, "ドラフト", { size: 28, fill: MUTED }) +
               `<rect x="1580" y="144" width="22" height="14" rx="4" fill="${GOLD}"/>` + T(1612, 160, "シールド", { size: 28, fill: MUTED });
       const rows = sc.pairsD, sm = sc.sealedMap || {};
       const all = [...rows.map(r => r.wr * 100), ...rows.map(r => sm[r.pair]).filter(v => v != null).map(v => v * 100)];
@@ -507,6 +508,8 @@ function sceneSvg(sc){
         s += pairSymbols(r.pair, 120, y + 30, 50) + T(262, y + 52, pairName(r.pair), { size: 44, weight: 900 });
         s += `<rect x="${bx0}" y="${y + 6}" width="${xv(r.wr * 100) - bx0}" height="34" rx="8" fill="${hot ? UP : cold ? DOWN : "#46698F"}"/>`;
         s += T(xv(r.wr * 100) + 16, y + 36, pt(r.wr) + "%", { size: 36, weight: 900 });
+        // 一番下の行は「勝ちにくい」のか、単に順位が低いだけなのか、見分けがつかないので、はっきり書く
+        if(cold) s += `<rect x="${xv(r.wr * 100) + 140}" y="${y + 3}" width="180" height="36" rx="18" fill="${DOWN}"/>` + T(xv(r.wr * 100) + 230, y + 31, "勝ちにくい", { size: 26, weight: 900, anchor: "middle", fill: "#1A0E02" });
         const sw = sm[r.pair];
         if(sw != null){
           s += `<rect x="${bx0}" y="${y + 46}" width="${xv(sw * 100) - bx0}" height="20" rx="6" fill="${GOLD}" opacity="0.85"/>`;
