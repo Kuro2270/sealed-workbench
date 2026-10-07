@@ -570,8 +570,11 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos, 
 <meta property="og:url" content="${canonical}">`;
   const header = `    <h1>${esc(T.h1(setDisplay))} <small class="code">${esc(code)}</small></h1>
     <p>${esc(T.lead)}${info.released_at ? `　${lang === "ja" ? "発売" : "Released"} ${esc(info.released_at)}` : ""}</p>`;
+  // 長尺があるセットは長尺だけを出す（環境レポートと同じ仕様）。ショートは長尺が無いときだけ
+  const hasLong = lang === "ja" && !!(long && long[code] && long[code].ja && long[code].ja.id);
+  const shortVideos = hasLong ? null : videos;
   const body = (modes.length ? longSection(lang, code, setDisplay, long) : "") + (modes.length
-    ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay, videos)).join("\n")
+    ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay, shortVideos)).join("\n")
     : `<p>${esc(T.none)}</p>`);
   const faqLd = { "@context": "https://schema.org", "@type": "FAQPage", inLanguage: lang,
     mainEntity: T.faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) };
