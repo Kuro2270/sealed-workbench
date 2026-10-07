@@ -335,25 +335,16 @@ function caption(say){
 
 /* ずんだもん（フード付き）。字幕の枠の右上に立たせる。情報の表示に重ならないよう、画面の右はしの空いたところに小さく置く。
    日本語の動画だけ（英語はずんだもんの声ではないため）。short/zunda-hoodie/ に素材があるときだけ出す。SHORT_ZUNDA=0 で出さない、=1 で英語にも出す */
-const ZDIR = (process.env.SHORT_ZUNDA_STYLE !== "normal" && existsSync("short/zunda-hoodie/open_open.png")) ? "short/zunda-hoodie" : "short/zunda", ZW = 250, ZH = 255;
+const ZDIR = (process.env.SHORT_ZUNDA_STYLE !== "normal" && existsSync("short/zunda-hoodie/open_open.png")) ? "short/zunda-hoodie" : "short/zunda", ZW = 220, ZH = 225;
 async function zundaReady(){
   if(process.env.SHORT_ZUNDA === "0" || (!JA && process.env.SHORT_ZUNDA !== "1")) return false;
   for(const e of ["open", "closed"]) for(const m of ["closed", "half", "open"])
     if(!(await readFile(`${ZDIR}/${e}_${m}.png`).then(() => true, () => false))) return false;
   return true;
 }
-/* 字幕の枠の上のふち。字幕が無い場面は null */
-function captionTop(say){
-  if(!say) return null;
-  const lines = wrap(say.replace(/パーセント/g, "%").replace(/ percent/g, "%"));
-  return H - SAFE_BOTTOM - 40 - (lines.length * 70 + 64);
-}
-function zundaPos(sc){
-  const top = captionTop(sc.say);
-  const bottom = top === null ? H - SAFE_BOTTOM - 40 : top + 16;      // 字幕の枠の上に、足もとが少し重なるように立つ
-  if(sc.kind === "hook") return { x: W - 24 - ZW, y: 1440 };      // 冒頭は「53万試合を分析」の文字の下に置く
-  return { x: W - 24 - ZW, y: bottom - ZH };
-}
+/* 位置は全場面で同じ（右はしの、字幕の枠のすぐ上）。場面ごとに動くと落ち着かないため。
+   この高さは、どの場面でも情報（色の一覧・カードの並び）より下で、いちばん行数の多い字幕の枠の上にほぼ収まる */
+function zundaPos(){ return { x: W - 24 - ZW, y: 1050 }; }
 // 音声の大きさから、1/15 秒ごとの口の形を決める
 function mouthStates(wavPath, len){
   const FPS = 15, n = Math.max(1, Math.ceil(len * FPS));
@@ -452,8 +443,8 @@ function sceneSvg(sc){
           const s1 = JA ? Math.min(150, Math.floor(1000 / l1)) : Math.min(116, Math.floor(1000 / (l1 * 0.58)));
           const s2 = JA ? Math.min(120, Math.floor(1000 / l2)) : Math.min(104, Math.floor(1000 / (l2 * 0.58)));
           const i = g.indexOf(n1), head = i >= 0 ? g.slice(0, i) : "", tail = i >= 0 ? g.slice(i + n1.length) : g;
-          return `<text x="${W / 2}" y="1290" font-size="${s1}" fill="#FFFFFF" font-weight="900" text-anchor="middle" stroke="#06101C" stroke-width="${Math.round(s1 * 0.16)}" stroke-linejoin="round" paint-order="stroke">${esc(head)}<tspan fill="#FFD23F">${esc(n1)}</tspan>${esc(tail)}</text>` +
-                 TS(W / 2, 1290 + Math.round(s2 * 1.35), UI.hookD2, { size: s2 });
+          return `<text x="${W / 2}" y="1420" font-size="${s1}" fill="#FFFFFF" font-weight="900" text-anchor="middle" stroke="#06101C" stroke-width="${Math.round(s1 * 0.16)}" stroke-linejoin="round" paint-order="stroke">${esc(head)}<tspan fill="#FFD23F">${esc(n1)}</tspan>${esc(tail)}</text>` +
+                 TS(W / 2, 1420 + Math.round(s2 * 1.35), UI.hookD2, { size: s2 });
         })(), null, { header: false });
     }
     case "intro": {
@@ -493,17 +484,17 @@ function sceneSvg(sc){
         s += symbol(c.color, x, cy, three ? 120 : 132);
         s += T(x, cy + 130, pt(c.wr) + "%", { size: 40, anchor: "middle", weight: i < 2 ? 900 : 400, fill: i < 2 ? PAPER : MUTED });
       });
-      const CH = three ? 184 : 210;
+      const CH = three ? 176 : 210;
       const card = (y, title, p, col, note) =>
         `<rect x="80" y="${y}" width="${W - 160}" height="${CH}" rx="28" fill="${DEEP}" fill-opacity="${HAS_BG ? 0.72 : 0.25}" stroke="${col}" stroke-width="4"/>` +
         T(120, y + 56, title, { size: three ? 30 : 34, fill: col, weight: 700 }) +
         pairSymbols(p.pair, 120, y + (three ? 112 : 128), three ? 84 : 96) +
         T(three ? 330 : 350, y + (three ? 140 : 160), pairName(p.pair), { size: JA ? (three ? 52 : 60) : (three ? 42 : 48), weight: 900 }) +
         T(W - 120, y + (three ? 128 : 148), pt(p.wr) + "%", { size: three ? 70 : 80, weight: 900, anchor: "end", fill: col }) +
-        T(W - 120, y + (three ? 168 : 190), note || UI.vsAvg(p.gap > 0 ? "+" : "−", Math.abs(p.gap * 100).toFixed(1)), { size: 28, anchor: "end", fill: MUTED });
+        T(W - 120, y + (three ? 164 : 190), note || UI.vsAvg(p.gap > 0 ? "+" : "−", Math.abs(p.gap * 100).toFixed(1)), { size: 28, anchor: "end", fill: MUTED });
       // 最強 → 狙い目（あれば）→ 最弱
-      const gap = three ? 202 : 250;
-      let y = three ? 500 : 560;
+      const gap = three ? 190 : 250;
+      let y = three ? 486 : 560;
       s += card(y, UI.bestPair, sc.best, UP); y += gap;
       if(sc.target){ s += card(y, UI.targetPair, sc.target, GOLD, UI.share(Math.round(sc.target.share * 100), Math.round(sc.target.avgShare * 100), sc.target.rank)); y += gap; }
       if(sc.worst) s += card(y, UI.worsePair, sc.worst, DOWN);
@@ -525,7 +516,8 @@ function sceneSvg(sc){
         s += T(TX, y + 92, UI.rank(i + 1), { size: 36, fill: i === 0 ? GOLD : MUTED, weight: i === 0 ? 900 : 400 });
         // 名前は長ければ2行。右側の幅（約 600px）に収める
         const lines = wrapName(c.label, JA ? 10 : 20).slice(0, 2);
-        const size = lines.length > 1 ? (JA ? 46 : 40) : (JA ? ([...c.label].length <= 8 ? 60 : 50) : (c.label.length <= 14 ? 50 : 42));
+        let size = lines.length > 1 ? (JA ? 46 : 40) : (JA ? ([...c.label].length <= 8 ? 60 : 50) : (c.label.length <= 14 ? 50 : 42));
+        if(JA) size = Math.min(size, Math.floor(450 / Math.max(...lines.map(l => [...l].length), 1)));   // 右はしに立つずんだもんに名前がかからないよう、文字の幅を 450 までに収める
         lines.forEach((l, j) => { s += T(TX, y + (lines.length > 1 ? 168 : 196) + j * (size + 8), l, { size, weight: 900 }); });
         s += T(TX, y + 300, UI.gih(pt(c.gih)), { size: 46, fill: BLUE, weight: 700 });
       });
@@ -774,8 +766,10 @@ async function main(){
     const len = dur + (sc.tail || 0.35), pad = len - dur, N = Math.ceil(len * 30);   // 読み終わりに少し置く（カードを見せる場面は長め）
     const audio = `[${(sc.art && artPath) || HAS_BG ? 2 : 1}:a]apad=pad_dur=${pad.toFixed(2)},afade=t=in:d=0.012,afade=t=out:st=${(len - 0.03).toFixed(3)}:d=0.03,aformat=sample_rates=48000:channel_layouts=stereo[a]`;   // 頭と終わりを短くなだらかに（つなぎ目のプチ音対策）
     const audioIdx = (sc.art && artPath) || HAS_BG ? 2 : 1;
-    const zp = zundaPos(sc);
+    const zp = zundaPos();
     const ZF = ZUNDA ? `[${audioIdx + 1}:v]fps=30,scale=${ZW}:${ZH},format=rgba[zz];[vz][zz]overlay=x=${zp.x}:y=${zp.y}:shortest=1,format=yuv420p[v];` : `[vz]format=yuv420p[v];`;
+    // ずんだもんは背景と情報の画面のあいだに入れる（情報や字幕が前に出るので、万一かさなっても文字は隠れない）
+    const ZPRE = ZUNDA ? `[${audioIdx + 1}:v]fps=30,scale=${ZW}:${ZH},format=rgba[zz];[bg][zz]overlay=x=${zp.x}:y=${zp.y}:shortest=1[bgz];` : `[bg]null[bgz];`;
     let args;
     if(sc.art && artPath){
       // カードアートを縦いっぱいに敷き、ゆっくり寄る。膜は薄めにして絵を見せる
@@ -786,7 +780,7 @@ async function main(){
                 `zoompan=z='1+0.08*on/${N}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${N}:s=${W}x${H}:fps=30,eq=saturation=0.9[bg0];` +
                 `color=c=0x0A2038@${sc.kind === "hook" ? 0.12 : 0.45}:s=${W}x${H}:r=30[tint];[bg0][tint]overlay=shortest=1[bg];` +
                 `[1:v]scale=${W}:${H},format=rgba${sc.kind === "hook" ? "" : ",fade=t=in:d=0.2:alpha=1"}[fg];` +
-                `[bg][fg]overlay=shortest=1[vz];${ZF}${audio}`];
+                `${ZPRE}[bgz][fg]overlay=shortest=1,format=yuv420p[v];${audio}`];
     }else if(HAS_BG){
       // 横長の映像を縦に切り出し、暗くぼかして下に敷く。開始位置は前の場面の続きから
       const ss = (total % bgDur).toFixed(2);
@@ -797,7 +791,7 @@ async function main(){
                 `eq=saturation=0.7,gblur=sigma=5,setsar=1[bg0];` +
                 `color=c=0x0A2038@0.6:s=${W}x${H}:r=30[tint];[bg0][tint]overlay=shortest=1[bg];` +   // 紺の膜で暗くして文字を立たせる
                 `[1:v]scale=${W}:${H},format=rgba,fade=t=in:d=0.2:alpha=1[fg];` +
-                `[bg][fg]overlay=shortest=1[vz];${ZF}${audio}`];
+                `${ZPRE}[bgz][fg]overlay=shortest=1,format=yuv420p[v];${audio}`];
     }else{
       args = ["-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", wavIn,
               "-filter_complex",
