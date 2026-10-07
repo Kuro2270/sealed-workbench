@@ -8,7 +8,9 @@
  * 見つけ方: 公開（public）／題に「環境まとめ」を含む／2分以上／「#Shorts」でない。
  *           題の【…】の中身（セット名）を、サイトのセット名（日本語・短縮）と照らして、セットコードを決める。
  * 登録するもの: 動画ID・題・公開日・長さ・目次（概要欄の「0:00 はじめに」の行）。
- * すでに同じ動画IDが登録済みなら何もしない。同じセットに別の動画が登録済みなら、新しく公開されたほうに置き換える。
+ * 登録した動画には、「お気に入りのカードやコンボをコメントで教えてください」という呼びかけのコメントを1件付ける（ショートと同じ文面）。
+ *   付けたら long.json の comment2 を true にして、2回目以降は付けない。コメントの権限（force-ssl）が無いときは、文面をログに出すだけで続ける。
+ * すでに同じ動画IDが登録済みなら、登録は何もしない。同じセットに別の動画が登録済みなら、新しく公開されたほうに置き換える。
  * 非公開のままの動画は登録しない（サイトには出ない）。
  *
  * 必要な環境変数: YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN_JA
@@ -70,6 +72,7 @@ const vs = (await yt(`videos?part=snippet,status,contentDetails&id=${ids.slice(0
 const names = await setNameMap();
 
 let changed = 0;
+const titleName = t => { const b = String(t).match(/【(.+?)】/); return b ? b[1].trim() : ""; };
 for(const v of vs.sort((a, b) => String(a.snippet.publishedAt).localeCompare(String(b.snippet.publishedAt)))){
   const title = v.snippet.title || "";
   const manual = !!ONLY_ID;
@@ -84,6 +87,23 @@ for(const v of vs.sort((a, b) => String(a.snippet.publishedAt).localeCompare(Str
   long[set] = { ...(long[set] || {}), ja: { id: v.id, title, uploadedAt: String(v.snippet.publishedAt).slice(0, 10), duration: v.contentDetails.duration, chapters: chaptersOf(v.snippet.description) } };
   console.log(`登録しました: ${set} ${v.id}（目次 ${long[set].ja.chapters.length} 件）${title}`);
   changed++;
+}
+/* 呼びかけのコメント（まだ付けていない登録済みの長尺すべて）。コメントが付けられなくても、登録そのものは続ける */
+const callText = name => `${name ? name + "の" : ""}ドラフトやシールドで、お気に入りのカードや、うまくいったコンボはありますか？\n「このカードが思った以上に強かった」「この組み合わせで勝てた」など、一言だけでも大丈夫です。ぜひコメントで教えてください。`;
+for(const [S, ent] of Object.entries(long)){
+  const v = ent && ent.ja;
+  if(!v || !v.id || v.comment2) continue;
+  if(ONLY_ID && v.id !== ONLY_ID) continue;
+  const pub = vs.find(x => x.id === v.id);
+  if(pub && pub.status.privacyStatus !== "public") continue;                  // 公開になってから付ける
+  const text = callText(titleName(v.title));
+  const r = await fetch(`${API}/youtube/v3/commentThreads?part=snippet`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ snippet: { videoId: v.id, topLevelComment: { snippet: { textOriginal: text } } } }) });
+  if(r.ok){ v.comment2 = true; changed++; console.log(`呼びかけのコメントを付けました: ${S} ${v.id}`); }
+  else{
+    const body = await r.text();
+    console.log(`::warning::コメントを付けられませんでした: ${S} ${v.id}（HTTP ${r.status}${/insufficient|scope|forbidden/i.test(body) ? "、コメントの権限が足りません" : ""}）。YouTube Studio で手で付ける場合の文面:\n${text}`);
+  }
 }
 if(changed) await writeFile("data/long.json", JSON.stringify(long, null, 2) + "\n", "utf8");
 else console.log("新しく登録するものはありませんでした。");
