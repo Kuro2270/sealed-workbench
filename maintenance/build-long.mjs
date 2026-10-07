@@ -156,6 +156,11 @@ function buildScript(ctx){
   const rankD = Object.fromEntries(pairsD.map((p, i) => [p.pair, i + 1]));
   const monoD = (dd.colors || []).slice().sort((a, b) => b.wr - a.wr);
   const monoS = Object.fromEntries((ds.colors || []).map(c => [c.color, c.wr]));
+  /* 狙い目の色：勝率がそこそこ高く（全体の平均付近以上）、使っている人が少なめ（平均の85%以下）。最大2つ */
+  const avgShareP = 1 / pairsD.length;
+  const sleepers = pairsD.filter(p => p !== bestD && p !== worstD && p.wr >= avgD - 0.005 && p.games / totalPG <= avgShareP * 0.85 && p.games >= 1500)
+    .sort((a, b) => b.wr - a.wr).slice(0, 2);
+  const sleepersTop = pairsD.slice(0, 3).filter(p => sleepers.includes(p));
 
   /* --- 冒頭 --- */
   scenes.push({ kind: "hook", art: true, chapter: "はじめに",
@@ -206,7 +211,9 @@ function buildScript(ctx){
   /* --- 色の組み合わせ --- */
   if(pairsD.length){
     scenes.push({ kind: "pairs", chapter: "色の組み合わせ", pairsD, rankS, bestD, worstD,
-      say: `色の組み合わせです。ドラフトで一番強いのは${pairName(bestD.pair)}、勝率${pt(bestD.wr)}パーセント。上位三つは、${pairsD.slice(0, 3).map(p => pairName(p.pair)).join("、")}です。青い棒がドラフト、黄色い棒がシールドの勝率です。シールドでは順位が入れ替わっているのが分かります。`,
+      say: `色の組み合わせです。ドラフトで一番強いのは${pairName(bestD.pair)}、勝率${pt(bestD.wr)}パーセント。上位三つは、${pairsD.slice(0, 3).map(p => pairName(p.pair)).join("、")}です。` +
+           (sleepersTop.length ? `このうち${sleepersTop.map(p => pairName(p.pair)).join("と")}は、使う人が少ない狙い目なので、あとで紹介します。` : "") +
+           `青い棒がドラフト、黄色い棒がシールドの勝率です。` + (pairsD.slice(0, 3).every((p, i) => rankS[p.pair] === i + 1) ? `シールドでも、上位の顔ぶれは同じです。` : `シールドでは順位が入れ替わっているのが分かります。`),
       tail: 0.6 });
   }
 
@@ -215,7 +222,8 @@ function buildScript(ctx){
   //   （各色の単色カードの最上位を1枚ずつ → 残りを、勝率の高い順に、2色の取り合わせで埋める。合計4枚）
   const keyCards = (pair, n = 4) => {
     const [A, B] = [...pair];
-    const list = rd.cards.filter(c => !c.land && (c.rarity === "common" || c.rarity === "uncommon") && c.by_pair && c.by_pair[pair] && c.by_pair[pair][1] >= 250)
+    const inPair = c => !!c.color && [...c.color].every(ch => pair.includes(ch));   // 無色は入れない。相手の2色に入っていない色のカード（タッチで入る他の色）も除く
+    const list = rd.cards.filter(c => !c.land && inPair(c) && (c.rarity === "common" || c.rarity === "uncommon") && c.by_pair && c.by_pair[pair] && c.by_pair[pair][1] >= 250)
       .map(c => ({ ...c, pg: c.by_pair[pair][0], pgames: c.by_pair[pair][1] })).sort((x, y) => y.pg - x.pg);
     const picked = [];
     for(const col of [A, B]){ const c = list.find(x => x.color === col && !picked.includes(x)); if(c) picked.push(c); }
@@ -229,9 +237,10 @@ function buildScript(ctx){
     const [A, B] = [...pair];
     const ofCol = col => ks.find(c => c.side === col);
     const a = ofCol(A), b = ofCol(B), rest = ks.filter(c => c !== a && c !== b);
-    const parts = [a && `${CJ[A]}は${a.label}`, b && `${CJ[B]}は${b.label}`].filter(Boolean);
-    let t = parts.length ? `鍵になるのは、${parts.join("、")}。` : `鍵になるのは、${ks.slice(0, 2).map(c => c.label).join("、")}。`;
-    if(parts.length && rest.length) t += `ほかに、${rest.slice(0, 2).map(c => c.label).join("、")}もおすすめです。`;
+    const q = c => `「${c.label}」`;
+    const parts = [a && `${CJ[A]}は${q(a)}`, b && `${CJ[B]}は${q(b)}`].filter(Boolean);
+    let t = parts.length ? `鍵になるのは、${parts.join("、")}。` : `鍵になるのは、${ks.slice(0, 2).map(q).join("、")}。`;
+    if(parts.length && rest.length) t += `ほかに、${rest.slice(0, 2).map(q).join("、")}もおすすめです。`;
     return t + `どれもコモンかアンコモンなので、集めやすいカードです。`;
   };
   const deep = (p, i, kind) => {
@@ -240,9 +249,9 @@ function buildScript(ctx){
     const sealedWr = (pairsS.find(x => x.pair === p.pair) || {}).wr;
     const ordinal = ["一番", "二番目に", "三番目に"][i];
     const sleeperSay = () => {
-      const rk = rankD[p.pair] <= 3 ? `ドラフト${rankD[p.pair]}位、` : "";
-      const rel = p.wr >= avgD ? `全体の平均${pt(avgD)}パーセントを上回っています` : `全体の平均${pt(avgD)}パーセントと、ほぼ同じです`;
-      return `${pairName(p.pair)}は、${rk}ドラフトの勝率が${pt(p.wr)}パーセントで、${rel}。それなのに、使っている人は全体の${Math.round(share * 100)}パーセントで、平均の${Math.round(avgShare * 100)}パーセントより少なめです。` +
+      const rk = rankD[p.pair] <= 3 ? `ドラフト${rankD[p.pair]}位で、` : "";
+      const rel = p.wr >= avgD ? `これは全体の平均${pt(avgD)}パーセントを上回っています。` : `これは全体の平均${pt(avgD)}パーセントと、ほぼ同じです。`;
+      return `${pairName(p.pair)}は、${rk || "ドラフトの"}勝率は${pt(p.wr)}パーセント。${rel}それなのに、使っている人は全体の${Math.round(share * 100)}パーセントで、平均の${Math.round(avgShare * 100)}パーセントより少なめです。` +
         `カードの取り合いになりにくいので、強い色が流れてこないときの、狙い目です。` + keySay(ks, p.pair) + (sealedWr != null ? `シールドの勝率は${pt(sealedWr)}パーセントです。` : "");
     };
     const say = kind === "sleeper" ? sleeperSay() : kind === "worst"
@@ -250,9 +259,6 @@ function buildScript(ctx){
       : `${ordinal}強い${pairName(p.pair)}。ドラフトの勝率は${pt(p.wr)}パーセントで、使われているのは全体の${Math.round(share * 100)}パーセントです。` + keySay(ks, p.pair) + (sealedWr != null ? `シールドの勝率は${pt(sealedWr)}パーセントです。` : "");
     return { kind: "deep", chapter: null, variant: kind, pair: p.pair, wr: p.wr, sealedWr, share, avgShare, rank: rankD[p.pair], cards: ks, say, tail: 0.5 };
   };
-  const avgShareP = 1 / pairsD.length;
-  const sleepers = pairsD.filter(p => p !== bestD && p !== worstD && p.wr >= avgD - 0.005 && p.games / totalPG <= avgShareP * 0.85 && p.games >= 1500)
-    .sort((a, b) => b.wr - a.wr).slice(0, 2);
   // 上位3つの深堀り（狙い目に回るものは、そちらで紹介するので、ここでは飛ばす）。順位の言い方は、実際の順位から決める
   pairsD.slice(0, 3).forEach((p, i) => { if(!sleepers.includes(p)) scenes.push(deep(p, i, "top")); });
   if(worstD && worstD !== bestD) scenes.push(deep(worstD, 0, "worst"));
@@ -294,6 +300,8 @@ function buildScript(ctx){
       say: bombs.slice(5, 10).map(c => `${c.rank}位、${c.label}、${pt(c.gih)}パーセント。`).join("")
          + `これらは、引けたら、色が少し合わなくても、デッキの軸にして構わないカードです。全体の平均勝率は${pt(avgD)}パーセントなので、どれも大きく上回っています。`, tail: 0.6 });
   }
+
+  if(bombs.length >= 3) scenes[0].cards = bombs.slice(0, 3);     // 冒頭の画面に並べるボム
 
   /* --- 罠カード --- */
   const rl = rd.cards.filter(c => !c.land && (c.rarity === "rare" || c.rarity === "mythic") && c.games >= 1500);
@@ -436,24 +444,30 @@ function sceneSvg(sc){
     case "hook": {
       // サムネイルを兼ねる：左に大きな縁取り文字、右にカードの絵。左から暗くして文字を読みやすくする
       const parts = String(sc.title).includes(" ") ? String(sc.title).split(/\s+/) : [sc.title];
-      const sz = Math.min(190, Math.floor(1000 / Math.max(...parts.map(p => [...p].length), 4)));
+      const sz = Math.min(190, Math.floor(900 / Math.max(...parts.map(p => [...p].length), 4)));
       let y = 430, titleSvg = "";
       for(const l of parts){ titleSvg += TS(90, y, l, { size: sz, fill: "#FFD23F" }); y += Math.round(sz * 1.12); }
       return frame(
         `<defs><linearGradient id="gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#050B14" stop-opacity="0.93"/><stop offset="0.62" stop-color="#050B14" stop-opacity="0.8"/><stop offset="1" stop-color="#050B14" stop-opacity="0.05"/></linearGradient></defs>
          <rect x="0" y="0" width="${W}" height="${H}" fill="url(#gl)"/>` +
-        T(90, 128, "MTGアリーナ", { size: 56, weight: 900, fill: "#FFFFFF" }) +
+        T(90, 128, "MTGアリーナ リミテッド", { size: 56, weight: 900, fill: "#FFFFFF" }) +
         TS(90, 262, "完全ガイド", { size: 110 }) +
         titleSvg +
         `<rect x="90" y="${y - 40}" width="760" height="130" rx="65" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
         T(470, y + 50, "ドラフト＋シールド環境", { size: 64, weight: 900, anchor: "middle", fill: "#06101C" }) +
-        TS(90, y + 195, "ボム10枚 ・ 罠カード ・ 除去", { size: 66 }), sc, { header: false });
+        TS(90, y + 195, "ボム10枚 ・ 罠カード ・ 除去", { size: 66 }) +
+        // 右：勝率の高いボムを3枚、少し傾けて並べる（拡大した絵ではなく、カードそのものを見せて、何の動画かを分かるようにする）
+        (sc.cards && sc.cards.length ? sc.cards.slice(0, 3).map((c, i, a) => {
+          const CW = 280, CH = 390, x = 1060 + i * 270, yy = 250 + (i === 1 ? -24 : 0), rot = (i - (a.length - 1) / 2) * 5;
+          return `<g transform="rotate(${rot} ${x + CW / 2} ${yy + CH / 2})"><rect x="${x + 6}" y="${yy + 10}" width="${CW}" height="${CH}" rx="16" fill="#000" opacity="0.45"/>${cardImg(c, x, yy, CW, CH)}</g>`;
+        }).join("") + T(1475, 760, "データで選んだ 勝率トップのボム", { size: 36, weight: 700, anchor: "middle", fill: "#FFFFFF" }) : ""), sc, { header: false });
     }
     case "agenda": {
-      let s = T(W / 2, 200, "この動画の流れ", { size: 52, weight: 900, anchor: "middle" });
+      let s = T(W / 2, 185, "この動画の流れ", { size: 52, weight: 900, anchor: "middle" });
       sc.items.forEach((t, i) => {
-        const col = i % 2, row = Math.floor(i / 2), x = 220 + col * 760, y = 290 + row * 135;
-        s += panel(x, y, 720, 105) + `<circle cx="${x + 56}" cy="${y + 52}" r="30" fill="${BLUE}"/>` + T(x + 56, y + 66, String(i + 1), { size: 36, weight: 900, anchor: "middle" }) + T(x + 112, y + 68, t, { size: 40, weight: 700 });
+        const col = i % 2, row = Math.floor(i / 2), lastAlone = i === sc.items.length - 1 && sc.items.length % 2 === 1;
+        const x = lastAlone ? (W - 720) / 2 : 220 + col * 760, y = 235 + row * 124;      // 5行でも、最後の行が字幕（y=900〜）に掛からない
+        s += panel(x, y, 720, 100) + `<circle cx="${x + 56}" cy="${y + 52}" r="30" fill="${BLUE}"/>` + T(x + 56, y + 66, String(i + 1), { size: 36, weight: 900, anchor: "middle" }) + T(x + 112, y + 68, t, { size: 40, weight: 700 });
       });
       return frame(s, sc);
     }
@@ -469,7 +483,7 @@ function sceneSvg(sc){
       let s = T(80, 215, "単色の勝率", { size: 40, fill: MUTED });
       const lo = 52, hi = Math.max(...sc.colors.map(c => c.wr * 100)) + 2;
       sc.colors.forEach((c, i) => {
-        const x = 150 + i * 340;
+        const x = 150 + i * 360;
         s += symbol(c.color, x + 80, 330, 130);
         const h = 4 + (c.wr * 100 - lo) / (hi - lo) * 260;
         s += `<rect x="${x + 10}" y="${760 - h}" width="140" height="${h}" rx="10" fill="${i < 2 ? UP : "#46698F"}"/>`;
@@ -484,10 +498,10 @@ function sceneSvg(sc){
               `<rect x="1580" y="144" width="22" height="14" rx="4" fill="${GOLD}"/>` + T(1612, 160, "シールド", { size: 28, fill: MUTED });
       const rows = sc.pairsD, sm = sc.sealedMap || {};
       const all = [...rows.map(r => r.wr * 100), ...rows.map(r => sm[r.pair]).filter(v => v != null).map(v => v * 100)];
-      const lo = Math.floor(Math.min(...all) - 1), hi = Math.ceil(Math.max(...all) + 1);
+      const lo = Math.floor(Math.min(...all) - 1), hi = Math.max(...all) + 0.4;      // 最長の棒を右端ちかくまで伸ばす（右に余白が残らないように）
       const step = Math.min(120, 640 / rows.length);
       rows.forEach((r, i) => {
-        const y = 215 + i * step, bx0 = 470, bx1 = 1640, xv = v => scaleX(v, lo, hi, bx0, bx1);
+        const y = 215 + i * step, bx0 = 470, bx1 = 1720, xv = v => scaleX(v, lo, hi, bx0, bx1);
         const hot = r === sc.bestD, cold = r === sc.worstD && rows.length > 2;
         s += T(70, y + 50, String(i + 1), { size: 34, fill: MUTED });
         s += pairSymbols(r.pair, 120, y + 30, 50) + T(262, y + 52, pairName(r.pair), { size: 44, weight: 900 });
@@ -813,7 +827,7 @@ async function main(){
     const useArt = sc.art && artPath;
     const first = useArt ? ["-loop", "1", "-framerate", "30", "-i", artPath] : HAS_BG ? ["-stream_loop", "-1", "-ss", (total % bgDur).toFixed(2), "-i", BG] : ["-f", "lavfi", "-i", `color=c=0x0A2038:s=${W}x${H}:r=30`];
     const bgFilter = useArt
-      ? `[0:v]scale=${W * 2}:${H * 2}:force_original_aspect_ratio=increase,crop=${W * 2}:${H * 2},zoompan=z='1+0.08*on/${N}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${N}:s=${W}x${H}:fps=30,eq=saturation=0.9[b0];color=c=0x0A2038@${sc.kind === "hook" ? 0.1 : 0.5}:s=${W}x${H}:r=30[tint];[b0][tint]overlay=shortest=1[bg]`
+      ? `[0:v]scale=${W * 2}:${H * 2}:force_original_aspect_ratio=increase,crop=${W * 2}:${H * 2},zoompan=z='1+0.04*on/${N}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${N}:s=${W}x${H}:fps=30,eq=saturation=0.8,gblur=sigma=${sc.kind === "hook" ? 14 : 6}[b0];color=c=0x0A2038@${sc.kind === "hook" ? 0.45 : 0.5}:s=${W}x${H}:r=30[tint];[b0][tint]overlay=shortest=1[bg]`
       : HAS_BG
         ? `[0:v]fps=30,scale=iw*sar:ih,setsar=1,scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},eq=saturation=0.7,gblur=sigma=5,setsar=1[b0];color=c=0x0A2038@0.6:s=${W}x${H}:r=30[tint];[b0][tint]overlay=shortest=1[bg]`
         : `[0:v]null[bg]`;
@@ -863,7 +877,7 @@ ${bgmCredit ? `BGM: ${bgmCredit}\n` : ""}Unofficial Fan Content permitted under 
   // サムネイル（冒頭の場面。字幕の入る前の画面を、カードの絵に重ねる）
   try{
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...(artPath ? ["-loop", "1", "-i", artPath] : ["-ss", "2.0", "-i", `${OUT}/ja.mp4`]), "-i", `${OUT}/scene-0.png`, "-filter_complex",
-      `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1[b];[1:v]scale=${W}:${H},format=rgba[f];[b][f]overlay=shortest=1`, "-frames:v", "1", "-q:v", "2", `${OUT}/thumbnail.jpg`]);
+      `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1,gblur=sigma=14,eq=brightness=-0.08[b];[1:v]scale=${W}:${H},format=rgba[f];[b][f]overlay=shortest=1`, "-frames:v", "1", "-q:v", "2", `${OUT}/thumbnail.jpg`]);
   }catch(e){}
   console.error(`\n${OUT}/ja.mp4  合計 ${ts(total)}（${total.toFixed(0)} 秒）`);
 }
