@@ -382,7 +382,7 @@ function buildScript(ctx){
   }
 
   scenes.push({ kind: "outro", art: true, chapter: null,
-    say: `次のセットも出すので、チャンネル登録をお願いします。`, tail: 9 });
+    say: `次のセットも出すので、MTGのリミテッドプレイヤーは、チャンネル登録をお願いします。`, tail: 9 });
   return scenes;
 }
 
@@ -655,7 +655,7 @@ function sceneSvg(sc){
     case "outro": {
       // 締めは「チャンネル登録をお願いします」だけ。画面の下半分は、YouTube Studio の「終了画面」で
       // 登録ボタンと次の動画を重ねるために、あえて空けてある（動画の絵としての登録ボタンは描かない）
-      return frame(TS(W / 2, 300, "チャンネル登録をお願いします", { size: 100, anchor: "middle" }), sc, { header: false });
+      return frame(TS(W / 2, 230, "MTGのリミテッドプレイヤーは", { size: 84, anchor: "middle" }) + TS(W / 2, 370, "チャンネル登録をお願いします", { size: 100, anchor: "middle" }), sc, { header: false });
     }
   }
   return frame("", sc);
