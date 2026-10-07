@@ -87,6 +87,21 @@
   .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
   section{margin-top:18px}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
+  .longvideo h2{margin:0 0 4px;font-size:18px}
+  .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
+  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0A2038}
+  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .longvideo .yt button span{width:68px;height:68px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .longvideo .yt button span::after{content:"";border-left:23px solid #0B1E33;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
+  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px}
+  .longvideo .chap li{margin:0 0 2px}
+  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
+  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
+  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
   .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
   .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
   .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -359,8 +374,8 @@
 <section class="faq"><h3>About Limited card ratings</h3>
   <details><summary>What is a Limited card rating?</summary><p>A number that says how strong a card is. Ratings given by people include personal taste, so this page uses win rates from real games instead.</p></details>
   <details><summary>How should I read the GIH win rate?</summary><p>A card above the set's overall win rate was in decks that won more often. Cards with few games swing a lot, and cards that go into strong decks tend to look better than they are, so treat it as a guide and read it together with colours and synergy.</p></details>
-  <details><summary>When are the ratings updated?</summary><p>Twice a month (around the 6th and 21st), from the latest 17Lands data.</p></details>
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"en","mainEntity":[{"@type":"Question","name":"What is a Limited card rating?","acceptedAnswer":{"@type":"Answer","text":"A number that says how strong a card is. Ratings given by people include personal taste, so this page uses win rates from real games instead."}},{"@type":"Question","name":"How should I read the GIH win rate?","acceptedAnswer":{"@type":"Answer","text":"A card above the set's overall win rate was in decks that won more often. Cards with few games swing a lot, and cards that go into strong decks tend to look better than they are, so treat it as a guide and read it together with colours and synergy."}},{"@type":"Question","name":"When are the ratings updated?","acceptedAnswer":{"@type":"Answer","text":"Twice a month (around the 6th and 21st), from the latest 17Lands data."}}]}</script>
+  <details><summary>When are the ratings updated?</summary><p>Every Monday (Japan time), from the latest 17Lands data.</p></details>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"en","mainEntity":[{"@type":"Question","name":"What is a Limited card rating?","acceptedAnswer":{"@type":"Answer","text":"A number that says how strong a card is. Ratings given by people include personal taste, so this page uses win rates from real games instead."}},{"@type":"Question","name":"How should I read the GIH win rate?","acceptedAnswer":{"@type":"Answer","text":"A card above the set's overall win rate was in decks that won more often. Cards with few games swing a lot, and cards that go into strong decks tend to look better than they are, so treat it as a guide and read it together with colours and synergy."}},{"@type":"Question","name":"When are the ratings updated?","acceptedAnswer":{"@type":"Answer","text":"Every Monday (Japan time), from the latest 17Lands data."}}]}</script>
 </section>
 <section class="links"><h3>Related pages</h3><ul>
   <li><a href="../reports.html?set=FDN">Set reports (switch sets)</a></li>

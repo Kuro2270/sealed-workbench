@@ -87,6 +87,21 @@
   .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
   section{margin-top:18px}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
+  .longvideo h2{margin:0 0 4px;font-size:18px}
+  .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
+  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0A2038}
+  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .longvideo .yt button span{width:68px;height:68px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .longvideo .yt button span::after{content:"";border-left:23px solid #0B1E33;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
+  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px}
+  .longvideo .chap li{margin:0 0 2px}
+  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
+  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
+  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
   .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
   .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
   .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -360,8 +375,8 @@
 <section class="faq"><h3>リミテッドのカードの点数について</h3>
   <details><summary>リミテッドのカードの点数（評価）とは？</summary><p>そのカードがどれだけ強いかを数字で表したものを、点数や評価と呼びます。人が付ける点数には好みが入りますが、このページでは実際の対戦結果の勝率で見ています。</p></details>
   <details><summary>点数（GIH勝率）はどう読めばいいですか？</summary><p>そのセット全体の勝率より高いカードは、入れたデッキが勝ちやすかったカードです。ただし、試合数が少ないカードは数字がぶれやすく、強いデッキに入りやすいカードは高く出る傾向があります。色や相性とあわせて、目安として使ってください。</p></details>
-  <details><summary>点数はいつ更新されますか？</summary><p>月に2回（6日と21日ごろ）、17Landsの最新データで更新します。</p></details>
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"ja","mainEntity":[{"@type":"Question","name":"リミテッドのカードの点数（評価）とは？","acceptedAnswer":{"@type":"Answer","text":"そのカードがどれだけ強いかを数字で表したものを、点数や評価と呼びます。人が付ける点数には好みが入りますが、このページでは実際の対戦結果の勝率で見ています。"}},{"@type":"Question","name":"点数（GIH勝率）はどう読めばいいですか？","acceptedAnswer":{"@type":"Answer","text":"そのセット全体の勝率より高いカードは、入れたデッキが勝ちやすかったカードです。ただし、試合数が少ないカードは数字がぶれやすく、強いデッキに入りやすいカードは高く出る傾向があります。色や相性とあわせて、目安として使ってください。"}},{"@type":"Question","name":"点数はいつ更新されますか？","acceptedAnswer":{"@type":"Answer","text":"月に2回（6日と21日ごろ）、17Landsの最新データで更新します。"}}]}</script>
+  <details><summary>点数はいつ更新されますか？</summary><p>毎週月曜日に、17Landsの最新データで更新します。</p></details>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"ja","mainEntity":[{"@type":"Question","name":"リミテッドのカードの点数（評価）とは？","acceptedAnswer":{"@type":"Answer","text":"そのカードがどれだけ強いかを数字で表したものを、点数や評価と呼びます。人が付ける点数には好みが入りますが、このページでは実際の対戦結果の勝率で見ています。"}},{"@type":"Question","name":"点数（GIH勝率）はどう読めばいいですか？","acceptedAnswer":{"@type":"Answer","text":"そのセット全体の勝率より高いカードは、入れたデッキが勝ちやすかったカードです。ただし、試合数が少ないカードは数字がぶれやすく、強いデッキに入りやすいカードは高く出る傾向があります。色や相性とあわせて、目安として使ってください。"}},{"@type":"Question","name":"点数はいつ更新されますか？","acceptedAnswer":{"@type":"Answer","text":"毎週月曜日に、17Landsの最新データで更新します。"}}]}</script>
 </section>
 <section class="links"><h3>関連ページ</h3><ul>
   <li><a href="../reports.html?set=EOE">環境レポート（他のセットに切り替え）</a></li>
