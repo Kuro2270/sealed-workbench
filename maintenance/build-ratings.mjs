@@ -159,6 +159,7 @@ async function build(set, format, metaCache){
 
   const arche = new Map();                                        // 色の組み合わせ → {g, w}
   const speed = new Map(SPEED_BUCKETS.map(b => [b.key, { g: 0, w: 0 }]));
+  const pairSpeed = new Map();                                    // 2色の組み合わせ → 速さの帯ごとの {g, w}（その色なら速いデッキか遅いデッキかを見るため）
 
   for await (const line of rl){
     if(!line) continue;
@@ -264,7 +265,13 @@ async function build(set, format, metaCache){
     if(deckSpells >= 15){
       const avg = deckCmcSum / deckSpells;
       const b = SPEED_BUCKETS.find(x => avg < x.max);
-      if(b){ const sp = speed.get(b.key); sp.g++; sp.w += won; }
+      if(b){
+        const sp = speed.get(b.key); sp.g++; sp.w += won;
+        if(pairKey){
+          if(!pairSpeed.has(pairKey)) pairSpeed.set(pairKey, new Map(SPEED_BUCKETS.map(x => [x.key, { g: 0, w: 0 }])));
+          const ps2 = pairSpeed.get(pairKey).get(b.key); ps2.g++; ps2.w += won;
+        }
+      }
     }
 
     if(rows % 200000 === 0) process.stderr.write(`  ${rows.toLocaleString()} 行\n`);
@@ -322,6 +329,13 @@ async function build(set, format, metaCache){
     .filter(r => r.g > 0)
     .map(r => ({ key: r.key, max: r.max, games: r.g, wr: r.w / r.g }));
 
+  // 組み合わせごとの、デッキの平均マナ総量ごとの勝率（試合の無い帯は出さない）
+  const pair_speed = {};
+  for(const [k, m] of pairSpeed){
+    const rows = SPEED_BUCKETS.map(b => ({ key: b.key, max: b.max === Infinity ? null : b.max, ...m.get(b.key) })).filter(r => r.g > 0).map(r => ({ key: r.key, max: r.max, games: r.g, wr: r.w / r.g }));
+    if(rows.length) pair_speed[k] = rows;
+  }
+
   const payload = {
     set,
     event: format,
@@ -333,7 +347,7 @@ async function build(set, format, metaCache){
     count: cards.length,
     source: "17Lands Public Data (CC BY 4.0)",
     source_url: "https://www.17lands.com/public_datasets",
-    curve, archetypes, speed: speedRows,
+    curve, archetypes, speed: speedRows, pair_speed,
     cards
   };
 
