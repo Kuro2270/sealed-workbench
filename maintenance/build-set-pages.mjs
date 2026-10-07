@@ -68,7 +68,7 @@ const L = {
     rarity: { mythic:"神話レア", rare:"レア", uncommon:"アンコモン", common:"コモン" },
     col: { color:"色", pair:"色の組み合わせ", cmc:"マナ総量", wr:"勝率", score:"点数（GIH勝率）", games:"試合数", card:"カード", cards:"種類数" },
     colorName: { W:"白", U:"青", B:"黒", R:"赤", G:"緑" },
-    longH: "環境まとめ（長尺動画）", longLead: "ドラフトとシールドの両方のデータで、強い色・狙い目の色・ボム・罠・除去までまとめました。目次を押すと、その場面から再生します。",
+    longH: "リミテッド環境まとめ（長尺動画）", longLead: "ドラフトとシールドの両方のデータで、強い色・狙い目の色・ボム・罠・除去までまとめました。目次を押すと、その場面から再生します。",
     videoH: "1分でわかる環境（動画）", videoLead: "この環境の要点を1分のショート動画にまとめました。再生ボタンで YouTube の動画を読み込みます。", videoPlay: "再生", videoOpen: "YouTube で見る",
     links: "関連ページ",
     linkRatings: "このセットの全カードの勝率一覧",
@@ -570,11 +570,8 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos, 
 <meta property="og:url" content="${canonical}">`;
   const header = `    <h1>${esc(T.h1(setDisplay))} <small class="code">${esc(code)}</small></h1>
     <p>${esc(T.lead)}${info.released_at ? `　${lang === "ja" ? "発売" : "Released"} ${esc(info.released_at)}` : ""}</p>`;
-  // 長尺があるセットは長尺だけを出す（環境レポートと同じ仕様）。ショートは長尺が無いときだけ
-  const hasLong = lang === "ja" && !!(long && long[code] && long[code].ja && long[code].ja.id);
-  const shortVideos = hasLong ? null : videos;
   const body = (modes.length ? longSection(lang, code, setDisplay, long) : "") + (modes.length
-    ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay, shortVideos)).join("\n")
+    ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay, videos)).join("\n")
     : `<p>${esc(T.none)}</p>`);
   const faqLd = { "@context": "https://schema.org", "@type": "FAQPage", inLanguage: lang,
     mainEntity: T.faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) };
@@ -596,7 +593,7 @@ function longSection(lang, code, setDisplay, long){
   const v = lang === "ja" && long && long[code] && long[code].ja;
   if(!v || !v.id) return "";
   const id = String(v.id), T = L[lang];
-  const title = v.title || `${setDisplay} 環境まとめ`;
+  const title = v.title || `${setDisplay} リミテッド環境まとめ`;
   const posterFile = `assets/video/${code}-ja-long.jpg`;
   const thumbSrc = existsSync(posterFile) ? `/${posterFile}` : `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
   const thumb = existsSync(posterFile) ? `${SITE}/${posterFile}` : `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;

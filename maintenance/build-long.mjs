@@ -964,7 +964,7 @@ async function main(){
   const ts = s => { const m = Math.floor(s / 60), r = Math.floor(s % 60); return `${m}:${String(r).padStart(2, "0")}`; };
   await writeFile(`${OUT}/chapters.txt`, chapters.map(c => `${ts(c.at)} ${c.title}`).join("\n") + "\n", "utf8");
   const gD = man(dd.total_games), gS = man(ds.total_games);
-  await writeFile(`${OUT}/title.txt`, `【${nameJa}】環境まとめ｜強い色・狙い目の色・ボム10枚・罠なレアカード・除去【MTGアリーナ リミテッド】`, "utf8");   // YouTube に上げるときの題
+  await writeFile(`${OUT}/title.txt`, `【${nameJa}】リミテッド環境まとめ｜強い色・狙い目の色・ボム10枚・罠なレアカード・除去【MTGアリーナ】`, "utf8");   // YouTube に上げるときの題
   await writeFile(`${OUT}/description.txt`,
 `MTGアリーナ、リミテッドの${nameJa}環境を、17Landsの実戦データ（ドラフト${gD}試合・シールド${gS}試合）でまるごと解説します。
 最強の色の組み合わせ、狙い目の色、ボムのレア10枚、罠なレアカード、コモンとアンコモンの強い除去まで。

@@ -22,7 +22,7 @@ if(!ID || !SECRET || !REFRESH){
 const DIR = `long/${SET}`, FILE = `${DIR}/ja.mp4`;
 const size = (await stat(FILE).catch(() => null))?.size;
 if(!size){ console.error(`${FILE} がありません。先に動画を作ってください。`); process.exit(1); }
-const title = (await readFile(`${DIR}/title.txt`, "utf8").catch(() => `【${SET}】環境まとめ｜MTGアリーナ リミテッド`)).trim();
+const title = (await readFile(`${DIR}/title.txt`, "utf8").catch(() => `【${SET}】リミテッド環境まとめ｜MTGアリーナ`)).trim();
 const description = (await readFile(`${DIR}/description.txt`, "utf8")).trim();
 
 async function accessToken(){

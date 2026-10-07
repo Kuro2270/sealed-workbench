@@ -59,7 +59,7 @@ const gamesTxt = games ? games.toLocaleString(LANG === "ja" ? "ja-JP" : "en-US")
 
 const pageUrl = `${SITE}/sets/${SET}${LANG === "en" ? ".en" : ""}.html`;
 const meta = LANG === "ja" ? {
-  title: `【${name.ja}】1分でわかる${mode === "sealed" ? "シールド" : "ドラフト"}環境｜MTGアリーナ #Shorts`,
+  title: `【${name.ja}】1分でわかるリミテッド環境（${mode === "sealed" ? "シールド" : "ドラフト"}）｜MTGアリーナ #Shorts`,
   description: [
     `MTGアリーナ『${name.ja}』のリミテッド（${mode === "sealed" ? "シールド" : "ドラフト"}）環境を、${gamesTxt ? gamesTxt + "試合の" : ""}実戦データから1分でまとめました。`,
     ``,
