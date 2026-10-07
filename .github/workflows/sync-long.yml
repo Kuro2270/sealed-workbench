@@ -41,17 +41,19 @@ jobs:
           YT_REFRESH_TOKEN_JA: ${{ secrets.YT_REFRESH_TOKEN_JA }}
         run: node maintenance/sync-long.mjs
 
-      - name: 変更があれば、セット別ページを作り直してコミットする
+      - name: セット別ページを作り直して、変わっていればコミットする
         run: |
-          if git diff --quiet -- data/long.json && [ -z "$(git ls-files --others --exclude-standard data/long.json)" ]; then
-            echo "変更はありません。"; exit 0
-          fi
+          # 登録に変更が無くても、ページの作り方（build-set-pages.mjs）を直したあとに押せば、反映される
           node maintenance/build-set-pages.mjs
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           for p in data/long.json sets; do
             [ -e "$p" ] && git add -A -- "$p"
           done
+          if git diff --staged --quiet; then
+            echo "変更はありません。"; exit 0
+          fi
+          git status --short | head -20
           git commit -m "長尺動画をサイトに載せる"
           for i in 1 2 3; do
             git pull --rebase origin main && git push origin main && break
