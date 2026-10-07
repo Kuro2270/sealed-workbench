@@ -24,6 +24,7 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
+import { existsSync } from "node:fs";
 
 const SET = process.argv[2];
 if(!SET){ console.error("使い方: node maintenance/build-long.mjs <SET>"); process.exit(1); }
@@ -676,6 +677,7 @@ function capPages(text){
   if(cur) pages.push(cur);
   return pages;
 }
+let CAPBOX = { x0: 120, bw: W - 240, size: 42 };      // ずんだもんを出すときは、右をあけるために字幕の箱を細くする
 function capSvg(page){
   const chars = [...page], half = Math.ceil(chars.length / 2);
   let lines = [page];
@@ -684,13 +686,13 @@ function capSvg(page){
     const idx = [...page].map((c, i) => (c === "、" || c === "。") ? i + 1 : -1).filter(i => i > 0).sort((a, b) => Math.abs(a - half) - Math.abs(b - half))[0] || half;
     lines = [chars.slice(0, idx).join(""), chars.slice(idx).join("")];
   }
-  const lh = 56, boxH = lines.length * lh + 44, x0 = 120, bw = W - 240;
+  const lh = 56, boxH = lines.length * lh + 44, x0 = CAPBOX.x0, bw = CAPBOX.bw, cx = x0 + bw / 2, fs = CAPBOX.size;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H - CAP_Y}" viewBox="0 0 ${W} ${H - CAP_Y}" font-family="${FONT}">
   <defs><linearGradient id="ffw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A4FC4"/><stop offset="1" stop-color="#0B1763"/></linearGradient></defs>
   <rect x="${x0 + 5}" y="8" width="${bw}" height="${boxH}" rx="18" fill="#000" opacity="0.4"/>
   <rect x="${x0}" y="3" width="${bw}" height="${boxH}" rx="18" fill="url(#ffw)" stroke="#F4F7FF" stroke-width="5"/>
   <rect x="${x0 + 10}" y="13" width="${bw - 20}" height="${boxH - 20}" rx="10" fill="none" stroke="#8FA8F0" stroke-width="2" opacity="0.8"/>
-  ${lines.map((l, i) => `<text x="${W / 2 + 2}" y="${52 + i * lh + 2}" font-size="42" fill="#050B33" font-weight="700" text-anchor="middle">${l.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</text>` + T(W / 2, 52 + i * lh, l, { size: 42, anchor: "middle", weight: 700 })).join("")}
+  ${lines.map((l, i) => `<text x="${cx + 2}" y="${52 + i * lh + 2}" font-size="${fs}" fill="#050B33" font-weight="700" text-anchor="middle">${l.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</text>` + T(cx, 52 + i * lh, l, { size: fs, anchor: "middle", weight: 700 })).join("")}
   <polygon points="${x0 + bw - 54},${boxH - 26} ${x0 + bw - 30},${boxH - 26} ${x0 + bw - 42},${boxH - 10}" fill="#F4F7FF"/>
 </svg>`;
 }
@@ -712,7 +714,8 @@ async function loadYomi(){
 /* ------------------------------------------------------------ ずんだもん（口パク・まばたき）
    short/zunda/{open,closed}_{closed,half,open}.png があれば、右下に出す。
    （目：open/closed、口：closed/half/open）  LONG_ZUNDA=0 で出さない */
-const ZDIR = "short/zunda", ZW = 290, ZH = 296;      // 画面での大きさ（素材は 372×380）
+// short/zunda-hoodie/（水色のパーカー版）があれば、そちらを使う。いつもの姿に戻すときは、そのフォルダを消すか LONG_ZUNDA_STYLE=normal
+const ZDIR = (process.env.LONG_ZUNDA_STYLE !== "normal" && existsSync("short/zunda-hoodie/open_open.png")) ? "short/zunda-hoodie" : "short/zunda", ZW = 245, ZH = 250;      // 画面での大きさ（素材は 372×380）。画面の下のすみ（字幕の右どなり）に置く
 async function zundaReady(){
   if(process.env.LONG_ZUNDA === "0") return false;
   for(const e of ["open", "closed"]) for(const m of ["closed", "half", "open"])
@@ -889,7 +892,8 @@ async function main(){
   await writeFile(`${OUT}/script.json`, JSON.stringify(scenes.map(s => ({ kind: s.kind, chapter: s.chapter, say: s.say, kana: s.kana, dur: s.dur })), null, 2), "utf8");
 
   const ZUNDA = !STILLS && await zundaReady();
-  console.error(ZUNDA ? "ずんだもん: 右下に出す（short/zunda/）" : "ずんだもん: 出さない（short/zunda/ に素材が無い）");
+  if(ZUNDA) CAPBOX = { x0: 50, bw: W - 50 - ZW - 70, size: 40 };      // 字幕の箱は左に寄せて、右下はずんだもんの場所
+  console.error(ZUNDA ? `ずんだもん: 右下に出す（${ZDIR}/）` : "ずんだもん: 出さない（short/zunda/ に素材が無い）");
   // 画像と動画
   const segs = []; let total = 0; const chapters = [];
   for(const [i, sc] of scenes.entries()){
@@ -916,10 +920,10 @@ async function main(){
         : `[0:v]null[bg]`;
     const zIn = ZUNDA ? ["-f", "concat", "-safe", "0", "-i", await zundaList(i, base + ".wav", len, OUT)] : [];
     const inputs = [...first, "-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", base + ".wav", ...caps.flatMap(c => ["-loop", "1", "-framerate", "30", "-i", c.f]), ...zIn];
-    // ずんだもんは、字幕の箱の「うしろ」から顔を出す（字幕と重ならない）。ゆっくり上下に揺れる
-    const zx = W - 28 - ZW, zy = CAP_Y + 34 - ZH;
+    // ずんだもんは、画面の右下のすみ（字幕の右どなり）に置く。図や字幕と重ならないよう、小さめにして、上下には揺らさない
+    const zx = W - 24 - ZW, zy = H - ZH;      // 画面の右下のすみ。上下には揺らさない
     let fc = `${bgFilter};[1:v]format=rgba${sc.kind === "hook" ? "" : ",fade=t=in:d=0.2:alpha=1"}[fg];[bg][fg]overlay=shortest=1[${ZUNDA ? "vz" : "v0"}]` +
-      (ZUNDA ? `;[${3 + caps.length}:v]fps=30,scale=${ZW}:${ZH},format=rgba[zz];[vz][zz]overlay=x=${zx}:y='${zy}+4*sin(2*PI*t*1.1)':shortest=1[v0]` : "");
+      (ZUNDA ? `;[${3 + caps.length}:v]fps=30,scale=${ZW}:${ZH},format=rgba[zz];[vz][zz]overlay=x=${zx}:y=${zy}:shortest=1[v0]` : "");
     caps.forEach((c, k) => { fc += `;[v${k}][${3 + k}:v]overlay=0:${CAP_Y}:enable='between(t,${c.a.toFixed(2)},${c.b.toFixed(2)})':shortest=1[v${k + 1}]`; });
     fc += `;[v${caps.length}]format=yuv420p[v];[2:a]apad=pad_dur=${pad.toFixed(2)},afade=t=in:d=0.012,afade=t=out:st=${(len - 0.03).toFixed(3)}:d=0.03,aformat=sample_rates=48000:channel_layouts=stereo[a]`;
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...inputs, "-filter_complex", fc, "-map", "[v]", "-map", "[a]", "-t", String(len),
