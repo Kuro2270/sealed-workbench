@@ -23,6 +23,7 @@
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
+import { resolve } from "node:path";
 
 const SET = process.argv[2];
 if(!SET){ console.error("使い方: node maintenance/build-long.mjs <SET>"); process.exit(1); }
@@ -707,11 +708,47 @@ async function loadYomi(){
   }
   if(n) console.error(`読み辞書: ${n} 語`);
 }
+
+/* ------------------------------------------------------------ ずんだもん（口パク・まばたき）
+   short/zunda/{open,closed}_{closed,half,open}.png があれば、右下に出す。
+   （目：open/closed、口：closed/half/open）  LONG_ZUNDA=0 で出さない */
+const ZDIR = "short/zunda", ZW = 290, ZH = 296;      // 画面での大きさ（素材は 372×380）
+async function zundaReady(){
+  if(process.env.LONG_ZUNDA === "0") return false;
+  for(const e of ["open", "closed"]) for(const m of ["closed", "half", "open"])
+    if(!(await readFile(`${ZDIR}/${e}_${m}.png`).then(() => true, () => false))) return false;
+  return true;
+}
+// 音声の大きさから、1/15 秒ごとの口の形を決める
+function mouthStates(wavPath, len){
+  const FPS = 15, n = Math.max(1, Math.ceil(len * FPS));
+  const raw = execFileSync("ffmpeg", ["-v", "error", "-i", wavPath, "-f", "s16le", "-ac", "1", "-ar", "16000", "-"], { maxBuffer: 1 << 29 });
+  const x = new Int16Array(raw.buffer, raw.byteOffset, Math.floor(raw.length / 2)), win = Math.floor(16000 / FPS);
+  const rms = [];
+  for(let f = 0; f < n; f++){ let a = 0, c = 0; for(let i = f * win; i < Math.min(x.length, (f + 1) * win); i++){ a += x[i] * x[i]; c++; } rms.push(c ? Math.sqrt(a / c) : 0); }
+  const sorted = [...rms].sort((a, b) => a - b), ref = sorted[Math.floor(sorted.length * 0.9)] || 1;
+  let st = rms.map(v => { const r = v / ref; return r < 0.16 ? "closed" : r < 0.5 ? "half" : "open"; });
+  st = st.map((v, i) => { const a = st[i - 1] || v, b = st[i + 1] || v; return a === b ? a : v; });   // 1コマだけの揺れをならす
+  return { FPS, st };
+}
+// 場面ごとの口パク動画の素材（連番の一覧）を作る
+async function zundaList(i, wavPath, len, dir){
+  const { FPS, st } = mouthStates(wavPath, len), lines = [];
+  let last = null;
+  st.forEach((m, f) => {
+    const t = f / FPS, ph = (t + i * 0.9) % 3.6, eye = ph > 3.45 ? "closed" : "open";      // 3.6 秒おきに、0.15 秒のまばたき
+    last = `${ZDIR}/${eye}_${m}.png`;
+    lines.push(`file '${resolve(last)}'`, `duration ${(1 / FPS).toFixed(4)}`);
+  });
+  lines.push(`file '${resolve(last)}'`);
+  const list = `${dir}/zunda-${i}.txt`; await writeFile(list, lines.join("\n"), "utf8");
+  return list;
+}
 async function speak(text, wavPath){
   // 動作確認用（LONG_FAKE_AUDIO=1）：無音の音声を、文字数に応じた長さで作る。VOICEVOX が無い環境で、動画の組み立てだけ試すときに使う
   if(process.env.LONG_FAKE_AUDIO){
     const dur = Math.max(2, [...text].length / 7.5);
-    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "lavfi", "-i", `anullsrc=r=24000:cl=mono`, "-t", dur.toFixed(2), wavPath]);
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "lavfi", "-i", `aevalsrc=0.3*sin(2*PI*220*t)*gt(sin(2*PI*2.7*t)\\,-0.2):s=24000`, "-t", dur.toFixed(2), wavPath]);
     return { kana: text, dur };
   }
   const q = await fetch(`${VV}/audio_query?speaker=${SPEAKER}&text=${encodeURIComponent(text)}`, { method: "POST" });
@@ -851,6 +888,8 @@ async function main(){
   }
   await writeFile(`${OUT}/script.json`, JSON.stringify(scenes.map(s => ({ kind: s.kind, chapter: s.chapter, say: s.say, kana: s.kana, dur: s.dur })), null, 2), "utf8");
 
+  const ZUNDA = !STILLS && await zundaReady();
+  console.error(ZUNDA ? "ずんだもん: 右下に出す（short/zunda/）" : "ずんだもん: 出さない（short/zunda/ に素材が無い）");
   // 画像と動画
   const segs = []; let total = 0; const chapters = [];
   for(const [i, sc] of scenes.entries()){
@@ -875,8 +914,12 @@ async function main(){
       : HAS_BG
         ? `[0:v]fps=30,scale=iw*sar:ih,setsar=1,scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},eq=saturation=0.7,gblur=sigma=5,setsar=1[b0];color=c=0x0A2038@0.6:s=${W}x${H}:r=30[tint];[b0][tint]overlay=shortest=1[bg]`
         : `[0:v]null[bg]`;
-    const inputs = [...first, "-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", base + ".wav", ...caps.flatMap(c => ["-loop", "1", "-framerate", "30", "-i", c.f])];
-    let fc = `${bgFilter};[1:v]format=rgba${sc.kind === "hook" ? "" : ",fade=t=in:d=0.2:alpha=1"}[fg];[bg][fg]overlay=shortest=1[v0]`;
+    const zIn = ZUNDA ? ["-f", "concat", "-safe", "0", "-i", await zundaList(i, base + ".wav", len, OUT)] : [];
+    const inputs = [...first, "-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", base + ".wav", ...caps.flatMap(c => ["-loop", "1", "-framerate", "30", "-i", c.f]), ...zIn];
+    // ずんだもんは、字幕の箱の「うしろ」から顔を出す（字幕と重ならない）。ゆっくり上下に揺れる
+    const zx = W - 28 - ZW, zy = CAP_Y + 34 - ZH;
+    let fc = `${bgFilter};[1:v]format=rgba${sc.kind === "hook" ? "" : ",fade=t=in:d=0.2:alpha=1"}[fg];[bg][fg]overlay=shortest=1[${ZUNDA ? "vz" : "v0"}]` +
+      (ZUNDA ? `;[${3 + caps.length}:v]fps=30,scale=${ZW}:${ZH},format=rgba[zz];[vz][zz]overlay=x=${zx}:y='${zy}+4*sin(2*PI*t*1.1)':shortest=1[v0]` : "");
     caps.forEach((c, k) => { fc += `;[v${k}][${3 + k}:v]overlay=0:${CAP_Y}:enable='between(t,${c.a.toFixed(2)},${c.b.toFixed(2)})':shortest=1[v${k + 1}]`; });
     fc += `;[v${caps.length}]format=yuv420p[v];[2:a]apad=pad_dur=${pad.toFixed(2)},afade=t=in:d=0.012,afade=t=out:st=${(len - 0.03).toFixed(3)}:d=0.03,aformat=sample_rates=48000:channel_layouts=stereo[a]`;
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...inputs, "-filter_complex", fc, "-map", "[v]", "-map", "[a]", "-t", String(len),
@@ -902,7 +945,7 @@ https://${SITE}/
 
 データ: 17Lands Public Data (CC BY 4.0)
 音声: VOICEVOX:ずんだもん
-${bgmCredit ? `BGM: ${bgmCredit}\n` : ""}Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.
+${ZUNDA ? "立ち絵: 坂本アヒル（https://twitter.com/sakamoto_ahr）\n" : ""}${bgmCredit ? `BGM: ${bgmCredit}\n` : ""}Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.
 
 #MTGアリーナ #MTGA #リミテッド #${String(nameJa).replace(/[\s・]/g, "")}
 `, "utf8");
