@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Teenage Mutant Ninja Turtles (TMT) Limited format report — MTG Arena Draft and Sealed win rates — MTG Arena Limited Workbench</title>
-<meta name="description" content="Teenage Mutant Ninja Turtles (TMT) Draft and Sealed on MTG Arena, read from 237,044 games of 17Lands public data: format speed, strongest colours, best two-colour archetypes, top commons, uncommons and rares, and a full card tier list.">
+<title>Teenage Mutant Ninja Turtles (TMT) Limited card ratings — best cards ranked by win rate (MTG Arena) — MTG Arena Limited Workbench</title>
+<meta name="description" content="Which cards are best in Teenage Mutant Ninja Turtles (TMT) Limited on MTG Arena? Card ratings by win rate from 237,044 games of 17Lands data, ranked by rarity — plus format speed, the strongest colours and the best two-colour pairs.">
 <link rel="canonical" href="https://sealed-workbench.com/sets/TMT.en">
 <link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/TMT">
 <link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/TMT.en">
 <link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/TMT">
-<meta property="og:title" content="Teenage Mutant Ninja Turtles (TMT) Limited format report — MTG Arena Draft and Sealed win rates">
-<meta property="og:description" content="Teenage Mutant Ninja Turtles (TMT) Draft and Sealed on MTG Arena, read from 237,044 games of 17Lands public data: format speed, strongest colours, best two-colour archetypes, top commons, uncommons and rares, and a full card tier list.">
+<meta property="og:title" content="Teenage Mutant Ninja Turtles (TMT) Limited card ratings — best cards ranked by win rate (MTG Arena)">
+<meta property="og:description" content="Which cards are best in Teenage Mutant Ninja Turtles (TMT) Limited on MTG Arena? Card ratings by win rate from 237,044 games of 17Lands data, ranked by rarity — plus format speed, the strongest colours and the best two-colour pairs.">
 <meta property="og:url" content="https://sealed-workbench.com/sets/TMT.en">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
@@ -22,7 +22,20 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/mana/mana.min.css">
 <script src="../analytics.js"></script>
+<script src="/navmenu.js" defer></script>
+<script src="/tip.js" defer></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#10304F">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Workbench">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
 <style>
   :root{--pine:#10304F;--pine-deep:#0A2038;--paper:#F5F8FC;--paper-2:#E8EEF6;--ink:#0D1B2A;--muted:#5C7185;--gold:#2F7DF6;--line:#D3DFEB;
         --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:8px}
@@ -49,6 +62,20 @@
   nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
   nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
   @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0} }
+  /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
+  .ng{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;column-gap:7px;row-gap:5px;justify-content:start;align-items:center;padding-top:0}
+  .ng:has(.ngs){padding-top:0}
+  .ngl,.ngs{position:static;grid-column:1/-1;white-space:nowrap}
+  .ngl{grid-row:1;left:auto}
+  .ngs{grid-row:2;left:auto;top:auto;font-size:11.5px;color:#A9BFD8;margin-top:-2px}
+  nav a{grid-row:3;padding:8px 16px;border-radius:10px;font-weight:700;background:linear-gradient(180deg,#2A5F96,#1C4A7C);border:1px solid #4A83BF;color:#FFFFFF;box-shadow:0 2px 0 #12365C,0 4px 10px rgba(0,0,0,.28);-webkit-font-smoothing:auto;text-shadow:none;letter-spacing:.02em}
+  nav a:not(.on):hover{background:linear-gradient(180deg,#3573B3,#25609F);border-color:#6FA3DA}
+  nav a:active{box-shadow:0 1px 0 #12365C}
+  nav a.on{box-shadow:0 2px 0 rgba(0,0,0,.35),0 4px 10px rgba(0,0,0,.28)}
+  @media (max-width:760px){
+    .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+    .ngl,.ngs{flex:0 0 100%}
+  }
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   .lang{margin-top:12px;font-size:13px}
@@ -60,6 +87,21 @@
   .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
   section{margin-top:18px}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
+  .longvideo h2{margin:0 0 4px;font-size:18px}
+  .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
+  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0A2038}
+  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .longvideo .yt button span{width:68px;height:68px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .longvideo .yt button span::after{content:"";border-left:23px solid #0B1E33;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
+  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px}
+  .longvideo .chap li{margin:0 0 2px}
+  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
+  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
+  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
   .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
   .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
   .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -103,6 +145,9 @@
   .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}
   footer a{color:var(--muted)}
+  .faq details{border-bottom:1px solid var(--line,#D7E2EE);padding:10px 2px}
+  .faq summary{cursor:pointer;font-weight:700;font-size:14.5px}
+  .faq p{margin:8px 0 2px;font-size:14px;line-height:1.8}
   @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
@@ -116,34 +161,44 @@
         <option value="TMT.en.html" selected>English</option>
       </select></div>
     <nav>
-      <div class="ng"><span class="ngl">Start</span><a href="../start/index.en.html">What is MTG?</a><a href="../start/limited.en.html">What is Limited?</a><a href="../guide.html">Site features</a></div>
+      <div class="ng"><span class="ngl">Start</span><span class="ngs">MTG basics &amp; how to use this site</span><a href="../start/index.en.html">What is MTG?</a><a href="../start/limited.en.html">What is Limited?</a><a href="../guide.html">Site features</a></div>
       <div class="ng"><span class="ngl">Practice</span><span class="ngs">Virtual packs</span><a href="../">Sealed practice</a><a href="../draft.html">Draft practice</a></div>
       <div class="ng"><span class="ngl">Use with MTG Arena</span><span class="ngs">Reads your log in real play · PC only</span><a href="../sealed-assist.html">Sealed assistant<b class="pcb">PC</b></a><a href="../assistant.html">Draft assistant<b class="pcb">PC</b></a></div>
-      <div class="ng"><span class="ngl">Data</span><a href="../reports.html">Set reports</a></div>
-      <div class="ng"><span class="ngl">Play</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
-      <div class="ng"><span class="ngl">Shop</span><a href="../goods/index.en.html">Japanese supplies</a></div>
+      <div class="ng"><span class="ngl">Data</span><span class="ngs">How strong and fast each set is</span><a href="../reports.html">Set reports</a></div>
+      <div class="ng"><span class="ngl">Play</span><span class="ngs">Play friends or run a tournament</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
+      <div class="ng"><span class="ngl">Shop</span><span class="ngs">MTG supplies sold in Japan</span><a href="../goods/index.en.html">Japanese supplies</a></div>
     </nav>
-    <h1>Teenage Mutant Ninja Turtles — Limited format report <small class="code">TMT</small></h1>
-    <p>Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data.　Released 2026-03-06</p>
+    <h1>Teenage Mutant Ninja Turtles | Limited card ratings and format report <small class="code">TMT</small></h1>
+    <p>Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data. Use them as card ratings: the higher the win rate, the stronger the card.　Released 2026-03-06</p>
     <link rel="alternate" hreflang="ja" href="TMT.html">
   </div>
 </header>
 <main>
 <article class="mode">
   <h2>Draft <small>204,452 games · overall win rate 57.8%</small></h2>
-  <p class="built">Built 2026-09-18</p>
-  <p class="summary">Teenage Mutant Ninja Turtles Draft on MTG Arena: 204,452 games, 57.8% overall win rate. On speed, speed makes little difference. White (58.4%) and Red (58.2%) are the strongest colours; the best two-colour pair is White/Black at 59.7%, and the weakest is Black/Green at 56.2%. By card, the top common is Frog Butler, the top uncommon is Mighty Mutanimals, the top rare is Sally Pride, Lioness Leader (game-in-hand win rate).</p>
+  <p class="built">Built 2026-10-07</p>
+  <p class="summary">Teenage Mutant Ninja Turtles Draft on MTG Arena: 204,452 games, 57.8% overall win rate. On speed, it leans fast — lighter decks win a little more. White (58.4%) and Red (58.2%) are the strongest colours; the best two-colour pair is White/Black at 59.7%, and the weakest is Black/Green at 56.2%. By card, the top common is Frog Butler, the top uncommon is Mighty Mutanimals, the top rare is Sally Pride, Lioness Leader (game-in-hand win rate).</p>
+<section class="video"><div class="yt" data-id="DjALvFTmJ6k">
+    <img src="/assets/video/TMT-en.jpg" alt="Teenage Mutant Ninja Turtles Draft in 60 seconds | MTG Arena #Shorts" loading="lazy" width="270" height="480">
+    <button type="button" aria-label="Play"><span></span></button>
+  </div>
+  <div class="vtext"><h3>The format in 60 seconds (video)</h3><p class="lead">The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.</p>
+    <p><a href="https://www.youtube.com/shorts/DjALvFTmJ6k" target="_blank" rel="noopener">Watch on YouTube</a></p>
+  </div>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoObject","name":"Teenage Mutant Ninja Turtles Draft in 60 seconds | MTG Arena #Shorts","description":"The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.","thumbnailUrl":["https://sealed-workbench.com/assets/video/TMT-en.jpg"],"uploadDate":"2026-10-03","duration":"PT1M","contentUrl":"https://www.youtube.com/shorts/DjALvFTmJ6k","embedUrl":"https://www.youtube-nocookie.com/embed/DjALvFTmJ6k","inLanguage":"en"}</script>
+  <script>document.querySelectorAll(".video .yt button").forEach(function(btn){ if(btn.dataset.wired) return; btn.dataset.wired="1"; btn.addEventListener("click",function(){var b=this.parentNode,f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+b.dataset.id+"?autoplay=1&playsinline=1";f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title=this.getAttribute("aria-label");b.innerHTML="";b.appendChild(f);});});</script>
+</section>
 
   <section><h3>Format speed</h3>
-    <div class="verdict"><b>Speed does not decide much here. What goes in the deck matters more.</b><span class="gap">Decks averaging under 2.9 mana value have the highest win rate, at 58.6%. Games last 9.3 turns on average, on the long side of the last 8 sets.</span></div>
+    <div class="verdict"><b>Leans fast. The gap is small, but lighter decks win a little more at every step.</b><span class="gap">Decks averaging under 2.9 mana value have the highest win rate, at 58.6%. Games last 9.3 turns on average, on the long side of the last 8 sets.</span></div>
   </section>
   <section><h3>Colour strength</h3><p class="lead">Win rate of games where the deck included cards of that colour.</p>
     <table><thead><tr><th>Colour</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-    <tr><td><span class="dot" style="background:var(--w)"></span>White</td><td class="num"><b>58.4%</b></td><td class="num">83,384</td></tr>
-    <tr><td><span class="dot" style="background:var(--r)"></span>Red</td><td class="num"><b>58.2%</b></td><td class="num">86,516</td></tr>
-    <tr><td><span class="dot" style="background:var(--b)"></span>Black</td><td class="num"><b>58.1%</b></td><td class="num">100,031</td></tr>
-    <tr><td><span class="dot" style="background:var(--u)"></span>Blue</td><td class="num"><b>57.9%</b></td><td class="num">100,959</td></tr>
-    <tr><td><span class="dot" style="background:var(--g)"></span>Green</td><td class="num"><b>56.6%</b></td><td class="num">80,981</td></tr>
+    <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>White</td><td class="num"><b>58.4%</b></td><td class="num">83,384</td></tr>
+    <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Red</td><td class="num"><b>58.2%</b></td><td class="num">86,516</td></tr>
+    <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Black</td><td class="num"><b>58.1%</b></td><td class="num">100,031</td></tr>
+    <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Blue</td><td class="num"><b>57.9%</b></td><td class="num">100,959</td></tr>
+    <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Green</td><td class="num"><b>56.6%</b></td><td class="num">80,981</td></tr>
     </tbody></table>
   </section>
   <section><h3>Colour pairs</h3><p class="lead">Win rate by two-colour pair, sorted by number of games.</p>
@@ -171,78 +226,88 @@
     <tr><td>7+</td><td class="num"><b>61.3%</b></td><td class="num">6</td><td class="num">31,213</td></tr>
     </tbody></table>
   </section>
-  <section><h3>Best cards by rarity</h3><p class="lead">Sorted by GIH win rate (games where the card was in hand or on the battlefield).</p>
+  <section><h3>Card ratings by rarity</h3><p class="lead">A card's rating is its real win rate (GIH win rate: games where the card was in hand or on the battlefield). Higher is stronger. Sorted from the top within each rarity.</p>
     <div class="grid">
       <div><h3><span class="rar mythic">Mythic</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--m)"></span>The Last Ronin</td><td class="num"><b>70.0%</b></td><td class="num">4,395</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>North Wind Avatar</td><td class="num"><b>63.5%</b></td><td class="num">4,133</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Dark Leo &amp; Shredder</td><td class="num"><b>63.3%</b></td><td class="num">2,743</td></tr>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Leonardo, Sewer Samurai</td><td class="num"><b>63.1%</b></td><td class="num">2,420</td></tr>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Triceraton Commander</td><td class="num"><b>62.9%</b></td><td class="num">3,329</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>The Cloning of Shredder</td><td class="num"><b>61.9%</b></td><td class="num">3,787</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Donatello, Mutant Mechanic</td><td class="num"><b>60.6%</b></td><td class="num">2,979</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Super Shredder</td><td class="num"><b>60.4%</b></td><td class="num">3,306</td></tr>
-      <tr><td><span class="dot" style="background:var(--c)"></span>Technodrome</td><td class="num"><b>59.5%</b></td><td class="num">3,295</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Michelangelo, Improviser</td><td class="num"><b>58.5%</b></td><td class="num">1,719</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>The Last Ronin</td><td class="num"><b>70.0%</b></td><td class="num">4,395</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>North Wind Avatar</td><td class="num"><b>63.5%</b></td><td class="num">4,133</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Dark Leo &amp; Shredder</td><td class="num"><b>63.3%</b></td><td class="num">2,743</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Leonardo, Sewer Samurai</td><td class="num"><b>63.1%</b></td><td class="num">2,420</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Triceraton Commander</td><td class="num"><b>62.9%</b></td><td class="num">3,329</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>The Cloning of Shredder</td><td class="num"><b>61.9%</b></td><td class="num">3,787</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Donatello, Mutant Mechanic</td><td class="num"><b>60.6%</b></td><td class="num">2,979</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Super Shredder</td><td class="num"><b>60.4%</b></td><td class="num">3,306</td></tr>
+      <tr><td><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>Technodrome</td><td class="num"><b>59.5%</b></td><td class="num">3,295</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Michelangelo, Improviser</td><td class="num"><b>58.5%</b></td><td class="num">1,719</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">Rare</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Sally Pride, Lioness Leader</td><td class="num"><b>70.6%</b></td><td class="num">6,182</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>April O'Neil, Hacktivist</td><td class="num"><b>65.7%</b></td><td class="num">7,187</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Armaggon, Future Shark</td><td class="num"><b>65.5%</b></td><td class="num">5,531</td></tr>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Agent Bishop, Man in Black</td><td class="num"><b>65.4%</b></td><td class="num">5,616</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Don &amp; Leo, Problem Solvers</td><td class="num"><b>64.5%</b></td><td class="num">6,479</td></tr>
-      <tr><td><span class="dot" style="background:var(--r)"></span>Ravenous Robots</td><td class="num"><b>64.0%</b></td><td class="num">5,327</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Kitsune, Dragon's Daughter</td><td class="num"><b>63.5%</b></td><td class="num">6,350</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Mikey &amp; Don, Party Planners</td><td class="num"><b>63.4%</b></td><td class="num">5,684</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Turncoat Kunoichi</td><td class="num"><b>62.9%</b></td><td class="num">5,049</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Leatherhead, Swamp Stalker</td><td class="num"><b>62.9%</b></td><td class="num">4,877</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Sally Pride, Lioness Leader</td><td class="num"><b>70.6%</b></td><td class="num">6,182</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>April O'Neil, Hacktivist</td><td class="num"><b>65.7%</b></td><td class="num">7,187</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Armaggon, Future Shark</td><td class="num"><b>65.5%</b></td><td class="num">5,531</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Agent Bishop, Man in Black</td><td class="num"><b>65.4%</b></td><td class="num">5,616</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Don &amp; Leo, Problem Solvers</td><td class="num"><b>64.5%</b></td><td class="num">6,479</td></tr>
+      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Ravenous Robots</td><td class="num"><b>64.0%</b></td><td class="num">5,327</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Kitsune, Dragon's Daughter</td><td class="num"><b>63.5%</b></td><td class="num">6,350</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Mikey &amp; Don, Party Planners</td><td class="num"><b>63.4%</b></td><td class="num">5,684</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Turncoat Kunoichi</td><td class="num"><b>62.9%</b></td><td class="num">5,049</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Leatherhead, Swamp Stalker</td><td class="num"><b>62.9%</b></td><td class="num">4,877</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">Uncommon</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Mighty Mutanimals</td><td class="num"><b>65.6%</b></td><td class="num">16,681</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Dream Beavers</td><td class="num"><b>65.3%</b></td><td class="num">15,180</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Everything Pizza</td><td class="num"><b>65.1%</b></td><td class="num">20,847</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Metalhead</td><td class="num"><b>63.9%</b></td><td class="num">21,894</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Courier of Comestibles</td><td class="num"><b>63.6%</b></td><td class="num">18,230</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Brilliance Unleashed</td><td class="num"><b>63.6%</b></td><td class="num">20,213</td></tr>
-      <tr><td><span class="dot" style="background:var(--r)"></span>Casey Jones, Jury-Rig Justiciar</td><td class="num"><b>63.5%</b></td><td class="num">15,185</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Ooze Spill</td><td class="num"><b>62.2%</b></td><td class="num">14,171</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Tainted Treats</td><td class="num"><b>62.0%</b></td><td class="num">14,791</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Lessons from Life</td><td class="num"><b>61.6%</b></td><td class="num">14,774</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Mighty Mutanimals</td><td class="num"><b>65.6%</b></td><td class="num">16,681</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Dream Beavers</td><td class="num"><b>65.3%</b></td><td class="num">15,180</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Everything Pizza</td><td class="num"><b>65.1%</b></td><td class="num">20,847</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Metalhead</td><td class="num"><b>63.9%</b></td><td class="num">21,894</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Courier of Comestibles</td><td class="num"><b>63.6%</b></td><td class="num">18,230</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Brilliance Unleashed</td><td class="num"><b>63.6%</b></td><td class="num">20,213</td></tr>
+      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Casey Jones, Jury-Rig Justiciar</td><td class="num"><b>63.5%</b></td><td class="num">15,185</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Ooze Spill</td><td class="num"><b>62.2%</b></td><td class="num">14,171</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Tainted Treats</td><td class="num"><b>62.0%</b></td><td class="num">14,791</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Lessons from Life</td><td class="num"><b>61.6%</b></td><td class="num">14,774</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">Common</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Frog Butler</td><td class="num"><b>62.2%</b></td><td class="num">35,241</td></tr>
-      <tr><td><span class="dot" style="background:var(--r)"></span>Mouser Foundry</td><td class="num"><b>60.9%</b></td><td class="num">33,570</td></tr>
-      <tr><td><span class="dot" style="background:var(--r)"></span>Manhole Missile</td><td class="num"><b>60.9%</b></td><td class="num">32,645</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Sewer-veillance Cam</td><td class="num"><b>60.7%</b></td><td class="num">35,696</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Buzz Bots</td><td class="num"><b>60.3%</b></td><td class="num">32,523</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Mechanized Ninja Cavalry</td><td class="num"><b>60.3%</b></td><td class="num">34,409</td></tr>
-      <tr><td><span class="dot" style="background:var(--c)"></span>Omni-Cheese Pizza</td><td class="num"><b>60.3%</b></td><td class="num">29,796</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Return to the Sewers</td><td class="num"><b>60.1%</b></td><td class="num">32,913</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Nobody</td><td class="num"><b>59.8%</b></td><td class="num">33,592</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Donatello, Turtle Techie</td><td class="num"><b>59.7%</b></td><td class="num">32,246</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Frog Butler</td><td class="num"><b>62.2%</b></td><td class="num">35,241</td></tr>
+      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Mouser Foundry</td><td class="num"><b>60.9%</b></td><td class="num">33,570</td></tr>
+      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Manhole Missile</td><td class="num"><b>60.9%</b></td><td class="num">32,645</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Sewer-veillance Cam</td><td class="num"><b>60.7%</b></td><td class="num">35,696</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Buzz Bots</td><td class="num"><b>60.3%</b></td><td class="num">32,523</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Mechanized Ninja Cavalry</td><td class="num"><b>60.3%</b></td><td class="num">34,409</td></tr>
+      <tr><td><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>Omni-Cheese Pizza</td><td class="num"><b>60.3%</b></td><td class="num">29,796</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Return to the Sewers</td><td class="num"><b>60.1%</b></td><td class="num">32,913</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Nobody</td><td class="num"><b>59.8%</b></td><td class="num">33,592</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Donatello, Turtle Techie</td><td class="num"><b>59.7%</b></td><td class="num">32,246</td></tr>
       </tbody></table></div>
     </div>
   </section>
 </article>
 <article class="mode">
   <h2>Sealed <small>32,592 games · overall win rate 58.1%</small></h2>
-  <p class="built">Built 2026-09-18</p>
+  <p class="built">Built 2026-10-07</p>
   <p class="summary">Teenage Mutant Ninja Turtles Sealed on MTG Arena: 32,592 games, 58.1% overall win rate. On speed, speed makes little difference. White (59.4%) and Black (58.7%) are the strongest colours; the best two-colour pair is White/Black at 61.0%, and the weakest is Black/Green at 56.7%. By card, the top common is Manhole Missile, the top uncommon is Metalhead, the top rare is Sally Pride, Lioness Leader (game-in-hand win rate).</p>
+<section class="video"><div class="yt" data-id="LCEY5bEjuLI">
+    <img src="/assets/video/TMT-en-sealed.jpg" alt="Teenage Mutant Ninja Turtles Sealed in 60 seconds | MTG Arena #Shorts" loading="lazy" width="270" height="480">
+    <button type="button" aria-label="Play"><span></span></button>
+  </div>
+  <div class="vtext"><h3>The format in 60 seconds (video)</h3><p class="lead">The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.</p>
+    <p><a href="https://www.youtube.com/shorts/LCEY5bEjuLI" target="_blank" rel="noopener">Watch on YouTube</a></p>
+  </div>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoObject","name":"Teenage Mutant Ninja Turtles Sealed in 60 seconds | MTG Arena #Shorts","description":"The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.","thumbnailUrl":["https://sealed-workbench.com/assets/video/TMT-en-sealed.jpg"],"uploadDate":"2026-10-03","duration":"PT1M","contentUrl":"https://www.youtube.com/shorts/LCEY5bEjuLI","embedUrl":"https://www.youtube-nocookie.com/embed/LCEY5bEjuLI","inLanguage":"en"}</script>
+  <script>document.querySelectorAll(".video .yt button").forEach(function(btn){ if(btn.dataset.wired) return; btn.dataset.wired="1"; btn.addEventListener("click",function(){var b=this.parentNode,f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+b.dataset.id+"?autoplay=1&playsinline=1";f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title=this.getAttribute("aria-label");b.innerHTML="";b.appendChild(f);});});</script>
+</section>
 
   <section><h3>Format speed</h3>
     <div class="verdict"><b>Speed does not decide much here. What goes in the deck matters more.</b><span class="gap">Decks averaging 3.5 mana value or more have the highest win rate, at 58.8%. Games last 9.3 turns on average, on the long side of the last 8 sets.</span></div>
   </section>
   <section><h3>Colour strength</h3><p class="lead">Win rate of games where the deck included cards of that colour.</p>
     <table><thead><tr><th>Colour</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-    <tr><td><span class="dot" style="background:var(--w)"></span>White</td><td class="num"><b>59.4%</b></td><td class="num">15,182</td></tr>
-    <tr><td><span class="dot" style="background:var(--b)"></span>Black</td><td class="num"><b>58.7%</b></td><td class="num">19,062</td></tr>
-    <tr><td><span class="dot" style="background:var(--g)"></span>Green</td><td class="num"><b>57.1%</b></td><td class="num">13,057</td></tr>
-    <tr><td><span class="dot" style="background:var(--u)"></span>Blue</td><td class="num"><b>57.1%</b></td><td class="num">8,856</td></tr>
-    <tr><td><span class="dot" style="background:var(--r)"></span>Red</td><td class="num"><b>57.0%</b></td><td class="num">7,226</td></tr>
+    <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>White</td><td class="num"><b>59.4%</b></td><td class="num">15,182</td></tr>
+    <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Black</td><td class="num"><b>58.7%</b></td><td class="num">19,062</td></tr>
+    <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Green</td><td class="num"><b>57.1%</b></td><td class="num">13,057</td></tr>
+    <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Blue</td><td class="num"><b>57.1%</b></td><td class="num">8,856</td></tr>
+    <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Red</td><td class="num"><b>57.0%</b></td><td class="num">7,226</td></tr>
     </tbody></table>
   </section>
   <section><h3>Colour pairs</h3><p class="lead">Win rate by two-colour pair, sorted by number of games.</p>
@@ -269,63 +334,69 @@
     <tr><td>7+</td><td class="num"><b>60.3%</b></td><td class="num">5</td><td class="num">5,348</td></tr>
     </tbody></table>
   </section>
-  <section><h3>Best cards by rarity</h3><p class="lead">Sorted by GIH win rate (games where the card was in hand or on the battlefield).</p>
+  <section><h3>Card ratings by rarity</h3><p class="lead">A card's rating is its real win rate (GIH win rate: games where the card was in hand or on the battlefield). Higher is stronger. Sorted from the top within each rarity.</p>
     <div class="grid">
       <div><h3><span class="rar mythic">Mythic</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--m)"></span>The Last Ronin</td><td class="num"><b>70.0%</b></td><td class="num">1,610</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Dark Leo &amp; Shredder</td><td class="num"><b>65.7%</b></td><td class="num">1,270</td></tr>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Triceraton Commander</td><td class="num"><b>64.1%</b></td><td class="num">1,384</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>The Cloning of Shredder</td><td class="num"><b>62.1%</b></td><td class="num">1,450</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Super Shredder</td><td class="num"><b>61.9%</b></td><td class="num">1,538</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Michelangelo, Improviser</td><td class="num"><b>60.8%</b></td><td class="num">637</td></tr>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Leonardo, Sewer Samurai</td><td class="num"><b>60.2%</b></td><td class="num">756</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Donatello, Mutant Mechanic</td><td class="num"><b>58.2%</b></td><td class="num">670</td></tr>
-      <tr><td><span class="dot" style="background:var(--c)"></span>Technodrome</td><td class="num"><b>56.7%</b></td><td class="num">905</td></tr>
-      <tr><td><span class="dot" style="background:var(--c)"></span>Krang, Utrom Warlord</td><td class="num"><b>54.7%</b></td><td class="num">770</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>The Last Ronin</td><td class="num"><b>70.0%</b></td><td class="num">1,610</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Dark Leo &amp; Shredder</td><td class="num"><b>65.7%</b></td><td class="num">1,270</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Triceraton Commander</td><td class="num"><b>64.1%</b></td><td class="num">1,384</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>The Cloning of Shredder</td><td class="num"><b>62.1%</b></td><td class="num">1,450</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Super Shredder</td><td class="num"><b>61.9%</b></td><td class="num">1,538</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Michelangelo, Improviser</td><td class="num"><b>60.8%</b></td><td class="num">637</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Leonardo, Sewer Samurai</td><td class="num"><b>60.2%</b></td><td class="num">756</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Donatello, Mutant Mechanic</td><td class="num"><b>58.2%</b></td><td class="num">670</td></tr>
+      <tr><td><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>Technodrome</td><td class="num"><b>56.7%</b></td><td class="num">905</td></tr>
+      <tr><td><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>Krang, Utrom Warlord</td><td class="num"><b>54.7%</b></td><td class="num">770</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">Rare</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Sally Pride, Lioness Leader</td><td class="num"><b>70.5%</b></td><td class="num">1,440</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>April O'Neil, Hacktivist</td><td class="num"><b>67.1%</b></td><td class="num">958</td></tr>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Agent Bishop, Man in Black</td><td class="num"><b>66.7%</b></td><td class="num">1,239</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Leatherhead, Swamp Stalker</td><td class="num"><b>64.5%</b></td><td class="num">1,080</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Don &amp; Leo, Problem Solvers</td><td class="num"><b>64.4%</b></td><td class="num">1,533</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Turncoat Kunoichi</td><td class="num"><b>64.2%</b></td><td class="num">1,140</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Mikey &amp; Don, Party Planners</td><td class="num"><b>64.2%</b></td><td class="num">1,183</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Shark Shredder, Killer Clone</td><td class="num"><b>62.9%</b></td><td class="num">1,190</td></tr>
-      <tr><td><span class="dot" style="background:var(--r)"></span>Ravenous Robots</td><td class="num"><b>62.7%</b></td><td class="num">592</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Kitsune, Dragon's Daughter</td><td class="num"><b>62.7%</b></td><td class="num">798</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Sally Pride, Lioness Leader</td><td class="num"><b>70.5%</b></td><td class="num">1,440</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>April O'Neil, Hacktivist</td><td class="num"><b>67.1%</b></td><td class="num">958</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Agent Bishop, Man in Black</td><td class="num"><b>66.7%</b></td><td class="num">1,239</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Leatherhead, Swamp Stalker</td><td class="num"><b>64.5%</b></td><td class="num">1,080</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Don &amp; Leo, Problem Solvers</td><td class="num"><b>64.4%</b></td><td class="num">1,533</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Turncoat Kunoichi</td><td class="num"><b>64.2%</b></td><td class="num">1,140</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Mikey &amp; Don, Party Planners</td><td class="num"><b>64.2%</b></td><td class="num">1,183</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Shark Shredder, Killer Clone</td><td class="num"><b>62.9%</b></td><td class="num">1,190</td></tr>
+      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Ravenous Robots</td><td class="num"><b>62.7%</b></td><td class="num">592</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Kitsune, Dragon's Daughter</td><td class="num"><b>62.7%</b></td><td class="num">798</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">Uncommon</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Metalhead</td><td class="num"><b>65.9%</b></td><td class="num">1,573</td></tr>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Mighty Mutanimals</td><td class="num"><b>65.5%</b></td><td class="num">2,493</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Everything Pizza</td><td class="num"><b>65.1%</b></td><td class="num">1,704</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Baxter Stockman</td><td class="num"><b>65.1%</b></td><td class="num">1,023</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Brilliance Unleashed</td><td class="num"><b>64.9%</b></td><td class="num">1,222</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Dream Beavers</td><td class="num"><b>64.6%</b></td><td class="num">2,509</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Ooze Spill</td><td class="num"><b>62.9%</b></td><td class="num">798</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Tainted Treats</td><td class="num"><b>62.7%</b></td><td class="num">2,129</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Death in the Family</td><td class="num"><b>62.6%</b></td><td class="num">2,909</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Lessons from Life</td><td class="num"><b>62.5%</b></td><td class="num">1,282</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Metalhead</td><td class="num"><b>65.9%</b></td><td class="num">1,573</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Mighty Mutanimals</td><td class="num"><b>65.5%</b></td><td class="num">2,493</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Everything Pizza</td><td class="num"><b>65.1%</b></td><td class="num">1,704</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Baxter Stockman</td><td class="num"><b>65.1%</b></td><td class="num">1,023</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Brilliance Unleashed</td><td class="num"><b>64.9%</b></td><td class="num">1,222</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Dream Beavers</td><td class="num"><b>64.6%</b></td><td class="num">2,509</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Ooze Spill</td><td class="num"><b>62.9%</b></td><td class="num">798</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Tainted Treats</td><td class="num"><b>62.7%</b></td><td class="num">2,129</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Death in the Family</td><td class="num"><b>62.6%</b></td><td class="num">2,909</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Lessons from Life</td><td class="num"><b>62.5%</b></td><td class="num">1,282</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">Common</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--r)"></span>Manhole Missile</td><td class="num"><b>61.6%</b></td><td class="num">3,031</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Frog Butler</td><td class="num"><b>61.5%</b></td><td class="num">5,253</td></tr>
-      <tr><td><span class="dot" style="background:var(--c)"></span>Omni-Cheese Pizza</td><td class="num"><b>61.3%</b></td><td class="num">3,978</td></tr>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Grounded for Life</td><td class="num"><b>61.1%</b></td><td class="num">4,219</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Return to the Sewers</td><td class="num"><b>61.1%</b></td><td class="num">2,469</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Sewer-veillance Cam</td><td class="num"><b>61.0%</b></td><td class="num">2,776</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Shredder's Revenge</td><td class="num"><b>60.9%</b></td><td class="num">2,425</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Anchovy &amp; Banana Pizza</td><td class="num"><b>60.9%</b></td><td class="num">6,928</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Donatello, Turtle Techie</td><td class="num"><b>60.7%</b></td><td class="num">3,003</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Squirrelanoids</td><td class="num"><b>60.7%</b></td><td class="num">5,102</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Manhole Missile</td><td class="num"><b>61.6%</b></td><td class="num">3,031</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Frog Butler</td><td class="num"><b>61.5%</b></td><td class="num">5,253</td></tr>
+      <tr><td><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>Omni-Cheese Pizza</td><td class="num"><b>61.3%</b></td><td class="num">3,978</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Grounded for Life</td><td class="num"><b>61.1%</b></td><td class="num">4,219</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Return to the Sewers</td><td class="num"><b>61.1%</b></td><td class="num">2,469</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Sewer-veillance Cam</td><td class="num"><b>61.0%</b></td><td class="num">2,776</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Shredder's Revenge</td><td class="num"><b>60.9%</b></td><td class="num">2,425</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Anchovy &amp; Banana Pizza</td><td class="num"><b>60.9%</b></td><td class="num">6,928</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Donatello, Turtle Techie</td><td class="num"><b>60.7%</b></td><td class="num">3,003</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Squirrelanoids</td><td class="num"><b>60.7%</b></td><td class="num">5,102</td></tr>
       </tbody></table></div>
     </div>
   </section>
 </article>
+<section class="faq"><h3>About Limited card ratings</h3>
+  <details><summary>What is a Limited card rating?</summary><p>A number that says how strong a card is. Ratings given by people include personal taste, so this page uses win rates from real games instead.</p></details>
+  <details><summary>How should I read the GIH win rate?</summary><p>A card above the set's overall win rate was in decks that won more often. Cards with few games swing a lot, and cards that go into strong decks tend to look better than they are, so treat it as a guide and read it together with colours and synergy.</p></details>
+  <details><summary>When are the ratings updated?</summary><p>Every Monday (Japan time), from the latest 17Lands data.</p></details>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"en","mainEntity":[{"@type":"Question","name":"What is a Limited card rating?","acceptedAnswer":{"@type":"Answer","text":"A number that says how strong a card is. Ratings given by people include personal taste, so this page uses win rates from real games instead."}},{"@type":"Question","name":"How should I read the GIH win rate?","acceptedAnswer":{"@type":"Answer","text":"A card above the set's overall win rate was in decks that won more often. Cards with few games swing a lot, and cards that go into strong decks tend to look better than they are, so treat it as a guide and read it together with colours and synergy."}},{"@type":"Question","name":"When are the ratings updated?","acceptedAnswer":{"@type":"Answer","text":"Every Monday (Japan time), from the latest 17Lands data."}}]}</script>
+</section>
 <section class="links"><h3>Related pages</h3><ul>
   <li><a href="../reports.html?set=TMT">Set reports (switch sets)</a></li>
   <li><a href="../">Sealed practice</a>／<a href="../draft.html">Draft practice</a>／<a href="../assistant.html">Draft assistant (PC, Chrome/Edge)</a></li>
@@ -335,6 +406,6 @@
 <div id="goodsStrip"></div>
 <script src="../goods-widget.js?v=6" defer></script>
 </main>
-<footer>Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a></footer>
+<footer>Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../faq.html">FAQ</a> · <a href="../contact.html">Contact</a><br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a></footer>
 </body>
 </html>
