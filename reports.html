@@ -135,6 +135,20 @@
   @media (prefers-reduced-motion:reduce){ .status.busy::before{animation-duration:2.4s} }
   .status.err{border-left-color:#B4432E;color:#8A3422;background:#F6E9E5}
   .built{font-size:12px;color:var(--muted);margin:0 0 22px}
+  .longvideo{margin:0 0 22px}
+  .longvideo h3{margin:0 0 4px;font-size:16px}
+  .longvideo p.lead{margin:0 0 10px;color:var(--muted);font-size:13px}
+  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#0A2038}
+  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .longvideo .yt button span{width:64px;height:64px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .longvideo .yt button span::after{content:"";border-left:22px solid #0B1E33;border-top:13px solid transparent;border-bottom:13px solid transparent;margin-left:5px}
+  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px}
+  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
+  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
+  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;margin:0 0 22px}
   .video .yt{position:relative;width:min(240px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
   .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
@@ -292,6 +306,7 @@
   <div id="status" class="status" data-i18n="reports.ready">セットと形式を選んでください。</div>
   <p class="hint" style="margin:-6px 0 12px"><a id="staticLink" href="./sets/index.html" data-i18n="reports.staticLink">このセットの固定ページ（共有・検索用）</a></p>
   <p class="built" id="built"></p>
+  <div id="longvideo" class="longvideo" hidden></div>
   <div id="video" class="video" hidden></div>
   <div id="body" hidden></div>
 </main>
@@ -641,8 +656,34 @@ async function loadVideos(){
   try{ const r = await fetch("./data/videos.json", {cache:"no-cache"}); videos = r.ok ? await r.json() : {}; }catch(e){ videos = {}; }
   return videos;
 }
+/* 長尺の環境まとめ動画（日本語のみ）。data/long.json に載っているセットでは、ショートの代わりにこちらを出す。目次を押すとその時刻から再生 */
+let longVideos = null;
+async function renderLong(code){
+  const box = $("longvideo"); if(!box) return false;
+  if(!longVideos){ try{ const r = await fetch("./data/long.json", {cache:"no-cache"}); longVideos = r.ok ? await r.json() : {}; }catch(e){ longVideos = {}; } }
+  const v = I18N.lang === "ja" && longVideos[code] && longVideos[code].ja;
+  if(!v || !v.id){ box.hidden = true; box.innerHTML = ""; return false; }
+  const id = String(v.id), ts = n => Math.floor(n / 60) + ":" + String(Math.floor(n % 60)).padStart(2, "0");
+  const poster = `./assets/video/${esc(code)}-ja-long.jpg`, yt = `https://i.ytimg.com/vi/${esc(id)}/hqdefault.jpg`;
+  const chap = (v.chapters || []).map(c => `<li><a href="https://youtu.be/${esc(id)}?t=${Math.floor(c.at)}" data-t="${Math.floor(c.at)}" target="_blank" rel="noopener"><time>${ts(c.at)}</time><span>${esc(c.title)}</span></a></li>`).join("");
+  box.innerHTML = `<h3>${esc(t("reports.long.h"))}</h3><p class="lead">${esc(t("reports.long.lead"))}</p>
+    <div class="lv"><div class="yt"><img src="${poster}" onerror="this.onerror=null;this.src='${yt}'" alt="${esc(v.title || t("reports.long.h"))}" loading="lazy" width="640" height="360">
+    <button type="button" aria-label="${esc(t("reports.video.play"))}"><span></span></button></div>${chap ? `<ul class="chap">${chap}</ul>` : ""}</div>`;
+  const yb = box.querySelector(".yt");
+  const play = start => {
+    const f = document.createElement("iframe");
+    f.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1` + (start ? `&start=${start}` : "");
+    f.allow = "autoplay; encrypted-media; picture-in-picture"; f.allowFullscreen = true; f.title = v.title || "";
+    yb.innerHTML = ""; yb.appendChild(f);
+  };
+  yb.querySelector("button").addEventListener("click", () => play(0));
+  box.querySelectorAll(".chap a").forEach(a => a.addEventListener("click", e => { e.preventDefault(); play(+a.dataset.t); yb.scrollIntoView({block:"nearest", behavior:"smooth"}); }));
+  box.hidden = false;
+  return true;
+}
 async function renderVideo(code, mode){
   const box = $("video"); if(!box) return;
+  if(await renderLong(code)){ box.hidden = true; box.innerHTML = ""; return; }
   const all = await loadVideos();
   let v = all && all[code] && all[code][I18N.lang];
   if(v && v.id) v = { draft: v };          // 昔の形（言語の直下に id）はドラフト

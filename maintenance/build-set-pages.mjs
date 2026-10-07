@@ -68,6 +68,7 @@ const L = {
     rarity: { mythic:"神話レア", rare:"レア", uncommon:"アンコモン", common:"コモン" },
     col: { color:"色", pair:"色の組み合わせ", cmc:"マナ総量", wr:"勝率", score:"点数（GIH勝率）", games:"試合数", card:"カード", cards:"種類数" },
     colorName: { W:"白", U:"青", B:"黒", R:"赤", G:"緑" },
+    longH: "環境まとめ（長尺動画）", longLead: "ドラフトとシールドの両方のデータで、強い色・狙い目の色・ボム・罠・除去までまとめました。目次を押すと、その場面から再生します。",
     videoH: "1分でわかる環境（動画）", videoLead: "この環境の要点を1分のショート動画にまとめました。再生ボタンで YouTube の動画を読み込みます。", videoPlay: "再生", videoOpen: "YouTube で見る",
     links: "関連ページ",
     linkRatings: "このセットの全カードの勝率一覧",
@@ -115,6 +116,7 @@ const L = {
     rarity: { mythic:"Mythic", rare:"Rare", uncommon:"Uncommon", common:"Common" },
     col: { color:"Colour", pair:"Pair", cmc:"Mana value", wr:"Win rate", score:"Rating (GIH WR)", games:"Games", card:"Card", cards:"Cards" },
     colorName: { W:"White", U:"Blue", B:"Black", R:"Red", G:"Green" },
+    longH: "Format overview (long video)", longLead: "",
     videoH: "The format in 60 seconds (video)", videoLead: "The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.", videoPlay: "Play", videoOpen: "Watch on YouTube",
     links: "Related pages",
     linkRatings: "All card win rates for this set",
@@ -351,6 +353,21 @@ ${head}
   .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
   section{margin-top:18px}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
+  .longvideo h2{margin:0 0 4px;font-size:18px}
+  .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
+  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0A2038}
+  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .longvideo .yt button span{width:68px;height:68px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .longvideo .yt button span::after{content:"";border-left:23px solid #0B1E33;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
+  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px}
+  .longvideo .chap li{margin:0 0 2px}
+  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
+  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
+  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
   .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
   .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
   .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -535,7 +552,7 @@ ${videoSection(lang, code, mode, setDisplay, videos)}`;
   return out;
 }
 
-function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos){
+function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos, long){
   const T = L[lang];
   const modes = ["draft","sealed"].filter(m => arts[m]);
   const totalGames = modes.reduce((a, m) => a + (arts[m].total_games || 0), 0).toLocaleString();
@@ -553,9 +570,9 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos){
 <meta property="og:url" content="${canonical}">`;
   const header = `    <h1>${esc(T.h1(setDisplay))} <small class="code">${esc(code)}</small></h1>
     <p>${esc(T.lead)}${info.released_at ? `　${lang === "ja" ? "発売" : "Released"} ${esc(info.released_at)}` : ""}</p>`;
-  const body = modes.length
+  const body = (modes.length ? longSection(lang, code, setDisplay, long) : "") + (modes.length
     ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay, videos)).join("\n")
-    : `<p>${esc(T.none)}</p>`;
+    : `<p>${esc(T.none)}</p>`);
   const faqLd = { "@context": "https://schema.org", "@type": "FAQPage", inLanguage: lang,
     mainEntity: T.faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) };
   const faq = modes.length ? `<section class="faq"><h3>${esc(T.faqH)}</h3>
@@ -569,6 +586,30 @@ ${T.faq.map(([q, a]) => `  <details><summary>${esc(q)}</summary><p>${esc(a)}</p>
 </ul></section>
 <p class="source">${esc(T.source)}</p>`;
   return shell(lang, code, head, { header, main: body + "\n" + faq + "\n" + links }, `${SITE}/${OUT}/og/${code}-${lang}.png`);
+}
+
+/* 長尺の環境まとめ動画（横長・日本語のみ）。data/long.json に載せたものだけ出す。目次のリンクを押すと、その時刻から再生する */
+function longSection(lang, code, setDisplay, long){
+  const v = lang === "ja" && long && long[code] && long[code].ja;
+  if(!v || !v.id) return "";
+  const id = String(v.id), T = L[lang];
+  const title = v.title || `${setDisplay} 環境まとめ`;
+  const posterFile = `assets/video/${code}-ja-long.jpg`;
+  const thumbSrc = existsSync(posterFile) ? `/${posterFile}` : `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  const thumb = existsSync(posterFile) ? `${SITE}/${posterFile}` : `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  const ts = n => `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, "0")}`;
+  const chap = (v.chapters || []).map(c => `<li><a href="https://youtu.be/${esc(id)}?t=${Math.floor(c.at)}" data-t="${Math.floor(c.at)}" target="_blank" rel="noopener"><time>${ts(c.at)}</time><span>${esc(c.title)}</span></a></li>`).join("");
+  const ld = { "@context": "https://schema.org", "@type": "VideoObject", name: title, description: T.longLead, thumbnailUrl: [thumb],
+    uploadDate: v.uploadedAt || "", duration: v.duration || undefined, contentUrl: `https://www.youtube.com/watch?v=${id}`, embedUrl: `https://www.youtube-nocookie.com/embed/${id}`, inLanguage: lang };
+  return `<section class="longvideo"><h2>${esc(T.longH)}</h2><p class="lead">${esc(T.longLead)}</p>
+  <div class="lv"><div class="yt" data-id="${esc(id)}">
+    <img src="${thumbSrc}" alt="${esc(title)}" loading="lazy" width="640" height="360">
+    <button type="button" aria-label="${esc(T.videoPlay)}"><span></span></button>
+  </div>${chap ? `<ul class="chap">${chap}</ul>` : ""}</div>
+  <script type="application/ld+json">${JSON.stringify(ld)}</script>
+  <script>(function(){var box=document.querySelector(".longvideo .yt");if(!box)return;function play(t){var f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+box.dataset.id+"?autoplay=1&playsinline=1"+(t?"&start="+t:"");f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title=${JSON.stringify(title)};box.innerHTML="";box.appendChild(f);}box.querySelector("button").addEventListener("click",function(){play(0);});document.querySelectorAll(".longvideo .chap a").forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();play(+a.dataset.t);box.scrollIntoView({block:"nearest",behavior:"smooth"});});});})();</script>
+</section>
+`;
 }
 
 /* 環境まとめ動画（YouTube ショート）。押すまで YouTube を読み込まない軽い埋め込みと、検索向けの VideoObject */
@@ -638,6 +679,7 @@ async function main(){
   const index = await readJson(`${ARTICLES}/index.json`, null);
   if(!index || !Array.isArray(index.articles)){ console.error("data/articles/index.json がありません"); return; }
   const speedIndex = index.speed || null;
+  const long = await readJson("data/long.json", {});       // 長尺の環境まとめ動画（日本語のみ。YouTube で公開にしてから add-long.mjs で登録したものだけ載せる）
   const videos = await readJson("data/videos.json", {});   // セットごとの YouTube 動画（「動画を配信」で public になったものだけ載せる）
   const ja = await setNamesJa();
   await mkdir(OUT, { recursive: true });
@@ -659,7 +701,7 @@ async function main(){
     const games = Object.values(arts).reduce((a, d) => a + (d.total_games || 0), 0);
     rows.push({ code, name, released_at: info.released_at || (index.articles.find(a => a.set === code) || {}).released_at || "", games });
     for(const lang of ["ja","en"]){
-      const html = setPage(lang, code, name[lang], info, arts, speedIndex, cache.names || {}, videos);
+      const html = setPage(lang, code, name[lang], info, arts, speedIndex, cache.names || {}, videos, long);
       await writeFile(`${OUT}/${code}${lang === "en" ? ".en" : ""}.html`, html, "utf8");
     }
     await sleep(120);
