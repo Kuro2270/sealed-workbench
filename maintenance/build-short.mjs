@@ -32,6 +32,8 @@
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
+import { resolve } from "node:path";
+import { existsSync } from "node:fs";
 
 const SET = process.argv[2];
 const LANG = (process.argv[3] || "ja").toLowerCase();
@@ -329,6 +331,53 @@ function caption(say){
     lines.map((l, i) => `<text x="${W / 2 + 3}" y="${y0 + 66 + i * lh + 3}" font-size="50" fill="#050B33" font-weight="700" text-anchor="middle">${esc(l)}</text>` +
                         T(W / 2, y0 + 66 + i * lh, l, { size: 50, anchor: "middle", weight: 700 })).join("") +
     `<polygon points="${x0 + bw - 52},${y0 + boxH - 38} ${x0 + bw - 28},${y0 + boxH - 38} ${x0 + bw - 40},${y0 + boxH - 22}" fill="#F4F7FF"/>`;
+}
+
+/* ずんだもん（フード付き）。字幕の枠の右上に立たせる。情報の表示に重ならないよう、画面の右はしの空いたところに小さく置く。
+   日本語の動画だけ（英語はずんだもんの声ではないため）。short/zunda-hoodie/ に素材があるときだけ出す。SHORT_ZUNDA=0 で出さない、=1 で英語にも出す */
+const ZDIR = (process.env.SHORT_ZUNDA_STYLE !== "normal" && existsSync("short/zunda-hoodie/open_open.png")) ? "short/zunda-hoodie" : "short/zunda", ZW = 250, ZH = 255;
+async function zundaReady(){
+  if(process.env.SHORT_ZUNDA === "0" || (!JA && process.env.SHORT_ZUNDA !== "1")) return false;
+  for(const e of ["open", "closed"]) for(const m of ["closed", "half", "open"])
+    if(!(await readFile(`${ZDIR}/${e}_${m}.png`).then(() => true, () => false))) return false;
+  return true;
+}
+/* 字幕の枠の上のふち。字幕が無い場面は null */
+function captionTop(say){
+  if(!say) return null;
+  const lines = wrap(say.replace(/パーセント/g, "%").replace(/ percent/g, "%"));
+  return H - SAFE_BOTTOM - 40 - (lines.length * 70 + 64);
+}
+function zundaPos(sc){
+  const top = captionTop(sc.say);
+  const bottom = top === null ? H - SAFE_BOTTOM - 40 : top + 16;      // 字幕の枠の上に、足もとが少し重なるように立つ
+  if(sc.kind === "hook") return { x: W - 24 - ZW, y: 1440 };      // 冒頭は「53万試合を分析」の文字の下に置く
+  return { x: W - 24 - ZW, y: bottom - ZH };
+}
+// 音声の大きさから、1/15 秒ごとの口の形を決める
+function mouthStates(wavPath, len){
+  const FPS = 15, n = Math.max(1, Math.ceil(len * FPS));
+  const raw = execFileSync("ffmpeg", ["-v", "error", "-i", wavPath, "-f", "s16le", "-ac", "1", "-ar", "16000", "-"], { maxBuffer: 1 << 29 });
+  const x = new Int16Array(raw.buffer, raw.byteOffset, Math.floor(raw.length / 2)), win = Math.floor(16000 / FPS);
+  const rms = [];
+  for(let f = 0; f < n; f++){ let a = 0, c = 0; for(let i = f * win; i < Math.min(x.length, (f + 1) * win); i++){ a += x[i] * x[i]; c++; } rms.push(c ? Math.sqrt(a / c) : 0); }
+  const sorted = [...rms].sort((a, b) => a - b), ref = sorted[Math.floor(sorted.length * 0.9)] || 1;
+  let st = rms.map(v => { const r = v / ref; return r < 0.16 ? "closed" : r < 0.5 ? "half" : "open"; });
+  st = st.map((v, i) => { const a = st[i - 1] || v, b = st[i + 1] || v; return a === b ? a : v; });   // 1コマだけの揺れをならす
+  return { FPS, st };
+}
+// 場面ごとの口パク動画の素材（連番の一覧）を作る
+async function zundaList(i, wavPath, len, dir){
+  const { FPS, st } = mouthStates(wavPath, len), lines = [];
+  let last = null;
+  st.forEach((m, f) => {
+    const t = f / FPS, ph = (t + i * 0.9) % 3.6, eye = ph > 3.45 ? "closed" : "open";      // 3.6 秒おきに、0.15 秒のまばたき
+    last = `${ZDIR}/${eye}_${m}.png`;
+    lines.push(`file '${resolve(last)}'`, `duration ${(1 / FPS).toFixed(4)}`);
+  });
+  lines.push(`file '${resolve(last)}'`);
+  const list = `${dir}/zunda-${i}.txt`; await writeFile(list, lines.join("\n"), "utf8");
+  return list;
 }
 let HAS_BG = false;
 /* マナ・シンボル（Scryfall の SVG）。取れたものは SYM に入る。無い色は丸に文字で代用 */
@@ -700,6 +749,9 @@ async function main(){
   }
   await writeFile(`${OUT}/${TAG}/script.json`, JSON.stringify(scenes.map(s => ({ kind: s.kind, say: s.say, kana: s.kana, dur: s.dur })), null, 2), "utf8");
 
+  const ZUNDA = !process.env.SHORT_STILLS && await zundaReady();
+  console.error(ZUNDA ? `ずんだもん: 字幕の右上に出す（${ZDIR}/）` : "ずんだもん: 出さない");
+
   // 2) 場面ごとに画像を描いて動画にする
   const segs = [];
   let total = 0;
@@ -721,6 +773,9 @@ async function main(){
     }
     const len = dur + (sc.tail || 0.35), pad = len - dur, N = Math.ceil(len * 30);   // 読み終わりに少し置く（カードを見せる場面は長め）
     const audio = `[${(sc.art && artPath) || HAS_BG ? 2 : 1}:a]apad=pad_dur=${pad.toFixed(2)},afade=t=in:d=0.012,afade=t=out:st=${(len - 0.03).toFixed(3)}:d=0.03,aformat=sample_rates=48000:channel_layouts=stereo[a]`;   // 頭と終わりを短くなだらかに（つなぎ目のプチ音対策）
+    const audioIdx = (sc.art && artPath) || HAS_BG ? 2 : 1;
+    const zp = zundaPos(sc);
+    const ZF = ZUNDA ? `[${audioIdx + 1}:v]fps=30,scale=${ZW}:${ZH},format=rgba[zz];[vz][zz]overlay=x=${zp.x}:y=${zp.y}:shortest=1,format=yuv420p[v];` : `[vz]format=yuv420p[v];`;
     let args;
     if(sc.art && artPath){
       // カードアートを縦いっぱいに敷き、ゆっくり寄る。膜は薄めにして絵を見せる
@@ -731,7 +786,7 @@ async function main(){
                 `zoompan=z='1+0.08*on/${N}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${N}:s=${W}x${H}:fps=30,eq=saturation=0.9[bg0];` +
                 `color=c=0x0A2038@${sc.kind === "hook" ? 0.12 : 0.45}:s=${W}x${H}:r=30[tint];[bg0][tint]overlay=shortest=1[bg];` +
                 `[1:v]scale=${W}:${H},format=rgba${sc.kind === "hook" ? "" : ",fade=t=in:d=0.2:alpha=1"}[fg];` +
-                `[bg][fg]overlay=shortest=1,format=yuv420p[v];${audio}`];
+                `[bg][fg]overlay=shortest=1[vz];${ZF}${audio}`];
     }else if(HAS_BG){
       // 横長の映像を縦に切り出し、暗くぼかして下に敷く。開始位置は前の場面の続きから
       const ss = (total % bgDur).toFixed(2);
@@ -742,12 +797,16 @@ async function main(){
                 `eq=saturation=0.7,gblur=sigma=5,setsar=1[bg0];` +
                 `color=c=0x0A2038@0.6:s=${W}x${H}:r=30[tint];[bg0][tint]overlay=shortest=1[bg];` +   // 紺の膜で暗くして文字を立たせる
                 `[1:v]scale=${W}:${H},format=rgba,fade=t=in:d=0.2:alpha=1[fg];` +
-                `[bg][fg]overlay=shortest=1,format=yuv420p[v];${audio}`];
+                `[bg][fg]overlay=shortest=1[vz];${ZF}${audio}`];
     }else{
       args = ["-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", wavIn,
               "-filter_complex",
                 `[0:v]zoompan=z='1+0.05*on/${N}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${N}:s=${W}x${H}:fps=30,` +
-                `fade=t=in:d=0.15,format=yuv420p[v];${audio}`];
+                `fade=t=in:d=0.15[vz];${ZF}${audio}`];
+    }
+    if(ZUNDA){   // 口パクの動画を、最後の入力として足す
+      const zi = args.indexOf("-filter_complex");
+      args.splice(zi, 0, "-f", "concat", "-safe", "0", "-i", await zundaList(i, wavIn, len, `${OUT}/${TAG}`));
     }
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...args,
       "-map", "[v]", "-map", "[a]", "-t", String(len), "-c:v", "libx264", "-preset", "fast", "-crf", "20", "-c:a", "aac", "-b:a", "160k",
