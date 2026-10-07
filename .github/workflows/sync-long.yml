@@ -45,6 +45,13 @@ jobs:
         run: |
           # 登録に変更が無くても、ページの作り方（build-set-pages.mjs）を直したあとに押せば、反映される
           node maintenance/build-set-pages.mjs
+          # 原因をすぐ見分けられるように、状況をログに出す
+          echo "--- 診断 ---"
+          echo "data/long.json: $( [ -f data/long.json ] && grep -o '"[A-Z0-9]*": {' data/long.json | tr -d '\":{ ' | tr '\n' ' ' || echo 無し )"
+          echo "build-set-pages.mjs が長尺に対応: $(grep -c 'function longSection' maintenance/build-set-pages.mjs) （1なら対応済み、0なら古い版）"
+          echo "reports.html が長尺に対応: $(grep -c 'renderLong' reports.html) （1以上なら対応済み）"
+          echo "作り直した sets の長尺の枠: $(grep -l 'class=\"longvideo\"' sets/*.html 2>/dev/null | tr '\n' ' ')"
+          echo "------------"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           for p in data/long.json sets; do
