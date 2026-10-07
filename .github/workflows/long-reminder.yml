@@ -1,0 +1,77 @@
+name: 長尺動画を自動で作る（ショートの2週間後）
+
+# ショート動画（日本語・ドラフト）が YouTube に上がった日の2週間後に、長尺動画を自動で作り、YouTube に「非公開」で上げる。
+# 毎日1回、data/videos/ の記録を見て、14日以上たったセットについて「長尺動画を作る」を自動で始め、確認用の Issue を立てる（同じセットで2回は作らない）。
+# 公開は自動ではしない。Issue（メール・アプリで通知）を見て、YouTube Studio で内容を確認し、手で「公開」にする。
+# すでにサイトに長尺が載っているセット（data/long.json にある）は作らない。
+
+on:
+  schedule:
+    - cron: "10 0 * * *"       # 毎日 09:10（日本時間）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  actions: write
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 2週間たったセットの長尺を作り始め、確認の Issue を立てる
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const DAYS_MIN = 14, DAYS_MAX = 28;     // 14日たったら知らせる。何日も過ぎた古い記録には知らせない
+            const dir = 'data/videos';
+            if(!fs.existsSync(dir)) return;
+            const today = Date.now();
+            const longDone = fs.existsSync('data/long.json') ? JSON.parse(fs.readFileSync('data/long.json', 'utf8')) : {};
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner, repo: context.repo.repo, state: 'all', labels: 'long', per_page: 100 });
+            for(const f of fs.readdirSync(dir)){
+              const m = f.match(/^([A-Z0-9]+)-ja-draft\.json$/);
+              if(!m) continue;
+              const set = m[1];
+              const v = JSON.parse(fs.readFileSync(`${dir}/${f}`, 'utf8'));
+              const days = Math.floor((today - Date.parse(v.uploadedAt)) / 86400000);
+              if(!(days >= DAYS_MIN && days <= DAYS_MAX)) continue;
+              if(longDone[set] && longDone[set].ja && longDone[set].ja.id) continue;
+              const title = `【要確認】長尺動画を作って非公開で上げました：${set}`;
+              const oldTitle = `【要対応】長尺動画を作る日です：${set}`;   // 以前の知らせ方で、すでに知らせたセットは自動では作らない
+              if(issues.some(i => i.title === title || i.title === oldTitle)) continue;
+              // 長尺づくりを始める。始められなかったら Issue は立てず、翌日にまた試す
+              try{
+                await github.rest.actions.createWorkflowDispatch({
+                  owner: context.repo.owner, repo: context.repo.repo, workflow_id: 'build-long.yml', ref: 'main',
+                  inputs: { set, upload: 'true' } });
+              }catch(e){
+                core.warning(`長尺づくりを始められませんでした: ${set} ${e.message}`);
+                continue;
+              }
+              const runs = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/workflows/build-long.yml`;
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, assignees: [context.repo.owner], labels: ['long'],
+                body: [
+                  `${set} のショート動画が上がってから ${days} 日たったので、長尺（環境まとめ）を自動で作り始めました（30〜40分ほどかかります）。`,
+                  `できあがると YouTube に「非公開」で上がります。公開は自動ではしません。`,
+                  ``,
+                  `## やること`,
+                  `1. 作成の進み具合と結果: ${runs}`,
+                  `2. 実行結果の読み上げ台本（読み違い）と、動画の長さ・カード画像・除去の一覧を確認する`,
+                  `3. 問題なければ YouTube Studio で「公開」にする。「子ども向けではない」になっているかも見る`,
+                  `4. 公開すると、翌日までに自動でサイトに載る（すぐ載せたいときは Actions「長尺動画をサイトに載せる」を実行）`,
+                  ``,
+                  `作成が失敗したときは、GitHub から失敗の通知が届きます。直したうえで Actions「長尺動画を作る」に ${set} を入れて手で実行してください。`,
+                  `直したい点があれば、同じ手順で作り直せます（古い非公開動画は YouTube Studio で削除してください）。`,
+                  ``,
+                  `動画: ${v.id ? 'https://youtu.be/' + v.id : ''}（ショート）`
+                ].join('\n')
+              });
+            }
