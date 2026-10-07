@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Limited card ratings and format reports by set — MTG Arena Limited Workbench</title>
-<meta name="description" content="Pick a set to open its card ratings and its Draft and Sealed report. Newest first.">
-<link rel="canonical" href="https://sealed-workbench.com/sets/index.en.html">
-<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/index.html">
-<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/index.en.html">
-<link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/index.html">
-<meta property="og:title" content="Limited card ratings and format reports by set">
-<meta property="og:url" content="https://sealed-workbench.com/sets/index.en.html">
+<title>Limited format reports by set — MTG Arena Limited Workbench</title>
+<meta name="description" content="Pick a set to open its Draft and Sealed report. Newest first.">
+<link rel="canonical" href="https://sealed-workbench.com/sets/index.en">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/index.en">
+<link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/">
+<meta property="og:title" content="Limited format reports by set">
+<meta property="og:url" content="https://sealed-workbench.com/sets/index.en">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
 <meta property="og:image" content="https://sealed-workbench.com/ogp-en.png">
@@ -21,20 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/mana/mana.min.css">
 <script src="../analytics.js"></script>
-<script src="/navmenu.js" defer></script>
-<script src="/tip.js" defer></script>
-<link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#10304F">
-<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
-<link rel="icon" type="image/svg+xml" href="/icon.svg">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Workbench">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
 <style>
   :root{--pine:#10304F;--pine-deep:#0A2038;--paper:#F5F8FC;--paper-2:#E8EEF6;--ink:#0D1B2A;--muted:#5C7185;--gold:#2F7DF6;--line:#D3DFEB;
         --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:8px}
@@ -61,20 +48,6 @@
   nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
   nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
   @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0} }
-  /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
-  .ng{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;column-gap:7px;row-gap:5px;justify-content:start;align-items:center;padding-top:0}
-  .ng:has(.ngs){padding-top:0}
-  .ngl,.ngs{position:static;grid-column:1/-1;white-space:nowrap}
-  .ngl{grid-row:1;left:auto}
-  .ngs{grid-row:2;left:auto;top:auto;font-size:11.5px;color:#A9BFD8;margin-top:-2px}
-  nav a{grid-row:3;padding:8px 16px;border-radius:10px;font-weight:700;background:linear-gradient(180deg,#2A5F96,#1C4A7C);border:1px solid #4A83BF;color:#FFFFFF;box-shadow:0 2px 0 #12365C,0 4px 10px rgba(0,0,0,.28);-webkit-font-smoothing:auto;text-shadow:none;letter-spacing:.02em}
-  nav a:not(.on):hover{background:linear-gradient(180deg,#3573B3,#25609F);border-color:#6FA3DA}
-  nav a:active{box-shadow:0 1px 0 #12365C}
-  nav a.on{box-shadow:0 2px 0 rgba(0,0,0,.35),0 4px 10px rgba(0,0,0,.28)}
-  @media (max-width:760px){
-    .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
-    .ngl,.ngs{flex:0 0 100%}
-  }
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   .lang{margin-top:12px;font-size:13px}
@@ -86,21 +59,6 @@
   .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
   section{margin-top:18px}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
-  .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
-  .longvideo h2{margin:0 0 4px;font-size:18px}
-  .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
-  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
-  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0A2038}
-  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
-  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
-  .longvideo .yt button span{width:68px;height:68px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
-  .longvideo .yt button span::after{content:"";border-left:23px solid #0B1E33;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
-  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px}
-  .longvideo .chap li{margin:0 0 2px}
-  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
-  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
-  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
   .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
   .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
   .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -144,9 +102,6 @@
   .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}
   footer a{color:var(--muted)}
-  .faq details{border-bottom:1px solid var(--line,#D7E2EE);padding:10px 2px}
-  .faq summary{cursor:pointer;font-weight:700;font-size:14.5px}
-  .faq p{margin:8px 0 2px;font-size:14px;line-height:1.8}
   @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
@@ -160,25 +115,23 @@
         <option value="index.en.html" selected>English</option>
       </select></div>
     <nav>
-      <div class="ng"><span class="ngl">Start</span><span class="ngs">MTG basics &amp; how to use this site</span><a href="../start/index.en.html">What is MTG?</a><a href="../start/limited.en.html">What is Limited?</a><a href="../guide.html">Site features</a></div>
+      <div class="ng"><span class="ngl">Start</span><a href="../start/index.en.html">What is MTG?</a><a href="../start/limited.en.html">What is Limited?</a><a href="../guide.html">Site features</a></div>
       <div class="ng"><span class="ngl">Practice</span><span class="ngs">Virtual packs</span><a href="../">Sealed practice</a><a href="../draft.html">Draft practice</a></div>
       <div class="ng"><span class="ngl">Use with MTG Arena</span><span class="ngs">Reads your log in real play · PC only</span><a href="../sealed-assist.html">Sealed assistant<b class="pcb">PC</b></a><a href="../assistant.html">Draft assistant<b class="pcb">PC</b></a></div>
-      <div class="ng"><span class="ngl">Data</span><span class="ngs">How strong and fast each set is</span><a href="../reports.html">Set reports</a></div>
-      <div class="ng"><span class="ngl">Play</span><span class="ngs">Play friends or run a tournament</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
-      <div class="ng"><span class="ngl">Shop</span><span class="ngs">MTG supplies sold in Japan</span><a href="../goods/index.en.html">Japanese supplies</a></div>
+      <div class="ng"><span class="ngl">Data</span><a href="../reports.html">Set reports</a></div>
+      <div class="ng"><span class="ngl">Play</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
+      <div class="ng"><span class="ngl">Shop</span><a href="../goods/index.en.html">Japanese supplies</a></div>
     </nav>
-    <h1>Limited card ratings and format reports by set</h1>
-    <p>Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data. Use them as card ratings: the higher the win rate, the stronger the card.</p>
+    <h1>Limited format reports by set</h1>
+    <p>Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data.</p>
     <link rel="alternate" hreflang="ja" href="index.html">
   </div>
 </header>
 <main>
-<p class="lead">Pick a set to open its card ratings and its Draft and Sealed report. Newest first.</p>
-<ul class="setlist" style="margin-bottom:14px">
-  <li><a href="FRA.profile.en.html">Reality Fracture<small>FRA　2026-10-02　Preview (awaiting win-rate data)</small></a></li>
-</ul>
+<p class="lead">Pick a set to open its Draft and Sealed report. Newest first.</p>
+
 <ul class="setlist">
-  <li><a href="HOB.en.html">The Hobbit<small>HOB　2026-08-14　600,635 games</small></a></li>
+  <li><a href="HOB.en.html">The Hobbit<small>HOB　2026-08-14　436,926 games</small></a></li>
   <li><a href="MSH.en.html">Marvel Super Heroes<small>MSH　2026-06-26　584,892 games</small></a></li>
   <li><a href="SOS.en.html">Secrets of Strixhaven<small>SOS　2026-04-24　707,782 games</small></a></li>
   <li><a href="TMT.en.html">Teenage Mutant Ninja Turtles<small>TMT　2026-03-06　237,044 games</small></a></li>
@@ -197,6 +150,6 @@
 <div id="goodsStrip"></div>
 <script src="../goods-widget.js?v=6" defer></script>
 </main>
-<footer>Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../faq.html">FAQ</a> · <a href="../contact.html">Contact</a><br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a></footer>
+<footer>Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a></footer>
 </body>
 </html>

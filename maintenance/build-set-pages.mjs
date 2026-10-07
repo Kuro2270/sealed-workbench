@@ -24,6 +24,7 @@ import { existsSync, readFileSync } from "node:fs";
 const SCRY_HEADERS = { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)", Accept: "application/json" };
 
 const SITE = process.env.SITE_URL || "https://sealed-workbench.com";
+const pretty = u => u.replace(/\/index\.html$/, "/").replace(/\.html$/, "");   // Cloudflare Pages は .html なしの形に転送するので、正規URL・サイトマップもその形にそろえる
 const ARTICLES = "data/articles";
 const NAMES = "data/names";
 const OUT = "sets";
@@ -556,8 +557,8 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos, 
   const T = L[lang];
   const modes = ["draft","sealed"].filter(m => arts[m]);
   const totalGames = modes.reduce((a, m) => a + (arts[m].total_games || 0), 0).toLocaleString();
-  const canonical = `${SITE}/${OUT}/${code}${lang === "en" ? ".en" : ""}.html`;
-  const altJa = `${SITE}/${OUT}/${code}.html`, altEn = `${SITE}/${OUT}/${code}.en.html`;
+  const canonical = pretty(`${SITE}/${OUT}/${code}${lang === "en" ? ".en" : ""}.html`);
+  const altJa = pretty(`${SITE}/${OUT}/${code}.html`), altEn = pretty(`${SITE}/${OUT}/${code}.en.html`);
   const title = T.title(setDisplay, code);
   const head = `<title>${esc(title)} — ${esc(T.site)}</title>
 <meta name="description" content="${esc(T.desc(setDisplay, totalGames, code))}">
@@ -652,13 +653,13 @@ function videoSection(lang, code, mode, setDisplay, videos){
 
 function indexPage(lang, rows, profileOnly = []){
   const T = L[lang];
-  const canonical = `${SITE}/${OUT}/index${lang === "en" ? ".en" : ""}.html`;
+  const canonical = pretty(`${SITE}/${OUT}/index${lang === "en" ? ".en" : ""}.html`);
   const head = `<title>${esc(T.indexH1)} — ${esc(T.site)}</title>
 <meta name="description" content="${esc(T.indexLead)}">
 <link rel="canonical" href="${canonical}">
-<link rel="alternate" hreflang="ja" href="${SITE}/${OUT}/index.html">
-<link rel="alternate" hreflang="en" href="${SITE}/${OUT}/index.en.html">
-<link rel="alternate" hreflang="x-default" href="${SITE}/${OUT}/index.html">
+<link rel="alternate" hreflang="ja" href="${pretty(`${SITE}/${OUT}/index.html`)}">
+<link rel="alternate" hreflang="en" href="${pretty(`${SITE}/${OUT}/index.en.html`)}">
+<link rel="alternate" hreflang="x-default" href="${pretty(`${SITE}/${OUT}/index.html`)}">
 <meta property="og:title" content="${esc(T.indexH1)}">
 <meta property="og:url" content="${canonical}">`;
   const header = `    <h1>${esc(T.indexH1)}</h1>
@@ -725,7 +726,7 @@ async function main(){
   console.error(`セット別ページを生成: ${rows.length}セット × 2言語`);
 }
 
-export { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE };
+export { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE, pretty };
 // 直接実行したときだけ動かす（build-set-profile.mjs から shell を借りるため）
 import { pathToFileURL } from "node:url";
 if(process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href){

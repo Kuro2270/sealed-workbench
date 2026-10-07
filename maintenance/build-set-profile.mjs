@@ -17,7 +17,7 @@
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 const manaI = k => `<i class="ms ms-cost ${k === "M" ? "ms-multicolor mfi-m" : "ms-" + (k === "L" ? "c" : k.toLowerCase())} mfi" aria-hidden="true"></i>`;   // 色の見出しはマナシンボルで（mana-font）
-import { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE } from "./build-set-pages.mjs";
+import { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE, pretty } from "./build-set-pages.mjs";
 
 const ARG = (process.argv[2] || "").toUpperCase();
 if(!ARG){ console.error("使い方: node maintenance/build-set-profile.mjs <SET>　または --auto（発売前後で下見が無いセットを探して作る）"); process.exit(1); }
@@ -276,12 +276,12 @@ function cardList(lang, p, T){
 function page(lang, p, nameJa, dataDate){
   const T = P[lang], B = L[lang];
   const name = lang === "ja" ? nameJa : p.setName;
-  const canonical = `${SITE}/sets/${SET}.profile${lang === "en" ? ".en" : ""}.html`;
+  const canonical = pretty(`${SITE}/sets/${SET}.profile${lang === "en" ? ".en" : ""}.html`);
   const head = `<title>${esc(T.title(name))} — ${esc(B.site)}</title>
 <meta name="description" content="${esc(T.desc(name))}">
 <link rel="canonical" href="${canonical}">
-<link rel="alternate" hreflang="ja" href="${SITE}/sets/${SET}.profile.html">
-<link rel="alternate" hreflang="en" href="${SITE}/sets/${SET}.profile.en.html">
+<link rel="alternate" hreflang="ja" href="${pretty(`${SITE}/sets/${SET}.profile.html`)}">
+<link rel="alternate" hreflang="en" href="${pretty(`${SITE}/sets/${SET}.profile.en.html`)}">
 <meta property="og:title" content="${esc(T.title(name))}">
 <meta property="og:url" content="${canonical}">`;
   const header = `    <h1>${esc(T.h1(name))}</h1>

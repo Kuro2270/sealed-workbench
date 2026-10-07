@@ -11,7 +11,7 @@
  */
 
 import { mkdir, writeFile } from "node:fs/promises";
-import { shell, L, esc, SITE } from "./build-set-pages.mjs";
+import { shell, L, esc, SITE, pretty } from "./build-set-pages.mjs";
 
 const SYM = k => `<img class="ms" src="https://svgs.scryfall.io/card-symbols/${k}.svg" alt="${k}" width="22" height="22" loading="lazy">`;
 const cardUrl = name => `https://api.scryfall.com/cards/named?format=image&version=normal&exact=${encodeURIComponent(name)}`;
@@ -539,12 +539,12 @@ function page(lang, kind){
   const P = T.pages[kind];
   const base = kind === "mtg" ? "index" : "limited";
   const self = `${base}${en ? ".en" : ""}.html`;
-  const canonical = `${SITE}/start/${self}`;
+  const canonical = pretty(`${SITE}/start/${self}`);
   const head = `<title>${esc(P.title)}</title>
 <meta name="description" content="${esc(P.desc)}">
 <link rel="canonical" href="${canonical}">
-<link rel="alternate" hreflang="ja" href="${SITE}/start/${base}.html">
-<link rel="alternate" hreflang="en" href="${SITE}/start/${base}.en.html">
+<link rel="alternate" hreflang="ja" href="${pretty(`${SITE}/start/${base}.html`)}">
+<link rel="alternate" hreflang="en" href="${pretty(`${SITE}/start/${base}.en.html`)}">
 <meta property="og:title" content="${esc(P.title)}">
 <meta property="og:description" content="${esc(P.desc)}">
 <meta property="og:url" content="${canonical}">

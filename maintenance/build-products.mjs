@@ -16,7 +16,7 @@
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { shell, L, esc, readJson, SITE } from "./build-set-pages.mjs";
+import { shell, L, esc, readJson, SITE, pretty } from "./build-set-pages.mjs";
 
 const PAGES_ONLY = process.argv.includes("--pages");
 const APP = process.env.RAKUTEN_APP_ID, KEY = process.env.RAKUTEN_ACCESS_KEY, AFF = process.env.RAKUTEN_AFFILIATE_ID;
@@ -230,12 +230,12 @@ function card(lang, it){
 
 function page(lang, data){
   const T = P[lang], B = L[lang];
-  const canonical = `${SITE}/goods/index${lang === "en" ? ".en" : ""}.html`;
+  const canonical = pretty(`${SITE}/goods/index${lang === "en" ? ".en" : ""}.html`);
   const head = `<title>${esc(T.title)} — ${esc(B.site)}</title>
 <meta name="description" content="${esc(T.desc)}">
 <link rel="canonical" href="${canonical}">
-<link rel="alternate" hreflang="ja" href="${SITE}/goods/index.html">
-<link rel="alternate" hreflang="en" href="${SITE}/goods/index.en.html">
+<link rel="alternate" hreflang="ja" href="${pretty(`${SITE}/goods/index.html`)}">
+<link rel="alternate" hreflang="en" href="${pretty(`${SITE}/goods/index.en.html`)}">
 <meta property="og:title" content="${esc(T.title)}">
 <meta property="og:description" content="${esc(T.desc)}">
 <meta property="og:url" content="${canonical}">

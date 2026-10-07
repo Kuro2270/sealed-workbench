@@ -30,6 +30,7 @@ const PRIORITY = {
   "privacy.html": "0.3"
 };
 
+const pretty = u => u.replace(/\/index\.html$/, "/").replace(/\.html$/, "");   // Cloudflare Pages は .html なしの形に転送するので、サイトマップもその形にそろえる
 const urlOf = f => f === "index.html" ? SITE + "/" : `${SITE}/${f}`;
 
 async function lastUpdated(){
@@ -119,7 +120,8 @@ async function main(){
 ${entries.join("\n")}
 </urlset>
 `;
-  await writeFile("sitemap.xml", xml, "utf8");
+  const xmlPretty = xml.replace(/(<loc>|href=")(https?:\/\/[^"<]+)(<\/loc>|")/g, (m, a, u, c) => a + pretty(u) + c);
+  await writeFile("sitemap.xml", xmlPretty, "utf8");
 
   const robots =
 `User-agent: *
