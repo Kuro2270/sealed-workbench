@@ -232,16 +232,28 @@ function buildScript(ctx){
     return picked.slice(0, n).sort((x, y) => y.pg - x.pg).map(c => ({ ...c, label: J(c.name), side: cols(c) }));
   };
   // 鍵になるカードを、色ごとに言い分けた一文にする
+  // 鍵になるカードの言い方。コモン・アンコモンで集めやすい、という説明は最初の1回だけ丁寧に言い、2回目以降は言い回しを変えて、くり返しに聞こえないようにする
+  let keyN = 0;
+  const KEY_LEAD = ["鍵になるのは、", "注目は、", "押さえたいのは、", "この色の主役は、", "狙いたいのは、"];
+  const KEY_MORE = ["ほかに、", "さらに、", "ほかにも、", "あわせて、", "そして、"];
+  const KEY_TAIL = [
+    "どれもコモンかアンコモンなので、集めやすいカードです。",
+    "こちらも、コモンとアンコモンだけで揃います。",
+    "",
+    "今回も、手に入れやすいカードばかりです。",
+    ""
+  ];
   const keySay = (ks, pair) => {
     if(!ks.length) return "";
+    const n = keyN++;
     const [A, B] = [...pair];
     const ofCol = col => ks.find(c => c.side === col);
     const a = ofCol(A), b = ofCol(B), rest = ks.filter(c => c !== a && c !== b);
     const q = c => `「${c.label}」`;
     const parts = [a && `${CJ[A]}は${q(a)}`, b && `${CJ[B]}は${q(b)}`].filter(Boolean);
-    let t = parts.length ? `鍵になるのは、${parts.join("、")}。` : `鍵になるのは、${ks.slice(0, 2).map(q).join("、")}。`;
-    if(parts.length && rest.length) t += `ほかに、${rest.slice(0, 2).map(q).join("、")}もおすすめです。`;
-    return t + `どれもコモンかアンコモンなので、集めやすいカードです。`;
+    let t = KEY_LEAD[n % KEY_LEAD.length] + (parts.length ? parts.join("、") : ks.slice(0, 2).map(q).join("、")) + "。";
+    if(parts.length && rest.length) t += `${KEY_MORE[n % KEY_MORE.length]}${rest.slice(0, 2).map(q).join("、")}もおすすめです。`;
+    return t + KEY_TAIL[n % KEY_TAIL.length];
   };
   const deep = (p, i, kind) => {
     const share = p.games / totalPG, avgShare = 1 / pairsD.length;
