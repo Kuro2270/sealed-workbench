@@ -451,12 +451,13 @@ function sceneSvg(sc){
       return frame(
         `<defs><linearGradient id="gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#050B14" stop-opacity="0.93"/><stop offset="0.62" stop-color="#050B14" stop-opacity="0.8"/><stop offset="1" stop-color="#050B14" stop-opacity="0.05"/></linearGradient></defs>
          <rect x="0" y="0" width="${W}" height="${H}" fill="url(#gl)"/>` +
-        T(90, 112, "MTGアリーナ リミテッド", { size: 52, weight: 900, fill: "#FFFFFF" }) +
-        TS(90, 235, "完全ガイド", { size: 100 }) +
+        // 左上：MTGアリーナのロゴ（short/logo/arena.png があれば）。無ければ文字で。その下に「リミテッド完全ガイド」
+        (sc.arenaLogo ? `<image href="${sc.arenaLogo}" x="82" y="14" width="380" height="133" preserveAspectRatio="xMinYMid meet"/>` + TS(90, 245, "リミテッド完全ガイド", { size: 84 })
+                      : T(90, 112, "MTGアリーナ リミテッド", { size: 52, weight: 900, fill: "#FFFFFF" }) + TS(90, 235, "完全ガイド", { size: 100 })) +
         titleSvg +
-        `<rect x="90" y="${y - 75}" width="720" height="110" rx="55" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
-        T(450, y + 5, "ドラフト＋シールド環境", { size: 58, weight: 900, anchor: "middle", fill: "#06101C" }) +
-        TS(90, y + 115, "ボム10枚 ・ 罠カード ・ 除去", { size: 60 }) +
+        `<rect x="90" y="${y - 60}" width="720" height="110" rx="55" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
+        T(450, y + 20, "ドラフト＋シールド環境", { size: 58, weight: 900, anchor: "middle", fill: "#06101C" }) +
+        TS(90, y + 130, "ボム10枚 ・ 罠カード ・ 除去", { size: 60 }) +
         // 右：勝率の高いボムを3枚、少し傾けて並べる（拡大した絵ではなく、カードそのものを見せて、何の動画かを分かるようにする）
         (sc.cards && sc.cards.length ? sc.cards.slice(0, 3).map((c, i, a) => {
           const CW = 310, CH = 432, x = 1000 + i * 285, yy = 290 + (i === 1 ? -30 : 0), rot = (i - (a.length - 1) / 2) * 5;
@@ -724,6 +725,8 @@ async function main(){
   const nameJa = shortName((await setNameJa(SET)) || nm.set || SET);
   const sharp = (await import("sharp")).default;
   await mkdir(OUT, { recursive: true });
+  const arenaBuf = await readFile("short/logo/arena.png").catch(() => null);      // ショートと同じ MTGアリーナのロゴ
+  console.error(arenaBuf ? "アリーナのロゴ: short/logo/arena.png" : "アリーナのロゴ: short/logo/arena.png が無いので、文字で代用");
 
   for(const c of ["W", "U", "B", "R", "G"]){
     const p = `short/symbols/${c}.svg`;
@@ -743,6 +746,7 @@ async function main(){
   const commonRem = removal ? rd.cards.filter(c => c.rarity === "common" && removal.names.includes(c.name) && c.games >= 1500).sort((a, b) => b.gih - a.gih)[0] : null;
   const ctx = { dd, ds, rd, rs, nm, nameJa, removal, topRemoval: commonRem ? { ...commonRem, label: (nm.names || {})[commonRem.name] || commonRem.name } : null };
   const scenes = buildScript(ctx);
+  if(arenaBuf && scenes[0] && scenes[0].kind === "hook") scenes[0].arenaLogo = "data:image/png;base64," + arenaBuf.toString("base64");
   // 図に使う追加情報
   const pairsS = pairRows(ds), sealedMap = Object.fromEntries(pairsS.map(p => [p.pair, p.wr]));
   scenes.forEach(sc => { if(sc.kind === "pairs") sc.sealedMap = sealedMap; });
