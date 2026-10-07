@@ -1,0 +1,59 @@
+name: 長尺動画をサイトに載せる
+
+# YouTube Studio で長尺の環境まとめ動画を「公開」にすると、自動でサイト（セット別ページ・環境レポート）に載る。
+#   ・毎日1回（日本時間の昼）、チャンネルの最近の動画から「公開になった長尺」を探して data/long.json に登録する
+#   ・すぐ載せたいときは、このページの「Run workflow」を押す（入力は不要）
+#   ・見つからないときは、セットコードと動画IDを入れて押す（例: set=TMT, video_id=dQw4w9WgXcQ）
+# 非公開のままの動画は登録されない（サイトには出ない）。目次は、概要欄の「0:00 はじめに」の行から作る。
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      set:
+        description: "セットコード（動画IDを指定するときだけ）"
+        required: false
+      video_id:
+        description: "YouTube の動画ID（自動で見つからないときだけ）"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 公開になった長尺を探して登録する
+        env:
+          LONG_SET: ${{ inputs.set }}
+          LONG_VIDEO_ID: ${{ inputs.video_id }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN_JA: ${{ secrets.YT_REFRESH_TOKEN_JA }}
+        run: node maintenance/sync-long.mjs
+
+      - name: 変更があれば、セット別ページを作り直してコミットする
+        run: |
+          if git diff --quiet -- data/long.json && [ -z "$(git ls-files --others --exclude-standard data/long.json)" ]; then
+            echo "変更はありません。"; exit 0
+          fi
+          node maintenance/build-set-pages.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for p in data/long.json sets; do
+            [ -e "$p" ] && git add -A -- "$p"
+          done
+          git commit -m "長尺動画をサイトに載せる"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin main && break
+            echo "再試行 $i"; sleep 5
+          done
