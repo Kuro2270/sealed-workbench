@@ -66,12 +66,20 @@ const put = await fetch(location, { method: "PUT", headers: { Authorization: `Be
 const res = await put.json().catch(() => ({}));
 if(!put.ok || !res.id){ console.error(`アップロードに失敗しました（HTTP ${put.status}）: ${JSON.stringify(res).slice(0, 500)}`); process.exit(1); }
 
-// サムネイル。チャンネルの電話番号確認が済んでいないと 403 で断られるので、その時は Studio で手で付ける
+// サムネイル。チャンネルの電話番号確認が済んでいないと 403 で断られるので、その時は Studio で手で付ける。
+// 発行したばかりのトークンを YouTube が一時的に断ること（401）があるので、待って取り直して3回まで試す
 try{
   const img = await readFile(`${DIR}/thumbnail.jpg`);
-  const r = await fetch(`https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId=${encodeURIComponent(res.id)}`, {
-    method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "image/jpeg", "Content-Length": String(img.length) }, body: img });
-  console.log(r.ok ? "サムネイルを付けました。" : `サムネイルは付けられませんでした（HTTP ${r.status}）。Studio で thumbnail.jpg を手で付けてください。`);
+  let r = null, tok = token;
+  for(let n = 1; n <= 3; n++){
+    r = await fetch(`https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId=${encodeURIComponent(res.id)}`, {
+      method: "POST", headers: { Authorization: `Bearer ${tok}`, "Content-Type": "image/jpeg", "Content-Length": String(img.length) }, body: img });
+    if(r.ok || !(r.status === 401 || r.status >= 500) || n === 3) break;
+    console.log(`サムネイル: HTTP ${r.status} なので ${10 * n} 秒待ってトークンを取り直します（${n}回目）`);
+    await new Promise(res => setTimeout(res, 10000 * n));
+    tok = await accessToken().catch(() => tok);
+  }
+  console.log(r.ok ? "サムネイルを付けました。" : `サムネイルは付けられませんでした（HTTP ${r.status}: ${(await r.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 200)}）。${r.status === 403 ? "チャンネルの電話番号確認が済むと使えます。" : ""}Studio で thumbnail.jpg を手で付けてください。`);
 }catch(e){ console.log("サムネイルの設定に失敗: " + e.message); }
 
 const out = { set: SET, videoId: res.id, url: `https://youtu.be/${res.id}`, title, privacy: "private", uploadedAt: new Date().toISOString() };
