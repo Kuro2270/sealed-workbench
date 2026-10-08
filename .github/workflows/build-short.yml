@@ -1,4 +1,4 @@
-name: 環境まとめ動画を作る
+name: ショート｜1 環境まとめ動画を作る（自動・集計後に4本）
 
 # 「1分でわかる〇〇環境」の縦動画（1080×1920）を、集計済みの記事データから作る。
 #   ・ナレーションは日本語が VOICEVOX（ずんだもん）、英語が Kokoro。動画の最後にクレジットが入る
@@ -16,10 +16,10 @@ on:
         description: "セットコード（例: HOB）"
         required: true
       lang:
-        description: "動画の言語（all = 日本語と英語の両方）"
+        description: "作る言語（both = 日本語と英語の両方／ja／en）"
         type: choice
-        options: [all, ja, en]
-        default: all
+        options: [both, ja, en]
+        default: both
       mode:
         description: "どちらのデータで作るか（all = ドラフトとシールドの両方）"
         type: choice
@@ -47,10 +47,10 @@ jobs:
     steps:
       - id: m
         env:
-          LANG_IN: ${{ inputs.lang || 'all' }}
+          LANG_IN: ${{ inputs.lang || 'both' }}
           MODE_IN: ${{ inputs.mode || 'all' }}
         run: |
-          langs="$LANG_IN"; [ "$langs" = "all" ] && langs="ja en"
+          langs="$LANG_IN"; { [ "$langs" = "both" ] || [ "$langs" = "all" ]; } && langs="ja en"   # all は以前の呼び方（自動起動側が古くても動くように残す）
           modes="$MODE_IN"; [ "$modes" = "all" ] && modes="draft sealed"
           items=""
           for l in $langs; do for m in $modes; do items="$items{\"lang\":\"$l\",\"mode\":\"$m\"},"; done; done

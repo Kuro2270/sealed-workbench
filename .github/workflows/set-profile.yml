@@ -1,4 +1,4 @@
-name: セットの下見を作る
+name: 補助｜セットの下見を作る
 
 # 勝率データが出る前の新セット用に、カードの枚数を数えた「下見」ページを作る。
 #   sets/<SET>.profile.html（日本語）／ sets/<SET>.profile.en.html（英語）

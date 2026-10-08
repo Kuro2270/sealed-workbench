@@ -1,4 +1,4 @@
-name: SNS 定期投稿
+name: SNS｜SNS 定期投稿（自動・週1）
 
 # 毎週金曜 12:00（日本時間）に、最新セットの話題を X と Bluesky に投稿する。
 # 手動実行では、種類（test / weekly / monthly）と言語を選べる。まず test で動作確認する。
@@ -13,9 +13,11 @@ on:
         type: choice
         options: [test, weekly, monthly]
         default: test
-      langs:
-        description: "言語（ja,en / ja / en）"
-        default: "ja,en"
+      lang:
+        description: "投稿する言語（both = 日本語と英語の両方／ja／en）"
+        type: choice
+        options: [both, ja, en]
+        default: both
       bsky_langs:
         description: "Bluesky に出す言語（既定は en だけ）"
         default: "en"
@@ -49,7 +51,7 @@ jobs:
       - name: 投稿
         env:
           SITE_URL: https://sealed-workbench.com
-          LANGS: ${{ inputs.langs || 'ja,en' }}
+          LANGS: ${{ (inputs.lang == 'ja' || inputs.lang == 'en') && inputs.lang || 'ja,en' }}
           BSKY_LANGS: ${{ inputs.bsky_langs || 'en' }}
           THEME: ${{ inputs.theme != 'auto' && inputs.theme || '' }}
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}

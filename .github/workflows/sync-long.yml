@@ -1,4 +1,4 @@
-name: 長尺動画をサイトに載せる
+name: 長尺｜2 長尺動画をサイトに載せる（自動・毎日）
 
 # YouTube Studio で長尺の環境まとめ動画を「公開」にすると、自動でサイト（セット別ページ・環境レポート）に載る。
 #   ・毎日1回（日本時間の昼）、日本語・英語それぞれのチャンネルの最近の動画から「公開になった長尺」を探して data/long.json に登録する
@@ -19,8 +19,11 @@ on:
         description: "YouTube の動画ID（自動で見つからないときだけ）"
         required: false
       lang:
-        description: "その動画の言語（ja か en。動画IDを指定するときだけ。省略は ja）"
+        description: "調べる言語（both = 日本語と英語の両方／ja／en。ふだんは both のまま。動画IDを指定するときは、その動画の言語を ja か en で選ぶ）"
+        type: choice
+        options: [both, ja, en]
         required: false
+        default: both
 
 permissions:
   contents: write
@@ -44,7 +47,8 @@ jobs:
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN_JA: ${{ secrets.YT_REFRESH_TOKEN_JA }}
           YT_REFRESH_TOKEN_EN: ${{ secrets.YT_REFRESH_TOKEN_EN }}
-          LONG_LANG: ${{ inputs.lang }}
+          LONG_LANG: ${{ (inputs.lang == 'ja' || inputs.lang == 'en') && inputs.lang || '' }}     # 動画IDを指定したときの、その動画の言語
+          LONG_LANGS: ${{ (inputs.lang == 'ja' || inputs.lang == 'en') && inputs.lang || 'ja,en' }} # 自動で探す言語（both なら両方）
         run: node maintenance/sync-long.mjs
 
       - name: セット別ページを作り直して、変わっていればコミットする
