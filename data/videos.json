@@ -177,6 +177,16 @@
         "comment2": true,
         "comment": true
       }
+    },
+    "en": {
+      "early": {
+        "id": "IAuKO3hUS8M",
+        "mode": "early",
+        "public": true,
+        "uploadedAt": "2026-10-08",
+        "publishedAt": "2026-10-08",
+        "comment2": true
+      }
     }
   }
 }

@@ -173,8 +173,19 @@
 </header>
 <main>
 <article class="mode">
-  <p class="verdict">The full review (every card's win rate) lands around Oct 14. This page switches over automatically.</p>
-<section class="early-note"><h3>Early look (as of Oct 8, from 17Lands data)</h3><p>Across the first 361K games (Draft and Sealed combined), the best-performing pair is White-Blue (57.1%), followed by Blue-Black (56.7%). Blue is the most reliable single colour so far. Among commons, Extended Absence is clearly ahead. Rankings will move as more games come in.</p></section>
+  
+<section class="early-note"><h3>Early look (as of Oct 8, from 17Lands data)</h3><p>Across the first 361K games (Draft and Sealed combined), the best-performing pair is White-Blue (57.1%), followed by Blue-Black (56.7%). Blue is the most reliable single colour so far. Among commons, Extended Absence is clearly ahead. Rankings will move as more games come in.</p><div class="etop"><h4>Top 3 commons</h4><ul><li><img src="https://cards.scryfall.io/normal/front/e/b/eb4b6ed8-782e-4473-abc9-d50bf2275c6a.jpg?1789556713" alt="Extended Absence" loading="lazy" width="146" height="204"><span>Extended Absence</span></li><li><img src="https://cards.scryfall.io/normal/front/d/3/d3acf176-ef02-4729-88c4-0f0dfbfdada4.jpg?1789385570" alt="Surgical Precision" loading="lazy" width="146" height="204"><span>Surgical Precision</span></li><li><img src="https://cards.scryfall.io/normal/front/a/0/a08c7ec2-4c6a-4db2-85a7-41afe8731523.jpg?1790558750" alt="Protege's Awakening" loading="lazy" width="146" height="204"><span>Protege's Awakening</span></li></ul></div><div class="etop"><h4>Top 3 uncommons</h4><ul><li><img src="https://cards.scryfall.io/normal/front/6/8/68fddb6a-86d4-4ebb-907d-fdcaadebc4b3.jpg?1789556898" alt="Recursive Recruitment" loading="lazy" width="146" height="204"><span>Recursive Recruitment</span></li><li><img src="https://cards.scryfall.io/normal/front/0/3/03f9839c-aa07-4ee7-847b-091e47ab80c4.jpg?1789470711" alt="Craftwork Crusher" loading="lazy" width="146" height="204"><span>Craftwork Crusher</span></li><li><img src="https://cards.scryfall.io/normal/front/0/8/08657053-86f9-4c52-abf0-d9cdd443ae3b.jpg?1789127995" alt="Kiora of Fire and Ashes" loading="lazy" width="146" height="204"><span>Kiora of Fire and Ashes</span></li></ul></div><p class="when">The full review (every card's win rate) lands around Oct 14. This page switches over automatically.</p></section>
+<section class="video"><div class="yt" data-id="IAuKO3hUS8M">
+    <img src="/assets/video/FRA-en-early.jpg" alt="Early look (video)" loading="lazy" width="270" height="480">
+    <button type="button" aria-label="Play"><span></span></button>
+  </div>
+  <div class="vtext"><h3>Early look (video)</h3><p class="lead">Made from the first days of data. Rankings have moved since.</p>
+    <p><a href="https://www.youtube.com/shorts/IAuKO3hUS8M" target="_blank" rel="noopener">Watch on YouTube</a></p>
+  </div>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoObject","name":"Reality Fracture Early look — Early look (video)","description":"Made from the first days of data. Rankings have moved since.","thumbnailUrl":["https://sealed-workbench.com/assets/video/FRA-en-early.jpg"],"uploadDate":"2026-10-08","duration":"PT1M","contentUrl":"https://www.youtube.com/shorts/IAuKO3hUS8M","embedUrl":"https://www.youtube-nocookie.com/embed/IAuKO3hUS8M","inLanguage":"en"}</script>
+  <script>document.querySelectorAll(".video .yt button").forEach(function(btn){ if(btn.dataset.wired) return; btn.dataset.wired="1"; btn.addEventListener("click",function(){var b=this.parentNode,f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+b.dataset.id+"?autoplay=1&playsinline=1";f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title=this.getAttribute("aria-label");b.innerHTML="";b.appendChild(f);});});</script>
+</section>
+
   <section><h3>What each colour has (commons &amp; uncommons)</h3><p class="lead">Mono-coloured commons and uncommons only. Colours with more removal and flyers tend to take the initiative early.</p>
   <div style="overflow-x:auto"><table><thead><tr><th>Colour</th><th class="num">Cards</th><th class="num">Creatures</th><th class="num">Removal</th><th class="num">Flyers</th><th class="num">Combat tricks</th><th class="num">Card draw</th><th class="num">Avg size</th><th class="num">Avg MV</th></tr></thead>
   <tbody><tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>White</td>
@@ -197,6 +208,12 @@
   .mode .early-note h3{margin:0 0 6px;font-size:15px;color:#2A3B4C}
   .mode .early-note p{margin:0 0 6px;line-height:1.7}
   .mode .early-note p.lead{margin:0;font-size:12.5px}
+  .mode .early-note p.when{margin:10px 0 0;padding-top:10px;border-top:1px dashed #E3C96A;color:#5C7185;font-size:13px}
+  .mode .early-note .etop{margin:10px 0 4px}
+  .mode .early-note .etop h4{margin:0 0 6px;font-size:13.5px;color:#2A3B4C}
+  .mode .early-note .etop ul{list-style:none;margin:0;padding:0;display:flex;gap:12px;flex-wrap:wrap}
+  .mode .early-note .etop li{width:146px;text-align:center;font-size:12.5px;line-height:1.4}
+  .mode .early-note .etop img{width:146px;height:auto;border-radius:7px;display:block;margin:0 0 4px;box-shadow:0 2px 8px rgba(15,28,23,.2)}
   .mode .cn{border-bottom:1px dotted #9AAABB;cursor:default}
   .mode .mana{display:inline-flex;gap:2px;vertical-align:middle}
   .mode .ms{width:16px;height:16px;display:block}
