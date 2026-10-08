@@ -192,7 +192,8 @@ async function syncLang(lang){
   }
 }
 
-const todo = ONLY_ID ? [ONLY_LANG === "en" ? "en" : "ja"] : LANGS;
+if(ONLY_ID && ONLY_LANG !== "ja" && ONLY_LANG !== "en"){ console.error("動画IDを指定するときは、言語（lang）を ja か en にしてください（both では、どちらのチャンネルの動画か決められません）。"); process.exit(1); }
+const todo = ONLY_ID ? [ONLY_LANG] : LANGS;
 for(const lang of todo){ try{ await syncLang(lang); }catch(e){ console.error(`${lang}: ${e.message}`); } }
 if(!anyLang){ console.error("使える YouTube の許可がありません（YT_REFRESH_TOKEN_JA / _EN）。"); process.exit(1); }
 if(changed) await writeFile("data/long.json", JSON.stringify(long, null, 2) + "\n", "utf8");
