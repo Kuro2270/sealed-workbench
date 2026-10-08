@@ -1092,6 +1092,26 @@ sf.write(job["out"], samples, sr)
   const dur = +execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", wavPath]).toString().trim();
   return { kana: text, dur };
 }
+/* 英語の読み上げをまとめて作る（モデルを1回だけ読み込む。場面ごとに読み込み直すと、1場面あたり十数秒かかって遅い） */
+async function speakEnBatch(jobs){
+  const py = `
+import sys, json, os, soundfile as sf
+from kokoro_onnx import Kokoro
+D = os.environ["KOKORO_DIR"]
+k = Kokoro(os.path.join(D, "kokoro-v1.0.onnx"), os.path.join(D, "voices-v1.0.bin"))
+for job in json.load(sys.stdin):
+    samples, sr = k.create(job["text"], voice=os.environ.get("KOKORO_VOICE", "af_heart"), speed=float(os.environ.get("KOKORO_SPEED", "1.05")), lang="en-us")
+    sf.write(job["out"], samples, sr)
+`;
+  execFileSync(KOKORO_PY, ["-c", py], { input: JSON.stringify(jobs), env: { ...process.env, KOKORO_DIR }, stdio: ["pipe", "inherit", "inherit"], maxBuffer: 1 << 26 });
+  const durs = new Map();
+  for(const j of jobs){
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", j.out, "-af", "apad=pad_dur=0.25", j.out + ".tmp.wav"]);
+    execFileSync("mv", [j.out + ".tmp.wav", j.out]);
+    durs.set(j.out, +execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", j.out]).toString().trim());
+  }
+  return durs;
+}
 async function speak(text, wavPath){
   // 動作確認用（LONG_FAKE_AUDIO=1）：無音の音声を、文字数に応じた長さで作る。VOICEVOX が無い環境で、動画の組み立てだけ試すときに使う
   if(process.env.LONG_FAKE_AUDIO){
@@ -1227,8 +1247,19 @@ async function main(){
   // 音声
   const prev = await readJson(`${OUT}/script.json`, []);
   let yomiLoaded = false;
+  let enDurs = new Map();
+  if(EN && !STILLS && !process.env.LONG_FAKE_AUDIO){
+    const todo = [];
+    for(const [i, sc] of scenes.entries()){
+      const base = `${OUT}/scene-${i}`, old = prev[i];
+      if(old && old.say === sc.say && old.dur && await readFile(base + ".wav").then(() => true, () => false)) continue;
+      todo.push({ text: sc.say, out: base + ".wav" });
+    }
+    if(todo.length){ console.error(`英語の読み上げ: ${todo.length} 場面をまとめて作る`); enDurs = await speakEnBatch(todo); }
+  }
   for(const [i, sc] of scenes.entries()){
     const base = `${OUT}/scene-${i}`, old = prev[i];
+    if(enDurs.has(base + ".wav")){ sc.kana = sc.say; sc.dur = enDurs.get(base + ".wav"); continue; }
     if(old && old.say === sc.say && old.dur && await readFile(base + ".wav").then(() => true, () => false)){ sc.kana = old.kana; sc.dur = old.dur; continue; }
     if(STILLS){ sc.kana = sc.say; sc.dur = Math.max(4, [...sc.say].length / L(7, 14)); continue; }
     if(!EN && !yomiLoaded && !process.env.LONG_FAKE_AUDIO){ await loadYomi(); yomiLoaded = true; }
@@ -1273,7 +1304,7 @@ async function main(){
     caps.forEach((c, k) => { fc += `;[v${k}][${3 + k}:v]overlay=0:${CAP_Y}:enable='between(t,${c.a.toFixed(2)},${c.b.toFixed(2)})':shortest=1[v${k + 1}]`; });
     fc += `;[v${caps.length}]format=yuv420p[v];[2:a]apad=pad_dur=${pad.toFixed(2)},afade=t=in:d=0.012,afade=t=out:st=${(len - 0.03).toFixed(3)}:d=0.03,aformat=sample_rates=48000:channel_layouts=stereo[a]`;
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...inputs, "-filter_complex", fc, "-map", "[v]", "-map", "[a]", "-t", String(len),
-      "-c:v", "libx264", "-preset", "fast", "-crf", "21", "-c:a", "aac", "-b:a", "160k", base + ".mp4"]);
+      "-c:v", "libx264", "-preset", process.env.LONG_PRESET || "veryfast", "-crf", "22", "-threads", "0", "-c:a", "aac", "-b:a", "160k", base + ".mp4"]);
     segs.push(`file 'scene-${i}.mp4'`); total += len;
     console.error(`${i} ${sc.kind.padEnd(8)} ${sc.dur.toFixed(1)}s → ${len.toFixed(1)}s`);
   }
