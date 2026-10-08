@@ -164,6 +164,7 @@ const P = {
     h1: s => `${s}｜リミテッド下見（データ前）`,
     lead: "勝率データは発売から2週間ほどで揃います。それまでは、セットの全カードを数えて「環境の形」を見ます。",
     when: d => `勝率データは ${d} ごろから。揃い次第、このセットの環境レポートが出ます。`,
+    earlyH: d => `速報（${d} 時点・17Lands のデータより）`, earlySrc: "出典: 17Lands（カード勝率・色別勝率）",
     sumH: "ひと目でわかる",
     sum: p => `コモン・アンコモンの除去は ${p.counts.removal} 枚、飛行持ちは ${p.counts.flyers} 枚。コモン・アンコモンの平均マナ総量は ${p.avgCmcAll.toFixed(2)}。`,
     colorsH: "色ごとの中身（コモン・アンコモン）", colorsLead: "単色のコモン・アンコモンだけを数えています。除去と飛行が多い色は、序盤から主導権を取りやすい色です。",
@@ -190,6 +191,7 @@ const P = {
     h1: s => `${s} — Limited preview (pre-data)`,
     lead: "Win-rate data lands about two weeks after release. Until then, we count every card in the set to see the shape of the format.",
     when: d => `Win-rate data from about ${d}. The full format report for this set appears as soon as it lands.`,
+    earlyH: d => `Early look (as of ${d}, from 17Lands data)`, earlySrc: "Source: 17Lands (card and colour win rates)",
     sumH: "At a glance",
     sum: p => `${p.counts.removal} removal spells and ${p.counts.flyers} flyers at common and uncommon. Average mana value of commons and uncommons: ${p.avgCmcAll.toFixed(2)}.`,
     colorsH: "What each colour has (commons & uncommons)", colorsLead: "Mono-coloured commons and uncommons only. Colours with more removal and flyers tend to take the initiative early.",
@@ -294,10 +296,14 @@ function page(lang, p, nameJa, dataDate){
     const img = (lang === "ja" ? (r.imgJa || r.img) : r.img) || "";
     return `<tr${img ? ` data-img="${esc(img)}"` : ""}><td>${manaI(c)}${esc(T.colorName[c])}</td><td><span class="rar ${r.rarity}">${T.rarity[r.rarity]}</span><span class="cn">${esc(nm)}</span>${lang === "ja" && r.ja ? ` <small class="en">${esc(r.name)}</small>` : ""}</td><td class="num cost">${manaHtml(r.cost)}</td></tr>`;
   }).join("\n")).join("\n");
-  // 先行版のショート（発売直後の速報）が公開になっていれば、下見の冒頭に出す（「動画を配信」が data/videos.json に記録する）
+  // 先行版のショート（発売直後の速報）が公開になっていれば、下見の冒頭に出す（「動画を配信」が data/videos.json に記録する）。
+  // 速報メモ（build-early.mjs が作る文章。表にはしない）も、動画が公開になってから一緒に出す
   const earlyVideo = videoSection(lang, SET, "early", name, VIDEOS);
+  const earlyNote = earlyVideo && EARLY && EARLY[lang]
+    ? `<section class="early-note"><h3>${esc(T.earlyH((EARLY.as_of_label || {})[lang] || EARLY.as_of || ""))}</h3><p>${esc(EARLY[lang])}</p>` +
+      `<p class="lead"><a href="${esc(EARLY.source_url || "https://www.17lands.com/")}" target="_blank" rel="noopener">${esc(T.earlySrc)}</a></p></section>` : "";
   const main = `<article class="mode">
-  <p class="verdict">${esc(T.when(dataDate))}</p>${earlyVideo ? "\n" + earlyVideo : ""}
+  <p class="verdict">${esc(T.when(dataDate))}</p>${earlyNote ? "\n" + earlyNote : ""}${earlyVideo ? "\n" + earlyVideo : ""}
   <section><h3>${esc(T.colorsH)}</h3><p class="lead">${esc(T.colorsLead)}</p>
   <div style="overflow-x:auto"><table><thead><tr><th>${esc(T.th.color)}</th><th class="num">${esc(T.th.cards)}</th><th class="num">${esc(T.th.creatures)}</th><th class="num">${esc(T.th.removal)}</th><th class="num">${esc(T.th.flyers)}</th><th class="num">${esc(T.th.tricks)}</th><th class="num">${esc(T.th.draw)}</th><th class="num">${esc(T.th.size)}</th><th class="num">${esc(T.th.cmc)}</th></tr></thead>
   <tbody>${COLORS.map(row).join("\n")}</tbody></table></div></section>
@@ -307,6 +313,10 @@ function page(lang, p, nameJa, dataDate){
 </article>
 <div id="preview" aria-hidden="true"></div>
 <style>
+  .mode .early-note{margin:12px 0 18px;padding:14px 18px;border:1px solid #F2C94C;border-left:6px solid #F2C94C;border-radius:10px;background:#FFFBEA}
+  .mode .early-note h3{margin:0 0 6px;font-size:15px;color:#2A3B4C}
+  .mode .early-note p{margin:0 0 6px;line-height:1.7}
+  .mode .early-note p.lead{margin:0;font-size:12.5px}
   .mode .cn{border-bottom:1px dotted #9AAABB;cursor:default}
   .mode .mana{display:inline-flex;gap:2px;vertical-align:middle}
   .mode .ms{width:16px;height:16px;display:block}
@@ -394,6 +404,7 @@ try{
 }catch(e){ console.error("日本語名を取れませんでした: " + e.message); }
 // 先行版のショート（「動画を配信」が public にしたものだけ載る）
 const VIDEOS = await readJson("data/videos.json", {});
+const EARLY = await readJson(`data/early/${SET}.json`, null);
 // 勝率データが出る日の目安：紙の発売日 + 12日
 let dataDate = { ja: "発売2週間後", en: "two weeks after release" };
 if(p.released_at){
