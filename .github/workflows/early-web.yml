@@ -1,0 +1,81 @@
+name: 速報｜サイトに速報メモを載せる（自動・発売直後）
+
+# 発売直後のセットについて、17Lands のカード勝率・色別勝率から「速報メモ」（3〜4文の文章。表やグラフにはしない）を作り、
+# 下見ページ（sets/<SET>.profile.html）を「リミテッド速報版」にして commit する。動画は扱わない（動画は「ショート｜1」）。
+#   ・「データ｜1 新データの点検」が、速報のショートと同じタイミング（発売2〜3日目）で起こす
+#   ・手でも押せる。セットは空なら自動で選ぶ（発売前後で、速報メモがまだ無い最新のセット）
+#   ・17Lands への通信は 4 回だけ（ドラフト／シールド × カード勝率／色別勝率）。数字の元データ（data/articles/*_early.json）は残さない
+# 速報の動画は、公開して「ショート｜2 動画を配信」を押すと、同じ下見ページに加わる。
+
+on:
+  workflow_dispatch:
+    inputs:
+      set:
+        description: "セットコード（例: FRA）。空なら自動で選ぶ（発売前後で、速報メモがまだ無い最新のセット）"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  note:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: セットを決める
+        id: pick
+        env:
+          SET_IN: ${{ inputs.set }}
+        run: |
+          SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"
+          if [ -z "$SET_CODE" ]; then
+            SET_CODE="$(node maintenance/pick-set.mjs early-note)" || { echo "::error::セットを自動で決められませんでした。セットコードを入れて実行してください。"; exit 1; }
+          fi
+          echo "set=$SET_CODE" >> "$GITHUB_OUTPUT"
+
+      - name: 17Lands から速報データを取り、速報メモを作る
+        env:
+          SET_CODE: ${{ steps.pick.outputs.set }}
+        run: |
+          node maintenance/build-early.mjs "$SET_CODE"
+          node maintenance/build-early-note.mjs "$SET_CODE"
+          rm -f "data/articles/${SET_CODE}_early.json"     # 数字の元データは残さない（文章だけを残す）
+
+      - name: 下見ページを速報版に作り直す
+        env:
+          SET_CODE: ${{ steps.pick.outputs.set }}
+        run: node maintenance/build-set-profile.mjs "$SET_CODE"
+
+      - name: コミット
+        env:
+          SET_CODE: ${{ steps.pick.outputs.set }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for p in data/early data/names data/profiles sets; do
+            [ -e "$p" ] && git add -A -- "$p"
+          done
+          if git diff --staged --quiet; then
+            echo "変更はありませんでした。"
+          else
+            git commit -m "速報メモを載せる（$SET_CODE）"
+            ok=0
+            for i in 1 2 3; do
+              git pull --rebase --autostash origin main && git push origin main && ok=1 && break
+              echo "再試行 $i"; sleep 5
+            done
+            [ "$ok" = 1 ] || { echo "::error::push できませんでした。もう一度実行してください。"; exit 1; }
+          fi
+          {
+            echo "## $SET_CODE の速報メモ"
+            echo
+            node -e 'const n=require("./data/early/"+process.env.SET_CODE+".json");console.log(n.ja);console.log();console.log(n.en)'
+            echo
+            echo "下見ページ: https://sealed-workbench.com/sets/$SET_CODE.profile"
+          } >> "$GITHUB_STEP_SUMMARY"

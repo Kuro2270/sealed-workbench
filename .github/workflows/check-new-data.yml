@@ -53,9 +53,11 @@ jobs:
           for S in $EARLY; do
             gh workflow run build-short.yml --ref main -f set="$S" -f lang=both -f upload=true \
               && echo "先行版の動画づくりを開始: $S" || echo "::warning::先行版の動画づくりを始められませんでした: $S"
+            gh workflow run early-web.yml --ref main -f set="$S" \
+              && echo "速報メモの作成を開始: $S" || echo "::warning::速報メモの作成を始められませんでした: $S"
           done
           echo "## 先行版を作り始めました: $EARLY" >> "$GITHUB_STEP_SUMMARY"
-          echo "「環境まとめ動画を作る」（速報）を起こしました。終わると先行版のショートが日英2本、非公開で YouTube に上がります。" >> "$GITHUB_STEP_SUMMARY"
+          echo "「環境まとめ動画を作る」（速報）と「サイトに速報メモを載せる」を起こしました。終わると先行版のショートが日英2本、非公開で YouTube に上がり、下見ページが速報版になります。" >> "$GITHUB_STEP_SUMMARY"
 
       # 発売前後のセットに、勝率データが出るまでの「下見」ページを作る（2日ごとに作り直し、カードと日本語名が増えたら反映する）
       - name: セットの下見を作る

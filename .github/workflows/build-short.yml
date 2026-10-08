@@ -168,7 +168,7 @@ jobs:
           echo "VMODE=$VMODE" >> "$GITHUB_ENV"
           echo "VTAG=$VTAG" >> "$GITHUB_ENV"
           if [ "$VMODE" = "early" ]; then
-            # 先行版：17Lands のカード勝率・色別勝率から、その場で記事データを作る（commit はしない。サイトには載せない）
+            # 先行版：17Lands のカード勝率・色別勝率から、その場で記事データを作る（commit はしない。サイトの速報メモは「速報｜サイトに速報メモを載せる」が別に作る）
             if ! node maintenance/build-early.mjs "$SET_CODE"; then
               echo "::warning::${SET_CODE} の先行版データを作れませんでした（17Lands にまだ試合が無いか、通信できない）。"
               echo "## ${SET_CODE} の先行版（${VLANG}）は作りませんでした" >> "$GITHUB_STEP_SUMMARY"
@@ -272,19 +272,14 @@ jobs:
             });
 
       - name: 動画の記録をコミット
-        if: env.SKIP != '1'            # 上げないときも、速報メモ（data/early）と日本語名（data/names）は残す
+        if: inputs.upload == true && env.SKIP != '1'
         run: |
-          # 速報メモ（data/early）が新しくなったら、下見ページも作り直して、サイトにすぐ出す（Scryfall に届かなければ、毎日の点検で作り直される）
-          if [ "$VMODE" = "early" ] && [ -n "$(git status --porcelain -- data/early)" ]; then
-            node maintenance/build-set-profile.mjs "$SET_CODE" || echo "::warning::下見ページを作り直せませんでした（毎日の点検で作り直されます）"
-          fi
-          if [ -n "$(git status --porcelain -- data/videos assets/video data/early data/names sets data/profiles)" ]; then
+          if [ -n "$(git status --porcelain -- data/videos assets/video data/names)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             # 無いフォルダを git add に渡すと失敗するので、あるものだけ足す
-            # （data/videos = 動画の記録、assets/video = サイト用サムネイル、data/names = 日本語名、data/early = 速報メモ（文章だけ）、sets・data/profiles = 下見ページ。
-            #   記事データ data/articles/*_early.json は残さない）
-            for p in data/videos assets/video data/names data/early sets data/profiles; do
+            # （data/videos = 動画の記録、assets/video = サイト用サムネイル、data/names = 日本語名。速報の記事データ data/articles/*_early.json は残さない）
+            for p in data/videos assets/video data/names; do
               [ -e "$p" ] && git add -A -- "$p"
             done
             git commit -m "動画の記録を更新（$SET_CODE $VLANG $VMODE）"
