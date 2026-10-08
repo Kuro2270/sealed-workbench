@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Aetherdrift (DFT) Limited format report — MTG Arena Draft and Sealed win rates — MTG Arena Limited Workbench</title>
-<meta name="description" content="Aetherdrift (DFT) Draft and Sealed on MTG Arena, read from 1,040,830 games of 17Lands public data: format speed, strongest colours, best two-colour archetypes, top commons, uncommons and rares, and a full card tier list.">
+<title>Aetherdrift (DFT) Limited card ratings — best cards ranked by win rate (MTG Arena) — MTG Arena Limited Workbench</title>
+<meta name="description" content="Which cards are best in Aetherdrift (DFT) Limited on MTG Arena? Card ratings by win rate from 1,040,830 games of 17Lands data, ranked by rarity — plus format speed, the strongest colours and the best two-colour pairs.">
 <link rel="canonical" href="https://sealed-workbench.com/sets/DFT.en">
 <link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/DFT">
 <link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/DFT.en">
 <link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/DFT">
-<meta property="og:title" content="Aetherdrift (DFT) Limited format report — MTG Arena Draft and Sealed win rates">
-<meta property="og:description" content="Aetherdrift (DFT) Draft and Sealed on MTG Arena, read from 1,040,830 games of 17Lands public data: format speed, strongest colours, best two-colour archetypes, top commons, uncommons and rares, and a full card tier list.">
+<meta property="og:title" content="Aetherdrift (DFT) Limited card ratings — best cards ranked by win rate (MTG Arena)">
+<meta property="og:description" content="Which cards are best in Aetherdrift (DFT) Limited on MTG Arena? Card ratings by win rate from 1,040,830 games of 17Lands data, ranked by rarity — plus format speed, the strongest colours and the best two-colour pairs.">
 <meta property="og:url" content="https://sealed-workbench.com/sets/DFT.en">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
@@ -22,7 +22,20 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/mana/mana.min.css">
 <script src="../analytics.js"></script>
+<script src="/navmenu.js" defer></script>
+<script src="/tip.js" defer></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#10304F">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Workbench">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
 <style>
   :root{--pine:#10304F;--pine-deep:#0A2038;--paper:#F5F8FC;--paper-2:#E8EEF6;--ink:#0D1B2A;--muted:#5C7185;--gold:#2F7DF6;--line:#D3DFEB;
         --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:8px}
@@ -49,6 +62,20 @@
   nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
   nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
   @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0} }
+  /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
+  .ng{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;column-gap:7px;row-gap:5px;justify-content:start;align-items:center;padding-top:0}
+  .ng:has(.ngs){padding-top:0}
+  .ngl,.ngs{position:static;grid-column:1/-1;white-space:nowrap}
+  .ngl{grid-row:1;left:auto}
+  .ngs{grid-row:2;left:auto;top:auto;font-size:11.5px;color:#A9BFD8;margin-top:-2px}
+  nav a{grid-row:3;padding:8px 16px;border-radius:10px;font-weight:700;background:linear-gradient(180deg,#2A5F96,#1C4A7C);border:1px solid #4A83BF;color:#FFFFFF;box-shadow:0 2px 0 #12365C,0 4px 10px rgba(0,0,0,.28);-webkit-font-smoothing:auto;text-shadow:none;letter-spacing:.02em}
+  nav a:not(.on):hover{background:linear-gradient(180deg,#3573B3,#25609F);border-color:#6FA3DA}
+  nav a:active{box-shadow:0 1px 0 #12365C}
+  nav a.on{box-shadow:0 2px 0 rgba(0,0,0,.35),0 4px 10px rgba(0,0,0,.28)}
+  @media (max-width:760px){
+    .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+    .ngl,.ngs{flex:0 0 100%}
+  }
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   .lang{margin-top:12px;font-size:13px}
@@ -60,6 +87,21 @@
   .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
   section{margin-top:18px}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
+  .longvideo h2{margin:0 0 4px;font-size:18px}
+  .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
+  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0A2038}
+  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .longvideo .yt button span{width:68px;height:68px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .longvideo .yt button span::after{content:"";border-left:23px solid #0B1E33;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
+  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px}
+  .longvideo .chap li{margin:0 0 2px}
+  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
+  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
+  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
   .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
   .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
   .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -103,6 +145,9 @@
   .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}
   footer a{color:var(--muted)}
+  .faq details{border-bottom:1px solid var(--line,#D7E2EE);padding:10px 2px}
+  .faq summary{cursor:pointer;font-weight:700;font-size:14.5px}
+  .faq p{margin:8px 0 2px;font-size:14px;line-height:1.8}
   @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
@@ -116,22 +161,22 @@
         <option value="DFT.en.html" selected>English</option>
       </select></div>
     <nav>
-      <div class="ng"><span class="ngl">Start</span><a href="../start/index.en.html">What is MTG?</a><a href="../start/limited.en.html">What is Limited?</a><a href="../guide.html">Site features</a></div>
+      <div class="ng"><span class="ngl">Start</span><span class="ngs">MTG basics &amp; how to use this site</span><a href="../start/index.en.html">What is MTG?</a><a href="../start/limited.en.html">What is Limited?</a><a href="../guide.html">Site features</a></div>
       <div class="ng"><span class="ngl">Practice</span><span class="ngs">Virtual packs</span><a href="../sealed.html">Sealed practice</a><a href="../draft.html">Draft practice</a></div>
       <div class="ng"><span class="ngl">Use with MTG Arena</span><span class="ngs">Reads your log in real play · PC only</span><a href="../sealed-assist.html">Sealed assistant<b class="pcb">PC</b></a><a href="../assistant.html">Draft assistant<b class="pcb">PC</b></a></div>
-      <div class="ng"><span class="ngl">Data</span><a href="../reports.html">Set reports</a></div>
-      <div class="ng"><span class="ngl">Play</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
-      <div class="ng"><span class="ngl">Shop</span><a href="../goods/index.en.html">Japanese supplies</a></div>
+      <div class="ng"><span class="ngl">Data</span><span class="ngs">How strong and fast each set is</span><a href="../reports.html">Set reports</a></div>
+      <div class="ng"><span class="ngl">Play</span><span class="ngs">Play friends or run a tournament</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
+      <div class="ng"><span class="ngl">Shop</span><span class="ngs">MTG supplies sold in Japan</span><a href="../goods/index.en.html">Japanese supplies</a></div>
     </nav>
-    <h1>Aetherdrift — Limited format report <small class="code">DFT</small></h1>
-    <p>Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data.　Released 2025-02-14</p>
+    <h1>Aetherdrift | Limited card ratings and format report <small class="code">DFT</small></h1>
+    <p>Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data. Use them as card ratings: the higher the win rate, the stronger the card.　Released 2025-02-14</p>
     <link rel="alternate" hreflang="ja" href="DFT.html">
   </div>
 </header>
 <main>
 <article class="mode">
   <h2>Draft <small>988,549 games · overall win rate 55.4%</small></h2>
-  <p class="built">Built 2026-09-18</p>
+  <p class="built">Built 2026-10-08</p>
   <p class="summary">Aetherdrift Draft on MTG Arena: 988,549 games, 55.4% overall win rate. On speed, speed makes little difference. Green (56.2%) and Black (55.5%) are the strongest colours; the best two-colour pair is Blue/Green at 57.0%, and the weakest is White/Blue at 54.8%. By card, the top common is Stampeding Scurryfoot, the top uncommon is Thundering Broodwagon, the top rare is Lumbering Worldwagon (game-in-hand win rate).</p>
 
   <section><h3>Format speed</h3>
@@ -139,11 +184,11 @@
   </section>
   <section><h3>Colour strength</h3><p class="lead">Win rate of games where the deck included cards of that colour.</p>
     <table><thead><tr><th>Colour</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-    <tr><td><span class="dot" style="background:var(--g)"></span>Green</td><td class="num"><b>56.2%</b></td><td class="num">519,981</td></tr>
-    <tr><td><span class="dot" style="background:var(--b)"></span>Black</td><td class="num"><b>55.5%</b></td><td class="num">455,222</td></tr>
-    <tr><td><span class="dot" style="background:var(--u)"></span>Blue</td><td class="num"><b>55.0%</b></td><td class="num">470,125</td></tr>
-    <tr><td><span class="dot" style="background:var(--w)"></span>White</td><td class="num"><b>54.7%</b></td><td class="num">286,249</td></tr>
-    <tr><td><span class="dot" style="background:var(--r)"></span>Red</td><td class="num"><b>54.4%</b></td><td class="num">345,887</td></tr>
+    <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Green</td><td class="num"><b>56.2%</b></td><td class="num">519,981</td></tr>
+    <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Black</td><td class="num"><b>55.5%</b></td><td class="num">455,222</td></tr>
+    <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Blue</td><td class="num"><b>55.0%</b></td><td class="num">470,125</td></tr>
+    <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>White</td><td class="num"><b>54.7%</b></td><td class="num">286,249</td></tr>
+    <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Red</td><td class="num"><b>54.4%</b></td><td class="num">345,887</td></tr>
     </tbody></table>
   </section>
   <section><h3>Colour pairs</h3><p class="lead">Win rate by two-colour pair, sorted by number of games.</p>
@@ -172,78 +217,78 @@
     <tr><td>7+</td><td class="num"><b>55.3%</b></td><td class="num">6</td><td class="num">142,512</td></tr>
     </tbody></table>
   </section>
-  <section><h3>Best cards by rarity</h3><p class="lead">Sorted by GIH win rate (games where the card was in hand or on the battlefield).</p>
+  <section><h3>Card ratings by rarity</h3><p class="lead">A card's rating is its real win rate (GIH win rate: games where the card was in hand or on the battlefield). Higher is stronger. Sorted from the top within each rarity.</p>
     <div class="grid">
       <div><h3><span class="rar mythic">Mythic</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Sab-Sunen, Luxa Embodied</td><td class="num"><b>68.2%</b></td><td class="num">14,413</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Mu Yanling, Wind Rider</td><td class="num"><b>65.7%</b></td><td class="num">13,118</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Riptide Gearhulk</td><td class="num"><b>65.3%</b></td><td class="num">9,464</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Loot, the Pathfinder</td><td class="num"><b>63.9%</b></td><td class="num">11,889</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>March of the World Ooze</td><td class="num"><b>63.4%</b></td><td class="num">10,872</td></tr>
-      <tr><td><span class="dot" style="background:var(--c)"></span>The Aetherspark</td><td class="num"><b>62.0%</b></td><td class="num">13,930</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>The Speed Demon</td><td class="num"><b>61.6%</b></td><td class="num">11,290</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Pyrewood Gearhulk</td><td class="num"><b>61.5%</b></td><td class="num">8,090</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Brightglass Gearhulk</td><td class="num"><b>60.7%</b></td><td class="num">5,107</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Oildeep Gearhulk</td><td class="num"><b>59.9%</b></td><td class="num">8,800</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Sab-Sunen, Luxa Embodied</td><td class="num"><b>68.2%</b></td><td class="num">14,413</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Mu Yanling, Wind Rider</td><td class="num"><b>65.7%</b></td><td class="num">13,118</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Riptide Gearhulk</td><td class="num"><b>65.3%</b></td><td class="num">9,464</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Loot, the Pathfinder</td><td class="num"><b>63.9%</b></td><td class="num">11,889</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>March of the World Ooze</td><td class="num"><b>63.4%</b></td><td class="num">10,872</td></tr>
+      <tr><td><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>The Aetherspark</td><td class="num"><b>62.0%</b></td><td class="num">13,930</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>The Speed Demon</td><td class="num"><b>61.6%</b></td><td class="num">11,290</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Pyrewood Gearhulk</td><td class="num"><b>61.5%</b></td><td class="num">8,090</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Brightglass Gearhulk</td><td class="num"><b>60.7%</b></td><td class="num">5,107</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Oildeep Gearhulk</td><td class="num"><b>59.9%</b></td><td class="num">8,800</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">Rare</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Lumbering Worldwagon</td><td class="num"><b>65.4%</b></td><td class="num">25,628</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Agonasaur Rex</td><td class="num"><b>64.8%</b></td><td class="num">24,691</td></tr>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Perilous Snare</td><td class="num"><b>62.6%</b></td><td class="num">23,649</td></tr>
-      <tr><td><span class="dot" style="background:var(--r)"></span>Draconautics Engineer</td><td class="num"><b>62.4%</b></td><td class="num">22,940</td></tr>
-      <tr><td><span class="dot" style="background:var(--r)"></span>Howlsquad Heavy</td><td class="num"><b>62.1%</b></td><td class="num">22,051</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Debris Beetle</td><td class="num"><b>62.1%</b></td><td class="num">24,497</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Possession Engine</td><td class="num"><b>61.5%</b></td><td class="num">30,449</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Sita Varma, Masked Racer</td><td class="num"><b>60.9%</b></td><td class="num">22,306</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Thopter Fabricator</td><td class="num"><b>60.4%</b></td><td class="num">25,719</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Cursecloth Wrappings</td><td class="num"><b>60.2%</b></td><td class="num">25,244</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Lumbering Worldwagon</td><td class="num"><b>65.4%</b></td><td class="num">25,628</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Agonasaur Rex</td><td class="num"><b>64.8%</b></td><td class="num">24,691</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Perilous Snare</td><td class="num"><b>62.6%</b></td><td class="num">23,649</td></tr>
+      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Draconautics Engineer</td><td class="num"><b>62.4%</b></td><td class="num">22,940</td></tr>
+      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Howlsquad Heavy</td><td class="num"><b>62.1%</b></td><td class="num">22,051</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Debris Beetle</td><td class="num"><b>62.1%</b></td><td class="num">24,497</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Possession Engine</td><td class="num"><b>61.5%</b></td><td class="num">30,449</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Sita Varma, Masked Racer</td><td class="num"><b>60.9%</b></td><td class="num">22,306</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Thopter Fabricator</td><td class="num"><b>60.4%</b></td><td class="num">25,719</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Cursecloth Wrappings</td><td class="num"><b>60.2%</b></td><td class="num">25,244</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">Uncommon</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Thundering Broodwagon</td><td class="num"><b>61.4%</b></td><td class="num">51,453</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Veteran Beastrider</td><td class="num"><b>60.1%</b></td><td class="num">33,853</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Spikeshell Harrier</td><td class="num"><b>60.1%</b></td><td class="num">74,639</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Stock Up</td><td class="num"><b>59.8%</b></td><td class="num">64,875</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Gastal Thrillseeker</td><td class="num"><b>59.7%</b></td><td class="num">28,856</td></tr>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Gloryheath Lynx</td><td class="num"><b>59.6%</b></td><td class="num">39,338</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Haunt the Network</td><td class="num"><b>59.6%</b></td><td class="num">54,839</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Rangers' Refueler</td><td class="num"><b>59.5%</b></td><td class="num">62,354</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Transit Mage</td><td class="num"><b>59.5%</b></td><td class="num">56,509</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Skyserpent Seeker</td><td class="num"><b>59.3%</b></td><td class="num">49,594</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Thundering Broodwagon</td><td class="num"><b>61.4%</b></td><td class="num">51,453</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Veteran Beastrider</td><td class="num"><b>60.1%</b></td><td class="num">33,853</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Spikeshell Harrier</td><td class="num"><b>60.1%</b></td><td class="num">74,639</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Stock Up</td><td class="num"><b>59.8%</b></td><td class="num">64,875</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Gastal Thrillseeker</td><td class="num"><b>59.7%</b></td><td class="num">28,856</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Gloryheath Lynx</td><td class="num"><b>59.6%</b></td><td class="num">39,338</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Haunt the Network</td><td class="num"><b>59.6%</b></td><td class="num">54,839</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Rangers' Refueler</td><td class="num"><b>59.5%</b></td><td class="num">62,354</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Transit Mage</td><td class="num"><b>59.5%</b></td><td class="num">56,509</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Skyserpent Seeker</td><td class="num"><b>59.3%</b></td><td class="num">49,594</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">Common</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Stampeding Scurryfoot</td><td class="num"><b>59.2%</b></td><td class="num">139,840</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Engine Rat</td><td class="num"><b>58.3%</b></td><td class="num">106,635</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Migrating Ketradon</td><td class="num"><b>58.2%</b></td><td class="num">131,441</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Wreckage Wickerfolk</td><td class="num"><b>58.0%</b></td><td class="num">127,674</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Run Over</td><td class="num"><b>57.9%</b></td><td class="num">128,875</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Grim Bauble</td><td class="num"><b>57.9%</b></td><td class="num">119,679</td></tr>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Ride's End</td><td class="num"><b>57.7%</b></td><td class="num">86,508</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Pactdoll Terror</td><td class="num"><b>57.7%</b></td><td class="num">117,158</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Spin Out</td><td class="num"><b>57.6%</b></td><td class="num">115,557</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Hazard of the Dunes</td><td class="num"><b>57.5%</b></td><td class="num">127,958</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Stampeding Scurryfoot</td><td class="num"><b>59.2%</b></td><td class="num">139,840</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Engine Rat</td><td class="num"><b>58.3%</b></td><td class="num">106,635</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Migrating Ketradon</td><td class="num"><b>58.2%</b></td><td class="num">131,441</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Wreckage Wickerfolk</td><td class="num"><b>58.0%</b></td><td class="num">127,674</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Run Over</td><td class="num"><b>57.9%</b></td><td class="num">128,875</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Grim Bauble</td><td class="num"><b>57.9%</b></td><td class="num">119,679</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Ride's End</td><td class="num"><b>57.7%</b></td><td class="num">86,508</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Pactdoll Terror</td><td class="num"><b>57.7%</b></td><td class="num">117,158</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Spin Out</td><td class="num"><b>57.6%</b></td><td class="num">115,557</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Hazard of the Dunes</td><td class="num"><b>57.5%</b></td><td class="num">127,958</td></tr>
       </tbody></table></div>
     </div>
   </section>
 </article>
 <article class="mode">
   <h2>Sealed <small>52,281 games · overall win rate 57.5%</small></h2>
-  <p class="built">Built 2026-09-18</p>
-  <p class="summary">Aetherdrift Sealed on MTG Arena: 52,281 games, 57.5% overall win rate. On speed, speed makes little difference. Green (58.9%) and Blue (57.2%) are the strongest colours; the best two-colour pair is Blue/Green at 61.0%, and the weakest is White/Blue at 54.8%. By card, the top common is Stampeding Scurryfoot, the top uncommon is Spikeshell Harrier, the top rare is Agonasaur Rex (game-in-hand win rate).</p>
+  <p class="built">Built 2026-10-08</p>
+  <p class="summary">Aetherdrift Sealed on MTG Arena: 52,281 games, 57.5% overall win rate. On speed, it leans slow — heavier decks win a little more. Green (58.9%) and Blue (57.2%) are the strongest colours; the best two-colour pair is Blue/Green at 61.0%, and the weakest is White/Blue at 54.8%. By card, the top common is Stampeding Scurryfoot, the top uncommon is Spikeshell Harrier, the top rare is Agonasaur Rex (game-in-hand win rate).</p>
 
   <section><h3>Format speed</h3>
-    <div class="verdict"><b>Speed does not decide much here. What goes in the deck matters more.</b><span class="gap">Decks averaging 3.5 mana value or more have the highest win rate, at 57.8%. Games last 9.2 turns on average, on the long side of the last 8 sets.</span></div>
+    <div class="verdict"><b>Leans slow. The gap is small, but heavier decks win a little more at every step.</b><span class="gap">Decks averaging 3.5 mana value or more have the highest win rate, at 57.8%. Games last 9.2 turns on average, on the long side of the last 8 sets.</span></div>
   </section>
   <section><h3>Colour strength</h3><p class="lead">Win rate of games where the deck included cards of that colour.</p>
     <table><thead><tr><th>Colour</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-    <tr><td><span class="dot" style="background:var(--g)"></span>Green</td><td class="num"><b>58.9%</b></td><td class="num">30,424</td></tr>
-    <tr><td><span class="dot" style="background:var(--u)"></span>Blue</td><td class="num"><b>57.2%</b></td><td class="num">20,425</td></tr>
-    <tr><td><span class="dot" style="background:var(--b)"></span>Black</td><td class="num"><b>57.2%</b></td><td class="num">21,910</td></tr>
-    <tr><td><span class="dot" style="background:var(--r)"></span>Red</td><td class="num"><b>56.5%</b></td><td class="num">22,510</td></tr>
-    <tr><td><span class="dot" style="background:var(--w)"></span>White</td><td class="num"><b>55.0%</b></td><td class="num">16,535</td></tr>
+    <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Green</td><td class="num"><b>58.9%</b></td><td class="num">30,424</td></tr>
+    <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Blue</td><td class="num"><b>57.2%</b></td><td class="num">20,425</td></tr>
+    <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Black</td><td class="num"><b>57.2%</b></td><td class="num">21,910</td></tr>
+    <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Red</td><td class="num"><b>56.5%</b></td><td class="num">22,510</td></tr>
+    <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>White</td><td class="num"><b>55.0%</b></td><td class="num">16,535</td></tr>
     </tbody></table>
   </section>
   <section><h3>Colour pairs</h3><p class="lead">Win rate by two-colour pair, sorted by number of games.</p>
@@ -272,63 +317,69 @@
     <tr><td>7+</td><td class="num"><b>56.1%</b></td><td class="num">5</td><td class="num">6,007</td></tr>
     </tbody></table>
   </section>
-  <section><h3>Best cards by rarity</h3><p class="lead">Sorted by GIH win rate (games where the card was in hand or on the battlefield).</p>
+  <section><h3>Card ratings by rarity</h3><p class="lead">A card's rating is its real win rate (GIH win rate: games where the card was in hand or on the battlefield). Higher is stronger. Sorted from the top within each rarity.</p>
     <div class="grid">
       <div><h3><span class="rar mythic">Mythic</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Sab-Sunen, Luxa Embodied</td><td class="num"><b>70.7%</b></td><td class="num">1,268</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Loot, the Pathfinder</td><td class="num"><b>70.5%</b></td><td class="num">813</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Mu Yanling, Wind Rider</td><td class="num"><b>66.9%</b></td><td class="num">1,123</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>March of the World Ooze</td><td class="num"><b>64.6%</b></td><td class="num">786</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Pyrewood Gearhulk</td><td class="num"><b>64.0%</b></td><td class="num">712</td></tr>
-      <tr><td><span class="dot" style="background:var(--r)"></span>Chandra, Spark Hunter</td><td class="num"><b>63.7%</b></td><td class="num">1,116</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>The Speed Demon</td><td class="num"><b>63.4%</b></td><td class="num">909</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Oildeep Gearhulk</td><td class="num"><b>62.4%</b></td><td class="num">516</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Riptide Gearhulk</td><td class="num"><b>62.0%</b></td><td class="num">563</td></tr>
-      <tr><td><span class="dot" style="background:var(--c)"></span>The Aetherspark</td><td class="num"><b>61.7%</b></td><td class="num">1,388</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Sab-Sunen, Luxa Embodied</td><td class="num"><b>70.7%</b></td><td class="num">1,268</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Loot, the Pathfinder</td><td class="num"><b>70.5%</b></td><td class="num">813</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Mu Yanling, Wind Rider</td><td class="num"><b>66.9%</b></td><td class="num">1,123</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>March of the World Ooze</td><td class="num"><b>64.6%</b></td><td class="num">786</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Pyrewood Gearhulk</td><td class="num"><b>64.0%</b></td><td class="num">712</td></tr>
+      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Chandra, Spark Hunter</td><td class="num"><b>63.7%</b></td><td class="num">1,116</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>The Speed Demon</td><td class="num"><b>63.4%</b></td><td class="num">909</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Oildeep Gearhulk</td><td class="num"><b>62.4%</b></td><td class="num">516</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Riptide Gearhulk</td><td class="num"><b>62.0%</b></td><td class="num">563</td></tr>
+      <tr><td><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>The Aetherspark</td><td class="num"><b>61.7%</b></td><td class="num">1,388</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">Rare</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Agonasaur Rex</td><td class="num"><b>67.7%</b></td><td class="num">1,944</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Lumbering Worldwagon</td><td class="num"><b>66.7%</b></td><td class="num">2,059</td></tr>
-      <tr><td><span class="dot" style="background:var(--r)"></span>Howlsquad Heavy</td><td class="num"><b>65.1%</b></td><td class="num">1,689</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Debris Beetle</td><td class="num"><b>64.6%</b></td><td class="num">1,569</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Possession Engine</td><td class="num"><b>64.4%</b></td><td class="num">1,676</td></tr>
-      <tr><td><span class="dot" style="background:var(--r)"></span>Boommobile</td><td class="num"><b>64.4%</b></td><td class="num">1,589</td></tr>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Perilous Snare</td><td class="num"><b>63.9%</b></td><td class="num">1,750</td></tr>
-      <tr><td><span class="dot" style="background:var(--r)"></span>Draconautics Engineer</td><td class="num"><b>63.8%</b></td><td class="num">1,882</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Gonti, Night Minister</td><td class="num"><b>63.3%</b></td><td class="num">1,758</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Mindspring Merfolk</td><td class="num"><b>63.2%</b></td><td class="num">1,361</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Agonasaur Rex</td><td class="num"><b>67.7%</b></td><td class="num">1,944</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Lumbering Worldwagon</td><td class="num"><b>66.7%</b></td><td class="num">2,059</td></tr>
+      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Howlsquad Heavy</td><td class="num"><b>65.1%</b></td><td class="num">1,689</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Debris Beetle</td><td class="num"><b>64.6%</b></td><td class="num">1,569</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Possession Engine</td><td class="num"><b>64.4%</b></td><td class="num">1,676</td></tr>
+      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Boommobile</td><td class="num"><b>64.4%</b></td><td class="num">1,589</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Perilous Snare</td><td class="num"><b>63.9%</b></td><td class="num">1,750</td></tr>
+      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Draconautics Engineer</td><td class="num"><b>63.8%</b></td><td class="num">1,882</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Gonti, Night Minister</td><td class="num"><b>63.3%</b></td><td class="num">1,758</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Mindspring Merfolk</td><td class="num"><b>63.2%</b></td><td class="num">1,361</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">Uncommon</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Spikeshell Harrier</td><td class="num"><b>64.6%</b></td><td class="num">2,684</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Greenbelt Guardian</td><td class="num"><b>64.1%</b></td><td class="num">3,250</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Autarch Mammoth</td><td class="num"><b>63.0%</b></td><td class="num">3,219</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Thundering Broodwagon</td><td class="num"><b>63.0%</b></td><td class="num">1,984</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Stock Up</td><td class="num"><b>62.9%</b></td><td class="num">1,820</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Skyserpent Seeker</td><td class="num"><b>61.5%</b></td><td class="num">1,917</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Terrian, World Tyrant</td><td class="num"><b>61.4%</b></td><td class="num">2,417</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Veteran Beastrider</td><td class="num"><b>61.4%</b></td><td class="num">1,431</td></tr>
-      <tr><td><span class="dot" style="background:var(--m)"></span>Gastal Thrillseeker</td><td class="num"><b>61.3%</b></td><td class="num">1,084</td></tr>
-      <tr><td><span class="dot" style="background:var(--w)"></span>Gloryheath Lynx</td><td class="num"><b>61.2%</b></td><td class="num">1,985</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Spikeshell Harrier</td><td class="num"><b>64.6%</b></td><td class="num">2,684</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Greenbelt Guardian</td><td class="num"><b>64.1%</b></td><td class="num">3,250</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Autarch Mammoth</td><td class="num"><b>63.0%</b></td><td class="num">3,219</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Thundering Broodwagon</td><td class="num"><b>63.0%</b></td><td class="num">1,984</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Stock Up</td><td class="num"><b>62.9%</b></td><td class="num">1,820</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Skyserpent Seeker</td><td class="num"><b>61.5%</b></td><td class="num">1,917</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Terrian, World Tyrant</td><td class="num"><b>61.4%</b></td><td class="num">2,417</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Veteran Beastrider</td><td class="num"><b>61.4%</b></td><td class="num">1,431</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>Gastal Thrillseeker</td><td class="num"><b>61.3%</b></td><td class="num">1,084</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>Gloryheath Lynx</td><td class="num"><b>61.2%</b></td><td class="num">1,985</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">Common</span></h3>
-      <table><thead><tr><th>Card</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Stampeding Scurryfoot</td><td class="num"><b>61.6%</b></td><td class="num">6,883</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Migrating Ketradon</td><td class="num"><b>61.4%</b></td><td class="num">6,307</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Pothole Mole</td><td class="num"><b>61.2%</b></td><td class="num">5,405</td></tr>
-      <tr><td><span class="dot" style="background:var(--u)"></span>Flood the Engine</td><td class="num"><b>60.6%</b></td><td class="num">4,986</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Run Over</td><td class="num"><b>60.3%</b></td><td class="num">7,020</td></tr>
-      <tr><td><span class="dot" style="background:var(--g)"></span>Hazard of the Dunes</td><td class="num"><b>60.2%</b></td><td class="num">6,812</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Engine Rat</td><td class="num"><b>60.0%</b></td><td class="num">4,264</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Spin Out</td><td class="num"><b>59.9%</b></td><td class="num">5,747</td></tr>
-      <tr><td><span class="dot" style="background:var(--b)"></span>Wreckage Wickerfolk</td><td class="num"><b>59.9%</b></td><td class="num">4,678</td></tr>
-      <tr><td><span class="dot" style="background:var(--r)"></span>Thunderhead Gunner</td><td class="num"><b>59.8%</b></td><td class="num">4,420</td></tr>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Stampeding Scurryfoot</td><td class="num"><b>61.6%</b></td><td class="num">6,883</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Migrating Ketradon</td><td class="num"><b>61.4%</b></td><td class="num">6,307</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Pothole Mole</td><td class="num"><b>61.2%</b></td><td class="num">5,405</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>Flood the Engine</td><td class="num"><b>60.6%</b></td><td class="num">4,986</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Run Over</td><td class="num"><b>60.3%</b></td><td class="num">7,020</td></tr>
+      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>Hazard of the Dunes</td><td class="num"><b>60.2%</b></td><td class="num">6,812</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Engine Rat</td><td class="num"><b>60.0%</b></td><td class="num">4,264</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Spin Out</td><td class="num"><b>59.9%</b></td><td class="num">5,747</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>Wreckage Wickerfolk</td><td class="num"><b>59.9%</b></td><td class="num">4,678</td></tr>
+      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>Thunderhead Gunner</td><td class="num"><b>59.8%</b></td><td class="num">4,420</td></tr>
       </tbody></table></div>
     </div>
   </section>
 </article>
+<section class="faq"><h3>About Limited card ratings</h3>
+  <details><summary>What is a Limited card rating?</summary><p>A number that says how strong a card is. Ratings given by people include personal taste, so this page uses win rates from real games instead.</p></details>
+  <details><summary>How should I read the GIH win rate?</summary><p>A card above the set's overall win rate was in decks that won more often. Cards with few games swing a lot, and cards that go into strong decks tend to look better than they are, so treat it as a guide and read it together with colours and synergy.</p></details>
+  <details><summary>When are the ratings updated?</summary><p>Every Monday (Japan time), from the latest 17Lands data.</p></details>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"en","mainEntity":[{"@type":"Question","name":"What is a Limited card rating?","acceptedAnswer":{"@type":"Answer","text":"A number that says how strong a card is. Ratings given by people include personal taste, so this page uses win rates from real games instead."}},{"@type":"Question","name":"How should I read the GIH win rate?","acceptedAnswer":{"@type":"Answer","text":"A card above the set's overall win rate was in decks that won more often. Cards with few games swing a lot, and cards that go into strong decks tend to look better than they are, so treat it as a guide and read it together with colours and synergy."}},{"@type":"Question","name":"When are the ratings updated?","acceptedAnswer":{"@type":"Answer","text":"Every Monday (Japan time), from the latest 17Lands data."}}]}</script>
+</section>
 <section class="links"><h3>Related pages</h3><ul>
   <li><a href="../reports.html?set=DFT">Set reports (switch sets)</a></li>
   <li><a href="../sealed.html">Sealed practice</a>／<a href="../draft.html">Draft practice</a>／<a href="../assistant.html">Draft assistant (PC, Chrome/Edge)</a></li>
@@ -338,6 +389,6 @@
 <div id="goodsStrip"></div>
 <script src="../goods-widget.js?v=6" defer></script>
 </main>
-<footer>Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a></footer>
+<footer>Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../faq.html">FAQ</a> · <a href="../contact.html">Contact</a><br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a></footer>
 </body>
 </html>

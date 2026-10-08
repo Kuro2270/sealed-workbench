@@ -29,6 +29,15 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/reports"/>
   </url>
   <url>
+    <loc>https://sealed-workbench.com/sealed</loc>
+    <lastmod>2026-10-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sealed"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sealed"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sealed"/>
+  </url>
+  <url>
     <loc>https://sealed-workbench.com/draft</loc>
     <lastmod>2026-10-08</lastmod>
     <changefreq>monthly</changefreq>
