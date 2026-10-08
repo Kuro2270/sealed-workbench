@@ -137,6 +137,7 @@ async function syncLang(lang){
   const titleName = t => { const b = cfg.setOf(t); return b ? b.trim() : ""; };
 
   /* 呼びかけのコメント（まだ付けていない登録済みの長尺すべて）。コメントが付けられなくても、登録そのものは続ける */
+  let commentedAt = 0;
   for(const [S, ent] of Object.entries(long)){
     const v = ent && ent[lang];
     if(!v || !v.id || v.comment2) continue;
@@ -149,12 +150,21 @@ async function syncLang(lang){
     const already = await hasCall(v.id);
     if(already === true){ v.comment2 = true; changed++; console.log(`呼びかけのコメントは、すでに付いています: ${S} ${lang} ${v.id}`); continue; }
     if(already === null) console.log(`::warning::${S} ${v.id} のコメント一覧を読めなかったので、記録（comment2）だけで判断します。`);
-    const r = await fetch(`${API}/youtube/v3/commentThreads?part=snippet`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ snippet: { videoId: v.id, topLevelComment: { snippet: { textOriginal: text } } } }) });
-    if(r.ok){ v.comment2 = true; changed++; console.log(`呼びかけのコメントを付けました: ${S} ${lang} ${v.id}`); }
+    // 公開した直後や、続けて何本も付けるときは、YouTube が一時的に断ることがある（動画の準備中・短時間に同じ文面が続くことへの制限など）。
+    // 間をあけて3回まで試し、続けて付けるときは、前のコメントから少し間をあける
+    let r = null, body = "";
+    for(let n = 1; n <= 3; n++){
+      if(commentedAt && Date.now() - commentedAt < 20000) await new Promise(res => setTimeout(res, 20000 - (Date.now() - commentedAt)));
+      r = await fetch(`${API}/youtube/v3/commentThreads?part=snippet`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ snippet: { videoId: v.id, topLevelComment: { snippet: { textOriginal: text } } } }) });
+      if(r.ok) break;
+      body = await r.text();
+      console.log(`コメントを付けられませんでした（${n}回目、HTTP ${r.status}）: ${S} ${lang} ${v.id} ${body.replace(/\s+/g, " ").slice(0, 300)}`);
+      if(n < 3) await new Promise(res => setTimeout(res, 30000 * n));
+    }
+    if(r.ok){ commentedAt = Date.now(); v.comment2 = true; changed++; console.log(`呼びかけのコメントを付けました: ${S} ${lang} ${v.id}`); }
     else{
-      const body = await r.text();
-      console.log(`::warning::コメントを付けられませんでした: ${S} ${lang} ${v.id}（HTTP ${r.status}${/insufficient|scope|forbidden/i.test(body) ? "、コメントの権限が足りません" : ""}）。YouTube Studio で手で付ける場合の文面:\n${text}`);
+      console.log(`::warning::コメントを付けられませんでした: ${S} ${lang} ${v.id}（HTTP ${r.status}${/insufficientPermissions|insufficient authentication scopes/i.test(body) ? "、コメントの権限が足りません" : ""}）。あとでもう一度実行すれば、付いていない動画にだけ付けます。YouTube Studio で手で付ける場合の文面:\n${text}`);
     }
   }
 }
