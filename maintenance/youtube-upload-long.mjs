@@ -35,18 +35,31 @@ async function accessToken(){
   if(!r.ok || !j.access_token) throw new Error(`許可の更新に失敗しました（HTTP ${r.status}）: ${j.error_description || j.error || ""}。「YouTube 投稿許可」をやり直してください`);
   return j.access_token;
 }
-const token = await accessToken();
+let token = await accessToken();
 const body = {
   snippet: { title: title.slice(0, 100), description: description.slice(0, 5000),
              tags: EN ? ["MTG Arena", "MTGA", "Magic: The Gathering", "Limited", "Draft", "Sealed", "Limited review", "17Lands"] : ["MTGアリーナ", "MTGA", "マジック：ザ・ギャザリング", "リミテッド", "ドラフト", "シールド", "環境", "17Lands"],
              categoryId: "20", defaultLanguage: LANG, defaultAudioLanguage: LANG },
   status: { privacyStatus: "private", selfDeclaredMadeForKids: false, license: "youtube" }
 };
-const init = await fetch("https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status", {
-  method: "POST",
-  headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json; charset=UTF-8", "X-Upload-Content-Type": "video/mp4", "X-Upload-Content-Length": String(size) },
-  body: JSON.stringify(body) });
-if(!init.ok){ console.error(`アップロードの開始に失敗しました（HTTP ${init.status}）: ${await init.text()}`); process.exit(1); }
+// 開始の手続き。401・5xx は一時的なことがあるので、許可を取り直して3回まで試す（同時に何本も上げた日に、1本だけ落ちたことがあった）
+let init = null;
+for(let n = 1; n <= 3; n++){
+  init = await fetch("https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json; charset=UTF-8", "X-Upload-Content-Type": "video/mp4", "X-Upload-Content-Length": String(size) },
+    body: JSON.stringify(body) });
+  if(init.ok) break;
+  const txt = await init.text();
+  console.error(`アップロードの開始に失敗しました（HTTP ${init.status}、${n}回目）: ${txt.slice(0, 400)}`);
+  if(n === 3 || !(init.status === 401 || init.status >= 500)) break;
+  await new Promise(r => setTimeout(r, 15000 * n));
+  token = await accessToken();
+}
+if(!init.ok){
+  if(init.status === 401 || init.status === 403) console.error(`\n→ 許可（YT_REFRESH_TOKEN_${LANG.toUpperCase()}）が、${EN ? "英語" : "日本語"}チャンネルの投稿に使えない状態かもしれません。ほかのセットは上がるのに、これだけ落ちたなら一時的なことが多いので、もう一度試してください。続くなら Actions の「YouTube 投稿許可」をやり直して、新しい REFRESH_TOKEN を Secrets に登録してください。動画は作ってあるので、Artifacts からダウンロードして Studio で手で上げることもできます。`);
+  process.exit(1);
+}
 const location = init.headers.get("location");
 const data = await readFile(FILE);
 const put = await fetch(location, { method: "PUT", headers: { Authorization: `Bearer ${token}`, "Content-Type": "video/mp4", "Content-Length": String(size) }, body: data });
