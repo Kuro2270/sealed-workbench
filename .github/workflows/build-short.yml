@@ -197,6 +197,15 @@ jobs:
             echo "読み違いがあれば short/yomi.json に「表記: 読み（カタカナ）」を足して、もう一度実行してください。"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # サムネイル（冒頭の場面を 1080×1920 の JPG に。字幕の帯は入らない）。YouTube に上げるときに自動で付け、Artifacts にも入れる
+      - name: サムネイル用の画像を作る
+        if: env.SKIP != '1'
+        run: |
+          if [ -f "short/$SET_CODE/$VTAG/scene-0.png" ]; then
+            ffmpeg -y -loglevel error -i "short/$SET_CODE/$VTAG/scene-0.png" -vf scale=1080:1920 -q:v 2 "short/$SET_CODE/$VTAG.thumbnail.jpg"
+            echo "サムネイル: short/$SET_CODE/$VTAG.thumbnail.jpg（YouTube に自動で付けます。付かなかったときは Artifacts のこのファイルを Studio で付けてください）" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       # X・Bluesky に動画そのものを添付するために、動画ファイルを Releases（タグ videos）にも置いておく
       - name: 動画ファイルを Releases に置く
         if: inputs.upload == true && env.SKIP != '1'
@@ -279,15 +288,6 @@ jobs:
               git pull --rebase --autostash origin main && git push origin main && break
               echo "再試行 $i"; sleep $((5 + RANDOM % 10))
             done
-          fi
-
-      # YouTube に手で付けるサムネイル（冒頭の場面を 1080×1920 の JPG に。字幕の帯は入らない）
-      - name: サムネイル用の画像を作る
-        if: env.SKIP != '1'
-        run: |
-          if [ -f "short/$SET_CODE/$VTAG/scene-0.png" ]; then
-            ffmpeg -y -loglevel error -i "short/$SET_CODE/$VTAG/scene-0.png" -vf scale=1080:1920 -q:v 2 "short/$SET_CODE/$VTAG.thumbnail.jpg"
-            echo "サムネイル: short/$SET_CODE/$VTAG.thumbnail.jpg（Artifacts に入ります。YouTube Studio でこの動画のサムネイルに設定できます）" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: 動画を保存する
