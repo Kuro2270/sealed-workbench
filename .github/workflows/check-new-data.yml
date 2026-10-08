@@ -3,6 +3,8 @@ name: データ｜1 新データの点検（自動・毎日）
 # 毎日1回、17Lands に新しいセットの勝率データが出ていないか軽く調べる（数十秒）。
 # 出ていれば「勝率データ集計」をそのまま起こす。集計のあとは、環境レポート・r/lrcast の下書き・
 # 動画4本（日英 × ドラフト/シールド）まで自動で進む。動画の公開と「動画を配信」は手動。
+# 先行版：発売直後のセットで 17Lands の試合数が揃ったら（2〜3日目ごろ）、先行版のショート（日英）を
+# 「環境まとめ動画を作る」の mode=early で起こす。サイトには載せず、動画だけ（17Lands の決まり）。
 # 17Lands のデータは紙の発売から12日後に出るので、新セットのたびに日付を覚えておく必要はない。
 
 on:
@@ -29,7 +31,8 @@ jobs:
         id: check
         run: |
           node maintenance/check-new-data.mjs > ready.txt
-          echo "sets=$(tr '\n' ' ' < ready.txt | sed 's/ *$//')" >> "$GITHUB_OUTPUT"
+          echo "sets=$(grep -v '^EARLY ' ready.txt | tr '\n' ' ' | sed 's/ *$//')" >> "$GITHUB_OUTPUT"
+          echo "early=$(grep '^EARLY ' ready.txt | sed 's/^EARLY //' | tr '\n' ' ' | sed 's/ *$//')" >> "$GITHUB_OUTPUT"
 
       - name: 勝率データ集計を起こす
         if: steps.check.outputs.sets != ''
@@ -40,6 +43,19 @@ jobs:
           gh workflow run build-ratings.yml --ref main
           echo "## 新しいデータを見つけました: $SETS" >> "$GITHUB_STEP_SUMMARY"
           echo "「勝率データ集計」を起こしました。終わると動画が4本、非公開で YouTube に上がります。" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 先行版のショートを起こす
+        if: steps.check.outputs.early != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EARLY: ${{ steps.check.outputs.early }}
+        run: |
+          for S in $EARLY; do
+            gh workflow run build-short.yml --ref main -f set="$S" -f lang=both -f mode=early -f upload=true \
+              && echo "先行版の動画づくりを開始: $S" || echo "::warning::先行版の動画づくりを始められませんでした: $S"
+          done
+          echo "## 先行版を作り始めました: $EARLY" >> "$GITHUB_STEP_SUMMARY"
+          echo "「環境まとめ動画を作る」（mode=early）を起こしました。終わると先行版のショートが日英2本、非公開で YouTube に上がります。" >> "$GITHUB_STEP_SUMMARY"
 
       # 発売前後のセットに、勝率データが出るまでの「下見」ページを作る（2日ごとに作り直し、カードと日本語名が増えたら反映する）
       - name: セットの下見を作る
@@ -55,5 +71,5 @@ jobs:
           fi
 
       - name: 新しいデータが無いとき
-        if: steps.check.outputs.sets == ''
+        if: steps.check.outputs.sets == '' && steps.check.outputs.early == ''
         run: echo "新しいデータはありませんでした。" >> "$GITHUB_STEP_SUMMARY"

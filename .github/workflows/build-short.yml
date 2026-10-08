@@ -21,10 +21,10 @@ on:
         options: [both, ja, en]
         default: both
       mode:
-        description: "どちらのデータで作るか（all = ドラフトとシールドの両方）"
+        description: "どのデータで作るか（both = ドラフトとシールドの両方／draft／sealed／early = 発売直後の先行版。17Lands から直接取る）"
         type: choice
-        options: [all, draft, sealed]
-        default: all
+        options: [both, draft, sealed, early]
+        default: both
       speed:
         description: "読み上げの速さ（1.0 = ふつう、1.2 = 少し速め）"
         required: false
@@ -48,10 +48,10 @@ jobs:
       - id: m
         env:
           LANG_IN: ${{ inputs.lang || 'both' }}
-          MODE_IN: ${{ inputs.mode || 'all' }}
+          MODE_IN: ${{ inputs.mode || 'both' }}
         run: |
           langs="$LANG_IN"; { [ "$langs" = "both" ] || [ "$langs" = "all" ]; } && langs="ja en"   # all は以前の呼び方（自動起動側が古くても動くように残す）
-          modes="$MODE_IN"; [ "$modes" = "all" ] && modes="draft sealed"
+          modes="$MODE_IN"; { [ "$modes" = "both" ] || [ "$modes" = "all" ]; } && modes="draft sealed"   # all は以前の呼び方。early は先行版（単独）
           items=""
           for l in $langs; do for m in $modes; do items="$items{\"lang\":\"$l\",\"mode\":\"$m\"},"; done; done
           echo "matrix=[${items%,}]" >> "$GITHUB_OUTPUT"
@@ -138,11 +138,20 @@ jobs:
         run: |
           export SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"
           export VLANG="$LANG_IN" VMODE="$MODE_IN"
-          export VTAG="$VLANG"; [ "$VMODE" = "sealed" ] && VTAG="$VLANG-sealed"
+          export VTAG="$VLANG"; [ "$VMODE" != "draft" ] && VTAG="$VLANG-$VMODE"
           echo "SET_CODE=$SET_CODE" >> "$GITHUB_ENV"
           echo "VLANG=$VLANG" >> "$GITHUB_ENV"
           echo "VMODE=$VMODE" >> "$GITHUB_ENV"
           echo "VTAG=$VTAG" >> "$GITHUB_ENV"
+          if [ "$VMODE" = "early" ]; then
+            # 先行版：17Lands のカード勝率・色別勝率から、その場で記事データを作る（commit はしない。サイトには載せない）
+            if ! node maintenance/build-early.mjs "$SET_CODE"; then
+              echo "::warning::${SET_CODE} の先行版データを作れませんでした（17Lands にまだ試合が無いか、通信できない）。"
+              echo "## ${SET_CODE} の先行版（${VLANG}）は作りませんでした" >> "$GITHUB_STEP_SUMMARY"
+              echo "SKIP=1" >> "$GITHUB_ENV"
+              exit 0
+            fi
+          fi
           if [ ! -f "data/articles/${SET_CODE}_${VMODE}.json" ]; then
             echo "::warning::${SET_CODE} の ${VMODE} の記事データ（data/articles/${SET_CODE}_${VMODE}.json）がまだないので、この動画は作りません。勝率データ集計が終わってから作ってください。"
             echo "## ${SET_CODE} の ${VLANG} / ${VMODE} は作りませんでした（記事データがまだ無い）" >> "$GITHUB_STEP_SUMMARY"
@@ -237,6 +246,8 @@ jobs:
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add data/videos
             [ -d assets/video ] && git add assets/video
+            # 先行版で新しく作った日本語名（data/names）も残す。記事データ（data/articles/*_early.json）は残さない
+            [ -d data/names ] && git add data/names
             git commit -m "動画の記録を更新（$SET_CODE $VLANG $VMODE）"
             # 4 本が同時に押し込むことがあるので、少しずつ待ちながら何度か試す
             for i in 1 2 3 4 5 6; do
