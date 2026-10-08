@@ -84,12 +84,30 @@ jobs:
       - name: セット別ページを作り直す
         run: node maintenance/build-set-pages.mjs
 
+      # 先行版（発売直後の速報）が公開になったセットは、まだ環境レポートが無いので、下見ページを作り直して動画を載せる
+      - name: 先行版の動画を下見ページに載せる
+        run: |
+          node -e '
+            const v = require("./data/videos.json"); let idx = { articles: [] };
+            try{ idx = require("./data/articles/index.json"); }catch(e){}
+            const have = new Set((idx.articles || []).map(a => String(a.set).toUpperCase()));
+            const out = [];
+            for(const [S, langs] of Object.entries(v)){
+              if(have.has(S)) continue;
+              if(Object.values(langs).some(l => l && l.early && l.early.id && l.early.public)) out.push(S);
+            }
+            console.log(out.join(" "));
+          ' > early-sets.txt
+          for S in $(cat early-sets.txt); do
+            node maintenance/build-set-profile.mjs "$S" || echo "::warning::$S の下見ページを作り直せませんでした（Scryfall に届かない？）"
+          done
+
       - name: 変更をコミット
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # 無いフォルダを git add に渡すと全体が失敗して何も記録されないので、あるものだけ足す
-          for p in data/videos.json data/videos assets/video sets data/names; do
+          for p in data/videos.json data/videos assets/video sets data/names data/profiles; do
             [ -e "$p" ] && git add -A -- "$p"
           done
           git status --short | head -20
