@@ -153,14 +153,14 @@
 <body>
 <header>
   <div class="wrap">
-    <div class="brandrow"><div class="brand"><a href="../">MTG Arena Limited Workbench</a></div>
+    <div class="brandrow"><div class="brand"><img class="brandlogo" src="/assets/logo/arena.png" alt="MTG Arena" width="97" height="34" style="height:34px;width:auto;vertical-align:middle;margin:-5px 12px 0 0" onerror="this.remove()"><a href="../">MTG Arena Limited Workbench</a></div>
       <select class="langsel" aria-label="Language" onchange="location.href=this.value">
         <option value="FRA.profile.html">日本語</option>
         <option value="FRA.profile.en.html" selected>English</option>
       </select></div>
     <nav>
       <div class="ng"><span class="ngl">Start</span><span class="ngs">MTG basics &amp; how to use this site</span><a href="../start/index.en.html">What is MTG?</a><a href="../start/limited.en.html">What is Limited?</a><a href="../guide.html">Site features</a></div>
-      <div class="ng"><span class="ngl">Practice</span><span class="ngs">Virtual packs</span><a href="../">Sealed practice</a><a href="../draft.html">Draft practice</a></div>
+      <div class="ng"><span class="ngl">Practice</span><span class="ngs">Virtual packs</span><a href="../sealed.html">Sealed practice</a><a href="../draft.html">Draft practice</a></div>
       <div class="ng"><span class="ngl">Use with MTG Arena</span><span class="ngs">Reads your log in real play · PC only</span><a href="../sealed-assist.html">Sealed assistant<b class="pcb">PC</b></a><a href="../assistant.html">Draft assistant<b class="pcb">PC</b></a></div>
       <div class="ng"><span class="ngl">Data</span><span class="ngs">How strong and fast each set is</span><a href="../reports.html">Set reports</a></div>
       <div class="ng"><span class="ngl">Play</span><span class="ngs">Play friends or run a tournament</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
@@ -192,6 +192,10 @@
 </article>
 <div id="preview" aria-hidden="true"></div>
 <style>
+  .mode .early-note{margin:12px 0 18px;padding:14px 18px;border:1px solid #F2C94C;border-left:6px solid #F2C94C;border-radius:10px;background:#FFFBEA}
+  .mode .early-note h3{margin:0 0 6px;font-size:15px;color:#2A3B4C}
+  .mode .early-note p{margin:0 0 6px;line-height:1.7}
+  .mode .early-note p.lead{margin:0;font-size:12.5px}
   .mode .cn{border-bottom:1px dotted #9AAABB;cursor:default}
   .mode .mana{display:inline-flex;gap:2px;vertical-align:middle}
   .mode .ms{width:16px;height:16px;display:block}
@@ -248,7 +252,7 @@
 })();
 </script>
 <section class="links"><h3>Related pages</h3><ul>
-  <li><a href="../?set=FRA">Sealed practice with this set</a>／<a href="../draft.html?set=FRA">Draft practice with this set</a></li>
+  <li><a href="../sealed.html?set=FRA">Sealed practice with this set</a>／<a href="../draft.html?set=FRA">Draft practice with this set</a></li>
   <li><a href="FRA.en.html">Format report (when data lands)</a></li>
 </ul></section>
 <p class="source">Card data: Scryfall. Counts by this site.</p>

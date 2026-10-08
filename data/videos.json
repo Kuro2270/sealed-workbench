@@ -90,17 +90,6 @@
   },
   "MSH": {
     "ja": {
-      "draft": {
-        "id": "ZYK5CDYUICE",
-        "mode": "draft",
-        "title": "【マーベル スーパー・ヒーローズ】1分でわかるドラフト環境｜MTGアリーナ #Shorts",
-        "poster": "assets/video/MSH-ja.jpg",
-        "uploadedAt": "2026-10-02",
-        "public": true,
-        "publishedAt": "2026-10-02",
-        "comment": true,
-        "comment2": true
-      },
       "sealed": {
         "id": "4UsZ45ON7Ks",
         "mode": "sealed",
@@ -162,14 +151,6 @@
       }
     },
     "ja": {
-      "draft": {
-        "id": "ptMd6YMdqq0",
-        "mode": "draft",
-        "title": "【ミュータント タートルズ】1分でわかるドラフト環境｜MTGアリーナ #Shorts",
-        "poster": "assets/video/TMT-ja.jpg",
-        "uploadedAt": "2026-10-05",
-        "public": false
-      },
       "sealed": {
         "id": "MubjE3LB5sw",
         "mode": "sealed",
@@ -180,6 +161,21 @@
         "publishedAt": "2026-10-03",
         "comment": true,
         "comment2": true
+      }
+    }
+  },
+  "FRA": {
+    "ja": {
+      "early": {
+        "id": "GEsQ0vuJVQc",
+        "mode": "early",
+        "title": "【リアリティ・フラクチャー】速報！発売直後のリミテッド環境を1分で｜MTGアリーナ #Shorts",
+        "poster": "assets/video/FRA-ja-early.jpg",
+        "uploadedAt": "2026-10-08",
+        "public": true,
+        "publishedAt": "2026-10-08",
+        "comment2": true,
+        "comment": true
       }
     }
   }

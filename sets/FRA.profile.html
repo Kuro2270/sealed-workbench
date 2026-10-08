@@ -153,14 +153,14 @@
 <body>
 <header>
   <div class="wrap">
-    <div class="brandrow"><div class="brand"><a href="../">MTGアリーナ リミテッド・ワークベンチ</a></div>
+    <div class="brandrow"><div class="brand"><img class="brandlogo" src="/assets/logo/arena.png" alt="MTG Arena" width="97" height="34" style="height:34px;width:auto;vertical-align:middle;margin:-5px 12px 0 0" onerror="this.remove()"><a href="../">MTGアリーナ リミテッド・ワークベンチ</a></div>
       <select class="langsel" aria-label="Language" onchange="location.href=this.value">
         <option value="FRA.profile.html" selected>日本語</option>
         <option value="FRA.profile.en.html">English</option>
       </select></div>
     <nav>
       <div class="ng"><span class="ngl">はじめに</span><span class="ngs">MTGの基本と、このサイトの使い方</span><a href="../start/index.html">MTGとは</a><a href="../start/limited.html">リミテッドとは</a><a href="../guide.html">サイトの機能</a></div>
-      <div class="ng"><span class="ngl">練習する</span><span class="ngs">仮想パックで練習</span><a href="../">シールド練習</a><a href="../draft.html">ドラフト練習</a></div>
+      <div class="ng"><span class="ngl">練習する</span><span class="ngs">仮想パックで練習</span><a href="../sealed.html">シールド練習</a><a href="../draft.html">ドラフト練習</a></div>
       <div class="ng"><span class="ngl">MTGアリーナで使う</span><span class="ngs">実戦のログを読んで助ける・PC専用</span><a href="../sealed-assist.html">シールド補助<b class="pcb">PC</b></a><a href="../assistant.html">ドラフト補助<b class="pcb">PC</b></a></div>
       <div class="ng"><span class="ngl">データを見る</span><span class="ngs">セットごとの強さ・速さを確認</span><a href="../reports.html">環境レポート</a></div>
       <div class="ng"><span class="ngl">対戦する</span><span class="ngs">友達との対戦・大会の進行</span><a href="../table.html">対戦卓</a><a href="../swiss.html">スイスドロー</a></div>
@@ -174,6 +174,18 @@
 <main>
 <article class="mode">
   <p class="verdict">勝率データは 10月14日 ごろから。揃い次第、このセットの環境レポートが出ます。</p>
+<section class="early-note"><h3>速報（10月8日 時点・17Lands のデータより）</h3><p>発売直後の約36万試合（ドラフト＋シールド）では、最も勝っている組み合わせは白青（57.1%）、次いで青黒（56.7%）。単色では青が最も安定しています。コモンでは《欠席の延長》の勝率が頭ひとつ抜けています。順位はこの後のデータで動きます。確定版（全カードの勝率）は 10月14日 ごろに。</p><p class="lead"><a href="https://www.17lands.com/card_data?expansion=FRA&amp;format=PremierDraft" target="_blank" rel="noopener">出典: 17Lands（カード勝率・色別勝率）</a></p></section>
+<section class="video"><div class="yt" data-id="GEsQ0vuJVQc">
+    <img src="/assets/video/FRA-ja-early.jpg" alt="【リアリティ・フラクチャー】速報！発売直後のリミテッド環境を1分で｜MTGアリーナ #Shorts" loading="lazy" width="270" height="480">
+    <button type="button" aria-label="再生"><span></span></button>
+  </div>
+  <div class="vtext"><h3>発売直後の速報（動画）</h3><p class="lead">発売直後の数日分のデータから作った速報です。順位はこの後のデータで動いています。</p>
+    <p><a href="https://www.youtube.com/shorts/GEsQ0vuJVQc" target="_blank" rel="noopener">YouTube で見る</a></p>
+  </div>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoObject","name":"【リアリティ・フラクチャー】速報！発売直後のリミテッド環境を1分で｜MTGアリーナ #Shorts","description":"発売直後の数日分のデータから作った速報です。順位はこの後のデータで動いています。","thumbnailUrl":["https://sealed-workbench.com/assets/video/FRA-ja-early.jpg"],"uploadDate":"2026-10-08","duration":"PT1M","contentUrl":"https://www.youtube.com/shorts/GEsQ0vuJVQc","embedUrl":"https://www.youtube-nocookie.com/embed/GEsQ0vuJVQc","inLanguage":"ja"}</script>
+  <script>document.querySelectorAll(".video .yt button").forEach(function(btn){ if(btn.dataset.wired) return; btn.dataset.wired="1"; btn.addEventListener("click",function(){var b=this.parentNode,f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+b.dataset.id+"?autoplay=1&playsinline=1";f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title=this.getAttribute("aria-label");b.innerHTML="";b.appendChild(f);});});</script>
+</section>
+
   <section><h3>色ごとの中身（コモン・アンコモン）</h3><p class="lead">単色のコモン・アンコモンだけを数えています。除去と飛行が多い色は、序盤から主導権を取りやすい色です。</p>
   <div style="overflow-x:auto"><table><thead><tr><th>色</th><th class="num">枚数</th><th class="num">クリーチャー</th><th class="num">除去</th><th class="num">飛行</th><th class="num">コンバットトリック</th><th class="num">ドロー</th><th class="num">平均サイズ</th><th class="num">平均マナ</th></tr></thead>
   <tbody><tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>白</td>
@@ -192,6 +204,10 @@
 </article>
 <div id="preview" aria-hidden="true"></div>
 <style>
+  .mode .early-note{margin:12px 0 18px;padding:14px 18px;border:1px solid #F2C94C;border-left:6px solid #F2C94C;border-radius:10px;background:#FFFBEA}
+  .mode .early-note h3{margin:0 0 6px;font-size:15px;color:#2A3B4C}
+  .mode .early-note p{margin:0 0 6px;line-height:1.7}
+  .mode .early-note p.lead{margin:0;font-size:12.5px}
   .mode .cn{border-bottom:1px dotted #9AAABB;cursor:default}
   .mode .mana{display:inline-flex;gap:2px;vertical-align:middle}
   .mode .ms{width:16px;height:16px;display:block}
@@ -248,7 +264,7 @@
 })();
 </script>
 <section class="links"><h3>関連ページ</h3><ul>
-  <li><a href="../?set=FRA">このセットでシールド練習</a>／<a href="../draft.html?set=FRA">このセットでドラフト練習</a></li>
+  <li><a href="../sealed.html?set=FRA">このセットでシールド練習</a>／<a href="../draft.html?set=FRA">このセットでドラフト練習</a></li>
   <li><a href="FRA.html">環境レポート（データが揃い次第）</a></li>
 </ul></section>
 <p class="source">カード情報：Scryfall。集計は当サイト。</p>
