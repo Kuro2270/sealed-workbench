@@ -159,6 +159,7 @@ async function build(set, format, metaCache){
 
   const arche = new Map();                                        // 色の組み合わせ → {g, w}
   const speed = new Map(SPEED_BUCKETS.map(b => [b.key, { g: 0, w: 0 }]));
+  const pairCurve = new Map();                                    // 2色の組み合わせ → マナ域（2以下／3／4／5以上）ごとに「そのマナ域のカードを何枚入れたか」別の {g, w}
   const pairSpeed = new Map();                                    // 2色の組み合わせ → 速さの帯ごとの {g, w}（その色なら速いデッキか遅いデッキかを見るため）
 
   for await (const line of rl){
@@ -238,6 +239,7 @@ async function build(set, format, metaCache){
     }
 
     let deckCmcSum = 0, deckSpells = 0;
+    const zc = [0, 0, 0, 0];
     // このデッキの2色（W/U/B/R/G の並びに正規化）。2色でなければ null
     let pairKey = null;
     if(colorsIdx >= 0){
@@ -251,7 +253,7 @@ async function build(set, format, metaCache){
       if(!n) continue;
       gpGames[i]++; gpWins[i] += won;
 
-      if(!isLand[i]){ deckCmcSum += cmcOf[i] * n; deckSpells += n; }
+      if(!isLand[i]){ deckCmcSum += cmcOf[i] * n; deckSpells += n; zc[cmcOf[i] <= 2 ? 0 : cmcOf[i] === 3 ? 1 : cmcOf[i] === 4 ? 2 : 3] += n; }
 
       let seen = 0;
       const cols = gihCols[i];
@@ -259,6 +261,13 @@ async function build(set, format, metaCache){
 
       if(seen > 0){ gihGames[i]++; gihWins[i] += won; if(ps){ ps.g[i]++; ps.w[i] += won; } }
       else { gnsGames[i]++; gnsWins[i] += won; }
+    }
+
+    // マナ域ごとの枚数別の勝率（その色の組み合わせで、何マナ域を何枚入れると勝ちやすいか）
+    if(pairKey && deckSpells >= 15){
+      if(!pairCurve.has(pairKey)) pairCurve.set(pairKey, [0, 1, 2, 3].map(() => Array.from({ length: 13 }, () => [0, 0])));
+      const pc = pairCurve.get(pairKey);
+      for(let z = 0; z < 4; z++){ const e = pc[z][Math.min(zc[z], 12)]; e[0]++; e[1] += won; }
     }
 
     // デッキの平均マナ総量から、速い／遅いを振り分ける
@@ -336,6 +345,8 @@ async function build(set, format, metaCache){
     if(rows.length) pair_speed[k] = rows;
   }
 
+  const pair_curve = Object.fromEntries([...pairCurve.entries()]);   // pair → [マナ域4つ][枚数0〜12][試合数, 勝ち数]
+
   const payload = {
     set,
     event: format,
@@ -347,7 +358,7 @@ async function build(set, format, metaCache){
     count: cards.length,
     source: "17Lands Public Data (CC BY 4.0)",
     source_url: "https://www.17lands.com/public_datasets",
-    curve, archetypes, speed: speedRows, pair_speed,
+    curve, archetypes, speed: speedRows, pair_speed, pair_curve,
     cards
   };
 

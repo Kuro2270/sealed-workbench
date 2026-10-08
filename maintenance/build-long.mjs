@@ -42,6 +42,7 @@ const PINE = "#10304F", DEEP = "#0A2038", BLUE = "#2F7DF6", PAPER = "#F5F8FC", M
 const UP = "#5B9BFF", DOWN = "#F08A3E", GOLD = "#F2C94C", GREEN = "#4CC38A";
 const COLOR = { W: "#F3EAC6", U: "#4A90E2", B: "#6B5E7A", R: "#E1553E", G: "#3E9B5B" };
 const CJ = { W: "白", U: "青", B: "黒", R: "赤", G: "緑" };
+const ZONES = ["2マナ以下", "3マナ", "4マナ", "5マナ以上"];     // マナカーブの区切り（組み合わせ別のマナ域）
 const ORDER = "WUBRG";
 const FONT = "'Noto Sans CJK JP','Noto Sans JP',sans-serif";
 const CAP_Y = 900;                                   // 字幕を置く高さ（これより上に図を置く）
@@ -296,27 +297,80 @@ function buildScript(ctx){
   const DIR_WORD = { light: "軽いデッキ", mid: "中くらいの重さのデッキ", heavy: "重いデッキ" };
   const dirIn = (rows, b) => { const i = rows.indexOf(b); return i === 0 ? "light" : i === rows.length - 1 ? "heavy" : "mid"; };
   const envDir = rowsD.length >= 3 ? dirIn(rowsD, bestBand(rowsD)) : null;
+  /* 組み合わせごとの「マナ域」の傾向。
+     ・カード単位（いつでも出せる）：コモン・アンコモンの、2マナ以下／3／4／5以上ごとの勝率（その2色のデッキでの GIH 勝率の試合数つき平均）
+     ・デッキ単位（pair_curve があるとき）：そのマナ域のカードを何枚入れたデッキが勝っているか。「N枚以上入れると勝率が上がる」目安を出す */
+  const curveInfo = pair => {
+    const zoneOf = c => c.cmc <= 2 ? 0 : c.cmc === 3 ? 1 : c.cmc === 4 ? 2 : 3;
+    const agg = [0, 1, 2, 3].map(() => ({ g: 0, w: 0 }));
+    for(const c of rd.cards){
+      if(c.land || c.cmc == null || !(c.rarity === "common" || c.rarity === "uncommon") || !c.by_pair || !c.by_pair[pair] || c.by_pair[pair][1] < 100) continue;
+      const a = agg[zoneOf(c)]; a.g += c.by_pair[pair][1]; a.w += c.by_pair[pair][0] * c.by_pair[pair][1];
+    }
+    const tg = agg.reduce((n, a) => n + a.g, 0);
+    if(tg < 3000) return null;
+    const avg = agg.reduce((n, a) => n + a.w, 0) / tg;
+    const zones = agg.map((a, z) => ({ label: ZONES[z], games: a.g, wr: a.g >= tg * 0.05 ? a.w / a.g : null }));
+    const ok = zones.map((z, i) => ({ ...z, i })).filter(z => z.wr != null);
+    if(ok.length < 3) return null;
+    const bestZ = ok.reduce((m, z) => z.wr > m.wr ? z : m, ok[0]);
+    // デッキ単位：枚数のしきい値 t ごとに「t枚以上のデッキ」と「t枚未満のデッキ」の勝率を比べる
+    let more = null, less = null;
+    const pc = (rd.pair_curve || {})[pair];
+    if(pc){
+      for(let z = 0; z < 4; z++){
+        const arr = pc[z], G = arr.reduce((n, e) => n + e[0], 0);
+        if(G < 3000) continue;
+        for(let t = 1; t <= 12; t++){
+          let hg = 0, hw = 0, lg = 0, lw = 0;
+          arr.forEach((e, c) => { if(c >= t){ hg += e[0]; hw += e[1]; } else { lg += e[0]; lw += e[1]; } });
+          if(hg < G * 0.15 || lg < G * 0.10) continue;
+          const hi = hw / hg, lo = lw / lg, lift = hi - lo;
+          if(lift >= 0.01 && (!more || lift > more.lift)) more = { z, t, hi, lo, lift };
+          if(lift <= -0.01 && (!less || lift < less.lift)) less = { z, t, hi, lo, lift };
+        }
+      }
+    }
+    return { zones, avg, bestZ, more, less };
+  };
+  const curveSay = (ci, nm) => {
+    if(!ci) return "";
+    let t = "";
+    if(ci.more){
+      const m = ci.more;
+      t += `マナカーブでは、${ZONES[m.z]}のカードを${m.t}枚以上入れたデッキの勝率が${pt(m.hi)}パーセントで、それ未満の${pt(m.lo)}パーセントより${pt(m.lift)}ポイント高くなっています。${ZONES[m.z]}は、${m.t}枚以上を目安にすると安定します。`;
+    }else{
+      t += `マナカーブでは、コモンとアンコモンの勝率が一番高いのは${ci.bestZ.label}のカードで、${pt(ci.bestZ.wr)}パーセントです。このマナ域を、意識して多めに取りましょう。`;
+    }
+    if(ci.less && (!ci.more || ci.less.z !== ci.more.z)){
+      t += `逆に、${ZONES[ci.less.z]}のカードは、${ci.less.t}枚以上入れると勝率が下がるので、${ci.less.t - 1}枚までにしておきましょう。`;
+    }
+    return t;
+  };
   const pairSpeedScene = p => {
     const raw = (rd.pair_speed || {})[p.pair];
-    if(!raw) return null;
-    const tot = raw.reduce((n, r) => n + r.games, 0);
-    const rows = raw.filter(r => r.wr != null && r.games >= Math.max(300, tot * 0.04)).map(r => ({ ...r, label: SP_LABEL[r.key] || "" }));
-    if(tot < 3000 || rows.length < 3) return null;
-    const best = bestBand(rows), low = rows.reduce((m, r) => r.wr < m.wr ? r : m, rows[0]);
-    const spread = best.wr - low.wr;
-    const dir = spread < 0.012 ? "even" : dirIn(rows, best);
+    const tot = raw ? raw.reduce((n, r) => n + r.games, 0) : 0;
+    const rows = raw ? raw.filter(r => r.wr != null && r.games >= Math.max(300, tot * 0.04)).map(r => ({ ...r, label: SP_LABEL[r.key] || "" })) : [];
+    const hasSpeed = tot >= 3000 && rows.length >= 3;
+    const ci = curveInfo(p.pair);
+    if(!hasSpeed && !ci) return null;
     const nm = pairName(p.pair);
-    let say;
-    if(dir === "even"){
-      say = `${nm}の、デッキの速さです。平均マナ総量ごとの勝率は、一番高い帯と低い帯で、${spread < 0.005 ? "ほとんど差がありません" : `差が${pt(spread)}ポイントしかありません`}。この組み合わせは、速さをあまり気にせず、配られたカードで組んで大丈夫です。`;
-    }else{
-      const lead = `${nm}の、デッキの速さです。`;
-      const core = `平均マナ総量が${best.label}のデッキが、勝率${pt(best.wr)}パーセントで一番勝っています。一番低い${low.label}のデッキは${pt(low.wr)}パーセントで、${pt(spread)}ポイントの差です。`;
-      const adv = dir === "light" ? `この組み合わせは、軽くて速いデッキを組みましょう。` : dir === "heavy" ? `この組み合わせは、遅めでゆったりした、重いデッキを組んで大丈夫です。` : `速すぎても重すぎても勝率が下がるので、中くらいの重さで、バランスよく組みましょう。`;
-      const diff = envDir && envDir !== dir ? `環境全体では${DIR_WORD[envDir]}が有利なので、この組み合わせは少し傾向が違います。` : "";
-      say = lead + core + adv + diff;
-    }
-    return { kind: "pairspeed", chapter: null, pair: p.pair, rows, best, low, dir, wrPair: p.wr, envDir, say, tail: 0.5 };
+    let say = "", best = null, low = null, dir = null;
+    if(hasSpeed){
+      best = bestBand(rows); low = rows.reduce((m, r) => r.wr < m.wr ? r : m, rows[0]);
+      const spread = best.wr - low.wr;
+      dir = spread < 0.012 ? "even" : dirIn(rows, best);
+      if(dir === "even"){
+        say = `${nm}の、デッキの速さです。平均マナ総量ごとの勝率は、一番高い帯と低い帯で、${spread < 0.005 ? "ほとんど差がありません" : `差が${pt(spread)}ポイントしかありません`}。この組み合わせは、速さをあまり気にせず、配られたカードで組んで大丈夫です。`;
+      }else{
+        const core = `平均マナ総量が${best.label}のデッキが、勝率${pt(best.wr)}パーセントで一番勝っています。一番低い${low.label}のデッキは${pt(low.wr)}パーセントで、${pt(spread)}ポイントの差です。`;
+        const adv = dir === "light" ? `この組み合わせは、軽くて速いデッキを組みましょう。` : dir === "heavy" ? `この組み合わせは、遅めでゆったりした、重いデッキを組んで大丈夫です。` : `速すぎても重すぎても勝率が下がるので、中くらいの重さで、バランスよく組みましょう。`;
+        const diff = envDir && envDir !== dir ? `環境全体では${DIR_WORD[envDir]}が有利なので、この組み合わせは少し傾向が違います。` : "";
+        say = `${nm}の、デッキの速さです。` + core + adv + diff;
+      }
+    }else say = `${nm}の、マナカーブです。`;
+    say += curveSay(ci, nm);
+    return { kind: "pairspeed", chapter: null, pair: p.pair, rows, best, low, dir, wrPair: p.wr, envDir, curve: ci, say, tail: 0.5 };
   };
   const pushSpeed = p => { const sp = pairSpeedScene(p); if(sp) scenes.push(sp); };
 
@@ -682,26 +736,54 @@ function sceneSvg(sc){
       return frame(s, sc);
     }
     case "pairspeed": {
+      const hasSpeed = sc.rows.length >= 3, ci = sc.curve;
       const col = sc.dir === "light" ? UP : sc.dir === "heavy" ? GOLD : sc.dir === "mid" ? GREEN : MUTED;
       const verdict = sc.dir === "light" ? "速いデッキ" : sc.dir === "heavy" ? "遅めのデッキ" : sc.dir === "mid" ? "中くらいのデッキ" : "どちらでもOK";
-      const tip = sc.dir === "light" ? "2マナ以下を多めに入れて、早く攻める" : sc.dir === "heavy" ? "4マナ以上の強いカードを使いこなして、じっくり戦う" : sc.dir === "mid" ? "3〜4マナを中心に、バランスよく組む" : "配られたカードで、自由に組んで大丈夫";
-      let s = pairSymbols(sc.pair, 90, 190, 80) + T(90 + 2 * 90 + 20, 218, `${pairName(sc.pair)}の、デッキの速さ`, { size: 56, weight: 900 });
-      s += T(80, 330, "デッキの平均マナ総量ごとの勝率（ドラフト）", { size: 34, fill: MUTED });
-      const x0 = 80, x1 = 1130, lo = Math.floor(Math.min(...sc.rows.map(r => r.wr * 100)) - 1), hi = Math.ceil(Math.max(...sc.rows.map(r => r.wr * 100)) + 1);
-      sc.rows.forEach((r, i) => {
-        const y = 440 + i * 112, lx = x0 + 200, vx = v => scaleX(v, lo, hi, lx, x1 - 40), isBest = r === sc.best;
-        s += T(lx - 24, y + 14, r.label, { size: 36, anchor: "end", weight: isBest ? 900 : 400 });
-        s += `<line x1="${lx}" x2="${x1 - 40}" y1="${y}" y2="${y}" stroke="${PAPER}" stroke-opacity="0.14" stroke-width="3"/>`;
-        s += `<line x1="${lx}" x2="${vx(r.wr * 100)}" y1="${y}" y2="${y}" stroke="${isBest ? col : MUTED}" stroke-width="${isBest ? 14 : 8}" stroke-linecap="round"/>`;
-        s += `<circle cx="${vx(r.wr * 100)}" cy="${y}" r="${isBest ? 22 : 16}" fill="${isBest ? col : MUTED}" stroke="${PAPER}" stroke-width="3"/>`;
-        s += T(vx(r.wr * 100), y - 32, pt(r.wr) + "%", { size: isBest ? 42 : 34, weight: 900, anchor: "middle", fill: isBest ? PAPER : MUTED });
-      });
-      s += T(80, 440 + sc.rows.length * 112 + 6, `この組み合わせ全体の勝率 ${pt(sc.wrPair)}%`, { size: 30, fill: MUTED });
-      s += panel(1220, 250, 620, 520, col) + T(1530, 340, "おすすめは", { size: 36, anchor: "middle", fill: MUTED }) +
-           T(1530, 450, verdict, { size: 64, weight: 900, anchor: "middle", fill: col }) +
-           T(1530, 530, sc.dir === "even" ? (sc.best.wr - sc.low.wr < 0.005 ? "差はほとんどなし" : `差は ${pt(sc.best.wr - sc.low.wr)}pt だけ`) : `平均マナ総量 ${sc.best.label}`, { size: 38, weight: 700, anchor: "middle" }) +
-           (sc.dir === "even" ? "" : T(1530, 590, `勝率 ${pt(sc.best.wr)}%`, { size: 44, weight: 900, anchor: "middle", fill: col })) +
-           wrapName(tip, 16).map((l, j) => T(1530, 670 + j * 40, l, { size: 30, anchor: "middle", fill: PAPER })).join("");
+      const tip = sc.dir === "light" ? "2マナ以下を多めに、早く攻める" : sc.dir === "heavy" ? "強い重いカードで、じっくり戦う" : sc.dir === "mid" ? "3〜4マナを中心に、バランスよく" : "配られたカードで、自由に組んでOK";
+      let s = pairSymbols(sc.pair, 90, 190, 80) + T(90 + 2 * 90 + 20, 218, `${pairName(sc.pair)}の、${hasSpeed ? "デッキの速さとマナカーブ" : "マナカーブ"}`, { size: 56, weight: 900 });
+      if(hasSpeed){
+        s += T(80, 320, "デッキの平均マナ総量ごとの勝率（ドラフト）", { size: 32, fill: MUTED });
+        const x0 = 80, x1 = 1130, lo = Math.floor(Math.min(...sc.rows.map(r => r.wr * 100)) - 1), hi = Math.ceil(Math.max(...sc.rows.map(r => r.wr * 100)) + 1);
+        sc.rows.forEach((r, i) => {
+          const y = 410 + i * 78, lx = x0 + 200, vx = v => scaleX(v, lo, hi, lx, x1 - 40), isBest = r === sc.best;
+          s += T(lx - 24, y + 14, r.label, { size: 34, anchor: "end", weight: isBest ? 900 : 400 });
+          s += `<line x1="${lx}" x2="${x1 - 40}" y1="${y}" y2="${y}" stroke="${PAPER}" stroke-opacity="0.14" stroke-width="3"/>`;
+          s += `<line x1="${lx}" x2="${vx(r.wr * 100)}" y1="${y}" y2="${y}" stroke="${isBest ? col : MUTED}" stroke-width="${isBest ? 14 : 8}" stroke-linecap="round"/>`;
+          s += `<circle cx="${vx(r.wr * 100)}" cy="${y}" r="${isBest ? 21 : 15}" fill="${isBest ? col : MUTED}" stroke="${PAPER}" stroke-width="3"/>`;
+          s += T(vx(r.wr * 100), y - 28, pt(r.wr) + "%", { size: isBest ? 38 : 32, weight: 900, anchor: "middle", fill: isBest ? PAPER : MUTED });
+        });
+      }
+      if(ci){
+        const yT = hasSpeed ? 735 : 340, bh = hasSpeed ? 112 : 150;
+        s += T(80, yT, "マナ域ごとのカード勝率（コモン・アンコモン）", { size: hasSpeed ? 28 : 32, fill: MUTED });
+        ci.zones.forEach((z, i) => {
+          const x = 80 + i * 280, isBest = z.wr != null && z === ci.zones[ci.bestZ.i];
+          s += `<rect x="${x}" y="${yT + 20}" width="262" height="${bh}" rx="16" fill="${DEEP}" fill-opacity="0.6" stroke="${isBest ? GOLD : MUTED}" stroke-opacity="${isBest ? 1 : 0.5}" stroke-width="${isBest ? 5 : 2}"/>`;
+          s += T(x + 131, yT + 20 + bh * 0.36, z.label, { size: hasSpeed ? 28 : 32, anchor: "middle", weight: isBest ? 900 : 400 });
+          s += z.wr != null ? T(x + 131, yT + 20 + bh * 0.76, `${pt(z.wr)}%`, { size: hasSpeed ? 40 : 48, weight: 900, anchor: "middle", fill: isBest ? GOLD : PAPER }) : T(x + 131, yT + 20 + bh * 0.76, "—", { size: 40, anchor: "middle", fill: MUTED });
+        });
+      }
+      // 右の枠：デッキの速さのおすすめ ＋ マナ域の目安
+      let py = 330;
+      s += panel(1220, 250, 620, 560, hasSpeed ? col : GOLD);
+      if(hasSpeed){
+        s += T(1530, py, "デッキのおすすめは", { size: 30, anchor: "middle", fill: MUTED }) + T(1530, py + 70, verdict, { size: 56, weight: 900, anchor: "middle", fill: col });
+        s += T(1530, py + 125, sc.dir === "even" ? (sc.best.wr - sc.low.wr < 0.005 ? "差はほとんどなし" : `差は ${pt(sc.best.wr - sc.low.wr)}pt だけ`) : `平均マナ総量 ${sc.best.label}（勝率 ${pt(sc.best.wr)}%）`, { size: 30, weight: 700, anchor: "middle" });
+        s += T(1530, py + 170, tip, { size: 26, anchor: "middle", fill: PAPER });
+        s += `<line x1="1270" x2="1790" y1="${py + 205}" y2="${py + 205}" stroke="${PAPER}" stroke-opacity="0.3" stroke-width="2"/>`;
+        py += 250;
+      }
+      if(ci){
+        s += T(1530, py, "マナ域の目安", { size: 30, anchor: "middle", fill: MUTED });
+        if(ci.more){
+          s += T(1530, py + 62, `${ZONES[ci.more.z]}は ${ci.more.t}枚以上`, { size: 42, weight: 900, anchor: "middle", fill: GOLD }) +
+               T(1530, py + 106, `入れたデッキは 勝率 ${sgn(ci.more.lift)}pt`, { size: 28, anchor: "middle" });
+        }else{
+          s += T(1530, py + 62, `${ci.bestZ.label}を 多めに`, { size: 42, weight: 900, anchor: "middle", fill: GOLD }) +
+               T(1530, py + 106, "カード勝率が一番高いマナ域", { size: 28, anchor: "middle" });
+        }
+        if(ci.less && (!ci.more || ci.less.z !== ci.more.z)) s += T(1530, py + 160, `${ZONES[ci.less.z]}は ${ci.less.t - 1}枚まで`, { size: 34, weight: 900, anchor: "middle", fill: DOWN });
+      }
       return frame(s, sc);
     }
     case "colortop": {
