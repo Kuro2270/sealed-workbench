@@ -13,8 +13,8 @@ on:
   workflow_dispatch:
     inputs:
       set:
-        description: "セットコード（例: TMT）"
-        required: true
+        description: "セットコード（例: TMT）。空なら自動で選ぶ（記事データがあって、長尺がまだ無い最新のセット）"
+        required: false
       lang:
         description: "作る言語（both = 日本語と英語を別々のジョブで同時に／ja／en）"
         type: choice
@@ -35,8 +35,30 @@ permissions:
   contents: read
 
 jobs:
+  # セットを決める（空なら pick-set.mjs が、記事データがあって長尺がまだ無い最新のセットを選ぶ）
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      set: ${{ steps.p.outputs.set }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - id: p
+        env:
+          SET_IN: ${{ inputs.set }}
+        run: |
+          SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"
+          if [ -z "$SET_CODE" ]; then
+            SET_CODE="$(node maintenance/pick-set.mjs long)" || { echo "::error::セットを自動で決められませんでした。セットコードを入れて実行してください。"; exit 1; }
+          fi
+          echo "set=$SET_CODE" >> "$GITHUB_OUTPUT"
+          echo "## $SET_CODE の長尺を作ります" >> "$GITHUB_STEP_SUMMARY"
+
   long-ja:
     name: 日本語版
+    needs: plan
     if: ${{ inputs.lang != 'en' }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -80,7 +102,7 @@ jobs:
 
       - name: 動画を作る
         env:
-          SET_IN: ${{ inputs.set }}
+          SET_IN: ${{ needs.plan.outputs.set }}
           VOICEVOX_SPEED: ${{ inputs.speed }}
           VOICEVOX_URL: http://127.0.0.1:50021
         run: |
@@ -153,6 +175,7 @@ jobs:
 
   long-en:
     name: 英語版
+    needs: plan
     if: ${{ inputs.lang != 'ja' }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -200,7 +223,7 @@ jobs:
 
       - name: 動画を作る
         env:
-          SET_IN: ${{ inputs.set }}
+          SET_IN: ${{ needs.plan.outputs.set }}
           KOKORO_DIR: short/kokoro
         run: |
           export SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"

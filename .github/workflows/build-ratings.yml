@@ -148,24 +148,9 @@ jobs:
           ANNOUNCE_SETS="$(node -e "console.log((JSON.parse(require('fs').readFileSync('announce.json','utf8')).sets||[]).join(' '))")"
           ANNOUNCE_SETS="$ANNOUNCE_SETS" node maintenance/post-social.mjs announce
 
-      # 新しいセットが入ったときは、環境まとめ動画（日英 × ドラフト／シールド）を続けて作る。
-      # できた動画は YouTube に非公開で上がるので、確認して公開し、「動画を配信」を押す。
-      - name: 新セットの動画づくりを始める
-        if: steps.announce.outputs.has == '1'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          SETS="$(node -e "console.log((JSON.parse(require('fs').readFileSync('announce.json','utf8')).sets||[]).join(' '))")"
-          for S in $SETS; do
-            for M in draft sealed; do
-              [ -f "data/articles/${S}_${M}.json" ] || continue
-              for L in ja en; do
-                gh workflow run build-short.yml --ref main -f set="$S" -f lang="$L" -f mode="$M" -f upload=true \
-                  && echo "動画づくりを開始: $S $L $M" || echo "::warning::動画づくりを始められませんでした: $S $L $M"
-                sleep 2
-              done
-            done
-          done
+      # 以前はここで旧版のショート（日英 × ドラフト／シールド）を4本作り始めていたが、2026年10月に止めた。
+      # いまの流れ：発売直後に速報のショート（「データ｜1」が起こす）→ 記事データができたら長尺（「長尺｜1b」が翌朝 9:10 に起こす）。
+      # 旧版のショートを作りたいときは「ショート｜1」で「旧版を作る」にチェックを入れて手で押す。
 
       - name: 告知文案を Issue にする
         if: steps.announce.outputs.has == '1'
