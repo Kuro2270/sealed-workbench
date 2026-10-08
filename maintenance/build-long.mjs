@@ -1227,7 +1227,18 @@ async function main(){
   const getImg = async c => {
     const key = c.name; if(imgCache.has(key)) return imgCache.get(key);
     let out = null;
-    const url = (nm.images || {})[c.name] || (nm.images || {})[String(c.name).split(" // ")[0]];
+    let url = (nm.images || {})[c.name] || (nm.images || {})[String(c.name).split(" // ")[0]];
+    if(EN){   // 英語版：保存してあるのは日本語版のカード画像なので、英語版の画像を Scryfall から取り直す
+      const front = String(c.name).split(" // ")[0];
+      const pick = j => (j.image_uris || (j.card_faces && j.card_faces[0] && j.card_faces[0].image_uris) || {}).normal || null;
+      for(const q of [`exact=${encodeURIComponent(c.name)}&set=${SET.toLowerCase()}`, `exact=${encodeURIComponent(front)}&set=${SET.toLowerCase()}`, `exact=${encodeURIComponent(front)}`]){
+        try{
+          const r = await fetch(`https://api.scryfall.com/cards/named?${q}`, { headers: { ...UA, Accept: "application/json" } });
+          await new Promise(res => setTimeout(res, 110));
+          if(r.ok){ const u = pick(await r.json()); if(u){ url = u; break; } }
+        }catch(e){}
+      }
+    }
     if(url){
       try{
         const r = await fetch(url, { headers: UA });
