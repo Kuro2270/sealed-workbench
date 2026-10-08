@@ -41,6 +41,7 @@ const W = 1920, H = 1080, SCALE = 1.5;
 const PINE = "#10304F", DEEP = "#0A2038", BLUE = "#2F7DF6", PAPER = "#F5F8FC", MUTED = "#A9C2DE";
 const UP = "#5B9BFF", DOWN = "#F08A3E", GOLD = "#F2C94C", GREEN = "#4CC38A";
 const COLOR = { W: "#F3EAC6", U: "#4A90E2", B: "#6B5E7A", R: "#E1553E", G: "#3E9B5B" };
+const WITH_REMOVAL = false;   // コモン・アンコモンの除去一覧の章。いったん割愛中（戻すときは true）
 const CJ = { W: "白", U: "青", B: "黒", R: "赤", G: "緑" };
 const ZONES = ["2マナ以下", "3マナ", "4マナ", "5マナ以上"];     // マナカーブの区切り（組み合わせ別のマナ域）
 const ORDER = "WUBRG";
@@ -167,10 +168,10 @@ function buildScript(ctx){
 
   /* --- 冒頭 --- */
   scenes.push({ kind: "hook", art: true, chapter: "はじめに",
-    say: `MTGアリーナ、リミテッドの${nameJa}環境を、${man(gamesD + gamesS)}試合のデータでまるごと解説します。最強の色の組み合わせ、迷わず取っていいボムのレア十枚、見た目に反して勝てない罠なレアカード、そして、コモンとアンコモンの強い除去まで。ドラフトとシールドの両方のデータで見ていきます。`,
+    say: `MTGアリーナ、リミテッドの${nameJa}環境を、${man(gamesD + gamesS)}試合のデータでまるごと解説します。最強の色の組み合わせ、迷わず取っていいボムのレア十枚、見た目に反して勝てない罠なレアカード、そして、色別のおすすめのコモンとアンコモンまで。ドラフトとシールドの両方のデータで見ていきます。`,
     title: nameJa, gamesD, gamesS, tail: 0.6 });
-  scenes.push({ kind: "agenda", say: `順番に、環境の速さ、色の組み合わせとデッキの速さ、ボム、罠なレアカード、色別のおすすめ、除去まで見ていきます。`,
-    items: ["環境の速さ", "色の強さ", "色の組み合わせと速さ", "狙い目の色", "ドラフトとシールドの違い", "ボムのレア10枚", "罠なレアカード", "色別のコモン・アンコモン", "除去（コモン・アンコモン）"], tail: 0.4 });
+  scenes.push({ kind: "agenda", say: `順番に、環境の速さ、色の組み合わせとデッキの速さ、ボム、罠なレアカード、色別のおすすめ${WITH_REMOVAL ? "、除去" : ""}まで見ていきます。`,
+    items: ["環境の速さ", "色の強さ", "色の組み合わせと速さ", "狙い目の色", "ドラフトとシールドの違い", "ボムのレア10枚", "罠なレアカード", "色別のコモン・アンコモン"].concat(WITH_REMOVAL ? ["除去（コモン・アンコモン）"] : []), tail: 0.4 });
 
   /* --- 速さ --- */
   const paceRows = d => (d.speed || []).filter(s => s.wr != null && s.games).map((s, i, a) => ({
@@ -492,8 +493,10 @@ function buildScript(ctx){
   };
   const remC = remScene("common", "コモン", "除去の強さ順"), remU = remScene("uncommon", "アンコモン", "除去の強さ順");
   // 章は1つにまとめる（目次には、最初のほうだけ出る）
-  if(remC) scenes.push(remC);
-  if(remU){ if(remC) remU.chapter = null; scenes.push(remU); }
+  if(WITH_REMOVAL){
+    if(remC) scenes.push(remC);
+    if(remU){ if(remC) remU.chapter = null; scenes.push(remU); }
+  }
 
 
   /* --- まとめ --- */
@@ -502,7 +505,7 @@ function buildScript(ctx){
     const bestMono = monoD[0];
     const sealedBest = bestD ? (pairsS.find(x => x.pair === bestD.pair) || {}).wr : null;
     const b3 = bombs.slice(0, 3), t3 = traps.slice(0, 3);
-    const remSc = scenes.find(x => x.kind === "removal"), r3 = remSc ? remSc.cards.slice(0, 3) : [];
+    const remSc = WITH_REMOVAL ? scenes.find(x => x.kind === "removal") : null, r3 = remSc ? remSc.cards.slice(0, 3) : [];
     const sum = {
       kind: "summary", chapter: "まとめ",
       pace: paceSc ? { word: paceSc.word, sub: paceSc.sub } : null,
@@ -1158,10 +1161,10 @@ async function main(){
   const ts = s => { const m = Math.floor(s / 60), r = Math.floor(s % 60); return `${m}:${String(r).padStart(2, "0")}`; };
   await writeFile(`${OUT}/chapters.txt`, chapters.map(c => `${ts(c.at)} ${c.title}`).join("\n") + "\n", "utf8");
   const gD = man(dd.total_games), gS = man(ds.total_games);
-  await writeFile(`${OUT}/title.txt`, `【${nameJa}】リミテッド環境まとめ｜強い色・狙い目の色・ボム10枚・罠なレアカード・除去【MTGアリーナ】`, "utf8");   // YouTube に上げるときの題
+  await writeFile(`${OUT}/title.txt`, `【${nameJa}】リミテッド環境まとめ｜強い色・狙い目の色・ボム10枚・罠なレアカード・色別おすすめ【MTGアリーナ】`, "utf8");   // YouTube に上げるときの題
   await writeFile(`${OUT}/description.txt`,
 `MTGアリーナ、リミテッドの${nameJa}環境を、17Landsの実戦データ（ドラフト${gD}試合・シールド${gS}試合）でまるごと解説します。
-最強の色の組み合わせとデッキの速さ、狙い目の色、ボムのレア10枚、罠なレアカード、色別のおすすめコモン・アンコモン、強い除去まで。
+最強の色の組み合わせとデッキの速さ、狙い目の色、ボムのレア10枚、罠なレアカード、色別のおすすめコモン・アンコモンまで。
 
 ▼ 目次
 ${chapters.map(c => `${ts(c.at)} ${c.title}`).join("\n")}
