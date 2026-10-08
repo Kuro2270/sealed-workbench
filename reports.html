@@ -658,7 +658,9 @@ async function showProfile(code){
     });
     $("built").textContent = "";
     if($("video")) $("video").hidden = true;
-    setStatus((when ? when + " " : "") + t("reports.profileNow"), false);
+    // 速報版（速報メモがある）のときは、固定ページの案内文だけを出す（「それまでは下見を…」は速報版には合わない）
+    const hasEarly = !!box.querySelector(".early-note");
+    setStatus(hasEarly ? when : (when ? when + " " : "") + t("reports.profileNow"), false);
     $("status").classList.add("preview");
     return true;
   }catch(e){ return false; }

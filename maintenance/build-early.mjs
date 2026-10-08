@@ -206,15 +206,15 @@ console.error(`  トップコモン: ${(top.common || []).slice(0, 3).map(c => c
     `発売直後の${gamesJa}試合（ドラフト＋シールド）では、` + (best ? `最も勝っている組み合わせは${pairName(best.colors, true)}（${pct(best.wr)}%）` : "まだ組み合わせの傾向は出ていません") + (second ? `、次いで${pairName(second.colors, true)}（${pct(second.wr)}%）。` : "。"),
     mono ? `単色では${CJ[mono.color]}が最も安定しています。` : "",
     c1 ? `コモンでは《${namesJa[c1.name] || c1.name}》の勝率が頭ひとつ抜けています。` : "",
-    `順位はこの後のデータで動きます。確定版（全カードの勝率）は ${dataDay.ja} ごろに。`
+    `順位はこの後のデータで動きます。`
   ].filter(Boolean).join("");
   const en = [
     `Across the first ${gamesEn} games (Draft and Sealed combined), ` + (best ? `the best-performing pair is ${pairName(best.colors)} (${pct(best.wr)}%)` : "no pair has pulled ahead yet") + (second ? `, followed by ${pairName(second.colors)} (${pct(second.wr)}%).` : "."),
     mono ? ` ${CE[mono.color]} is the most reliable single colour so far.` : "",
     c1 ? ` Among commons, ${c1.name} is clearly ahead.` : "",
-    ` Rankings will move as more games come in; the full review (every card's win rate) lands around ${dataDay.en}.`
+    ` Rankings will move as more games come in.`
   ].filter(Boolean).join("");
-  const note = { set: SET, as_of: iso(Date.now()), as_of_label: asOf, ja, en, source: "17Lands", source_url: `${L17}/card_data?expansion=${SET}&format=PremierDraft` };
+  const note = { set: SET, as_of: iso(Date.now()), as_of_label: asOf, ja, en, source: "17Lands" };
   await mkdir("data/early", { recursive: true });
   await writeFile(`data/early/${SET}.json`, JSON.stringify(note, null, 2) + "\n", "utf8");
   console.error(`  速報メモ: ${ja}`);

@@ -164,7 +164,12 @@ const P = {
     h1: s => `${s}｜リミテッド下見（データ前）`,
     lead: "勝率データは発売から2週間ほどで揃います。それまでは、セットの全カードを数えて「環境の形」を見ます。",
     when: d => `勝率データは ${d} ごろから。揃い次第、このセットの環境レポートが出ます。`,
-    earlyH: d => `速報（${d} 時点・17Lands のデータより）`, earlySrc: "出典: 17Lands（カード勝率・色別勝率）",
+    earlyH: d => `速報（${d} 時点・17Lands のデータより）`,
+    earlyTitle: s => `${s} リミテッド速報版｜発売直後の傾向と、セットの形`,
+    earlyDesc: s => `マジック：ザ・ギャザリング アリーナ「${s}」のリミテッド速報。発売直後の勝っている色・組み合わせと、カードの枚数から見たセットの形。確定版は勝率データが揃い次第。`,
+    earlyH1: s => `${s}｜リミテッド速報版`,
+    earlyLead: "発売直後の速報です。順位はこの後のデータで動きます。あわせて、セットの全カードを数えた「環境の形」も載せています。",
+    earlyWhen: d => `確定版（全カードの勝率と環境レポート）は ${d} ごろ。揃い次第、このページから自動で切り替わります。`,
     sumH: "ひと目でわかる",
     sum: p => `コモン・アンコモンの除去は ${p.counts.removal} 枚、飛行持ちは ${p.counts.flyers} 枚。コモン・アンコモンの平均マナ総量は ${p.avgCmcAll.toFixed(2)}。`,
     colorsH: "色ごとの中身（コモン・アンコモン）", colorsLead: "単色のコモン・アンコモンだけを数えています。除去と飛行が多い色は、序盤から主導権を取りやすい色です。",
@@ -191,7 +196,12 @@ const P = {
     h1: s => `${s} — Limited preview (pre-data)`,
     lead: "Win-rate data lands about two weeks after release. Until then, we count every card in the set to see the shape of the format.",
     when: d => `Win-rate data from about ${d}. The full format report for this set appears as soon as it lands.`,
-    earlyH: d => `Early look (as of ${d}, from 17Lands data)`, earlySrc: "Source: 17Lands (card and colour win rates)",
+    earlyH: d => `Early look (as of ${d}, from 17Lands data)`,
+    earlyTitle: s => `${s} Limited early look — first-week trends and the shape of the set`,
+    earlyDesc: s => `An early look at Magic: The Gathering Arena Limited for ${s}: the colours and pairs winning in the first days, plus the shape of the set by card counts. Full review once win-rate data lands.`,
+    earlyH1: s => `${s} — Limited early look`,
+    earlyLead: "An early look from the first days of the format. Rankings will move. The card-count shape of the set is below as well.",
+    earlyWhen: d => `The full review (every card's win rate) lands around ${d}. This page switches over automatically.`,
     sumH: "At a glance",
     sum: p => `${p.counts.removal} removal spells and ${p.counts.flyers} flyers at common and uncommon. Average mana value of commons and uncommons: ${p.avgCmcAll.toFixed(2)}.`,
     colorsH: "What each colour has (commons & uncommons)", colorsLead: "Mono-coloured commons and uncommons only. Colours with more removal and flyers tend to take the initiative early.",
@@ -279,15 +289,16 @@ function page(lang, p, nameJa, dataDate){
   const T = P[lang], B = L[lang];
   const name = lang === "ja" ? nameJa : p.setName;
   const canonical = pretty(`${SITE}/sets/${SET}.profile${lang === "en" ? ".en" : ""}.html`);
-  const head = `<title>${esc(T.title(name))} — ${esc(B.site)}</title>
-<meta name="description" content="${esc(T.desc(name))}">
+  const isEarly = !!(EARLY && EARLY[lang]);
+  const head = `<title>${esc(isEarly ? T.earlyTitle(name) : T.title(name))} — ${esc(B.site)}</title>
+<meta name="description" content="${esc(isEarly ? T.earlyDesc(name) : T.desc(name))}">
 <link rel="canonical" href="${canonical}">
 <link rel="alternate" hreflang="ja" href="${pretty(`${SITE}/sets/${SET}.profile.html`)}">
 <link rel="alternate" hreflang="en" href="${pretty(`${SITE}/sets/${SET}.profile.en.html`)}">
-<meta property="og:title" content="${esc(T.title(name))}">
+<meta property="og:title" content="${esc(isEarly ? T.earlyTitle(name) : T.title(name))}">
 <meta property="og:url" content="${canonical}">`;
-  const header = `    <h1>${esc(T.h1(name))}</h1>
-    <p>${esc(T.lead)}</p>`;
+  const header = `    <h1>${esc(isEarly ? T.earlyH1(name) : T.h1(name))}</h1>
+    <p>${esc(isEarly ? T.earlyLead : T.lead)}</p>`;
   const row = c => { const b = p.byColor[c]; return `<tr><td>${manaI(c)}${esc(T.colorName[c])}</td>
 <td class="num">${b.cu}</td><td class="num">${b.creatures} <small>(${Math.round(b.creatureShare * 100)}%)</small></td><td class="num"><b>${b.removal}</b></td><td class="num"><b>${b.flyers}</b></td><td class="num">${b.tricks}</td><td class="num">${b.draw}</td><td class="num">${b.avgPower.toFixed(1)}/${b.avgToughness.toFixed(1)}</td><td class="num">${b.avgCmc.toFixed(2)}</td></tr>`; };
   const pairRows = p.pairs.map(x => `<tr><td>${[...x.pair].map(c => `${manaI(c)}`).join("")}${[...x.pair].map(c => esc(T.colorName[c])).join(lang === "ja" ? "" : "-")}</td><td class="num">${x.count}</td><td><small>${esc(x.uncommons.slice(0, 3).join(", "))}${x.uncommons.length > 3 ? "…" : ""}</small></td></tr>`).join("\n");
@@ -299,11 +310,10 @@ function page(lang, p, nameJa, dataDate){
   // 先行版のショート（発売直後の速報）が公開になっていれば、下見の冒頭に出す（「動画を配信」が data/videos.json に記録する）。
   // 速報メモ（build-early.mjs が作る文章。表にはしない）も、動画が公開になってから一緒に出す
   const earlyVideo = videoSection(lang, SET, "early", name, VIDEOS);
-  const earlyNote = earlyVideo && EARLY && EARLY[lang]
-    ? `<section class="early-note"><h3>${esc(T.earlyH((EARLY.as_of_label || {})[lang] || EARLY.as_of || ""))}</h3><p>${esc(EARLY[lang])}</p>` +
-      `<p class="lead"><a href="${esc(EARLY.source_url || "https://www.17lands.com/")}" target="_blank" rel="noopener">${esc(T.earlySrc)}</a></p></section>` : "";
+  const earlyNote = isEarly
+    ? `<section class="early-note"><h3>${esc(T.earlyH((EARLY.as_of_label || {})[lang] || EARLY.as_of || ""))}</h3><p>${esc(EARLY[lang])}</p></section>` : "";
   const main = `<article class="mode">
-  <p class="verdict">${esc(T.when(dataDate))}</p>${earlyNote ? "\n" + earlyNote : ""}${earlyVideo ? "\n" + earlyVideo : ""}
+  <p class="verdict">${esc(isEarly ? T.earlyWhen(dataDate) : T.when(dataDate))}</p>${earlyNote ? "\n" + earlyNote : ""}${earlyVideo ? "\n" + earlyVideo : ""}
   <section><h3>${esc(T.colorsH)}</h3><p class="lead">${esc(T.colorsLead)}</p>
   <div style="overflow-x:auto"><table><thead><tr><th>${esc(T.th.color)}</th><th class="num">${esc(T.th.cards)}</th><th class="num">${esc(T.th.creatures)}</th><th class="num">${esc(T.th.removal)}</th><th class="num">${esc(T.th.flyers)}</th><th class="num">${esc(T.th.tricks)}</th><th class="num">${esc(T.th.draw)}</th><th class="num">${esc(T.th.size)}</th><th class="num">${esc(T.th.cmc)}</th></tr></thead>
   <tbody>${COLORS.map(row).join("\n")}</tbody></table></div></section>
