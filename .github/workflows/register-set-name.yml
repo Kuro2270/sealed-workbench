@@ -50,7 +50,7 @@ jobs:
           fi
           git commit -m "セット名を登録: $CODE"
           for i in 1 2 3; do
-            git pull --rebase origin main && git push origin main && exit 0
+            git pull --rebase --autostash origin main && git push origin main && exit 0
             echo "再試行 $i"
             sleep 5
           done

@@ -107,7 +107,7 @@ jobs:
           git commit -m "勝率データを更新"
           # 実行中に他の更新が入っていても押し戻せるよう、最新を取り込んでから押す
           for i in 1 2 3; do
-            git pull --rebase origin main && git push origin main && exit 0
+            git pull --rebase --autostash origin main && git push origin main && exit 0
             echo "再試行 $i"
             sleep 5
           done

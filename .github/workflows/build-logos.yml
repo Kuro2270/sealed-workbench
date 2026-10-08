@@ -1,0 +1,50 @@
+name: ロゴを軽くする
+
+# short/logo/ に置いた公式ロゴ（MTGアリーナ・各セット）を、サイトの表示用に軽くして assets/logo/ に書き出す。
+#   ・ロゴを足したり差し替えたりして short/logo/ が変わると、自動で動く
+#   ・すぐ反映したいときは、このページの「Run workflow」を押す（入力は不要）
+# 動画づくりには元の画像（short/logo/）をそのまま使う。サイトのヘッダーとトップページには、軽くしたものを使う。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "short/logo/**"
+      - "maintenance/build-logos.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  logos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 画像を軽くする
+        run: |
+          npm install --no-save sharp
+          node maintenance/build-logos.mjs
+          ls -la assets/logo
+
+      - name: 変わっていればコミットする
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- assets/logo
+          if git diff --staged --quiet; then
+            echo "変更はありません。"; exit 0
+          fi
+          git commit -m "ロゴを軽くする"
+          ok=0
+          for i in 1 2 3; do
+            if git pull --rebase --autostash origin main && git push origin main; then ok=1; break; fi
+            echo "再試行 $i"; sleep 5
+          done
+          if [ "$ok" != 1 ]; then echo "::error::GitHub に反映（push）できませんでした。もう一度実行してください。"; exit 1; fi
