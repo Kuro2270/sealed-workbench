@@ -212,13 +212,15 @@ async function fetchVideoFile(p){
   console.log(`動画ファイル: ${name} は Releases に無いので、リンクで投稿します`);
   return "";
 }
+// SNS への案内。失敗してもこの手順は赤くしない（赤くすると、あとのサイト掲載・記録のコミットまで止まってしまう）。失敗は警告とまとめに出す
+const postFailed = [];
 if(POST){
   for(const p of published){
     try{
       const file = await fetchVideoFile(p);
       execFileSync("node", ["maintenance/post-social.mjs", "video"], { stdio: "inherit",
         env: { ...process.env, ANNOUNCE_SETS: p.set, LANGS: p.lang, BSKY_LANGS: process.env.BSKY_LANGS || "en", VIDEO_ID: p.id, VIDEO_MODE: p.mode, VIDEO_FILE: file } });
-    }catch(e){ console.error(`投稿に失敗: ${p.set} ${p.lang} ${p.mode}`); process.exitCode = 1; }
+    }catch(e){ console.error(`::warning::SNS への案内に失敗: ${p.set} ${p.lang} ${p.mode}（サイトへの掲載と記録は続けます。X の 403 は、X の開発者ポータルでアプリの権限が「Read and write」になっているか確認してください）`); postFailed.push(p); }
   }
 }
 
@@ -230,6 +232,7 @@ if(published.length){ lines.push(`### 配信しました（${published.length}�
 if(waiting.length){ lines.push(`### まだ公開になっていません（YouTube Studio で公開にしてから、もう一度）`); for(const p of waiting) lines.push(`- ${p.set} ${p.lang} ${p.mode}（${p.status}）: https://www.youtube.com/shorts/${p.id}`); lines.push(""); }
 if(failed.length){ lines.push(`### 確認できませんでした`); for(const p of failed) lines.push(`- ${p.set} ${p.lang} ${p.mode}: ${p.why}`); lines.push(""); }
 if(!published.length && !waiting.length && !failed.length) lines.push("未配信の動画はありません。");
+if(postFailed.length){ lines.push(""); lines.push(`### SNS への案内に失敗しました（${postFailed.length}本。配信と掲載は済んでいます。必要なら手で投稿してください）`); for(const p of postFailed) lines.push(`- ${p.set} ${p.lang} ${p.mode}: https://www.youtube.com/shorts/${p.id}`); }
 if(posted.length){ lines.push(""); lines.push(`### 案内コメントを付けました（${posted.length}本）。YouTube Studio → コメント で「固定」にしてください`); for(const p of posted) lines.push(`- ${p.set} ${p.lang} ${p.mode}: https://www.youtube.com/shorts/${p.id}`); }
 if(comments.length){
   lines.push(""); lines.push("### 自動で付けられなかった固定コメントの文面（各動画のコメント欄に貼って「固定」にしてください）");
