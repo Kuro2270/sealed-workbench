@@ -274,14 +274,19 @@ jobs:
       - name: 動画の記録をコミット
         if: env.SKIP != '1'            # 上げないときも、速報メモ（data/early）と日本語名（data/names）は残す
         run: |
-          if [ -n "$(git status --porcelain -- data/videos assets/video data/early)" ]; then
+          # 速報メモ（data/early）が新しくなったら、下見ページも作り直して、サイトにすぐ出す（Scryfall に届かなければ、毎日の点検で作り直される）
+          if [ "$VMODE" = "early" ] && [ -n "$(git status --porcelain -- data/early)" ]; then
+            node maintenance/build-set-profile.mjs "$SET_CODE" || echo "::warning::下見ページを作り直せませんでした（毎日の点検で作り直されます）"
+          fi
+          if [ -n "$(git status --porcelain -- data/videos assets/video data/early data/names sets data/profiles)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add data/videos
-            [ -d assets/video ] && git add assets/video
-            # 先行版で新しく作った日本語名（data/names）と速報メモ（data/early。文章だけ）も残す。記事データ（data/articles/*_early.json）は残さない
-            [ -d data/names ] && git add data/names
-            [ -d data/early ] && git add data/early
+            # 無いフォルダを git add に渡すと失敗するので、あるものだけ足す
+            # （data/videos = 動画の記録、assets/video = サイト用サムネイル、data/names = 日本語名、data/early = 速報メモ（文章だけ）、sets・data/profiles = 下見ページ。
+            #   記事データ data/articles/*_early.json は残さない）
+            for p in data/videos assets/video data/names data/early sets data/profiles; do
+              [ -e "$p" ] && git add -A -- "$p"
+            done
             git commit -m "動画の記録を更新（$SET_CODE $VLANG $VMODE）"
             # 4 本が同時に押し込むことがあるので、少しずつ待ちながら何度か試す
             for i in 1 2 3 4 5 6; do
