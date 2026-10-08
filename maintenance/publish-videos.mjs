@@ -165,8 +165,12 @@ for(const S of Object.keys(all).sort()){
         console.log(`配信: ${S} ${L} ${M} https://www.youtube.com/shorts/${v.id}`);
         if(!v.comment || !v.comment2) await addComments(S, L, M, v);
       }else if(st === "missing"){
-        failed.push({ set: S, lang: L, mode: M, id: v.id, why: "YouTube に見つかりません（削除した？）" });
-        console.log(`見つからない: ${S} ${L} ${M} ${v.id}`);
+        // YouTube で削除された動画。記録を消して、同じセット・言語・形式を作り直せるようにする（残すと「もう作ってある」と判断されて自動で選ばれない）
+        failed.push({ set: S, lang: L, mode: M, id: v.id, why: "YouTube に見つかりません（削除した？）。記録を消したので、作り直せます" });
+        console.log(`見つからない: ${S} ${L} ${M} ${v.id} → 記録を消します`);
+        delete all[S][L][M];
+        if(!Object.keys(all[S][L]).length) delete all[S][L];
+        if(!Object.keys(all[S]).length) delete all[S];
       }else{
         waiting.push({ set: S, lang: L, mode: M, id: v.id, status: st });
         console.log(`まだ${st === "private" ? "非公開" : st === "unlisted" ? "限定公開" : "不明"}: ${S} ${L} ${M} https://www.youtube.com/shorts/${v.id}`);
