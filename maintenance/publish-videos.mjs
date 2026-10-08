@@ -135,6 +135,8 @@ async function postComment(lang, id, text){
 const comments = [], posted = [];
 /* 案内（1件目）と呼びかけ（2件目）を、付いていないほうだけ付ける。付けられなければ文面をまとめに出す */
 async function addComments(S, L, M, v){
+  // 速報（early）は1件目だけ。1件目の最後に感想の呼びかけが入っているので、2件目は付けない（くどくなる）
+  if(M === "early" && !v.comment2) v.comment2 = true;
   const steps = [["comment", await (!v.comment ? commentText(L, S, M) : "")], ["comment2", await (!v.comment2 ? commentText2(L, S, M) : "")]];
   let blocked = null;
   for(const [key, text] of steps){
