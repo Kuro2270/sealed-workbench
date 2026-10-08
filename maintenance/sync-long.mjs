@@ -92,15 +92,27 @@ const long = await readJson("data/long.json", {});
 let changed = 0, anyLang = false;
 
 async function syncLang(lang){
-  const token = await tokenFor(lang);
+  let token = await tokenFor(lang);
   if(!token) return;
   anyLang = true;
   const cfg = CFG[lang];
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  /* 発行したばかりのトークンを、YouTube が数秒〜数十秒のあいだ「無効」と返すことがある（英語チャンネルで確認）。
+     401 / 5xx のときは、待ってからトークンを取り直して、最大4回まで試す */
   const yt = async path => {
-    const r = await fetch(`${API}/youtube/v3/${path}`, { headers: { Authorization: `Bearer ${token}` } });
-    const j = await r.json().catch(() => ({}));
-    if(!r.ok) throw new Error(`HTTP ${r.status} ${path.split("?")[0]}: ${JSON.stringify(j.error || j).slice(0, 200)}`);
-    return j;
+    let last;
+    for(let n = 1; n <= 4; n++){
+      const r = await fetch(`${API}/youtube/v3/${path}`, { headers: { Authorization: `Bearer ${token}` } });
+      const j = await r.json().catch(() => ({}));
+      if(r.ok) return j;
+      last = `HTTP ${r.status} ${path.split("?")[0]}: ${JSON.stringify(j.error || j).slice(0, 200)}`;
+      if(!(r.status === 401 || r.status >= 500) || n === 4) break;
+      const wait = 10 * n;
+      console.log(`${lang}: ${last.split(":")[0]} なので、${wait}秒待ってトークンを取り直します（${n}回目）`);
+      await sleep(wait * 1000);
+      token = (await tokenFor(lang)) || token;
+    }
+    throw new Error(last);
   };
   let ids;
   if(ONLY_ID) ids = [ONLY_ID];
@@ -171,7 +183,7 @@ async function syncLang(lang){
       if(r.ok) break;
       body = await r.text();
       console.log(`コメントを付けられませんでした（${n}回目、HTTP ${r.status}）: ${S} ${lang} ${v.id} ${body.replace(/\s+/g, " ").slice(0, 300)}`);
-      if(n < 3) await new Promise(res => setTimeout(res, 30000 * n));
+      if(n < 3){ await new Promise(res => setTimeout(res, 30000 * n)); if(r.status === 401) token = (await tokenFor(lang)) || token; }
     }
     if(r.ok){ commentedAt = Date.now(); v.comment2 = true; changed++; console.log(`呼びかけのコメントを付けました: ${S} ${lang} ${v.id}`); }
     else{
