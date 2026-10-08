@@ -656,15 +656,15 @@ async function loadVideos(){
   try{ const r = await fetch("./data/videos.json", {cache:"no-cache"}); videos = r.ok ? await r.json() : {}; }catch(e){ videos = {}; }
   return videos;
 }
-/* 長尺の環境まとめ動画（日本語のみ）。data/long.json に載っているセットでは、ショートの代わりにこちらを出す。目次を押すとその時刻から再生 */
+/* 長尺の環境まとめ動画（日本語・英語）。data/long.json に載っているセットでは、ショートの代わりにこちらを出す。目次を押すとその時刻から再生 */
 let longVideos = null;
 async function renderLong(code){
   const box = $("longvideo"); if(!box) return false;
   if(!longVideos){ try{ const r = await fetch("./data/long.json", {cache:"no-cache"}); longVideos = r.ok ? await r.json() : {}; }catch(e){ longVideos = {}; } }
-  const v = I18N.lang === "ja" && longVideos[code] && longVideos[code].ja;
+  const v = longVideos[code] && longVideos[code][I18N.lang];
   if(!v || !v.id){ box.hidden = true; box.innerHTML = ""; return false; }
   const id = String(v.id), ts = n => Math.floor(n / 60) + ":" + String(Math.floor(n % 60)).padStart(2, "0");
-  const poster = `./assets/video/${esc(code)}-ja-long.jpg`, yt = `https://i.ytimg.com/vi/${esc(id)}/hqdefault.jpg`;
+  const poster = `./assets/video/${esc(code)}-${esc(I18N.lang)}-long.jpg`, yt = `https://i.ytimg.com/vi/${esc(id)}/hqdefault.jpg`;
   const chap = (v.chapters || []).map(c => `<li><a href="https://youtu.be/${esc(id)}?t=${Math.floor(c.at)}" data-t="${Math.floor(c.at)}" target="_blank" rel="noopener"><time>${ts(c.at)}</time><span>${esc(c.title)}</span></a></li>`).join("");
   box.innerHTML = `<h3>${esc(t("reports.long.h"))}</h3><p class="lead">${esc(t("reports.long.lead"))}</p>
     <div class="lv"><div class="yt"><img src="${poster}" onerror="this.onerror=null;this.src='${yt}'" alt="${esc(v.title || t("reports.long.h"))}" loading="lazy" width="640" height="360">

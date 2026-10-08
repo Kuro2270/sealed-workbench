@@ -117,7 +117,7 @@ const L = {
     rarity: { mythic:"Mythic", rare:"Rare", uncommon:"Uncommon", common:"Common" },
     col: { color:"Colour", pair:"Pair", cmc:"Mana value", wr:"Win rate", score:"Rating (GIH WR)", games:"Games", card:"Card", cards:"Cards" },
     colorName: { W:"White", U:"Blue", B:"Black", R:"Red", G:"Green" },
-    longH: "Format overview (long video)", longLead: "",
+    longH: "Format overview (long video)", longLead: "We covered the strongest colour pairs, sleeper pairs, the best bombs, trap rares and the top commons and uncommons for each colour, using both Draft and Sealed data. Press a chapter to jump to that part of the video.",
     videoH: "The format in 60 seconds (video)", videoLead: "The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.", videoPlay: "Play", videoOpen: "Watch on YouTube",
     links: "Related pages",
     linkRatings: "All card win rates for this set",
@@ -589,13 +589,13 @@ ${T.faq.map(([q, a]) => `  <details><summary>${esc(q)}</summary><p>${esc(a)}</p>
   return shell(lang, code, head, { header, main: body + "\n" + faq + "\n" + links }, `${SITE}/${OUT}/og/${code}-${lang}.png`);
 }
 
-/* 長尺の環境まとめ動画（横長・日本語のみ）。data/long.json に載せたものだけ出す。目次のリンクを押すと、その時刻から再生する */
+/* 長尺の環境まとめ動画（横長・日本語／英語）。data/long.json に載せたものだけ出す。目次のリンクを押すと、その時刻から再生する */
 function longSection(lang, code, setDisplay, long){
-  const v = lang === "ja" && long && long[code] && long[code].ja;
+  const v = long && long[code] && long[code][lang];
   if(!v || !v.id) return "";
   const id = String(v.id), T = L[lang];
-  const title = v.title || `${setDisplay} リミテッド環境まとめ`;
-  const posterFile = `assets/video/${code}-ja-long.jpg`;
+  const title = v.title || (lang === "en" ? `${setDisplay} Limited Review` : `${setDisplay} リミテッド環境まとめ`);
+  const posterFile = `assets/video/${code}-${lang}-long.jpg`;
   const thumbSrc = existsSync(posterFile) ? `/${posterFile}` : `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
   const thumb = existsSync(posterFile) ? `${SITE}/${posterFile}` : `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
   const ts = n => `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, "0")}`;
