@@ -1,7 +1,8 @@
 name: 長尺動画をサイトに載せる
 
 # YouTube Studio で長尺の環境まとめ動画を「公開」にすると、自動でサイト（セット別ページ・環境レポート）に載る。
-#   ・毎日1回（日本時間の昼）、チャンネルの最近の動画から「公開になった長尺」を探して data/long.json に登録する
+#   ・毎日1回（日本時間の昼）、日本語・英語それぞれのチャンネルの最近の動画から「公開になった長尺」を探して data/long.json に登録する
+#     （英語は YT_REFRESH_TOKEN_EN が登録されているとき。題に「Limited Review」を含む動画を探す）
 #   ・すぐ載せたいときは、このページの「Run workflow」を押す（入力は不要）
 #   ・見つからないときは、セットコードと動画IDを入れて押す（例: set=TMT, video_id=dQw4w9WgXcQ）
 # 非公開のままの動画は登録されない（サイトには出ない）。目次は、概要欄の「0:00 はじめに」の行から作る。
@@ -16,6 +17,9 @@ on:
         required: false
       video_id:
         description: "YouTube の動画ID（自動で見つからないときだけ）"
+        required: false
+      lang:
+        description: "その動画の言語（ja か en。動画IDを指定するときだけ。省略は ja）"
         required: false
 
 permissions:
@@ -39,6 +43,8 @@ jobs:
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN_JA: ${{ secrets.YT_REFRESH_TOKEN_JA }}
+          YT_REFRESH_TOKEN_EN: ${{ secrets.YT_REFRESH_TOKEN_EN }}
+          LONG_LANG: ${{ inputs.lang }}
         run: node maintenance/sync-long.mjs
 
       - name: セット別ページを作り直して、変わっていればコミットする
@@ -62,12 +68,7 @@ jobs:
           fi
           git status --short | head -20
           git commit -m "長尺動画をサイトに載せる"
-          # 他に残っている未コミットの変更（data/names など）は、今回の掲載とは無関係なので退避する
-          ok=0
           for i in 1 2 3; do
-            git pull --rebase --autostash origin main && git push origin main && ok=1 && break
+            git pull --rebase origin main && git push origin main && break
             echo "再試行 $i"; sleep 5
           done
-          if [ "$ok" != "1" ]; then
-            echo "::error::プッシュに失敗しました。サイトには反映されていません。"; exit 1
-          fi
