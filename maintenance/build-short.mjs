@@ -345,11 +345,16 @@ function caption(say){
     `<polygon points="${x0 + bw - 52},${y0 + boxH - 38} ${x0 + bw - 28},${y0 + boxH - 38} ${x0 + bw - 40},${y0 + boxH - 22}" fill="#F4F7FF"/>`;
 }
 
-/* ずんだもん（フード付き）。字幕の枠の右上に立たせる。情報の表示に重ならないよう、画面の右はしの空いたところに小さく置く。
-   日本語の動画だけ（英語はずんだもんの声ではないため）。short/zunda-hoodie/ に素材があるときだけ出す。SHORT_ZUNDA=0 で出さない、=1 で英語にも出す */
-const ZDIR = (process.env.SHORT_ZUNDA_STYLE !== "normal" && existsSync("short/zunda-hoodie/open_open.png")) ? "short/zunda-hoodie" : "short/zunda", ZW = 220, ZH = 225;
+/* 字幕の枠の右上に立たせるキャラクター。情報の表示に重ならないよう、画面の右はしの空いたところに小さく置く。
+   日本語：ずんだもん（フード付き。short/zunda-hoodie/）。英語：四国めたん（赤い服・炎。short/metan/）。
+   口（閉じ・半開き・開き）× 目（開き・閉じ）の6枚（<eye>_<mouth>.png）がそろっているときだけ出す。SHORT_ZUNDA=0 で出さない */
+const ZDIR = JA
+  ? ((process.env.SHORT_ZUNDA_STYLE !== "normal" && existsSync("short/zunda-hoodie/open_open.png")) ? "short/zunda-hoodie" : "short/zunda")
+  : "short/metan";
+const ZW = 220, ZH = 225;
+const MASCOT_NAME = JA ? "ずんだもん" : "四国めたん";
 async function zundaReady(){
-  if(process.env.SHORT_ZUNDA === "0" || (!JA && process.env.SHORT_ZUNDA !== "1")) return false;
+  if(process.env.SHORT_ZUNDA === "0") return false;
   for(const e of ["open", "closed"]) for(const m of ["closed", "half", "open"])
     if(!(await readFile(`${ZDIR}/${e}_${m}.png`).then(() => true, () => false))) return false;
   return true;
@@ -822,7 +827,7 @@ async function main(){
   await writeFile(`${OUT}/${TAG}/script.json`, JSON.stringify(scenes.map(s => ({ kind: s.kind, say: s.say, kana: s.kana, dur: s.dur })), null, 2), "utf8");
 
   const ZUNDA = !process.env.SHORT_STILLS && await zundaReady();
-  console.error(ZUNDA ? `ずんだもん: 字幕の右上に出す（${ZDIR}/）` : "ずんだもん: 出さない");
+  console.error(ZUNDA ? `${MASCOT_NAME}: 字幕の右上に出す（${ZDIR}/）` : `${MASCOT_NAME}: 出さない（${process.env.SHORT_STILLS ? "画像だけの確認のため" : process.env.SHORT_ZUNDA === "0" ? "SHORT_ZUNDA=0" : ZDIR + "/ に6枚がそろっていない"}）`);
 
   // 2) 場面ごとに画像を描いて動画にする
   const segs = [];
