@@ -31,13 +31,22 @@ const readJson = async (p, f) => { try { return JSON.parse(await readFile(p, "ut
 
 if(!ID || !SECRET){ console.error("YT_CLIENT_ID / YT_CLIENT_SECRET が設定されていません。"); process.exit(1); }
 async function tokenFor(lang){
-  const refresh = process.env[`YT_REFRESH_TOKEN_${lang.toUpperCase()}`];
+  let refresh = process.env[`YT_REFRESH_TOKEN_${lang.toUpperCase()}`];
   if(!refresh){ console.log(`${lang}: YT_REFRESH_TOKEN_${lang.toUpperCase()} が無いので飛ばします。`); return null; }
+  /* 貼り付け時に混ざりやすい「REFRESH_TOKEN=」・引用符・空白・改行を取り除く */
+  refresh = refresh.replace(/^\s*(?:YT_)?REFRESH_TOKEN\s*[:=]\s*/i, "").replace(/^["']|["']$/g, "").replace(/\s+/g, "");
   const tr = await fetch(OAUTH, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ client_id: ID, client_secret: SECRET, refresh_token: refresh, grant_type: "refresh_token" }) });
-  const token = (await tr.json().catch(() => ({}))).access_token;
-  if(!token) console.error(`${lang}: YouTube のアクセストークンを取れませんでした。`);
-  return token || null;
+  const j = await tr.json().catch(() => ({}));
+  const token = j.access_token;
+  if(!token){ console.error(`${lang}: YouTube のアクセストークンを取れませんでした（HTTP ${tr.status}: ${j.error || ""} ${j.error_description || ""}）。トークン${refresh.length}文字、先頭${refresh.slice(0, 6)}…`); return null; }
+  /* 診断：このトークンが誰のどの許可か（トークン自体は表示しない） */
+  try{
+    const ti = await (await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(token)}`)).json();
+    const sc = String(ti.scope || "").split(" ").map(x => x.replace("https://www.googleapis.com/auth/", "")).join(", ");
+    console.log(`${lang}: アクセストークン取得OK（許可: ${sc || "不明"} ／ 残り${ti.expires_in || "?"}秒 ／ ${ti.error_description || "有効"}）`);
+  }catch(e){ console.log(`${lang}: アクセストークン取得OK（診断は取れませんでした）`); }
+  return token;
 }
 
 /* セット名 → セットコード。日本語は（日本語・短縮）の名前、英語は data/names の英語名。publish-videos.mjs / build-long.mjs と同じ決め方 */
