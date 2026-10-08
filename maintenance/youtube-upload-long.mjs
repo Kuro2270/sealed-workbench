@@ -2,7 +2,8 @@
 /*
  * できあがった長尺の環境まとめ動画（long/<SET>/ja.mp4）を YouTube に非公開で上げる。
  *
- *   node maintenance/youtube-upload-long.mjs TMT
+ *   node maintenance/youtube-upload-long.mjs TMT        … 日本語（long/TMT/ja.mp4）
+ *   node maintenance/youtube-upload-long.mjs TMT en     … 英語（long/TMT/en/en.mp4。YT_REFRESH_TOKEN_EN のチャンネルへ）
  *
  * 必要な環境変数: YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN_JA（ショートと同じ許可）
  * 題は long/<SET>/title.txt、概要欄（目次つき）は description.txt、サムネイルは thumbnail.jpg を使う。
@@ -12,17 +13,18 @@
 import { readFile, writeFile, stat } from "node:fs/promises";
 
 const SET = (process.argv[2] || "").toUpperCase();
+const LANG = (process.argv[3] || "ja").toLowerCase(), EN = LANG === "en";
 if(!SET){ console.error("使い方: node maintenance/youtube-upload-long.mjs <SET>"); process.exit(1); }
-const ID = process.env.YT_CLIENT_ID, SECRET = process.env.YT_CLIENT_SECRET, REFRESH = process.env.YT_REFRESH_TOKEN_JA;
+const ID = process.env.YT_CLIENT_ID, SECRET = process.env.YT_CLIENT_SECRET, REFRESH = process.env[`YT_REFRESH_TOKEN_${LANG.toUpperCase()}`];
 if(!ID || !SECRET || !REFRESH){
-  console.log("YouTube: 日本語チャンネルの許可（YT_REFRESH_TOKEN_JA）が無いので上げません。");
+  console.log(`YouTube: ${EN ? "英語" : "日本語"}チャンネルの許可（YT_REFRESH_TOKEN_${LANG.toUpperCase()}）が無いので上げません。`);
   process.exit(0);
 }
 
-const DIR = `long/${SET}`, FILE = `${DIR}/ja.mp4`;
+const DIR = EN ? `long/${SET}/en` : `long/${SET}`, FILE = `${DIR}/${LANG}.mp4`;
 const size = (await stat(FILE).catch(() => null))?.size;
 if(!size){ console.error(`${FILE} がありません。先に動画を作ってください。`); process.exit(1); }
-const title = (await readFile(`${DIR}/title.txt`, "utf8").catch(() => `【${SET}】リミテッド環境まとめ｜MTGアリーナ`)).trim();
+const title = (await readFile(`${DIR}/title.txt`, "utf8").catch(() => EN ? `[MTG Arena] ${SET} Limited Review` : `【${SET}】リミテッド環境まとめ｜MTGアリーナ`)).trim();
 const description = (await readFile(`${DIR}/description.txt`, "utf8")).trim();
 
 async function accessToken(){
@@ -36,8 +38,8 @@ async function accessToken(){
 const token = await accessToken();
 const body = {
   snippet: { title: title.slice(0, 100), description: description.slice(0, 5000),
-             tags: ["MTGアリーナ", "MTGA", "マジック：ザ・ギャザリング", "リミテッド", "ドラフト", "シールド", "環境", "17Lands"],
-             categoryId: "20", defaultLanguage: "ja", defaultAudioLanguage: "ja" },
+             tags: EN ? ["MTG Arena", "MTGA", "Magic: The Gathering", "Limited", "Draft", "Sealed", "Limited review", "17Lands"] : ["MTGアリーナ", "MTGA", "マジック：ザ・ギャザリング", "リミテッド", "ドラフト", "シールド", "環境", "17Lands"],
+             categoryId: "20", defaultLanguage: LANG, defaultAudioLanguage: LANG },
   status: { privacyStatus: "private", selfDeclaredMadeForKids: false, license: "youtube" }
 };
 const init = await fetch("https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status", {
