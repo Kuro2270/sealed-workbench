@@ -121,6 +121,7 @@ jobs:
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN_JA: ${{ secrets.YT_REFRESH_TOKEN_JA }}
         run: |
+          set -eo pipefail   # 上げるのに失敗したら、この手順を赤くして止める（tee を通しても失敗を見逃さない）
           node maintenance/youtube-upload-long.mjs "$SET_CODE" | tee yt.log
           if [ -f "long/${SET_CODE}/youtube.json" ]; then
             URL=$(node -e 'console.log(require("./long/"+process.env.SET_CODE+"/youtube.json").url)')
@@ -237,6 +238,7 @@ jobs:
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN_EN: ${{ secrets.YT_REFRESH_TOKEN_EN }}
         run: |
+          set -eo pipefail   # 上げるのに失敗したら、この手順を赤くして止める（tee を通しても失敗を見逃さない）
           node maintenance/youtube-upload-long.mjs "$SET_CODE" en | tee yt.log
           if [ -f "long/${SET_CODE}/en/youtube.json" ]; then
             URL=$(node -e 'console.log(require("./long/"+process.env.SET_CODE+"/en/youtube.json").url)')
