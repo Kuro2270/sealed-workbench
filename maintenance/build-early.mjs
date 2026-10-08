@@ -4,7 +4,7 @@
  *
  *   node maintenance/build-early.mjs RFA
  *
- * 出力: data/articles/<SET>_early.json（「環境まとめ動画を作る」が mode=early で読む）
+ * 出力: data/articles/<SET>_early.json（「環境まとめ動画を作る」が mode=early で読む。サイト用の速報メモは build-early-note.mjs が別に作る）
  *       data/names/<SET>.json（無ければ作る。日本語名とカード画像）
  *
  * 考え方
@@ -182,40 +182,3 @@ await writeFile(`data/articles/${SET}_early.json`, JSON.stringify(out, null, 2) 
 console.error(`${SET}: 先行版データを作成。${formats.map(f => `${f.format} ${f.games.toLocaleString()}`).join(" + ")} = ${total.toLocaleString()} 試合／色の組み合わせ ${archetypes.length}／カード ${nCards} 枚（${MIN_GAMES} 試合以上）`);
 console.error(`  強い色: ${colors.slice(0, 3).map(c => `${c.color} ${(c.wr * 100).toFixed(1)}%`).join("、")}`);
 console.error(`  トップコモン: ${(top.common || []).slice(0, 3).map(c => c.name).join(" / ")}`);
-
-/* ---------- サイト用の「速報メモ」（文章だけ。表やグラフにはしない） ----------
-   17Lands の利用ガイドラインでは、第三者サイトでのデータの掲載（別の形での可視化）は発売12日目まで控えるよう求められている一方、
-   記事での個別の数字の引用は初日から差し支えないとされている。そこで、数字を3〜4個だけ含む文章を作り、下見ページに載せる。
-   数字そのものは残さず、できあがった文章だけを data/early/<SET>.json に置く（「動画を配信」のあと、下見ページに動画と一緒に入る） */
-{
-  const namesJa = (await readJson(`data/names/${SET}.json`, { names: {} })).names || {};
-  const CJ = { W: "白", U: "青", B: "黒", R: "赤", G: "緑" }, CE = { W: "White", U: "Blue", B: "Black", R: "Red", G: "Green" };
-  const pairName = (p, ja) => [...p].map(c => (ja ? CJ : CE)[c] || c).join(ja ? "" : "-");
-  const pct = v => (v * 100).toFixed(1);
-  const totalPair = archetypes.reduce((n, a) => n + a.games, 0) || 1;
-  const pairs = archetypes.filter(a => a.colors.length === 2 && a.games >= Math.max(400, totalPair * 0.04)).sort((a, b) => b.wr - a.wr);
-  const best = pairs[0], second = pairs[1];
-  const mono = colors[0];
-  const c1 = (top.common || [])[0];
-  const monthDay = d => { const [y, m, dd] = d.split("-"); return { ja: `${+m}月${+dd}日`, en: new Date(d + "T00:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }) }; };
-  const asOf = monthDay(iso(Date.now()));
-  const dataDay = (() => { const d = new Date(setInfo.released_at + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + 12); return monthDay(d.toISOString().slice(0, 10)); })();
-  const gamesJa = total >= 10000 ? `約${Math.round(total / 10000)}万` : total.toLocaleString("ja-JP");
-  const gamesEn = total >= 1000 ? `${Math.round(total / 1000)}K` : String(total);
-  const ja = [
-    `発売直後の${gamesJa}試合（ドラフト＋シールド）では、` + (best ? `最も勝っている組み合わせは${pairName(best.colors, true)}（${pct(best.wr)}%）` : "まだ組み合わせの傾向は出ていません") + (second ? `、次いで${pairName(second.colors, true)}（${pct(second.wr)}%）。` : "。"),
-    mono ? `単色では${CJ[mono.color]}が最も安定しています。` : "",
-    c1 ? `コモンでは《${namesJa[c1.name] || c1.name}》の勝率が頭ひとつ抜けています。` : "",
-    `順位はこの後のデータで動きます。`
-  ].filter(Boolean).join("");
-  const en = [
-    `Across the first ${gamesEn} games (Draft and Sealed combined), ` + (best ? `the best-performing pair is ${pairName(best.colors)} (${pct(best.wr)}%)` : "no pair has pulled ahead yet") + (second ? `, followed by ${pairName(second.colors)} (${pct(second.wr)}%).` : "."),
-    mono ? ` ${CE[mono.color]} is the most reliable single colour so far.` : "",
-    c1 ? ` Among commons, ${c1.name} is clearly ahead.` : "",
-    ` Rankings will move as more games come in.`
-  ].filter(Boolean).join("");
-  const note = { set: SET, as_of: iso(Date.now()), as_of_label: asOf, ja, en, source: "17Lands" };
-  await mkdir("data/early", { recursive: true });
-  await writeFile(`data/early/${SET}.json`, JSON.stringify(note, null, 2) + "\n", "utf8");
-  console.error(`  速報メモ: ${ja}`);
-}
