@@ -197,12 +197,12 @@ jobs:
             echo "読み違いがあれば short/yomi.json に「表記: 読み（カタカナ）」を足して、もう一度実行してください。"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # サムネイル（冒頭の場面を 1080×1920 の JPG に。字幕の帯は入らない）。YouTube に上げるときに自動で付け、Artifacts にも入れる
-      - name: サムネイル用の画像を作る
+      # YouTube 用のサムネイル（1080×1920）は build-short.mjs が動画と一緒に作る（short/<SET>/<TAG>.thumbnail.jpg）。
+      # 一覧表示で上下が切れても読めるよう、大事なものを中央の帯に寄せた専用の絵。YouTube に上げるときに自動で付け、Artifacts にも入れる
+      - name: サムネイルの案内
         if: env.SKIP != '1'
         run: |
-          if [ -f "short/$SET_CODE/$VTAG/scene-0.png" ]; then
-            ffmpeg -y -loglevel error -i "short/$SET_CODE/$VTAG/scene-0.png" -vf scale=1080:1920 -q:v 2 "short/$SET_CODE/$VTAG.thumbnail.jpg"
+          if [ -f "short/$SET_CODE/$VTAG.thumbnail.jpg" ]; then
             echo "サムネイル: short/$SET_CODE/$VTAG.thumbnail.jpg（YouTube に自動で付けます。付かなかったときは Artifacts のこのファイルを Studio で付けてください）" >> "$GITHUB_STEP_SUMMARY"
           fi
 

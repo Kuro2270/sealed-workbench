@@ -425,6 +425,49 @@ function frame(inner, say, opts = {}){
 </svg>`;
 }
 
+/* YouTube 用のサムネイル（冒頭の場面とは別に作る）。
+   ショートの一覧（グリッド）では上下が切れ、下部に題名が重なるので、大事なものは縦 18%〜72% の帯に収める。
+   セットのロゴ（short/logo/<SET>.png）があればそれを主役に、無ければセット名の文字。 */
+function thumbSvg(hook){
+  const parts = String(hook.title).includes(" ") && JA ? String(hook.title).split(/\s+/) : [hook.title];
+  const longest = Math.max(...parts.map(p => [...p].length));
+  const lines = parts.length > 1 ? parts : (JA && longest > 9 ? [[...hook.title].slice(0, Math.ceil(longest / 2)).join(""), [...hook.title].slice(Math.ceil(longest / 2)).join("")] : parts);
+  const sz = JA ? Math.min(140, Math.floor(960 / Math.max(...lines.map(l => [...l].length), 4))) : Math.min(150, Math.floor(980 / Math.max(longest * 0.62, 4)));
+  const TOP = 340, BOTTOM = 1380;                       // この間に収める（上 18%・下 28% は見切れる前提）
+  let y = TOP;
+  let inner = `<defs><linearGradient id="gz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050B14" stop-opacity="0"/><stop offset="0.12" stop-color="#050B14" stop-opacity="0.78"/><stop offset="0.88" stop-color="#050B14" stop-opacity="0.78"/><stop offset="1" stop-color="#050B14" stop-opacity="0"/></linearGradient></defs>` +
+    `<rect x="0" y="${TOP - 80}" width="${W}" height="${BOTTOM - TOP + 160}" fill="url(#gz)"/>`;
+  // アリーナのロゴ（小さく）
+  inner += hook.arenaLogo ? `<image href="${hook.arenaLogo}" x="${W / 2 - 200}" y="${y}" width="400" height="140" preserveAspectRatio="xMidYMid meet"/>`
+                          : T(W / 2, y + 100, UI.arena, { size: 60, weight: 900, anchor: "middle", fill: "#FFFFFF" });
+  y += 170;
+  // セットのロゴ、または名前
+  if(hook.logo){
+    inner += `<image href="${hook.logo}" x="90" y="${y}" width="900" height="330" preserveAspectRatio="xMidYMid meet"/>`;
+    y += 360;
+  }else{
+    for(const l of lines){ inner += TS(W / 2, y + sz, l, { size: sz, fill: "#FFD23F" }); y += Math.round(sz * 1.12); }
+    y += 20;
+  }
+  // 速報バッジ（ロゴ／名前の右上に重ねる）
+  if(hook.early) inner += `<g transform="rotate(-8 ${W - 190} ${TOP + 150})"><rect x="${W - 330}" y="${TOP + 110}" width="280" height="84" rx="42" fill="#E53935" stroke="#FFFFFF" stroke-width="6"/>` +
+    T(W - 190, TOP + 170, UI.earlyBadge, { size: JA ? 54 : 36, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>`;
+  // 種類のピル
+  const pill = hook.early ? UI.earlyHookC : UI.hookC(hook.isSealed);
+  inner += `<rect x="${W / 2 - 300}" y="${y}" width="600" height="104" rx="52" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
+    T(W / 2, y + 72, pill, { size: hook.early && !JA ? 54 : 64, weight: 900, anchor: "middle", fill: "#06101C" });
+  y += 170;
+  // 試合数と中身（下の帯の中、題名に隠れない位置）
+  const g = UI.hookD1(hook.games), n1 = String(hook.games), l1 = [...g].length, l2 = [...UI.hookD2].length;
+  const s1 = JA ? Math.min(130, Math.floor(980 / l1)) : Math.min(104, Math.floor(980 / (l1 * 0.58)));
+  const s2 = JA ? Math.min(96, Math.floor(980 / l2)) : Math.min(84, Math.floor(980 / (l2 * 0.58)));
+  const i = g.indexOf(n1), head = i >= 0 ? g.slice(0, i) : "", tail = i >= 0 ? g.slice(i + n1.length) : g;
+  const y1 = Math.min(y + s1, BOTTOM - s2 - 40);
+  inner += `<text x="${W / 2}" y="${y1}" font-size="${s1}" fill="#FFFFFF" font-weight="900" text-anchor="middle" stroke="#06101C" stroke-width="${Math.round(s1 * 0.16)}" stroke-linejoin="round" paint-order="stroke">${esc(head)}<tspan fill="#FFD23F">${esc(n1)}</tspan>${esc(tail)}</text>` +
+    TS(W / 2, y1 + Math.round(s2 * 1.3), UI.hookD2, { size: s2 });
+  return frame(inner, null, { header: false });
+}
+
 function sceneSvg(sc){
   switch(sc.kind){
     case "hook": {
@@ -733,21 +776,34 @@ async function main(){
   HAS_BG = bgDur > 0;
   console.error(HAS_BG ? `背景: ${BG}（${bgDur.toFixed(1)}秒、足りなければ繰り返す）` : "背景: 紺色（short/bg.mp4 が無い）");
 
+  // 場面の PNG を背景（カードアートかプレイ映像）に重ねて 1 枚の JPG にする（サイト用サムネイルと YouTube 用サムネイルで共用）
+  const composeStill = (png, out, outW, outH, q) => {
+    const args = (artPath || HAS_BG)
+      ? (artPath ? ["-loop", "1", "-i", artPath] : ["-ss", "1.0", "-i", BG]).concat(["-i", png, "-filter_complex",
+         `[0:v]scale=iw*sar:ih,setsar=1,scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},eq=saturation=${artPath ? 1.0 : 0.7}${artPath ? "" : ",gblur=sigma=5"},setsar=1[bg0];` +
+         `color=c=0x0A2038@${artPath ? 0.12 : 0.6}:s=${W}x${H}[tint];[bg0][tint]overlay=shortest=1[bg];[1:v]scale=${W}:${H},format=rgba[fg];[bg][fg]overlay=shortest=1,scale=${outW}:${outH}[v]`])
+      : ["-f", "lavfi", "-i", `color=c=0x0A2038:s=${W}x${H}`, "-i", png, "-filter_complex", `[0:v][1:v]overlay=shortest=1,scale=${outW}:${outH}[v]`];
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...args, "-map", "[v]", "-frames:v", "1", "-q:v", String(q), out]);
+  };
+  // YouTube 用のサムネイル（1080×1920。一覧で切れない配置）。動画と一緒に作り、youtube-upload.mjs が使う
+  const makeThumbnail = async () => {
+    const png = `${OUT}/${TAG}/thumb.png`;
+    await sharp(Buffer.from(thumbSvg(scenes[0])), { density: 72 }).png().toFile(png);
+    composeStill(png, `${OUT}/${TAG}.thumbnail.jpg`, W, H, 2);
+    console.error(`YouTube 用サムネイル: ${OUT}/${TAG}.thumbnail.jpg`);
+  };
+
   // サムネイルだけ作る（SHORT_POSTER=1）。冒頭のタイトル場面を背景に重ねて assets/video/<SET>-<TAG>.jpg に。読み上げは要らない
   if(process.env.SHORT_POSTER){
     const png = `${OUT}/${TAG}/poster.png`;
     await sharp(Buffer.from(sceneSvg(scenes[0])), { density: 72 }).png().toFile(png);
     await mkdir("assets/video", { recursive: true });
-    const out = `assets/video/${SET}-${TAG}.jpg`;
-    const args = (artPath || HAS_BG)
-      ? (artPath ? ["-loop", "1", "-i", artPath] : ["-ss", "1.0", "-i", BG]).concat(["-i", png, "-filter_complex",
-         `[0:v]scale=iw*sar:ih,setsar=1,scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},eq=saturation=${artPath ? 1.0 : 0.7}${artPath ? "" : ",gblur=sigma=5"},setsar=1[bg0];` +
-         `color=c=0x0A2038@${artPath ? 0.12 : 0.6}:s=${W}x${H}[tint];[bg0][tint]overlay=shortest=1[bg];[1:v]scale=${W}:${H},format=rgba[fg];[bg][fg]overlay=shortest=1,scale=540:960[v]`])
-      : ["-f", "lavfi", "-i", `color=c=0x0A2038:s=${W}x${H}`, "-i", png, "-filter_complex", `[0:v][1:v]overlay=shortest=1,scale=540:960[v]`];
-    execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...args, "-map", "[v]", "-frames:v", "1", "-q:v", "4", out]);
-    console.error(`サムネイルを作りました: ${out}`);
+    composeStill(png, `assets/video/${SET}-${TAG}.jpg`, 540, 960, 4);
+    console.error(`サムネイルを作りました: assets/video/${SET}-${TAG}.jpg`);
     return;
   }
+  // 画像だけ確認するとき（SHORT_STILLS=1）も、YouTube 用サムネイルは作って見られるようにする
+  if(process.env.SHORT_STILLS) await makeThumbnail().catch(e => console.error("YouTube 用サムネイルを作れませんでした: " + e.message));
 
   // 1) 音声を先にまとめて作る（VOICEVOX が要るのはここだけ）。文面が前回と同じなら作り直さない
   const prev = await readJson(`${OUT}/${TAG}/script.json`, []);
@@ -847,6 +903,7 @@ async function main(){
         `[0:a][bg]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`,
       "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-t", String(total), "-movflags", "+faststart", `${OUT}/${TAG}.mp4`]);
   }
+  await makeThumbnail().catch(e => console.error("YouTube 用サムネイルを作れませんでした: " + e.message));
   // サイトの埋め込み用のサムネイル（冒頭のタイトル場面）。assets/video/<SET>-<TAG>.jpg に置き、ページはこれを使う
   try{
     await mkdir("assets/video", { recursive: true });
