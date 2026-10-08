@@ -769,7 +769,7 @@
     "reports.profileNow": { ja:"それまでは、カード枚数から見た「下見」を載せています（データが出たら自動で切り替わります）。", en:"Until then, here is the card-count preview (the report switches over automatically once data arrives)." },
     "reports.profileLink":{ ja:"勝率データが出るまでの「下見」（カード枚数の分析）はこちら →", en:"Until win-rate data lands, see the card-count preview →" },
     "reports.long.h":    { ja:"リミテッド環境まとめ（長尺動画）", en:"Format overview (long video)" },
-    "reports.long.lead": { ja:"ドラフトとシールドの両方のデータで、強い色・狙い目の色・ボム・罠・除去までまとめました。目次を押すと、その場面から再生します。", en:"" },
+    "reports.long.lead": { ja:"ドラフトとシールドの両方のデータで、強い色・狙い目の色・ボム・罠・色別のおすすめカードまでまとめました。目次を押すと、その場面から再生します。", en:"" },
     "reports.video.h":   { ja:"1分でわかる環境（動画）", en:"The format in 60 seconds (video)" },
     "reports.video.lead":{ ja:"この環境の要点を1分のショート動画にまとめました。再生ボタンで YouTube の動画を読み込みます。", en:"The key points of this format in a one-minute Short. Pressing play loads the video from YouTube." },
     "reports.video.play":{ ja:"再生", en:"Play" },
