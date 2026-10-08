@@ -18,6 +18,11 @@ on:
         description: "読み上げの速さ（1.2 = 少し速め。長すぎるときは上げる）"
         required: false
         default: "1.2"
+      en:
+        description: "英語版（英語の音声・文字。ずんだもんの立ち絵つき）も同時に作る"
+        type: boolean
+        required: false
+        default: true
       upload:
         description: "できたら YouTube に非公開で上げる（許可が登録されていれば。公開は YouTube Studio で手で）"
         type: boolean
@@ -60,6 +65,26 @@ jobs:
             echo "::warning::Releases（タグ assets）に bg.mp4 が無いので、紺色の背景で作ります。"
           fi
 
+      - name: 英語の読み上げ（Kokoro）を入れる
+        if: inputs.en == true
+        run: pip install --quiet kokoro-onnx soundfile
+
+      - name: Kokoro のモデルを用意する（2回目からはキャッシュ）
+        if: inputs.en == true
+        id: kokoro
+        uses: actions/cache@v4
+        with:
+          path: short/kokoro
+          key: kokoro-model-v1.0
+
+      - name: Kokoro のモデルを落とす
+        if: inputs.en == true && steps.kokoro.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p short/kokoro
+          curl -sSL -o short/kokoro/kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
+          curl -sSL -o short/kokoro/voices-v1.0.bin https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
+          ls -la short/kokoro
+
       - name: VOICEVOX が起きるのを待つ
         run: |
           for i in $(seq 1 60); do
@@ -74,6 +99,8 @@ jobs:
           SET_IN: ${{ inputs.set }}
           VOICEVOX_SPEED: ${{ inputs.speed }}
           VOICEVOX_URL: http://127.0.0.1:50021
+          KOKORO_DIR: short/kokoro
+          EN_IN: ${{ inputs.en }}
         run: |
           export SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"
           echo "SET_CODE=$SET_CODE" >> "$GITHUB_ENV"
@@ -84,6 +111,9 @@ jobs:
             fi
           done
           node maintenance/build-long.mjs "$SET_CODE" 2>&1 | tee long.log
+          if [ "$EN_IN" = "true" ]; then
+            node maintenance/build-long.mjs "$SET_CODE" en 2>&1 | tee long-en.log
+          fi
           {
             echo "## ${SET_CODE} の長尺動画ができました"
             echo
@@ -103,6 +133,18 @@ jobs:
             echo
             echo "読み違いがあれば short/yomi.json に「表記: 読み（カタカナ）」を足して、もう一度実行してください。"
           } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$EN_IN" = "true" ] && [ -f "long/$SET_CODE/en/en.mp4" ]; then
+            {
+              echo
+              echo "## English version (en.mp4)"
+              echo
+              echo '```'
+              sed -n '/^目次:/,$p' long-en.log
+              echo '```'
+              echo
+              echo "英語版は long-${SET_CODE}-en の Artifacts に入っています（en.mp4、chapters.txt、description.txt、thumbnail.jpg）。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: YouTube に非公開で上げる（許可が登録されていれば）
         if: inputs.upload == true
@@ -110,8 +152,21 @@ jobs:
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN_JA: ${{ secrets.YT_REFRESH_TOKEN_JA }}
+          YT_REFRESH_TOKEN_EN: ${{ secrets.YT_REFRESH_TOKEN_EN }}
+          EN_IN: ${{ inputs.en }}
         run: |
           node maintenance/youtube-upload-long.mjs "$SET_CODE" | tee yt.log
+          if [ "$EN_IN" = "true" ] && [ -f "long/$SET_CODE/en/en.mp4" ]; then
+            node maintenance/youtube-upload-long.mjs "$SET_CODE" en | tee yt-en.log
+            if [ -f "long/$SET_CODE/en/youtube.json" ]; then
+              {
+                echo
+                echo "### YouTube（英語版・非公開）"
+                echo
+                echo "$(node -e 'console.log(require("./long/"+process.env.SET_CODE+"/en/youtube.json").url)')"
+              } >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
           if [ -f "long/$SET_CODE/youtube.json" ]; then
             URL=$(node -e 'console.log(require("./long/"+process.env.SET_CODE+"/youtube.json").url)')
             {
@@ -138,3 +193,19 @@ jobs:
             long/${{ env.SET_CODE }}/script.json
           retention-days: 30
           if-no-files-found: error
+
+      - name: 英語版の動画を保存する
+        if: inputs.en == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: long-${{ env.SET_CODE }}-en
+          path: |
+            long/${{ env.SET_CODE }}/en/en.mp4
+            long/${{ env.SET_CODE }}/en/chapters.txt
+            long/${{ env.SET_CODE }}/en/description.txt
+            long/${{ env.SET_CODE }}/en/thumbnail.jpg
+            long/${{ env.SET_CODE }}/en/title.txt
+            long/${{ env.SET_CODE }}/en/youtube.json
+            long/${{ env.SET_CODE }}/en/script.json
+          retention-days: 30
+          if-no-files-found: warn
