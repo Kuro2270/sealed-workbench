@@ -1190,10 +1190,14 @@ ${ZUNDA ? "立ち絵: 坂本アヒル（https://twitter.com/sakamoto_ahr）\n" :
       `[0:a][bg]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`,
       "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-t", String(total), "-movflags", "+faststart", `${OUT}/ja.mp4`]);
   }
-  // サムネイル（冒頭の場面。字幕の入る前の画面を、カードの絵に重ねる）
+  // サムネイル（冒頭の場面。字幕の入る前の画面を、カードの絵に重ねる）。右下に、フード付きのずんだもん（口を開けた笑顔）を載せる
+  //   出さないとき：LONG_THUMB_ZUNDA=0 ／ 素材は short/zunda-hoodie/open_open.png（無ければ short/zunda/open_open.png）
   try{
-    execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...(artPath ? ["-loop", "1", "-i", artPath] : ["-ss", "2.0", "-i", `${OUT}/ja.mp4`]), "-i", `${OUT}/scene-0.png`, "-filter_complex",
-      `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1,gblur=sigma=${artMode === "key" ? 0.6 : 1.5},eq=brightness=0[b];[1:v]scale=${W}:${H},format=rgba[f];[b][f]overlay=shortest=1`, "-frames:v", "1", "-q:v", "2", `${OUT}/thumbnail.jpg`]);
+    const zt = process.env.LONG_THUMB_ZUNDA === "0" ? null : ["short/zunda-hoodie/open_open.png", "short/zunda/open_open.png"].find(f => existsSync(f));
+    const TZW = 400, TZH = Math.round(400 * 380 / 372);      // 素材は 372×380
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...(artPath ? ["-loop", "1", "-i", artPath] : ["-ss", "2.0", "-i", `${OUT}/ja.mp4`]), "-i", `${OUT}/scene-0.png`, ...(zt ? ["-i", zt] : []), "-filter_complex",
+      `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1,gblur=sigma=${artMode === "key" ? 0.6 : 1.5},eq=brightness=0[b];[1:v]scale=${W}:${H},format=rgba[f];[b][f]overlay=shortest=1` +
+      (zt ? `[t];[2:v]scale=${TZW}:${TZH},format=rgba[z];[t][z]overlay=x=${W - TZW - 16}:y=${H - TZH + 6}` : ""), "-frames:v", "1", "-q:v", "2", `${OUT}/thumbnail.jpg`]);
   }catch(e){}
   console.error(`\n${OUT}/ja.mp4  合計 ${ts(total)}（${total.toFixed(0)} 秒）`);
 }
