@@ -63,6 +63,25 @@ jobs:
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: node maintenance/post-social.mjs "${{ inputs.kind || 'weekly' }}"
 
+      # X への自動投稿は止めている（X API が従量課金になったため）。文面・画像・動画を Artifacts「x-manual」とこのまとめに出すので、手で X に貼る
+      - name: X に手で貼る文面と素材を出す
+        if: always()
+        run: |
+          if [ -f social-manual/x-posts.md ]; then
+            { echo "## X に手で投稿する文面（動画・画像は Artifacts「x-manual」から）"; echo; cat social-manual/x-posts.md; } >> "$GITHUB_STEP_SUMMARY"
+            mkdir -p social-manual/video
+            for f in short/dl/*.mp4; do [ -f "$f" ] && cp "$f" social-manual/video/; done
+            echo "HAS_MANUAL=1" >> "$GITHUB_ENV"
+          fi
+      - name: X 手動投稿の素材を保存する
+        if: always() && env.HAS_MANUAL == '1'
+        uses: actions/upload-artifact@v4
+        with:
+          name: x-manual
+          path: social-manual/
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: 確認用の画像を保存（文面の確認だけのとき）
         if: inputs.dry_run == true
         uses: actions/upload-artifact@v4
