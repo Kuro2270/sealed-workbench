@@ -22,7 +22,8 @@
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { execFileSync } from "node:child_process";
+import { execFileSync, execFile } from "node:child_process";
+import { cpus } from "node:os";
 import { resolve } from "node:path";
 import { existsSync } from "node:fs";
 
@@ -1039,11 +1040,14 @@ async function loadYomi(){
   if(n) console.error(`読み辞書: ${n} 語`);
 }
 
-/* ------------------------------------------------------------ ずんだもん（口パク・まばたき）
-   short/zunda/{open,closed}_{closed,half,open}.png があれば、右下に出す。
-   （目：open/closed、口：closed/half/open）  LONG_ZUNDA=0 で出さない */
-// short/zunda-hoodie/（水色のパーカー版）があれば、そちらを使う。いつもの姿に戻すときは、そのフォルダを消すか LONG_ZUNDA_STYLE=normal
-const ZDIR = (process.env.LONG_ZUNDA_STYLE !== "normal" && existsSync("short/zunda-hoodie/open_open.png")) ? "short/zunda-hoodie" : "short/zunda", ZW = 245, ZH = 250;      // 画面での大きさ（素材は 372×380）。画面の下のすみ（字幕の右どなり）に置く
+/* ------------------------------------------------------------ 右下のキャラクター（口パク・まばたき）
+   日本語：ずんだもん（short/zunda-hoodie/。無ければ short/zunda/）。英語：四国めたん（short/metan/）。
+   {open,closed}_{closed,half,open}.png の6枚（目：open/closed、口：closed/half/open）がそろっていれば右下に出す。LONG_ZUNDA=0 で出さない */
+// 日本語は short/zunda-hoodie/（水色のパーカー版）があれば、そちらを使う。いつもの姿に戻すときは、そのフォルダを消すか LONG_ZUNDA_STYLE=normal
+const ZDIR = EN ? "short/metan"
+  : ((process.env.LONG_ZUNDA_STYLE !== "normal" && existsSync("short/zunda-hoodie/open_open.png")) ? "short/zunda-hoodie" : "short/zunda");
+const ZW = 245, ZH = 250;      // 画面での大きさ（素材は 372×380）。画面の下のすみ（字幕の右どなり）に置く
+const MASCOT_NAME = EN ? "四国めたん" : "ずんだもん";
 async function zundaReady(){
   if(process.env.LONG_ZUNDA === "0") return false;
   for(const e of ["open", "closed"]) for(const m of ["closed", "half", "open"])
@@ -1223,6 +1227,31 @@ async function main(){
   if(!keyArt) console.error(`背景：勝率上位のカードの絵を並べて使う（公式の絵に替えるなら short/bg/${SET}.jpg を置く）`);
 
   // カード画像：全場面で使うカードを一度だけ取って使い回す
+  // 英語版の画像：セットの英語版のカードを、発売順（番号の小さい順）にまとめて取り、名前で引けるようにする
+  let enImgMap = null;
+  const enImages = async () => {
+    if(enImgMap) return enImgMap;
+    enImgMap = {};
+    try{
+      let url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(`set:${SET.toLowerCase()} lang:en`)}&unique=prints&order=set`;
+      while(url){
+        const r = await fetch(url, { headers: { ...UA, Accept: "application/json" } });
+        if(!r.ok) break;
+        const j = await r.json();
+        for(const cd of j.data){
+          const u = (cd.image_uris || (cd.card_faces && cd.card_faces[0] && cd.card_faces[0].image_uris) || {}).normal;
+          if(!u) continue;
+          const fr = String(cd.name).split(" // ")[0];
+          if(!enImgMap[cd.name]) enImgMap[cd.name] = u;
+          if(!enImgMap[fr]) enImgMap[fr] = u;
+        }
+        url = j.has_more ? j.next_page : null;
+        if(url) await new Promise(res => setTimeout(res, 120));
+      }
+    }catch(e){}
+    console.error(`英語版のカード画像の一覧: ${Object.keys(enImgMap).length} 件`);
+    return enImgMap;
+  };
   const imgCache = new Map();
   const getImg = async c => {
     const key = c.name; if(imgCache.has(key)) return imgCache.get(key);
@@ -1230,13 +1259,19 @@ async function main(){
     let url = (nm.images || {})[c.name] || (nm.images || {})[String(c.name).split(" // ")[0]];
     if(EN){   // 英語版：保存してあるのは日本語版のカード画像なので、英語版の画像を Scryfall から取り直す
       const front = String(c.name).split(" // ")[0];
-      const pick = j => (j.image_uris || (j.card_faces && j.card_faces[0] && j.card_faces[0].image_uris) || {}).normal || null;
-      for(const q of [`exact=${encodeURIComponent(c.name)}&set=${SET.toLowerCase()}`, `exact=${encodeURIComponent(front)}&set=${SET.toLowerCase()}`, `exact=${encodeURIComponent(front)}`]){
-        try{
-          const r = await fetch(`https://api.scryfall.com/cards/named?${q}`, { headers: { ...UA, Accept: "application/json" } });
-          await new Promise(res => setTimeout(res, 110));
-          if(r.ok){ const u = pick(await r.json()); if(u){ url = u; break; } }
-        }catch(e){}
+      const hit = (await enImages())[c.name] || (await enImages())[front];
+      if(hit) url = hit;
+      else{
+        const pick = j => (j.image_uris || (j.card_faces && j.card_faces[0] && j.card_faces[0].image_uris) || {}).normal || null;
+        let got = null;
+        for(const q of [`exact=${encodeURIComponent(c.name)}&set=${SET.toLowerCase()}&lang=en`, `exact=${encodeURIComponent(front)}&set=${SET.toLowerCase()}&lang=en`, `exact=${encodeURIComponent(front)}`]){
+          try{
+            const r = await fetch(`https://api.scryfall.com/cards/named?${q}`, { headers: { ...UA, Accept: "application/json" } });
+            await new Promise(res => setTimeout(res, 110));
+            if(r.ok){ got = pick(await r.json()); if(got) break; }
+          }catch(e){}
+        }
+        if(got) url = got; else { console.error(`英語版のカード画像が取れませんでした（日本語版の画像で代用）: ${c.name}`); }
       }
     }
     if(url){
@@ -1281,21 +1316,34 @@ async function main(){
 
   const ZUNDA = !STILLS && await zundaReady();
   if(ZUNDA) CAPBOX = { x0: 50, bw: W - 50 - ZW - 70, size: 40 };      // 字幕の箱は左に寄せて、右下はずんだもんの場所
-  console.error(ZUNDA ? `ずんだもん: 右下に出す（${ZDIR}/）` : "ずんだもん: 出さない（short/zunda/ に素材が無い）");
+  console.error(ZUNDA ? `${MASCOT_NAME}: 右下に出す（${ZDIR}/）` : `${MASCOT_NAME}: 出さない（${ZDIR}/ に6枚がそろっていない）`);
   // 画像と動画
   const segs = []; let total = 0; const chapters = [];
+  // 場面ごとの動画（ffmpeg）は、いくつかを同時に作る。1本ずつだと、フィルタが1つの CPU しか使えずに待つ時間が長いため。
+  // 同時に作る数：LONG_JOBS（省略時は CPU の数＋1、2〜4）。画質の設定（preset・crf）は変えない
+  const JOBS = Math.max(1, +process.env.LONG_JOBS || Math.min(4, Math.max(2, cpus().length + 1)));
+  const running = new Set(); let jobErr = null;
+  const runFfmpeg = args => new Promise((res, rej) => execFile("ffmpeg", args, { maxBuffer: 1 << 26 }, (e, so, se) => e ? rej(new Error(String(se || e.message).slice(-1500))) : res()));
+  const launch = async (args, label) => {
+    while(running.size >= JOBS){ await Promise.race(running); if(jobErr) throw jobErr; }
+    const pr = runFfmpeg(args).then(() => console.error(label), e => { jobErr = jobErr || e; }).finally(() => running.delete(pr));
+    running.add(pr);
+  };
+  console.error(`場面の動画を作る: 同時に ${JOBS} 本`);
   for(const [i, sc] of scenes.entries()){
+    if(jobErr) throw jobErr;
     const base = `${OUT}/scene-${i}`;
     const len = sc.dur + (sc.tail || 0.4), pad = len - sc.dur, N = Math.ceil(len * 30);
     await sharp(Buffer.from(sceneSvg(sc)), { density: 72 }).resize(W, H).png().toFile(base + ".png");
     // 字幕ページ（読み上げの文字数の割合で時間を割り振る）
     const pages = sc.cap ? capPages(sc.cap) : capPages(sc.say), nChars = pages.reduce((n, p) => n + [...p].length, 0) || 1;
-    let t = 0; const caps = [];
+    let t = 0; const caps = [], capJobs = [];
     for(const [k, pg] of pages.entries()){
       const d = sc.dur * [...pg].length / nChars, f = `${base}-cap${k}.png`;
-      await sharp(Buffer.from(capSvg(pg)), { density: 72 }).resize(W, H - CAP_Y).png().toFile(f);
+      capJobs.push(sharp(Buffer.from(capSvg(pg)), { density: 72 }).resize(W, H - CAP_Y).png().toFile(f));
       caps.push({ f, a: t, b: k === pages.length - 1 ? len : t + d }); t += d;
     }
+    await Promise.all(capJobs);
     if(sc.chapter) chapters.push({ at: total, title: sc.chapter });
     if(STILLS){ console.error(`${i} ${sc.kind} → ${base}.png`); total += len; continue; }
 
@@ -1304,21 +1352,25 @@ async function main(){
     const bgFilter = useArt
       ? `[0:v]scale=${W * 2}:${H * 2}:force_original_aspect_ratio=increase,crop=${W * 2}:${H * 2},zoompan=z='1+0.04*on/${N}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${N}:s=${W}x${H}:fps=30,eq=saturation=${sc.kind === "hook" ? 1.05 : 0.9},gblur=sigma=${sc.kind === "hook" ? (artMode === "key" ? 0.6 : 1.5) : 7}[b0];color=c=0x0A2038@${sc.kind === "hook" ? (artMode === "key" ? 0.12 : 0.18) : 0.5}:s=${W}x${H}:r=30[tint];[b0][tint]overlay=shortest=1[bg]`
       : HAS_BG
-        ? `[0:v]fps=30,scale=iw*sar:ih,setsar=1,scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},eq=saturation=0.7,gblur=sigma=5,setsar=1[b0];color=c=0x0A2038@0.6:s=${W}x${H}:r=30[tint];[b0][tint]overlay=shortest=1[bg]`
+        // 背景は強くぼかして暗くするので、1/4 の大きさでぼかしてから戻す（見た目はほぼ同じで、処理は大幅に軽くなる）
+        ? `[0:v]fps=30,scale=iw*sar:ih,setsar=1,scale=${W / 4}:${H / 4}:force_original_aspect_ratio=increase,crop=${W / 4}:${H / 4},eq=saturation=0.7,gblur=sigma=1.25,setsar=1[b0];color=c=0x0A2038@0.6:s=${W / 4}x${H / 4}:r=30[tint];[b0][tint]overlay=shortest=1,scale=${W}:${H}:flags=bicubic[bg]`
         : `[0:v]null[bg]`;
     const zIn = ZUNDA ? ["-f", "concat", "-safe", "0", "-i", await zundaList(i, base + ".wav", len, OUT)] : [];
-    const inputs = [...first, "-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", base + ".wav", ...caps.flatMap(c => ["-loop", "1", "-framerate", "30", "-i", c.f]), ...zIn];
+    // 静止画は「-loop 1」で読むと、毎コマ PNG を読み込み直して遅い。1コマだけ読んで、loop フィルタで繰り返す（出来上がる絵は同じ）
+    const inputs = [...first, "-framerate", "30", "-i", base + ".png", "-i", base + ".wav", ...caps.flatMap(c => ["-framerate", "30", "-i", c.f]), ...zIn];
+    const still = "format=yuva420p,loop=loop=-1:size=1:start=0,setpts=N/(30*TB)";
     // ずんだもんは、画面の右下のすみ（字幕の右どなり）に置く。図や字幕と重ならないよう、小さめにして、上下には揺らさない
     const zx = W - 24 - ZW, zy = H - ZH;      // 画面の右下のすみ。上下には揺らさない
-    let fc = `${bgFilter};[1:v]format=rgba${sc.kind === "hook" ? "" : ",fade=t=in:d=0.2:alpha=1"}[fg];[bg][fg]overlay=shortest=1[${ZUNDA ? "vz" : "v0"}]` +
+    let fc = `${bgFilter};[1:v]${still}${sc.kind === "hook" ? "" : ",fade=t=in:d=0.2:alpha=1"}[fg];[bg][fg]overlay=shortest=1[${ZUNDA ? "vz" : "v0"}]` +
       (ZUNDA ? `;[${3 + caps.length}:v]fps=30,scale=${ZW}:${ZH},format=rgba[zz];[vz][zz]overlay=x=${zx}:y=${zy}:shortest=1[v0]` : "");
-    caps.forEach((c, k) => { fc += `;[v${k}][${3 + k}:v]overlay=0:${CAP_Y}:enable='between(t,${c.a.toFixed(2)},${c.b.toFixed(2)})':shortest=1[v${k + 1}]`; });
+    caps.forEach((c, k) => { fc += `;[${3 + k}:v]${still}[c${k}];[v${k}][c${k}]overlay=0:${CAP_Y}:enable='between(t,${c.a.toFixed(2)},${c.b.toFixed(2)})':shortest=1[v${k + 1}]`; });
     fc += `;[v${caps.length}]format=yuv420p[v];[2:a]apad=pad_dur=${pad.toFixed(2)},afade=t=in:d=0.012,afade=t=out:st=${(len - 0.03).toFixed(3)}:d=0.03,aformat=sample_rates=48000:channel_layouts=stereo[a]`;
-    execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...inputs, "-filter_complex", fc, "-map", "[v]", "-map", "[a]", "-t", String(len),
-      "-c:v", "libx264", "-preset", process.env.LONG_PRESET || "veryfast", "-crf", "22", "-threads", "0", "-c:a", "aac", "-b:a", "160k", base + ".mp4"]);
+    await launch(["-y", "-loglevel", "error", ...inputs, "-filter_complex", fc, "-map", "[v]", "-map", "[a]", "-t", String(len),
+      "-c:v", "libx264", "-preset", process.env.LONG_PRESET || "veryfast", "-crf", "22", "-threads", "0", "-c:a", "aac", "-b:a", "160k", base + ".mp4"], `${i} ${sc.kind.padEnd(8)} ${sc.dur.toFixed(1)}s → ${len.toFixed(1)}s`);
     segs.push(`file 'scene-${i}.mp4'`); total += len;
-    console.error(`${i} ${sc.kind.padEnd(8)} ${sc.dur.toFixed(1)}s → ${len.toFixed(1)}s`);
   }
+  await Promise.all(running);
+  if(jobErr) throw jobErr;
 
   // 目次（YouTube の概要欄に貼る）と概要欄の下書き
   const ts = s => { const m = Math.floor(s / 60), r = Math.floor(s % 60); return `${m}:${String(r).padStart(2, "0")}`; };
@@ -1327,7 +1379,7 @@ async function main(){
   await writeFile(`${OUT}/title.txt`, EN ? `[MTG Arena] ${nameJa} Limited Review | Best Colours, Sleeper Pairs, Top 10 Bombs & Trap Rares` : `【${nameJa}】リミテッド環境まとめ｜強い色・狙い目の色・ボム10枚・罠なレアカード・色別おすすめ【MTGアリーナ】`, "utf8");   // YouTube に上げるときの題
   const credit = EN ? `Data: 17Lands Public Data (CC BY 4.0)
 Voice: Kokoro TTS
-${ZUNDA ? "Character art: Sakamoto Ahiru (https://twitter.com/sakamoto_ahr)\n" : ""}${bgmCredit ? `BGM: ${bgmCredit}\n` : ""}Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.` : "";
+${ZUNDA ? "Character: Shikoku Metan (VOICEVOX / Tohoku Zunko project; illustration by Sakamoto Ahiru, recoloured)\n" : ""}${bgmCredit ? `BGM: ${bgmCredit}\n` : ""}Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.` : "";
   if(EN) await writeFile(`${OUT}/description.txt`,
 `A complete MTG Arena Limited review of ${nameJa}, based on 17Lands data (${gD} Draft games and ${gS} Sealed games).
 The strongest colour pairs and deck speed, sleeper pairs, the top 10 bomb rares, trap rares, and the best commons and uncommons for every colour.
@@ -1370,10 +1422,10 @@ ${ZUNDA ? "立ち絵: 坂本アヒル（https://twitter.com/sakamoto_ahr）\n" :
       `[0:a][bg]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`,
       "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-t", String(total), "-movflags", "+faststart", `${OUT}/${LANG}.mp4`]);
   }
-  // サムネイル（冒頭の場面。字幕の入る前の画面を、カードの絵に重ねる）。右下に、フード付きのずんだもん（口を開けた笑顔）を載せる
-  //   出さないとき：LONG_THUMB_ZUNDA=0 ／ 素材は short/zunda-hoodie/open_open.png（無ければ short/zunda/open_open.png）
+  // サムネイル（冒頭の場面。字幕の入る前の画面を、カードの絵に重ねる）。右下に、キャラクター（口を開けた笑顔）を載せる
+  //   日本語はフード付きのずんだもん、英語は四国めたん。出さないとき：LONG_THUMB_ZUNDA=0
   try{
-    const zt = process.env.LONG_THUMB_ZUNDA === "0" ? null : ["short/zunda-hoodie/open_open.png", "short/zunda/open_open.png"].find(f => existsSync(f));
+    const zt = process.env.LONG_THUMB_ZUNDA === "0" ? null : (EN ? ["short/metan/open_open.png"] : ["short/zunda-hoodie/open_open.png", "short/zunda/open_open.png"]).find(f => existsSync(f));
     const TZW = 400, TZH = Math.round(400 * 380 / 372);      // 素材は 372×380
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...(artPath ? ["-loop", "1", "-i", artPath] : ["-f", "lavfi", "-i", `color=c=0x0A2038:s=${W}x${H}:r=30`]), "-loop", "1", "-i", `${OUT}/scene-0.png`, ...(zt ? ["-loop", "1", "-i", zt] : []), "-filter_complex",
       `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1,gblur=sigma=${artMode === "key" ? 0.6 : 1.5},eq=brightness=0[b];[1:v]scale=${W}:${H},format=rgba[f];[b][f]overlay=shortest=1` +
