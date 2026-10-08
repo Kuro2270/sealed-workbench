@@ -52,6 +52,55 @@
         }
       ],
       "comment2": true
+    },
+    "en": {
+      "id": "4tPH-f0ljKc",
+      "title": "[MTG Arena] Teenage Mutant Ninja Turtles Limited Review | Best Colours, Sleeper Pairs, Top 10 Bombs",
+      "uploadedAt": "2026-10-08",
+      "duration": "PT11M10S",
+      "chapters": [
+        {
+          "at": 0,
+          "title": "Intro"
+        },
+        {
+          "at": 30,
+          "title": "Format speed"
+        },
+        {
+          "at": 55,
+          "title": "Colour strength"
+        },
+        {
+          "at": 74,
+          "title": "Colour pairs"
+        },
+        {
+          "at": 271,
+          "title": "Sleeper pairs"
+        },
+        {
+          "at": 350,
+          "title": "Draft vs Sealed"
+        },
+        {
+          "at": 374,
+          "title": "Top 10 bomb rares"
+        },
+        {
+          "at": 442,
+          "title": "Trap rares"
+        },
+        {
+          "at": 476,
+          "title": "Top commons & uncommons"
+        },
+        {
+          "at": 623,
+          "title": "Summary"
+        }
+      ],
+      "comment2": true
     }
   },
   "MSH": {
@@ -107,6 +156,55 @@
         }
       ],
       "comment2": true
+    },
+    "en": {
+      "id": "NpwUtStY3Qk",
+      "title": "[MTG Arena] Marvel Super Heroes Limited Review | Best Colours, Sleeper Pairs, Top 10 Bombs & Trap Ra",
+      "uploadedAt": "2026-10-08",
+      "duration": "PT12M",
+      "chapters": [
+        {
+          "at": 0,
+          "title": "Intro"
+        },
+        {
+          "at": 30,
+          "title": "Format speed"
+        },
+        {
+          "at": 52,
+          "title": "Colour strength"
+        },
+        {
+          "at": 72,
+          "title": "Colour pairs"
+        },
+        {
+          "at": 247,
+          "title": "Sleeper pairs"
+        },
+        {
+          "at": 406,
+          "title": "Draft vs Sealed"
+        },
+        {
+          "at": 432,
+          "title": "Top 10 bomb rares"
+        },
+        {
+          "at": 497,
+          "title": "Trap rares"
+        },
+        {
+          "at": 530,
+          "title": "Top commons & uncommons"
+        },
+        {
+          "at": 671,
+          "title": "Summary"
+        }
+      ],
+      "comment2": true
     }
   },
   "HOB": {
@@ -155,6 +253,51 @@
         {
           "at": 383,
           "title": "まとめ"
+        }
+      ],
+      "comment2": true
+    },
+    "en": {
+      "id": "YSzRvkvHXDE",
+      "title": "[MTG Arena] The Hobbit Limited Review | Best Colours, Sleeper Pairs, Top 10 Bombs & Trap Rares",
+      "uploadedAt": "2026-10-08",
+      "duration": "PT10M15S",
+      "chapters": [
+        {
+          "at": 0,
+          "title": "Intro"
+        },
+        {
+          "at": 29,
+          "title": "Format speed"
+        },
+        {
+          "at": 53,
+          "title": "Colour strength"
+        },
+        {
+          "at": 72,
+          "title": "Colour pairs"
+        },
+        {
+          "at": 309,
+          "title": "Draft vs Sealed"
+        },
+        {
+          "at": 330,
+          "title": "Top 10 bomb rares"
+        },
+        {
+          "at": 394,
+          "title": "Trap rares"
+        },
+        {
+          "at": 427,
+          "title": "Top commons & uncommons"
+        },
+        {
+          "at": 572,
+          "title": "Summary"
         }
       ],
       "comment2": true
@@ -210,6 +353,55 @@
         {
           "at": 462,
           "title": "まとめ"
+        }
+      ],
+      "comment2": true
+    },
+    "en": {
+      "id": "PnFyz1R2rnk",
+      "title": "[MTG Arena] Secrets of Strixhaven Limited Review | Best Colours, Sleeper Pairs, Top 10 Bombs & Trap",
+      "uploadedAt": "2026-10-08",
+      "duration": "PT11M58S",
+      "chapters": [
+        {
+          "at": 0,
+          "title": "Intro"
+        },
+        {
+          "at": 30,
+          "title": "Format speed"
+        },
+        {
+          "at": 55,
+          "title": "Colour strength"
+        },
+        {
+          "at": 74,
+          "title": "Colour pairs"
+        },
+        {
+          "at": 261,
+          "title": "Sleeper pairs"
+        },
+        {
+          "at": 416,
+          "title": "Draft vs Sealed"
+        },
+        {
+          "at": 440,
+          "title": "Top 10 bomb rares"
+        },
+        {
+          "at": 504,
+          "title": "Trap rares"
+        },
+        {
+          "at": 539,
+          "title": "Top commons & uncommons"
+        },
+        {
+          "at": 675,
+          "title": "Summary"
         }
       ],
       "comment2": true
