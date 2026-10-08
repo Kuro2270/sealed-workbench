@@ -107,7 +107,7 @@ function navHtml(current) {
       <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span>
         ${a("./guide.html", "nav.guide", "使い方")}</div>
       <div class="ng"><span class="ngl" data-i18n="navgrp.build">仮想パックで練習する</span><span class="ngs" data-i18n="navsub.build">6パック開封・8人ドラフト</span>
-        ${a("./", "nav.sealed", "シールド練習")}
+        ${a("./sealed.html", "nav.sealed", "シールド練習")}
         ${a("./draft.html", "nav.draft", "ドラフト練習")}</div>
       <div class="ng"><span class="ngl" data-i18n="navgrp.assist">MTGアリーナで使う</span><span class="ngs" data-i18n="navsub.assist">実戦のログを読んで助ける・PC専用</span>
         ${a("./sealed-assist.html", "nav.sassist", "シールド補助", true)}
@@ -134,7 +134,7 @@ export function replaceNav(text, current) {
 
 /* ---------- 実行 ---------- */
 const PAGE_SELF = {
-  "index.html": "./", "draft.html": "./draft.html", "guide.html": "./guide.html",
+  "sealed.html": "./sealed.html", "draft.html": "./draft.html", "guide.html": "./guide.html",
   "ratings.html": "./ratings.html", "reports.html": "./reports.html", "swiss.html": "./swiss.html",
   "assistant.html": "./assistant.html", "table.html": "./table.html", "privacy.html": "./privacy.html",
   "404.html": ""

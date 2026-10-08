@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>エッジ・オブ・エタニティーズ（EOE）リミテッド カード点数ランキング・評価｜勝率で見る強いカード — MTGアリーナ リミテッド・ワークベンチ</title>
-<meta name="description" content="MTGアリーナ「エッジ・オブ・エタニティーズ（EOE）」のリミテッド（ドラフト・シールド）で強いカードを、17Landsの実戦データ（695,776試合）の勝率で採点。コモン・アンコモン・レア別のカード点数ランキングに加えて、環境の速さ、強い色、勝率の高い2色の組み合わせも分かります。">
+<title>エッジ・オブ・エタニティーズ（EOE）リミテッド環境レポート｜MTGアリーナ ドラフト・シールドの勝率 — MTGアリーナ リミテッド・ワークベンチ</title>
+<meta name="description" content="MTGアリーナ「エッジ・オブ・エタニティーズ（EOE）」のドラフト・シールド環境を、17Landsの実戦データ（695,776試合）から読み解きます。環境の速さ、強い色、勝率の高い2色の組み合わせ、コモン・アンコモン・レアの強いカード、カード評価の一覧。">
 <link rel="canonical" href="https://sealed-workbench.com/sets/EOE">
 <link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/EOE">
 <link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/EOE.en">
 <link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/EOE">
-<meta property="og:title" content="エッジ・オブ・エタニティーズ（EOE）リミテッド カード点数ランキング・評価｜勝率で見る強いカード">
-<meta property="og:description" content="MTGアリーナ「エッジ・オブ・エタニティーズ（EOE）」のリミテッド（ドラフト・シールド）で強いカードを、17Landsの実戦データ（695,776試合）の勝率で採点。コモン・アンコモン・レア別のカード点数ランキングに加えて、環境の速さ、強い色、勝率の高い2色の組み合わせも分かります。">
+<meta property="og:title" content="エッジ・オブ・エタニティーズ（EOE）リミテッド環境レポート｜MTGアリーナ ドラフト・シールドの勝率">
+<meta property="og:description" content="MTGアリーナ「エッジ・オブ・エタニティーズ（EOE）」のドラフト・シールド環境を、17Landsの実戦データ（695,776試合）から読み解きます。環境の速さ、強い色、勝率の高い2色の組み合わせ、コモン・アンコモン・レアの強いカード、カード評価の一覧。">
 <meta property="og:url" content="https://sealed-workbench.com/sets/EOE">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
@@ -22,20 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/mana/mana.min.css">
 <script src="../analytics.js"></script>
-<script src="/navmenu.js" defer></script>
-<script src="/tip.js" defer></script>
-<link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#10304F">
-<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
-<link rel="icon" type="image/svg+xml" href="/icon.svg">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Workbench">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
 <style>
   :root{--pine:#10304F;--pine-deep:#0A2038;--paper:#F5F8FC;--paper-2:#E8EEF6;--ink:#0D1B2A;--muted:#5C7185;--gold:#2F7DF6;--line:#D3DFEB;
         --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:8px}
@@ -62,20 +49,6 @@
   nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
   nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
   @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0} }
-  /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
-  .ng{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;column-gap:7px;row-gap:5px;justify-content:start;align-items:center;padding-top:0}
-  .ng:has(.ngs){padding-top:0}
-  .ngl,.ngs{position:static;grid-column:1/-1;white-space:nowrap}
-  .ngl{grid-row:1;left:auto}
-  .ngs{grid-row:2;left:auto;top:auto;font-size:11.5px;color:#A9BFD8;margin-top:-2px}
-  nav a{grid-row:3;padding:8px 16px;border-radius:10px;font-weight:700;background:linear-gradient(180deg,#2A5F96,#1C4A7C);border:1px solid #4A83BF;color:#FFFFFF;box-shadow:0 2px 0 #12365C,0 4px 10px rgba(0,0,0,.28);-webkit-font-smoothing:auto;text-shadow:none;letter-spacing:.02em}
-  nav a:not(.on):hover{background:linear-gradient(180deg,#3573B3,#25609F);border-color:#6FA3DA}
-  nav a:active{box-shadow:0 1px 0 #12365C}
-  nav a.on{box-shadow:0 2px 0 rgba(0,0,0,.35),0 4px 10px rgba(0,0,0,.28)}
-  @media (max-width:760px){
-    .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
-    .ngl,.ngs{flex:0 0 100%}
-  }
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
   .lang{margin-top:12px;font-size:13px}
@@ -87,21 +60,6 @@
   .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
   section{margin-top:18px}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
-  .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
-  .longvideo h2{margin:0 0 4px;font-size:18px}
-  .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
-  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
-  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0A2038}
-  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
-  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
-  .longvideo .yt button span{width:68px;height:68px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
-  .longvideo .yt button span::after{content:"";border-left:23px solid #0B1E33;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
-  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px}
-  .longvideo .chap li{margin:0 0 2px}
-  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
-  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
-  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
   .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
   .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
   .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -145,9 +103,6 @@
   .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}
   footer a{color:var(--muted)}
-  .faq details{border-bottom:1px solid var(--line,#D7E2EE);padding:10px 2px}
-  .faq summary{cursor:pointer;font-weight:700;font-size:14.5px}
-  .faq p{margin:8px 0 2px;font-size:14px;line-height:1.8}
   @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
@@ -161,22 +116,22 @@
         <option value="EOE.en.html">English</option>
       </select></div>
     <nav>
-      <div class="ng"><span class="ngl">はじめに</span><span class="ngs">MTGの基本と、このサイトの使い方</span><a href="../start/index.html">MTGとは</a><a href="../start/limited.html">リミテッドとは</a><a href="../guide.html">サイトの機能</a></div>
-      <div class="ng"><span class="ngl">練習する</span><span class="ngs">仮想パックで練習</span><a href="../">シールド練習</a><a href="../draft.html">ドラフト練習</a></div>
+      <div class="ng"><span class="ngl">はじめに</span><a href="../start/index.html">MTGとは</a><a href="../start/limited.html">リミテッドとは</a><a href="../guide.html">サイトの機能</a></div>
+      <div class="ng"><span class="ngl">練習する</span><span class="ngs">仮想パックで練習</span><a href="../sealed.html">シールド練習</a><a href="../draft.html">ドラフト練習</a></div>
       <div class="ng"><span class="ngl">MTGアリーナで使う</span><span class="ngs">実戦のログを読んで助ける・PC専用</span><a href="../sealed-assist.html">シールド補助<b class="pcb">PC</b></a><a href="../assistant.html">ドラフト補助<b class="pcb">PC</b></a></div>
-      <div class="ng"><span class="ngl">データを見る</span><span class="ngs">セットごとの強さ・速さを確認</span><a href="../reports.html">環境レポート</a></div>
-      <div class="ng"><span class="ngl">対戦する</span><span class="ngs">友達との対戦・大会の進行</span><a href="../table.html">対戦卓</a><a href="../swiss.html">スイスドロー</a></div>
-      <div class="ng"><span class="ngl">買う</span><span class="ngs">日本で買えるMTG用品</span><a href="../goods/index.html">日本のサプライ</a></div>
+      <div class="ng"><span class="ngl">データを見る</span><a href="../reports.html">環境レポート</a></div>
+      <div class="ng"><span class="ngl">対戦する</span><a href="../table.html">対戦卓</a><a href="../swiss.html">スイスドロー</a></div>
+      <div class="ng"><span class="ngl">買う</span><a href="../goods/index.html">日本のサプライ</a></div>
     </nav>
-    <h1>エッジ・オブ・エタニティーズ｜リミテッド カード点数ランキングと環境レポート <small class="code">EOE</small></h1>
-    <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。カードの点数（評価）は、この勝率で見られます。　発売 2025-08-01</p>
+    <h1>エッジ・オブ・エタニティーズ｜リミテッド環境レポート <small class="code">EOE</small></h1>
+    <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。　発売 2025-08-01</p>
     <link rel="alternate" hreflang="en" href="EOE.en.html">
   </div>
 </header>
 <main>
 <article class="mode">
   <h2>ドラフト <small>総試合数 631,747／全体勝率 55.9%</small></h2>
-  <p class="built">集計 2026-10-08</p>
+  <p class="built">集計 2026-09-18</p>
   <p class="summary">エッジ・オブ・エタニティーズのドラフトは631,747試合のデータで、全体勝率は55.9%。環境は速さでは差がつきにくいです。色は緑（56.4%）と青（55.9%）が強く、2色の組み合わせでは青緑が57.7%で最強、青黒が55.6%で最弱です。カード単位ではコモンは「氷（こおり）魔（ま）法（ほう）の秘（ひ）宝（ほう）」、アンコモンは「疑（うたが）わしい珍（ちん）味（み）」、レアは「エレジーの見（み）習（なら）い」が最も勝率が高いカードです。</p>
 
   <section><h3>環境の速さ</h3>
@@ -184,11 +139,11 @@
   </section>
   <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
     <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
-    <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>緑</td><td class="num"><b>56.4%</b></td><td class="num">285,787</td></tr>
-    <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>青</td><td class="num"><b>55.9%</b></td><td class="num">285,231</td></tr>
-    <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>白</td><td class="num"><b>55.8%</b></td><td class="num">222,655</td></tr>
-    <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>黒</td><td class="num"><b>55.5%</b></td><td class="num">261,243</td></tr>
-    <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>赤</td><td class="num"><b>55.5%</b></td><td class="num">229,880</td></tr>
+    <tr><td><span class="dot" style="background:var(--g)"></span>緑</td><td class="num"><b>56.4%</b></td><td class="num">285,787</td></tr>
+    <tr><td><span class="dot" style="background:var(--u)"></span>青</td><td class="num"><b>55.9%</b></td><td class="num">285,231</td></tr>
+    <tr><td><span class="dot" style="background:var(--w)"></span>白</td><td class="num"><b>55.8%</b></td><td class="num">222,655</td></tr>
+    <tr><td><span class="dot" style="background:var(--b)"></span>黒</td><td class="num"><b>55.5%</b></td><td class="num">261,243</td></tr>
+    <tr><td><span class="dot" style="background:var(--r)"></span>赤</td><td class="num"><b>55.5%</b></td><td class="num">229,880</td></tr>
     </tbody></table>
   </section>
   <section><h3>色の組み合わせ</h3><p class="lead">2色の組み合わせごとの勝率です。試合数の多い順に並べています。</p>
@@ -216,66 +171,66 @@
     <tr><td>7+</td><td class="num"><b>58.4%</b></td><td class="num">11</td><td class="num">263,873</td></tr>
     </tbody></table>
   </section>
-  <section><h3>カード点数ランキング（レアリティ別）</h3><p class="lead">カードの「点数」は、実際の勝率（GIH勝率：そのカードが手札か戦場にあった試合の勝率）で見ます。高いほど強いカードです。レアリティごとに高い順に並べています。</p>
+  <section><h3>レアリティ別の強いカード</h3><p class="lead">GIH勝率（そのカードが手札か戦場にあった試合の勝率）の高い順です。</p>
     <div class="grid">
       <div><h3><span class="rar mythic">神話レア</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
-      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>ウロボロイド</td><td class="num"><b>67.8%</b></td><td class="num">6,947</td></tr>
-      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>量（りょう）子（し）の謎（なぞ）かけ屋（や）</td><td class="num"><b>67.1%</b></td><td class="num">8,371</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>コスモグランドの頂（ちょう）点（てん）</td><td class="num"><b>63.9%</b></td><td class="num">6,960</td></tr>
-      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>虚（きょ）空（くう）間（かん）渡（わた）り</td><td class="num"><b>59.3%</b></td><td class="num">8,297</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>喜（よろこ）びあふれる太（たい）陽（よう）生（う）まれ</td><td class="num"><b>58.5%</b></td><td class="num">5,223</td></tr>
-      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>絶（ぜつ）望（ぼう）的（てき）猛（もう）攻（こう）</td><td class="num"><b>58.3%</b></td><td class="num">4,567</td></tr>
-      <tr><td><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>終（しゅう）焉（えん）の石（いし）</td><td class="num"><b>56.5%</b></td><td class="num">7,512</td></tr>
-      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>不（ふ）動（どう）の副（ふく）司（し）令（れい）官（かん）、タヌーク</td><td class="num"><b>56.3%</b></td><td class="num">4,050</td></tr>
-      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>飢（う）えた星（せい）祖（そ）</td><td class="num"><b>56.2%</b></td><td class="num">4,615</td></tr>
-      <tr><td><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>冷（れい）酷（こく）な船（せん）長（ちょう）、テゼレット</td><td class="num"><b>54.3%</b></td><td class="num">4,794</td></tr>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--g)"></span>ウロボロイド</td><td class="num"><b>67.8%</b></td><td class="num">6,947</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>量（りょう）子（し）の謎（なぞ）かけ屋（や）</td><td class="num"><b>67.1%</b></td><td class="num">8,371</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>コスモグランドの頂（ちょう）点（てん）</td><td class="num"><b>63.9%</b></td><td class="num">6,960</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>虚（きょ）空（くう）間（かん）渡（わた）り</td><td class="num"><b>59.3%</b></td><td class="num">8,297</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>喜（よろこ）びあふれる太（たい）陽（よう）生（う）まれ</td><td class="num"><b>58.5%</b></td><td class="num">5,223</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>絶（ぜつ）望（ぼう）的（てき）猛（もう）攻（こう）</td><td class="num"><b>58.3%</b></td><td class="num">4,567</td></tr>
+      <tr><td><span class="dot" style="background:var(--c)"></span>終（しゅう）焉（えん）の石（いし）</td><td class="num"><b>56.5%</b></td><td class="num">7,512</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>不（ふ）動（どう）の副（ふく）司（し）令（れい）官（かん）、タヌーク</td><td class="num"><b>56.3%</b></td><td class="num">4,050</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>飢（う）えた星（せい）祖（そ）</td><td class="num"><b>56.2%</b></td><td class="num">4,615</td></tr>
+      <tr><td><span class="dot" style="background:var(--c)"></span>冷（れい）酷（こく）な船（せん）長（ちょう）、テゼレット</td><td class="num"><b>54.3%</b></td><td class="num">4,794</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">レア</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
-      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>エレジーの見（み）習（なら）い</td><td class="num"><b>66.1%</b></td><td class="num">15,104</td></tr>
-      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>遺（い）伝（でん）子（し）変（へん）異（い）の成（せい）虫（ちゅう）</td><td class="num"><b>63.2%</b></td><td class="num">15,209</td></tr>
-      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>新（しん）星（せい）のヘルカイト</td><td class="num"><b>62.7%</b></td><td class="num">13,023</td></tr>
-      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>大（たい）戦（せん）用（よう）ガンシップ</td><td class="num"><b>62.5%</b></td><td class="num">13,619</td></tr>
-      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>黄（たそ）昏（がれ）の妨（ぼう）害（がい）工（こう）作（さく）員（いん）</td><td class="num"><b>62.2%</b></td><td class="num">14,954</td></tr>
-      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>可（か）能（のう）性（せい）の技（ぎ）師（し）</td><td class="num"><b>61.9%</b></td><td class="num">14,548</td></tr>
-      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>サンスターの模（も）範（はん）、ヴォンダム卿（きょう）</td><td class="num"><b>61.7%</b></td><td class="num">9,451</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>サンスターの司（し）祭（さい）</td><td class="num"><b>61.4%</b></td><td class="num">12,902</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>ルーメン級（きゅう）フリゲート艦（かん）</td><td class="num"><b>61.0%</b></td><td class="num">12,837</td></tr>
-      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>反（はん）乱（らん）の大（だい）虐（ぎゃく）殺（さつ）</td><td class="num"><b>61.0%</b></td><td class="num">10,483</td></tr>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--b)"></span>エレジーの見（み）習（なら）い</td><td class="num"><b>66.1%</b></td><td class="num">15,104</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>遺（い）伝（でん）子（し）変（へん）異（い）の成（せい）虫（ちゅう）</td><td class="num"><b>63.2%</b></td><td class="num">15,209</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>新（しん）星（せい）のヘルカイト</td><td class="num"><b>62.7%</b></td><td class="num">13,023</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>大（たい）戦（せん）用（よう）ガンシップ</td><td class="num"><b>62.5%</b></td><td class="num">13,619</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>黄（たそ）昏（がれ）の妨（ぼう）害（がい）工（こう）作（さく）員（いん）</td><td class="num"><b>62.2%</b></td><td class="num">14,954</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>可（か）能（のう）性（せい）の技（ぎ）師（し）</td><td class="num"><b>61.9%</b></td><td class="num">14,548</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>サンスターの模（も）範（はん）、ヴォンダム卿（きょう）</td><td class="num"><b>61.7%</b></td><td class="num">9,451</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>サンスターの司（し）祭（さい）</td><td class="num"><b>61.4%</b></td><td class="num">12,902</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>ルーメン級（きゅう）フリゲート艦（かん）</td><td class="num"><b>61.0%</b></td><td class="num">12,837</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>反（はん）乱（らん）の大（だい）虐（ぎゃく）殺（さつ）</td><td class="num"><b>61.0%</b></td><td class="num">10,483</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">アンコモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
-      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>疑（うたが）わしい珍（ちん）味（み）</td><td class="num"><b>61.6%</b></td><td class="num">39,023</td></tr>
-      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>バイオメカンの技（ぎ）師（し）</td><td class="num"><b>61.4%</b></td><td class="num">37,331</td></tr>
-      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>氷（ひょう）河（が）の神（かみ）大（おお）口（ぐち）</td><td class="num"><b>61.0%</b></td><td class="num">37,181</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>万（ばん）物（ぶつ）の定（さだ）めを追（お）う者（もの）</td><td class="num"><b>60.8%</b></td><td class="num">32,783</td></tr>
-      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>コード破（やぶ）りの猟（りょう）犬（けん）</td><td class="num"><b>60.7%</b></td><td class="num">47,068</td></tr>
-      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>惑（わく）星（せい）契（ちぎ）りの威（い）嚇（かく）屋（や）</td><td class="num"><b>60.6%</b></td><td class="num">32,986</td></tr>
-      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>不（ふ）吉（きつ）な墓（ぼ）標（ひょう）船（せん）</td><td class="num"><b>60.6%</b></td><td class="num">37,113</td></tr>
-      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>未（み）発（はっ）達（たつ）の偵（てい）察（さつ）着（ちゃく）陸（りく）船（せん）</td><td class="num"><b>60.3%</b></td><td class="num">35,515</td></tr>
-      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>モノイストの回（かい）路（ろ）供（きょう）給（きゅう）者（しゃ）</td><td class="num"><b>60.1%</b></td><td class="num">36,248</td></tr>
-      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>溶（と）かし歩（ある）きの消（しょう）散（さん）</td><td class="num"><b>59.8%</b></td><td class="num">34,006</td></tr>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--b)"></span>疑（うたが）わしい珍（ちん）味（み）</td><td class="num"><b>61.6%</b></td><td class="num">39,023</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>バイオメカンの技（ぎ）師（し）</td><td class="num"><b>61.4%</b></td><td class="num">37,331</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>氷（ひょう）河（が）の神（かみ）大（おお）口（ぐち）</td><td class="num"><b>61.0%</b></td><td class="num">37,181</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>万（ばん）物（ぶつ）の定（さだ）めを追（お）う者（もの）</td><td class="num"><b>60.8%</b></td><td class="num">32,783</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>コード破（やぶ）りの猟（りょう）犬（けん）</td><td class="num"><b>60.7%</b></td><td class="num">47,068</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>惑（わく）星（せい）契（ちぎ）りの威（い）嚇（かく）屋（や）</td><td class="num"><b>60.6%</b></td><td class="num">32,986</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>不（ふ）吉（きつ）な墓（ぼ）標（ひょう）船（せん）</td><td class="num"><b>60.6%</b></td><td class="num">37,113</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>未（み）発（はっ）達（たつ）の偵（てい）察（さつ）着（ちゃく）陸（りく）船（せん）</td><td class="num"><b>60.3%</b></td><td class="num">35,515</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>モノイストの回（かい）路（ろ）供（きょう）給（きゅう）者（しゃ）</td><td class="num"><b>60.1%</b></td><td class="num">36,248</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>溶（と）かし歩（ある）きの消（しょう）散（さん）</td><td class="num"><b>59.8%</b></td><td class="num">34,006</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">コモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
-      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>氷（こおり）魔（ま）法（ほう）の秘（ひ）宝（ほう）</td><td class="num"><b>59.7%</b></td><td class="num">91,935</td></tr>
-      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>銀（ぎん）河（が）の旅（たび）人（びと）</td><td class="num"><b>59.3%</b></td><td class="num">87,408</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>払（ふっ）拭（しょく）の光（ひかり）</td><td class="num"><b>59.0%</b></td><td class="num">64,965</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>騎（き）士（し）の指（し）導（どう）者（しゃ）</td><td class="num"><b>58.8%</b></td><td class="num">63,333</td></tr>
-      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>遺（い）伝（でん）子（し）送（そう）粉（ふん）機（き）</td><td class="num"><b>58.5%</b></td><td class="num">80,400</td></tr>
-      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>軌（き）道（どう）からの突（とつ）入（にゅう）</td><td class="num"><b>58.3%</b></td><td class="num">72,702</td></tr>
-      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>生（せい）体（たい）合（ごう）成（せい）の発（はつ）露（ろ）</td><td class="num"><b>58.0%</b></td><td class="num">51,912</td></tr>
-      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>自（じ）己（こ）建（けん）造（ぞう）のメカン</td><td class="num"><b>57.9%</b></td><td class="num">71,072</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>一（いっ）点（てん）砲（ほう）火（か）</td><td class="num"><b>57.9%</b></td><td class="num">57,585</td></tr>
-      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>重（じゅう）力（りょく）制（せい）御（ぎょ）パックのモノイスト</td><td class="num"><b>57.8%</b></td><td class="num">66,848</td></tr>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--u)"></span>氷（こおり）魔（ま）法（ほう）の秘（ひ）宝（ほう）</td><td class="num"><b>59.7%</b></td><td class="num">91,935</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>銀（ぎん）河（が）の旅（たび）人（びと）</td><td class="num"><b>59.3%</b></td><td class="num">87,408</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>払（ふっ）拭（しょく）の光（ひかり）</td><td class="num"><b>59.0%</b></td><td class="num">64,965</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>騎（き）士（し）の指（し）導（どう）者（しゃ）</td><td class="num"><b>58.8%</b></td><td class="num">63,333</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>遺（い）伝（でん）子（し）送（そう）粉（ふん）機（き）</td><td class="num"><b>58.5%</b></td><td class="num">80,400</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>軌（き）道（どう）からの突（とつ）入（にゅう）</td><td class="num"><b>58.3%</b></td><td class="num">72,702</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>生（せい）体（たい）合（ごう）成（せい）の発（はつ）露（ろ）</td><td class="num"><b>58.0%</b></td><td class="num">51,912</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>自（じ）己（こ）建（けん）造（ぞう）のメカン</td><td class="num"><b>57.9%</b></td><td class="num">71,072</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>一（いっ）点（てん）砲（ほう）火（か）</td><td class="num"><b>57.9%</b></td><td class="num">57,585</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>重（じゅう）力（りょく）制（せい）御（ぎょ）パックのモノイスト</td><td class="num"><b>57.8%</b></td><td class="num">66,848</td></tr>
       </tbody></table></div>
     </div>
   </section>
 </article>
 <article class="mode">
   <h2>シールド <small>総試合数 64,029／全体勝率 57.4%</small></h2>
-  <p class="built">集計 2026-10-08</p>
+  <p class="built">集計 2026-09-18</p>
   <p class="summary">エッジ・オブ・エタニティーズのシールドは64,029試合のデータで、全体勝率は57.4%。環境は速さでは差がつきにくいです。色は白（57.7%）と緑（57.5%）が強く、2色の組み合わせでは青緑が59.9%で最強、赤緑が57.2%で最弱です。カード単位ではコモンは「氷（こおり）魔（ま）法（ほう）の秘（ひ）宝（ほう）」、アンコモンは「惑（わく）星（せい）契（ちぎ）りの威（い）嚇（かく）屋（や）」、レアは「エレジーの見（み）習（なら）い」が最も勝率が高いカードです。</p>
 
   <section><h3>環境の速さ</h3>
@@ -283,11 +238,11 @@
   </section>
   <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
     <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
-    <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>白</td><td class="num"><b>57.7%</b></td><td class="num">27,314</td></tr>
-    <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>緑</td><td class="num"><b>57.5%</b></td><td class="num">30,183</td></tr>
-    <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>黒</td><td class="num"><b>57.3%</b></td><td class="num">30,985</td></tr>
-    <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>青</td><td class="num"><b>57.2%</b></td><td class="num">22,100</td></tr>
-    <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>赤</td><td class="num"><b>56.8%</b></td><td class="num">24,720</td></tr>
+    <tr><td><span class="dot" style="background:var(--w)"></span>白</td><td class="num"><b>57.7%</b></td><td class="num">27,314</td></tr>
+    <tr><td><span class="dot" style="background:var(--g)"></span>緑</td><td class="num"><b>57.5%</b></td><td class="num">30,183</td></tr>
+    <tr><td><span class="dot" style="background:var(--b)"></span>黒</td><td class="num"><b>57.3%</b></td><td class="num">30,985</td></tr>
+    <tr><td><span class="dot" style="background:var(--u)"></span>青</td><td class="num"><b>57.2%</b></td><td class="num">22,100</td></tr>
+    <tr><td><span class="dot" style="background:var(--r)"></span>赤</td><td class="num"><b>56.8%</b></td><td class="num">24,720</td></tr>
     </tbody></table>
   </section>
   <section><h3>色の組み合わせ</h3><p class="lead">2色の組み合わせごとの勝率です。試合数の多い順に並べています。</p>
@@ -315,78 +270,72 @@
     <tr><td>7+</td><td class="num"><b>58.6%</b></td><td class="num">11</td><td class="num">25,999</td></tr>
     </tbody></table>
   </section>
-  <section><h3>カード点数ランキング（レアリティ別）</h3><p class="lead">カードの「点数」は、実際の勝率（GIH勝率：そのカードが手札か戦場にあった試合の勝率）で見ます。高いほど強いカードです。レアリティごとに高い順に並べています。</p>
+  <section><h3>レアリティ別の強いカード</h3><p class="lead">GIH勝率（そのカードが手札か戦場にあった試合の勝率）の高い順です。</p>
     <div class="grid">
       <div><h3><span class="rar mythic">神話レア</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
-      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>ウロボロイド</td><td class="num"><b>68.6%</b></td><td class="num">1,308</td></tr>
-      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>量（りょう）子（し）の謎（なぞ）かけ屋（や）</td><td class="num"><b>68.1%</b></td><td class="num">1,160</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>コスモグランドの頂（ちょう）点（てん）</td><td class="num"><b>67.7%</b></td><td class="num">1,287</td></tr>
-      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>虚（きょ）空（くう）間（かん）渡（わた）り</td><td class="num"><b>61.7%</b></td><td class="num">609</td></tr>
-      <tr><td><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>終（しゅう）焉（えん）の石（いし）</td><td class="num"><b>60.2%</b></td><td class="num">1,145</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>喜（よろこ）びあふれる太（たい）陽（よう）生（う）まれ</td><td class="num"><b>59.6%</b></td><td class="num">1,068</td></tr>
-      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>絶（ぜつ）望（ぼう）的（てき）猛（もう）攻（こう）</td><td class="num"><b>59.5%</b></td><td class="num">724</td></tr>
-      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>スーパーヴォイド、ソセラ</td><td class="num"><b>58.0%</b></td><td class="num">873</td></tr>
-      <tr><td><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>冷（れい）酷（こく）な船（せん）長（ちょう）、テゼレット</td><td class="num"><b>57.7%</b></td><td class="num">1,060</td></tr>
-      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>不（ふ）動（どう）の副（ふく）司（し）令（れい）官（かん）、タヌーク</td><td class="num"><b>57.6%</b></td><td class="num">644</td></tr>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--g)"></span>ウロボロイド</td><td class="num"><b>68.6%</b></td><td class="num">1,308</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>量（りょう）子（し）の謎（なぞ）かけ屋（や）</td><td class="num"><b>68.1%</b></td><td class="num">1,160</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>コスモグランドの頂（ちょう）点（てん）</td><td class="num"><b>67.7%</b></td><td class="num">1,287</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>虚（きょ）空（くう）間（かん）渡（わた）り</td><td class="num"><b>61.7%</b></td><td class="num">609</td></tr>
+      <tr><td><span class="dot" style="background:var(--c)"></span>終（しゅう）焉（えん）の石（いし）</td><td class="num"><b>60.2%</b></td><td class="num">1,145</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>喜（よろこ）びあふれる太（たい）陽（よう）生（う）まれ</td><td class="num"><b>59.6%</b></td><td class="num">1,068</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>絶（ぜつ）望（ぼう）的（てき）猛（もう）攻（こう）</td><td class="num"><b>59.5%</b></td><td class="num">724</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>スーパーヴォイド、ソセラ</td><td class="num"><b>58.0%</b></td><td class="num">873</td></tr>
+      <tr><td><span class="dot" style="background:var(--c)"></span>冷（れい）酷（こく）な船（せん）長（ちょう）、テゼレット</td><td class="num"><b>57.7%</b></td><td class="num">1,060</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>不（ふ）動（どう）の副（ふく）司（し）令（れい）官（かん）、タヌーク</td><td class="num"><b>57.6%</b></td><td class="num">644</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">レア</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
-      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>エレジーの見（み）習（なら）い</td><td class="num"><b>68.5%</b></td><td class="num">2,383</td></tr>
-      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>遺（い）伝（でん）子（し）変（へん）異（い）の成（せい）虫（ちゅう）</td><td class="num"><b>66.0%</b></td><td class="num">1,502</td></tr>
-      <tr><td><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>反（はん）因（いん）果（が）の残（ざん）留（りゅう）</td><td class="num"><b>64.6%</b></td><td class="num">2,928</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>光（ひかり）逸（そ）らしの審（しん）問（もん）官（かん）</td><td class="num"><b>64.3%</b></td><td class="num">1,419</td></tr>
-      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>新（しん）星（せい）のヘルカイト</td><td class="num"><b>63.9%</b></td><td class="num">1,872</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>サンスターの司（し）祭（さい）</td><td class="num"><b>63.2%</b></td><td class="num">1,881</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>光（ひかり）に導（みちび）かれし者（もの）、ハリーヤ</td><td class="num"><b>63.2%</b></td><td class="num">1,772</td></tr>
-      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>黄（たそ）昏（がれ）の妨（ぼう）害（がい）工（こう）作（さく）員（いん）</td><td class="num"><b>63.0%</b></td><td class="num">1,536</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>静（せい）寂（じゃく）のその先（さき）へ</td><td class="num"><b>62.7%</b></td><td class="num">1,604</td></tr>
-      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>錆（さ）びついた収（しゅう）穫（かく）機（き）</td><td class="num"><b>62.3%</b></td><td class="num">1,393</td></tr>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--b)"></span>エレジーの見（み）習（なら）い</td><td class="num"><b>68.5%</b></td><td class="num">2,383</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>遺（い）伝（でん）子（し）変（へん）異（い）の成（せい）虫（ちゅう）</td><td class="num"><b>66.0%</b></td><td class="num">1,502</td></tr>
+      <tr><td><span class="dot" style="background:var(--c)"></span>反（はん）因（いん）果（が）の残（ざん）留（りゅう）</td><td class="num"><b>64.6%</b></td><td class="num">2,928</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>光（ひかり）逸（そ）らしの審（しん）問（もん）官（かん）</td><td class="num"><b>64.3%</b></td><td class="num">1,419</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>新（しん）星（せい）のヘルカイト</td><td class="num"><b>63.9%</b></td><td class="num">1,872</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>サンスターの司（し）祭（さい）</td><td class="num"><b>63.2%</b></td><td class="num">1,881</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>光（ひかり）に導（みちび）かれし者（もの）、ハリーヤ</td><td class="num"><b>63.2%</b></td><td class="num">1,772</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>黄（たそ）昏（がれ）の妨（ぼう）害（がい）工（こう）作（さく）員（いん）</td><td class="num"><b>63.0%</b></td><td class="num">1,536</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>静（せい）寂（じゃく）のその先（さき）へ</td><td class="num"><b>62.7%</b></td><td class="num">1,604</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>錆（さ）びついた収（しゅう）穫（かく）機（き）</td><td class="num"><b>62.3%</b></td><td class="num">1,393</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">アンコモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
-      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>惑（わく）星（せい）契（ちぎ）りの威（い）嚇（かく）屋（や）</td><td class="num"><b>64.1%</b></td><td class="num">3,003</td></tr>
-      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>疑（うたが）わしい珍（ちん）味（み）</td><td class="num"><b>63.7%</b></td><td class="num">3,879</td></tr>
-      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>トラクター・ビーム</td><td class="num"><b>63.6%</b></td><td class="num">2,444</td></tr>
-      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>バイオメカンの技（ぎ）師（し）</td><td class="num"><b>63.2%</b></td><td class="num">2,268</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>万（ばん）物（ぶつ）の定（さだ）めを追（お）う者（もの）</td><td class="num"><b>63.1%</b></td><td class="num">3,260</td></tr>
-      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>輝（かがや）きたる者（もの）、ヴォンダム卿（きょう）</td><td class="num"><b>63.0%</b></td><td class="num">1,772</td></tr>
-      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>不（ふ）吉（きつ）な墓（ぼ）標（ひょう）船（せん）</td><td class="num"><b>62.2%</b></td><td class="num">3,031</td></tr>
-      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>基（き）地（ち）の監（かん）視（し）者（しゃ）</td><td class="num"><b>61.8%</b></td><td class="num">1,147</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>レイブレードの強（きょう）兵（へい）</td><td class="num"><b>61.5%</b></td><td class="num">2,988</td></tr>
-      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>コード破（やぶ）りの猟（りょう）犬（けん）</td><td class="num"><b>61.4%</b></td><td class="num">2,875</td></tr>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--r)"></span>惑（わく）星（せい）契（ちぎ）りの威（い）嚇（かく）屋（や）</td><td class="num"><b>64.1%</b></td><td class="num">3,003</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>疑（うたが）わしい珍（ちん）味（み）</td><td class="num"><b>63.7%</b></td><td class="num">3,879</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>トラクター・ビーム</td><td class="num"><b>63.6%</b></td><td class="num">2,444</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>バイオメカンの技（ぎ）師（し）</td><td class="num"><b>63.2%</b></td><td class="num">2,268</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>万（ばん）物（ぶつ）の定（さだ）めを追（お）う者（もの）</td><td class="num"><b>63.1%</b></td><td class="num">3,260</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>輝（かがや）きたる者（もの）、ヴォンダム卿（きょう）</td><td class="num"><b>63.0%</b></td><td class="num">1,772</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>不（ふ）吉（きつ）な墓（ぼ）標（ひょう）船（せん）</td><td class="num"><b>62.2%</b></td><td class="num">3,031</td></tr>
+      <tr><td><span class="dot" style="background:var(--m)"></span>基（き）地（ち）の監（かん）視（し）者（しゃ）</td><td class="num"><b>61.8%</b></td><td class="num">1,147</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>レイブレードの強（きょう）兵（へい）</td><td class="num"><b>61.5%</b></td><td class="num">2,988</td></tr>
+      <tr><td><span class="dot" style="background:var(--u)"></span>コード破（やぶ）りの猟（りょう）犬（けん）</td><td class="num"><b>61.4%</b></td><td class="num">2,875</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">コモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
-      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>氷（こおり）魔（ま）法（ほう）の秘（ひ）宝（ほう）</td><td class="num"><b>61.0%</b></td><td class="num">5,918</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>騎（き）士（し）の指（し）導（どう）者（しゃ）</td><td class="num"><b>61.0%</b></td><td class="num">5,907</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>払（ふっ）拭（しょく）の光（ひかり）</td><td class="num"><b>60.9%</b></td><td class="num">7,763</td></tr>
-      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>銀（ぎん）河（が）の旅（たび）人（びと）</td><td class="num"><b>60.7%</b></td><td class="num">7,767</td></tr>
-      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>軌（き）道（どう）からの突（とつ）入（にゅう）</td><td class="num"><b>60.3%</b></td><td class="num">6,457</td></tr>
-      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>近（きん）点（てん）の誘（おび）き寄（よ）せ</td><td class="num"><b>60.1%</b></td><td class="num">4,450</td></tr>
-      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>減（げん）圧（あつ）</td><td class="num"><b>60.1%</b></td><td class="num">8,086</td></tr>
-      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>重（じゅう）力（りょく）死（し）</td><td class="num"><b>60.0%</b></td><td class="num">9,003</td></tr>
-      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>一（いっ）点（てん）砲（ほう）火（か）</td><td class="num"><b>59.9%</b></td><td class="num">5,329</td></tr>
-      <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>遺（い）伝（でん）子（し）送（そう）粉（ふん）機（き）</td><td class="num"><b>59.7%</b></td><td class="num">6,524</td></tr>
+      <table><thead><tr><th>カード</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><span class="dot" style="background:var(--u)"></span>氷（こおり）魔（ま）法（ほう）の秘（ひ）宝（ほう）</td><td class="num"><b>61.0%</b></td><td class="num">5,918</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>騎（き）士（し）の指（し）導（どう）者（しゃ）</td><td class="num"><b>61.0%</b></td><td class="num">5,907</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>払（ふっ）拭（しょく）の光（ひかり）</td><td class="num"><b>60.9%</b></td><td class="num">7,763</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>銀（ぎん）河（が）の旅（たび）人（びと）</td><td class="num"><b>60.7%</b></td><td class="num">7,767</td></tr>
+      <tr><td><span class="dot" style="background:var(--r)"></span>軌（き）道（どう）からの突（とつ）入（にゅう）</td><td class="num"><b>60.3%</b></td><td class="num">6,457</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>近（きん）点（てん）の誘（おび）き寄（よ）せ</td><td class="num"><b>60.1%</b></td><td class="num">4,450</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>減（げん）圧（あつ）</td><td class="num"><b>60.1%</b></td><td class="num">8,086</td></tr>
+      <tr><td><span class="dot" style="background:var(--b)"></span>重（じゅう）力（りょく）死（し）</td><td class="num"><b>60.0%</b></td><td class="num">9,003</td></tr>
+      <tr><td><span class="dot" style="background:var(--w)"></span>一（いっ）点（てん）砲（ほう）火（か）</td><td class="num"><b>59.9%</b></td><td class="num">5,329</td></tr>
+      <tr><td><span class="dot" style="background:var(--g)"></span>遺（い）伝（でん）子（し）送（そう）粉（ふん）機（き）</td><td class="num"><b>59.7%</b></td><td class="num">6,524</td></tr>
       </tbody></table></div>
     </div>
   </section>
 </article>
-<section class="faq"><h3>リミテッドのカードの点数について</h3>
-  <details><summary>リミテッドのカードの点数（評価）とは？</summary><p>そのカードがどれだけ強いかを数字で表したものを、点数や評価と呼びます。人が付ける点数には好みが入りますが、このページでは実際の対戦結果の勝率で見ています。</p></details>
-  <details><summary>点数（GIH勝率）はどう読めばいいですか？</summary><p>そのセット全体の勝率より高いカードは、入れたデッキが勝ちやすかったカードです。ただし、試合数が少ないカードは数字がぶれやすく、強いデッキに入りやすいカードは高く出る傾向があります。色や相性とあわせて、目安として使ってください。</p></details>
-  <details><summary>点数はいつ更新されますか？</summary><p>毎週月曜日に、17Landsの最新データで更新します。</p></details>
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"ja","mainEntity":[{"@type":"Question","name":"リミテッドのカードの点数（評価）とは？","acceptedAnswer":{"@type":"Answer","text":"そのカードがどれだけ強いかを数字で表したものを、点数や評価と呼びます。人が付ける点数には好みが入りますが、このページでは実際の対戦結果の勝率で見ています。"}},{"@type":"Question","name":"点数（GIH勝率）はどう読めばいいですか？","acceptedAnswer":{"@type":"Answer","text":"そのセット全体の勝率より高いカードは、入れたデッキが勝ちやすかったカードです。ただし、試合数が少ないカードは数字がぶれやすく、強いデッキに入りやすいカードは高く出る傾向があります。色や相性とあわせて、目安として使ってください。"}},{"@type":"Question","name":"点数はいつ更新されますか？","acceptedAnswer":{"@type":"Answer","text":"毎週月曜日に、17Landsの最新データで更新します。"}}]}</script>
-</section>
 <section class="links"><h3>関連ページ</h3><ul>
   <li><a href="../reports.html?set=EOE">環境レポート（他のセットに切り替え）</a></li>
-  <li><a href="../">シールド構築の練習</a>／<a href="../draft.html">ドラフト構築の練習</a>／<a href="../assistant.html">ドラフト補助（PC・Chrome/Edge）</a></li>
+  <li><a href="../sealed.html">シールド構築の練習</a>／<a href="../draft.html">ドラフト構築の練習</a>／<a href="../assistant.html">ドラフト補助（PC・Chrome/Edge）</a></li>
   <li><a href="index.html">セット一覧</a></li>
 </ul></section>
 <p class="source">出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。</p>
 <div id="goodsStrip"></div>
 <script src="../goods-widget.js?v=6" defer></script>
 </main>
-<footer>データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。<br><a href="../faq.html">よくある質問</a>・<a href="../contact.html">お問い合わせ</a><br><a href="../goods/index.html">日本の TCG サプライ（スリーブ・デッキケース）</a></footer>
+<footer>データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。<br><a href="../goods/index.html">日本の TCG サプライ（スリーブ・デッキケース）</a></footer>
 </body>
 </html>

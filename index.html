@@ -1,21 +1,19 @@
 <!DOCTYPE html>
-<html lang="ja" data-title="page.index.title" data-desc="desc.index">
+<html lang="ja" data-title="page.top.title" data-desc="desc.top">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Limited Workbench — MTG Arena sealed practice</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<title>MTG Arena Limited Workbench — Free Sealed & Draft practice</title>
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
 <meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <script src="./i18n.js"></script>
-<script src="./cardzoom.js"></script>
 <script src="./analytics.js"></script>
 <script src="/navmenu.js" defer></script>
-<script src="/poolsave.js"></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
@@ -28,15 +26,10 @@
 <script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
 <style>
   :root{
-    --pine:#10304F;
-    --pine-deep:#0A2038;
-    --paper:#F5F8FC;
-    --paper-2:#E8EEF6;
-    --ink:#0D1B2A;
-    --muted:#5C7185;
-    --gold:#2F7DF6;
-    --line:#D3DFEB;
-    --w:#FAF4E2; --u:#7FB4D8; --b:#2C2833; --r:#DB8068; --g:#79A87F; --m:#C3A03B; --c:#C6CCC9;
+    --pine:#10304F; --pine-deep:#0A2038;
+    --paper:#F5F8FC; --paper-2:#E8EEF6;
+    --ink:#0D1B2A; --muted:#5C7185;
+    --gold:#2F7DF6; --line:#D3DFEB;
     --radius:8px;
   }
   *{box-sizing:border-box}
@@ -44,16 +37,9 @@
   html,body{margin:0;padding:0}
   /* 内容の長さでスクロールバーが出たり消えたりしても、位置が動かないようにする */
   html{overflow-y:scroll;scrollbar-gutter:stable}
-  body{
-    background:var(--paper);
-    color:var(--ink);
-    font-family:"Zen Kaku Gothic New",system-ui,sans-serif;
-    font-size:15px;
-    line-height:1.7;
-  }
-  h1,h2,h3,.num{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.15}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.85}
+  h1,h2{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
 
-  /* ---------- header ---------- */
   header{background:linear-gradient(135deg,var(--pine-deep) 0%,var(--pine) 55%,#17466F 100%);color:var(--paper);padding:24px 24px 16px;border-bottom:3px solid var(--gold);box-shadow:0 10px 30px -18px rgba(8,26,48,.9)}
   .wrap{max-width:1180px;margin:0 auto}
   .head-top{display:block}
@@ -65,25 +51,6 @@
   select.langsel{min-width:112px;padding:6px 10px;font-size:13px}
   header h1{font-size:24px;margin:0}
   header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
-  .controls{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  select,button{font-family:inherit;font-size:14px}
-  select{
-    background:var(--pine-deep);color:var(--paper);border:1px solid #2C4D74;
-    padding:9px 12px;border-radius:var(--radius);min-width:230px;
-  }
-  button{
-    border:none;border-radius:var(--radius);padding:10px 18px;cursor:pointer;
-    background:var(--gold);color:#FFFFFF;font-weight:700;
-  }
-  button:hover{background:#1F6AE0}
-  button:disabled{background:#8FA3B5;color:#C6CCC9;cursor:not-allowed}
-  button.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);font-weight:600}
-  button.ghost:hover{background:var(--paper-2);border-color:var(--muted)}
-  /* セット名が入る前後で幅が動かないよう固定する */
-  #setSelect{width:300px}
-
-  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-
   nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
   nav a{
     display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;
@@ -108,154 +75,44 @@
   @media (max-width:760px){
     .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0}
   }
+  .controls{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  select{background:var(--pine-deep);color:var(--paper);border:1px solid #2C4D74;padding:9px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px;min-width:120px}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
-  /* ---------- layout ---------- */
-  main{max-width:1180px;margin:0 auto;padding:22px 24px 80px;display:grid;grid-template-columns:1fr 360px;gap:26px;align-items:start}
-  @media (max-width:900px){main{grid-template-columns:1fr}}
+  main{max-width:760px;margin:0 auto;padding:26px 24px 70px}
+  section{margin-bottom:34px}
+  h2{font-size:19px;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  p{margin:0 0 14px}
+  ol{margin:0 0 14px;padding-left:1.4em}
+  ol li{margin-bottom:5px}
+  a{color:#1E7A52}
 
-  .status{padding:14px 16px;background:var(--paper-2);border-left:3px solid var(--muted);font-size:14px;color:var(--muted)}
-  /* 読み込み中を示す回転 */
-  .status.busy{display:flex;align-items:center;gap:10px}
-  .status.busy::before{
-    content:"";flex:none;width:15px;height:15px;border-radius:50%;
-    border:2px solid rgba(15,28,23,.18);border-top-color:var(--gold);
-    animation:spin .8s linear infinite;
+  h3.cat{font-size:15px;margin:22px 0 4px;color:var(--pine)}
+  h3.cat:first-of-type{margin-top:14px}
+  .catlead{margin:0 0 10px;color:var(--muted);font-size:13px}
+  .tools{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 6px}
+  .tool{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+  .tool h4{margin:0 0 6px;font-size:15px;font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif}
+  .tool h4 a{color:var(--gold);text-decoration:none}
+  .tool h4 a:hover{text-decoration:underline}
+  .tool p{margin:0 0 8px;font-size:13px;line-height:1.75}
+  .tool p:last-child{margin:0}
+  /* 語句の補足。ふだんは隠しておき、カーソルを合わせたとき（スマホでは押したとき）だけ出す */
+  .term{position:relative;border-bottom:1px dashed var(--gold);cursor:help;outline:none;white-space:nowrap}
+  .term .pop{position:absolute;left:0;top:calc(100% + 8px);z-index:30;width:min(420px,78vw);white-space:normal;
+             background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 14px;
+             box-shadow:0 14px 34px -14px rgba(13,27,42,.45);font-size:12.5px;line-height:1.75;color:var(--ink);
+             opacity:0;visibility:hidden;transition:opacity .12s}
+  .term:hover .pop,.term:focus .pop,.term:focus-within .pop{opacity:1;visibility:visible}
+  @media (max-width:720px){ .tools{grid-template-columns:1fr} .term .pop{left:auto;right:0} }
+  .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .cta a{
+    display:inline-block;background:var(--gold);color:#FFFFFF;font-weight:700;
+    text-decoration:none;padding:10px 18px;border-radius:var(--radius);font-size:14px;
   }
-  @keyframes spin{to{transform:rotate(360deg)}}
-  @media (prefers-reduced-motion:reduce){ .status.busy::before{animation-duration:2.4s} }
-  .status.err{border-left-color:#B4432E;color:#8A3422;background:#F6E9E5}
+  .cta a:hover{background:#1F6AE0}
 
-  /* ---------- pool ---------- */
-  .group{margin-bottom:22px}
-  .group-head{display:flex;align-items:baseline;gap:10px;padding-bottom:5px;border-bottom:1px solid var(--line);margin-bottom:6px}
-  .group-head h3{font-size:15px;margin:0}
-  .group-head span{font-size:12px;color:var(--muted)}
-  .sub-sec{display:flex;align-items:baseline;gap:7px;margin:9px 0 2px;color:var(--muted);font-size:12px}
-  .sub-sec b{font-weight:700;color:var(--ink);font-size:12.5px}
-  .sub-sec::after{content:"";flex:1;height:1px;background:var(--paper-2)}
-  .swatch{width:9px;height:9px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22)}
-
-  ul{list-style:none;margin:0;padding:0}
-  .card-row{
-    display:grid;grid-template-columns:22px 1fr auto auto auto;gap:9px;align-items:center;
-    padding:5px 7px;border-radius:var(--radius);cursor:pointer;
-  }
-  .wr{font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);min-width:42px;text-align:right}
-  /* 同じセットの平均より5ポイント以上高い勝率（ボム級）は、金色に光らせる */
-  .tile .wrbadge.bomb{background:linear-gradient(180deg,#FBE08A,#E0AE2E);color:#2A1D00;box-shadow:0 0 0 2px #FFF3C4,0 0 10px 2px rgba(242,190,50,.8),0 1px 4px rgba(0,0,0,.35)}
-  .tile .wrbadge.alt{background:rgba(24,36,31,.72);color:#C9D6E6;font-weight:600;box-shadow:0 0 0 1px rgba(255,255,255,.55) inset}
-  .wr.alt{font-style:italic;opacity:.8}
-  .wr.bomb{color:#6B4600;font-weight:700;background:#FFF1C2;border-radius:6px;padding:0 6px;box-shadow:inset 0 0 0 1px #E0AE2E}
-  .tile .wrbadge{
-    position:absolute;left:50%;transform:translateX(-50%);bottom:6px;
-    background:rgba(24,36,31,.92);color:#F5F8FC;
-    font-size:12px;font-weight:700;line-height:1;padding:4px 9px;border-radius:10px;
-    box-shadow:0 1px 4px rgba(0,0,0,.3);
-  }
-  .card-row:hover{background:var(--paper-2)}
-  .card-row .qty{font-size:12px;color:var(--muted);text-align:right}
-  .card-row .cost{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-  .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
-  .name small{color:var(--muted);font-size:12px;margin-left:6px}
-  .rar{width:6px;height:14px;border-radius:1px;background:#2A3B4C}
-  .rar.uncommon{background:#9FB3C4}.rar.rare{background:var(--gold)}.rar.mythic{background:#C4552C}
-  /* レアリティ：カードの外ふち（スマホで小さなアイコン色が見分けにくいため） */
-  .tile.r-common img,.tile.r-common .noimg{box-shadow:0 0 0 2px #1E2933}
-  .tile.r-uncommon img,.tile.r-uncommon .noimg{box-shadow:0 0 0 4px #A3B8CA,0 0 8px 3px rgba(163,184,202,.75)}
-  .tile.r-rare img,.tile.r-rare .noimg{box-shadow:0 0 0 3px #E0AE2E}
-  .tile.r-mythic img,.tile.r-mythic .noimg{box-shadow:0 0 0 3px #E8582B}
-  .card-row.r-common{box-shadow:inset 0 0 0 1.5px rgba(30,41,51,.6)}
-  .card-row.r-uncommon{box-shadow:inset 0 0 0 3px #A3B8CA}
-  .card-row.r-rare{box-shadow:inset 0 0 0 1.5px #E0AE2E}
-  .card-row.r-mythic{box-shadow:inset 0 0 0 1.5px #E8582B}
-  .hist{margin-top:10px;font-size:13px}
-  .hist summary{cursor:pointer;color:#C6D9EE;font-weight:700}
-  .hist ul{margin:8px 0 0;display:grid;gap:6px}
-  .hist li{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#0D1B2A}
-  .hist li span{flex:1;min-width:150px;font-size:14px;font-weight:700;color:#0D1B2A}
-  .hist button{font-size:12px;padding:5px 10px;min-height:0}
-
-  /* ---------- deck ---------- */
-  .deck{position:sticky;top:16px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
-  .deck-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
-  .deck-head h2{font-size:16px;margin:0}
-  .count{font-size:26px;font-variant-numeric:tabular-nums}
-  .count.ok{color:#1E7A52}
-  .deck-body{padding:12px 16px;max-height:44vh;overflow:auto}
-  /* 追加先の切り替えと、サイドボード */
-  .target{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
-  .target .seg{display:inline-flex;gap:2px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:2px}
-  .target .seg button{background:transparent;border:none;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit}
-  .target .seg button.on{background:var(--pine);color:var(--paper)}
-  .deck-head.sub{border-top:1px solid var(--line);padding:10px 16px}
-  .deck-head.sub h2{font-size:14px}
-  .count.small{font-size:20px}
-  .count.over{color:#A24B32}
-  .side-body{padding:10px 16px;max-height:26vh;overflow:auto}
-  /* メインとサイドの間で移す小さなボタン */
-  .mv{position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:6px;border:none;
-      background:rgba(24,36,31,.85);color:#F5F8FC;font-size:13px;line-height:22px;padding:0;cursor:pointer;
-      opacity:0;transition:opacity .12s}
-  .tile:hover .mv,.tile:focus-within .mv{opacity:1}
-  .card-row .mv{position:static;width:24px;height:22px;opacity:1;background:var(--paper-2);color:var(--ink);border:1px solid var(--line);flex:none}
-  .deck-body ul + ul{margin-top:7px}
-  .deck-sec{display:flex;align-items:baseline;justify-content:space-between;margin:10px 0 3px;padding-bottom:3px;border-bottom:1px solid var(--line)}
-  .deck-sec:first-child{margin-top:0}
-  .deck-sec h4{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:13px;margin:0}
-  .deck-sec span{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
-  .lands{padding:10px 16px;border-top:1px solid var(--line)}
-  .lands-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
-  .lands-head h4{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:13px;margin:0}
-  .lands-head span{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
-  .land-item{display:grid;grid-template-columns:1fr 28px 30px 28px;align-items:center;gap:4px;padding:1px 0}
-  .land-item .l-name{font-size:13.5px}
-  .land-item .l-num{text-align:center;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
-  .step{
-    width:28px;height:28px;padding:0;border:1px solid var(--line);background:#fff;color:var(--ink);
-    font-size:17px;font-weight:700;line-height:1;border-radius:var(--radius);
-  }
-  .step:hover:not(:disabled){background:var(--paper-2)}
-  .step:disabled{color:#CFDAE5;background:#fff;cursor:not-allowed}
-  .curve{padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:4px;align-items:flex-end;height:78px}
-  .bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;height:100%}
-  .bar i{display:block;width:100%;background:var(--pine);border-radius:1px 1px 0 0;min-height:2px}
-  .bar span{font-size:10px;color:var(--muted)}
-  .wc{padding:12px 16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
-  .wc b{color:var(--ink);font-weight:700}
-  .export{padding:12px 16px;border-top:1px solid var(--line)}
-  textarea{width:100%;height:110px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:12px;border:1px solid var(--line);border-radius:var(--radius);padding:8px;resize:vertical;background:var(--paper)}
-  .empty{color:var(--muted);font-size:13px;padding:18px 0;text-align:center}
-
-  /* ---------- 画像プレビュー ---------- */
-  .toggle{display:flex;align-items:center;gap:7px;color:var(--paper);font-size:13px;cursor:pointer;user-select:none}
-  .toggle input{width:15px;height:15px;accent-color:var(--gold);cursor:pointer}
-  #preview{
-    position:fixed;z-index:50;pointer-events:none;display:none;
-    filter:drop-shadow(0 10px 24px rgba(15,28,23,.35));
-  }
-  #preview img{display:block;width:244px;height:auto;border-radius:11px}
-  #preview img + img{margin-top:6px}
-  .card-row.has-img .name{text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
-
-  /* ---------- 画像一覧 ---------- */
-  ul.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;padding:4px 0 2px}
-  .deck-body ul.grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:7px}
-  .tile{position:relative;cursor:pointer;border-radius:8px;line-height:0}
-  .tile img{width:100%;height:auto;border-radius:7px;display:block}
-  .tile:hover img,.tile:focus-visible img{outline:2px solid var(--gold);outline-offset:2px;border-radius:7px}
-  /* 枚数（×2 など）。カード右上のマナコストにかからないよう、名前欄の下のイラスト部分に置く */
-  .tile .badge{
-    position:absolute;right:5px;top:19%;background:rgba(24,36,31,.62);color:var(--paper);
-    font-size:14px;font-weight:700;line-height:1;padding:5px 8px;border-radius:11px;
-    backdrop-filter:blur(1.5px);
-  }
-  .tile .noimg{
-    display:flex;align-items:center;justify-content:center;text-align:center;
-    aspect-ratio:5/7;background:var(--paper-2);border:1px solid var(--line);border-radius:7px;
-    font-size:12px;line-height:1.5;padding:8px;color:var(--muted);
-  }
-
-  footer{max-width:1180px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer{max-width:760px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
   footer a{color:var(--muted)}
 
   /* ---------- スマートフォン ---------- */
@@ -266,37 +123,13 @@
     header{padding:16px 14px 12px}
     header h1{font-size:20px}
     header p{font-size:12px;max-width:none}
-    main{padding:14px 14px 50px;gap:16px}
+    main{padding:18px 14px 50px}
     footer{padding:0 14px 40px}
-
-    /* 操作部分を縦積みにして、はみ出しをなくす */
     .head-top{flex-direction:column;align-items:stretch;gap:12px}
-    .controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center}
-    .controls select{min-width:0;width:100%}
-    #setSelect{width:100%}
-    .controls button{width:100%;padding:11px 10px}
-    .controls > select:first-of-type{grid-column:1 / -1}
-    .controls label.toggle{grid-column:auto;font-size:12px;gap:6px}
-
+    .controls select{width:100%}
     nav{margin:0 0 14px;gap:6px;font-size:12px}
     nav a{white-space:nowrap}
-
-    /* カード画像を小さめに並べる */
-    ul.grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:7px}
-    .deck-body ul.grid,.side ul.grid{grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
-    .tile .wrbadge{font-size:10px;padding:3px 6px;bottom:4px}
-    .tile .badge{font-size:13px;padding:4px 7px;right:4px}
-
-    /* 右のパネルは固定せず、下に流す */
-    .deck,.side{position:static;max-width:100%}
-    .deck-body,.side-body{max-height:none}
-
-    /* 表は表だけ横スクロールさせる */
-    .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-    table{min-width:640px}
-
-    /* 画像プレビューは指で隠れるので出さない */
-    #preview{display:none !important}
+    .cta a{flex:1 1 100%;text-align:center}
   }
   /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
   .ng{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;column-gap:7px;row-gap:5px;justify-content:start;align-items:center;padding-top:0}
@@ -312,15 +145,40 @@
     .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
     .ngl,.ngs{flex:0 0 100%}
   }
+
+  /* ---------- トップページ ---------- */
+  main{max-width:980px}
+  .big{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:0 0 6px}
+  .bigcard{display:flex;flex-direction:column;gap:6px;background:#fff;border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:var(--radius);padding:18px 18px 16px;text-decoration:none;color:var(--ink);transition:transform .12s,box-shadow .12s}
+  .bigcard:hover{transform:translateY(-2px);box-shadow:0 14px 30px -18px rgba(13,27,42,.5)}
+  .bigcard .k{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted)}
+  .bigcard b{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:20px;color:var(--pine);line-height:1.25}
+  .bigcard span.d{font-size:13px;line-height:1.75;color:var(--ink)}
+  .bigcard .go{margin-top:auto;padding-top:6px;font-size:13px;font-weight:700;color:var(--gold)}
+  .latest{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .setcard{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
+  .setcard:hover{border-color:var(--gold)}
+  .setcard .code{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:12px;color:var(--gold);letter-spacing:.08em}
+  .setcard .nm{display:block;font-weight:700;font-size:14px;line-height:1.4;margin:2px 0 4px}
+  .setcard .dt{font-size:11.5px;color:var(--muted)}
+  .more{margin:12px 0 0;font-size:13px}
+  .more a{color:var(--gold);font-weight:700;text-decoration:none}
+  .newbie{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
+  .newbie p{margin:0 0 10px;font-size:14px}
+  .newbie .cta a{background:var(--pine)}
+  .feat{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:8px 22px}
+  .feat li{font-size:13.5px;line-height:1.7;padding-left:1.2em;position:relative}
+  .feat li::before{content:"";position:absolute;left:0;top:.7em;width:7px;height:7px;border-radius:2px;background:var(--gold)}
+  @media (max-width:860px){ .big{grid-template-columns:1fr} .latest{grid-template-columns:1fr 1fr} .feat{grid-template-columns:1fr} }
 </style>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous" data-overlays="bottom"></script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
 </head>
 <body>
 
 <header>
   <div class="wrap">
     <div class="brandrow">
-      <div class="brand" data-i18n="site.name">MTGアリーナ リミテッド・ワークベンチ</div>
+      <div class="brand"><a href="./" data-i18n="site.name" style="color:inherit;text-decoration:none">MTGアリーナ リミテッド・ワークベンチ</a></div>
       <select id="langSelect" class="langsel" data-i18n-label="lang.label"><option value="ja">日本語</option><option value="en">English</option></select>
     </div>
     <nav>
@@ -329,7 +187,7 @@
         <a href="./start/limited.html" data-limited-link data-i18n="nav.limited">リミテッドとは</a>
         <a href="./guide.html" data-i18n="nav.guide">サイトの機能</a></div>
       <div class="ng"><span class="ngl" data-i18n="navgrp.build">仮想パックで練習する</span><span class="ngs" data-i18n="navsub.build">6パック開封・8人ドラフト</span>
-        <a href="./" class="on" data-i18n="nav.sealed">シールド練習</a>
+        <a href="./sealed.html" data-i18n="nav.sealed">シールド練習</a>
         <a href="./draft.html" data-i18n="nav.draft">ドラフト練習</a></div>
       <div class="ng"><span class="ngl" data-i18n="navgrp.assist">MTGアリーナで使う</span><span class="ngs" data-i18n="navsub.assist">実戦のログを読んで助ける・PC専用</span>
         <a href="./sealed-assist.html"><span data-i18n="nav.sassist">シールド補助</span><b class="pcb" data-i18n="nav.pc">PC</b></a>
@@ -344,823 +202,86 @@
     </nav>
     <div class="head-top">
       <div>
-        <h1 data-i18n="index.h1">シールド構築</h1>
-        <p data-i18n="index.lead">6パック分のカードプールを生成して40枚デッキを組み、マジック：ザ・ギャザリング アリーナにそのまま貼り付けられるテキストを書き出します。</p>
+        <h1 data-i18n="top.h1">MTGアリーナのリミテッドを、もっと楽しく・もっと強く</h1>
+        <p data-i18n="top.lead">シールド・ドラフトの練習から、17Landsの実戦データによる環境レポートまで。すべて無料、登録も不要です。</p>
       </div>
       <div class="controls">
-        <select id="setSelect" data-i18n-label="sel.set"><option value="">…</option></select>
-        <button id="openBtn" disabled data-i18n="index.open">6パック開封</button>
-        <select id="sortSelect" data-i18n-label="sel.sort" style="min-width:150px">
-          <option value="cmc" data-i18n="index.sortCmc">マナ総量順</option>
-          <option value="wr" data-i18n="index.sortWr">勝率順</option>
-        </select>
-        <label class="toggle"><input type="checkbox" id="imgToggle" checked><span data-i18n="opt.img">カード画像を表示</span></label>
-        <label class="toggle"><input type="checkbox" id="textToggle"><span data-i18n="opt.text">テキストで一覧表示</span></label>
-        <label class="toggle"><input type="checkbox" id="wrToggle" checked><span data-i18n="opt.wr" data-i18n-title="wr.gih.tip">勝率を表示</span></label>
       </div>
-      <div class="hist" id="histBox" hidden></div>
     </div>
   </div>
 </header>
 
 <main>
   <section>
-    <div id="status" class="status" data-i18n="index.ready">セットを選んで「6パック開封」を押してください。</div>
-    <div id="pool"></div>
+    <div class="big">
+      <a class="bigcard" href="./sealed.html"><span class="k" data-i18n="top.c1.k">PRACTICE</span><b data-i18n="nav.sealed">シールド練習</b><span class="d" data-i18n="top.c1.d"></span><span class="go" data-i18n="top.go">開く →</span></a>
+      <a class="bigcard" href="./draft.html"><span class="k" data-i18n="top.c2.k">PRACTICE</span><b data-i18n="nav.draft">ドラフト練習</b><span class="d" data-i18n="top.c2.d"></span><span class="go" data-i18n="top.go">開く →</span></a>
+      <a class="bigcard" href="./reports.html"><span class="k" data-i18n="top.c3.k">DATA</span><b data-i18n="nav.reports">環境レポート</b><span class="d" data-i18n="top.c3.d"></span><span class="go" data-i18n="top.go">開く →</span></a>
+    </div>
   </section>
 
-  <aside class="deck">
-    <div class="deck-head">
-      <h2 data-i18n="deck.title">デッキ</h2>
-      <div class="count" id="deckCount">0<span style="font-size:14px;color:var(--muted)"> / 40</span></div>
-    </div>
-    <div class="target">
-      <span data-i18n="deck.target">追加先</span>
-      <span class="seg" id="targetSeg">
-        <button type="button" class="on" data-target="main" data-i18n="deck.targetMain">メイン</button>
-        <button type="button" data-target="side" data-i18n="deck.targetSide">サイド</button>
-      </span>
-    </div>
-    <div class="deck-body" id="deckBody"><div class="empty" data-i18n="deck.empty">プールのカードを押すと加わります</div></div>
-    <div class="deck-head sub">
-      <h2 data-i18n="deck.side">サイドボード</h2>
-      <div class="count small" id="sideCount">0<span style="font-size:12px;color:var(--muted)"> / 15</span></div>
-    </div>
-    <div class="side-body" id="sideBody"><div class="empty" data-i18n="deck.sideEmpty">追加先を「サイド」にしてプールのカードを押すと加わります</div></div>
-    <div class="lands" id="lands"></div>
-    <div class="curve" id="curve"></div>
-    <div class="wc" id="wc"></div>
-    <div class="export">
-      <textarea id="exportBox" readonly data-i18n-ph="deck.exportPh"></textarea>
-      <div style="font-size:11.5px;color:var(--muted);margin-top:6px" data-i18n="deck.exportNote">インポート用のカード名は、表示設定にかかわらず英語名で出力します。</div>
-      <button id="copyBtn" style="width:100%;margin-top:8px" data-i18n="deck.copy">アリーナ用テキストをコピー</button>
-      <button id="clearBtn" class="ghost" style="width:100%;margin-top:6px" data-i18n="index.clear">デッキを空にする</button>
-    </div>
-  </aside>
-</main>
+  <section>
+    <h2 data-i18n="top.latest.h">最新のセットの環境レポート</h2>
+    <div class="latest" id="latest"></div>
+    <p class="more"><a id="moreSets" href="./sets/" data-i18n="top.more">セットの一覧を見る →</a></p>
+  </section>
 
-<div id="preview" aria-hidden="true"></div>
+  <section>
+    <h2 data-i18n="top.feat.h">このサイトでできること</h2>
+    <ul class="feat">
+      <li data-i18n="top.f1"></li><li data-i18n="top.f2"></li><li data-i18n="top.f3"></li>
+      <li data-i18n="top.f4"></li><li data-i18n="top.f5"></li><li data-i18n="top.f6"></li>
+    </ul>
+    <p class="more"><a href="./guide.html" data-i18n="top.guide">サイトの機能をくわしく見る →</a></p>
+  </section>
+
+  <section>
+    <h2 data-i18n="top.new.h">MTGがはじめての方へ</h2>
+    <div class="newbie">
+      <p data-i18n="top.new.p"></p>
+      <div class="cta"><a data-start-link href="./start/index.html" data-i18n="nav.start">MTGとは</a><a data-limited-link href="./start/limited.html" data-i18n="nav.limited">リミテッドとは</a></div>
+    </div>
+  </section>
+</main>
 
 <div id="goodsStrip"></div>
 
 <footer>
-  <span data-i18n-html="foot.short">データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="./privacy.html">プライバシーポリシー</a>にまとめています。<br><a href="./faq.html">よくある質問</a>・<a href="./contact.html">お問い合わせ</a></span>
+  <span data-i18n-html="foot.short"></span>
 </footer>
 
 <script>
-const API = "https://api.scryfall.com";
-const COLORS = [
-  {key:"W", var:"--w"}, {key:"U", var:"--u"}, {key:"B", var:"--b"},
-  {key:"R", var:"--r"}, {key:"G", var:"--g"}, {key:"M", var:"--m"}, {key:"C", var:"--c"}
-];
-const colorLabel = k => t("color." + k);
-const BASICS = ["Plains","Island","Swamp","Mountain","Forest"];
-const landLabel = en => t("land." + en);
+const sel = document.getElementById("langSelect");
+sel.value = I18N.lang;
+sel.onchange = e => I18N.set(e.target.value);
 
-
-let setCode = "", boosterCards = [], basicCards = {}, pool = [], deck = [], side = [], landCount = {}, jaMap = {}, availableSets = [];
-let target = "main";           // プールのカードを押したときの追加先（main / side）
-let poolSet = "";              // いまのプールを開けたセット
-const SIDE_MAX = 15;
-let wrMap = {}, wrMapAlt = {}, wrSource = "", wrAvg = null;
-/* ボム級＝そのセットの平均（土地を除く、試合数で重みづけ）より5ポイント以上高いGIH勝率。
-   50%や60%の固定ではなく平均との差で見るのは、セットやシールド／ドラフトで平均が56〜60%ほど動くため。 */
-const BOMB_PT = 0.05;
-let wrBase = null;
-function calcWrBase(){
-  let g = 0, s = 0, n = 0;
-  Object.values(wrMap).forEach(v => { if(!v.land && v.games >= 1000){ g += v.games; s += v.gih * v.games; n++; } });
-  wrBase = (n >= 30 && g) ? s / g : null;
-}
-function isBomb(w){ return !!(w && !w.alt && wrBase != null && !w.land && w.gih >= wrBase + BOMB_PT); }
-
-
-function renderSetOptions(){
-  const sel = $("setSelect");
-  let remembered = ""; try{ remembered = sessionStorage.getItem("sw.set.sealed") || ""; }catch(e){}
-  const keep = sel.value || remembered;   // 再読み込みしても、選んでいたセットのまま
-  if(!sel.dataset.mem){ sel.dataset.mem = "1"; sel.addEventListener("change", () => { try{ sessionStorage.setItem("sw.set.sealed", sel.value); }catch(e){} }); }
-  sel.innerHTML = "";
-  availableSets.forEach(s => {
-    const o = document.createElement("option");
-    o.value = s.code;
-    o.textContent = (I18N.setLabel ? I18N.setLabel(s.code, s.name) : (I18N.setName ? I18N.setName(s.code, s.name) : s.name));
-    sel.appendChild(o);
-  });
-  // 選び直しのときだけ元の選択を戻す。初回や該当が無いときは最新セットのまま。
-  const codes = availableSets.map(s => s.code);
-  sel.value = codes.includes(keep) ? keep : (codes[0] || "");
-}
-
-const $ = id => document.getElementById(id);
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-function setStatus(msg, isErr, busy){
-  const el = $("status");
-  el.textContent = msg;
-  el.className = "status" + (isErr ? " err" : "") + (busy ? " busy" : "");
-}
-
-/* ---------- セット一覧 ---------- */
-async function loadSets(){
+/* 最新のセット：発売日の新しい順に4つ。名前は data/names/<セット>.json から */
+let LATEST = null;
+async function loadLatest(){
   try{
-    const res = await fetch(API + "/sets");
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    // アリーナは紙の発売日より数日早く始まるので、発売日の1週間前から出す
-    const today = new Date(Date.now() + 7*86400000).toISOString().slice(0,10);
-    const sets = data.data
-      .filter(s => ["expansion","core"].includes(s.set_type) && s.released_at && s.released_at <= today && s.card_count > 100)
-      .slice(0, 40);
-    const sel = $("setSelect");
-    availableSets = sets;
-    renderSetOptions();
-    $("openBtn").disabled = !$("setSelect").value;
-    setStatus(t("index.ready"));
-  }catch(e){
-    setStatus((pool.length ? t("save.restored", {n: pool.length}) + " " : "") + t("err.sets", {e: e.message}), !pool.length);
-  }
-}
-
-/* ---------- カード取得 ---------- */
-const SKIP_LAYOUTS = ["token","double_faced_token","art_series","emblem","scheme","planar","vanguard"];
-
-async function searchAll(query){
-  let url = API + "/cards/search?q=" + encodeURIComponent(query) + "&unique=cards&order=set";
-  const all = [];
-  while(url){
-    const res = await fetch(url);
-    if(res.status === 404) return [];               // 該当なし
-    if(!res.ok) throw new Error(t("err.scryfall", {s: res.status}));
-    const d = await res.json();
-    all.push(...d.data);
-    url = d.has_more ? d.next_page : null;
-    if(url) await sleep(120); // Scryfall のリクエスト間隔ガイドラインに合わせる
-  }
-  return all;
-}
-
-async function loadCards(code){
-  // 条件を段階的にゆるめて、セットごとのデータの差を吸収する
-  const queries = [
-    "set:" + code + " is:booster -is:extra",
-    "set:" + code + " is:booster",
-    "set:" + code + " -is:extra",
-    "set:" + code
-  ];
-  let all = [];
-  for(const q of queries){
-    all = await searchAll(q);
-    if(all.length) break;
-    await sleep(120);
-  }
-  if(!all.length) throw new Error(t("err.cards"));
-
-  all = all.filter(c => !SKIP_LAYOUTS.includes(c.layout));
-
-  basicCards = {};
-  all.filter(c => (c.type_line || "").startsWith("Basic Land"))
-     .forEach(c => { if(!basicCards[c.name]) basicCards[c.name] = c; });
-
-  boosterCards = all.filter(c => !(c.type_line || "").startsWith("Basic Land"));
-
-  const rarities = new Set(boosterCards.map(c => c.rarity));
-  if(!rarities.has("common")) throw new Error(t("err.commons"));
-}
-
-/* ---------- 日本語版カード ---------- */
-async function loadJapanese(code){
-  jaMap = {};
-  try{
-    let url = API + "/cards/search?q=" + encodeURIComponent("set:" + code + " lang:ja")
-            + "&unique=prints&include_multilingual=true&order=set";
-    while(url){
-      const res = await fetch(url);
-      if(res.status === 404) return;                // 日本語版が未収録のセット
-      if(!res.ok) return;
-      const d = await res.json();
-      d.data.forEach(c => {
-        if(c.lang === "ja" && !jaMap[c.collector_number]) jaMap[c.collector_number] = c;
-      });
-      url = d.has_more ? d.next_page : null;
-      if(url) await sleep(120);
-    }
-  }catch(e){
-    jaMap = {};                                     // 取れなくても英語で続行する
-  }
-}
-
-/* ---------- パック生成 ---------- */
-/* プレイ・ブースターの構成に寄せています（14枚）。
-   コモン7枚／アンコモン3枚／レアまたは神話レア1枚／土地1枚／特殊枠2枚。
-   特殊枠はどのレアリティも出る枠で、ここがあるため1パックに複数のレアが入ります。
-   WILD の確率は、ウィザーズ社が公表している「レア以上が1枚58%・2枚37%・3枚4%」に
-   合うよう、特殊枠1つあたりレア以上を約24%として逆算した値です。
-   コモンとアンコモンの内訳は非公表のため推定値で、ここを触れば調整できます。 */
-const MYTHIC_RATE = 1 / 7;
-const WILD_ODDS = [
-  {rarity:"mythic",   p:0.035},
-  {rarity:"rare",     p:0.205},
-  {rarity:"uncommon", p:0.270},
-  {rarity:"common",   p:0.490}
-];
-
-const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-
-function rollWild(){
-  let x = Math.random();
-  for(const w of WILD_ODDS){ if((x -= w.p) < 0) return w.rarity; }
-  return "common";
-}
-
-function buildPack(){
-  const by = r => boosterCards.filter(c => c.rarity === r);
-  const pools = {common: by("common"), uncommon: by("uncommon"), rare: by("rare"), mythic: by("mythic")};
-  // 土地枠は、そのセットのコモン・アンコモンの土地から
-  const landPool = boosterCards.filter(c => (c.type_line || "").includes("Land")
-                                         && (c.rarity === "common" || c.rarity === "uncommon"));
-  const out = [], used = new Set();
-
-  /* 同じパックに同じカードが入らないように引く */
-  const takeFrom = list => {
-    if(!list || !list.length) return null;
-    let c, guard = 0;
-    do { c = pick(list); guard++; } while(used.has(c.id) && guard < 30);
-    used.add(c.id);
-    return c;
-  };
-  const take = rarity => takeFrom(pools[rarity] && pools[rarity].length ? pools[rarity] : pools.common);
-
-  for(let i = 0; i < 7; i++) out.push(take("common"));          // コモン7枚
-  for(let i = 0; i < 3; i++) out.push(take("uncommon"));        // アンコモン3枚
-  out.push(take(Math.random() < MYTHIC_RATE ? "mythic" : "rare"));   // レア枠
-  out.push(landPool.length ? takeFrom(landPool) : take("common"));   // 土地枠
-  for(let i = 0; i < 2; i++) out.push(take(rollWild()));        // 特殊枠2枚
-
-  return out.filter(Boolean);
-}
-
-async function openPacks(){
-  const code = $("setSelect").value;
-  if(!code){ setStatus(t("err.noSet"), true); return; }   // セット未選択のまま押された場合
-  $("openBtn").disabled = true;
-  setStatus(t("index.loading"), false, true);
-  try{
-    if(code !== setCode){
-      await loadCards(code);
-      setStatus(t("index.loadingJa"), false, true);
-      await loadJapanese(code);
-      setStatus(t("index.loadingWr"), false, true);
-      await loadWinRates(code);
-      setCode = code;
-    }
-    if(!boosterCards.length) throw new Error(t("err.booster"));
-    archiveCurrent();                       // 開け直す前に、いまのプールを残す
-    pool = []; deck = []; side = []; landCount = {};
-    poolSet = code;
-    for(let i = 0; i < 6; i++) pool.push(...buildPack());
-    const jaN = Object.keys(jaMap).length;
-    const wrN = Object.keys(wrMap).length;
-    setStatus(t("index.made", {
-      n: pool.length, set: code.toUpperCase(), k: boosterCards.length,
-      ja: I18N.isJa() ? (jaN ? t("index.jaCount", {n: jaN}) : t("index.jaNone")) : "",
-      wr: wrN ? t("index.wrFrom", {src: wrSource}) : t("index.wrNone")
+    const r = await fetch("./data/articles/index.json", {cache:"no-cache"});
+    const j = await r.json();
+    const m = {};
+    (j.articles || []).forEach(a => { if(a.set && a.released_at && !m[a.set]) m[a.set] = a.released_at; });
+    const top = Object.entries(m).sort((a, b) => b[1].localeCompare(a[1])).slice(0, 4);
+    LATEST = await Promise.all(top.map(async ([code, date]) => {
+      let name = code;
+      try{ const n = await (await fetch("./data/names/" + code + ".json")).json(); if(n.set) name = n.set; }catch(e){}
+      return { code, date, name };
     }));
-    render();
-  }catch(e){
-    setStatus(e.message, true);
-  }finally{
-    $("openBtn").disabled = false;
-  }
+  }catch(e){ LATEST = []; }
+  drawLatest();
 }
-
-
-/* ---------- プールの保存と復元（リロード・電波切れ対策） ---------- */
-function snapPool(){
-  return PoolSave.pack({v:1, setCode:poolSet, target, landCount, ts:Date.now(), n:pool.length},
-                       {pool, deck, side, basic:Object.values(basicCards)});
+function drawLatest(){
+  const box = document.getElementById("latest");
+  if(LATEST === null) return;
+  const en = I18N.lang === "en";
+  box.innerHTML = LATEST.map(s => `<a class="setcard" href="./sets/${s.code}${en ? ".en" : ""}.html"><span class="code">${s.code}</span><span class="nm">${s.name.replace(/[<>&]/g, "")}</span><span class="dt">${s.date}</span></a>`).join("");
+  document.getElementById("moreSets").href = en ? "./sets/index.en.html" : "./sets/";
+  document.querySelector(".latest").parentElement.hidden = LATEST.length === 0;
 }
-function persistPool(){ if(pool.length){ PoolSave.save("sealed", snapPool()); } }
-function archiveCurrent(){
-  if(!pool.length) return;
-  PoolSave.archive("sealed", snapPool());
-  if(PoolSave.redraw) PoolSave.redraw();
-}
-function applySnap(s, msgKey){
-  const u = PoolSave.unpack(s);
-  pool = u.pool || []; deck = u.deck || []; side = u.side || [];
-  basicCards = {}; (u.basic || []).forEach(c => { basicCards[c.name] = c; });
-  landCount = s.landCount || {};
-  poolSet = s.setCode || "";
-  setCode = "";                       // カード一覧は読み込み直す（次に開けるときに取り直す）
-  setTarget(s.target || "main");
-  setStatus(t(msgKey, {n: pool.length}));
-  render();
-  if(poolSet){                        // 日本語名・勝率はつながっていれば後から付ける
-    Promise.resolve().then(async () => {
-      try{ await loadJapanese(poolSet); await loadWinRates(poolSet); render(); }catch(e){}
-    });
-  }
-}
-function restoreCurrent(){
-  const s = PoolSave.load("sealed");
-  if(s && s.n){ applySnap(s, "save.restored"); return true; }
-  return false;
-}
-
-/* ---------- 表示 ---------- */
-function colorKey(c){
-  if((c.type_line || "").includes("Land")) return "C";
-  const ci = c.color_identity || [];
-  if(ci.length === 0) return "C";
-  if(ci.length > 1) return "M";
-  return ci[0];
-}
-const cmcOf = c => Math.floor(c.cmc ?? 0);
-
-/* ---------- デッキの分類 ---------- */
-const DECK_SECTIONS = [{key:"creature"}, {key:"spell"}, {key:"land"}];
-const secLabel = k => t("sec." + k);
-
-function cardSection(c){
-  const front = (c.type_line || "").split("//")[0];
-  if(front.includes("Creature")) return "creature";
-  if(front.includes("Land")) return "land";
-  return "spell";
-}
-
-function tally(list){
-  const m = new Map();
-  list.forEach(c => {
-    const e = m.get(c.id) || {card:c, n:0};
-    e.n++; m.set(c.id, e);
-  });
-  return [...m.values()];
-}
-
-/* ---------- 勝率データ ---------- */
-async function loadWinRates(code){
-  wrMap = {}; wrMapAlt = {}; wrSource = ""; wrAvg = null;
-  // シールド戦のツールなので Sealed を優先し、無ければドラフトのデータを使う
-  const order = ["sealed", "draft"];
-
-  for(const ev of order){
-    try{
-      const res = await fetch(`./data/ratings/${code.toUpperCase()}_${ev}.json`, {cache:"no-cache"});
-      if(!res.ok) continue;
-      const d = await res.json();
-      if(!Array.isArray(d.cards)) continue;
-      d.cards.forEach(c => { if(c.gih != null) wrMap[c.name] = { gih: c.gih, games: c.games, land: !!c.land }; });
-      calcWrBase();
-      const vals = Object.values(wrMap).map(v => v.gih);
-      wrAvg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
-      wrSource = t("mode." + ev);
-      // シールドは試合数が少ないカードが多いので、足りないぶんはドラフトの勝率で補う（参考値として表示）
-      if(ev === "sealed"){
-        try{
-          const r2 = await fetch(`./data/ratings/${code.toUpperCase()}_draft.json`, {cache:"no-cache"});
-          if(r2.ok){
-            const d2 = await r2.json();
-            if(Array.isArray(d2.cards)) d2.cards.forEach(c => { if(c.gih != null) wrMapAlt[c.name] = { gih: c.gih, games: c.games, land: !!c.land }; });
-          }
-        }catch(e){ /* 補えなくても、そのまま続ける */ }
-      }
-      return;
-    }catch(e){ /* 次の候補へ */ }
-  }
-}
-
-/* 出来事・両面・分割カードは、集計データ側が表面の名前だけを持っている。
-   「A // B」のままでは引けないので、表面の名前でも探す。 */
-function lookupWr(map, c){
-  if(!c) return null;
-  const cands = [c.name];
-  if(c.name && c.name.includes(" // ")) cands.push(c.name.split(" // ")[0].trim());
-  if(Array.isArray(c.card_faces)) c.card_faces.forEach(f => { if(f.name) cands.push(f.name); });
-  for(const n of cands){ if(map[n]) return map[n]; }
-  return null;
-}
-function wrEntry(c){ return lookupWr(wrMap, c); }
-
-function wrOf(c){
-  if(!$("wrToggle").checked) return null;
-  const e = wrEntry(c);
-  if(e && e.games >= 200) return e;
-  // 試合数が足りないときは、ドラフトの勝率を参考値として出す（alt=true）
-  const e2 = lookupWr(wrMapAlt, c);
-  return (e2 && e2.games >= 200) ? Object.assign({}, e2, { alt: true }) : null;
-}
-
-
-/* 並べ替え用の勝率。試合数が足りなければドラフトの勝率で補い、それも足りなければ最後に回す */
-function wrSortVal(c){
-  const e = wrEntry(c);
-  if(e && e.games >= 200) return e.gih;
-  const e2 = lookupWr(wrMapAlt, c);
-  return (e2 && e2.games >= 200) ? e2.gih : -1;
-}
-
-function poolSorter(a, b){
-  if($("sortSelect").value === "wr"){
-    const x = wrSortVal(a.card);
-    const y = wrSortVal(b.card);
-    if(x !== y) return y - x;
-  }
-  return cmcOf(a.card) - cmcOf(b.card)
-      || displayName(a.card).localeCompare(displayName(b.card), "ja");
-}
-
-function cardRow(entry, where){
-  const inDeck = where !== "pool";
-  const c = entry.card;
-  const w = wrOf(c);
-  const li = document.createElement("li");
-  li.className = "card-row r-" + c.rarity;
-  li.innerHTML =
-    '<span class="rar ' + c.rarity + '"></span>' +
-    '<span class="name">' + esc(displayName(c)) + '</span>' +
-    '<span class="wr' + (isBomb(w) ? " bomb" : "") + (w && w.alt ? " alt" : "") + '"' + (w ? ' title="' + t("wr.gih.tip") + (isBomb(w) ? "\n" + t("tip.bomb") : "") + (w.alt ? "\n" + t("tip.alt") : "") + '"' : "") + '>' + (w ? (w.gih * 100).toFixed(1) + "%" : "") + '</span>' +
-    '<span class="cost">' + esc(c.mana_cost || "") + '</span>' +
-    '<span class="qty">' + (entry.n > 1 ? "×" + entry.n : "") + '</span>';
-  li.title = (c.type_line || "") + (w ? "\n" + t("tip.gih", {p: (w.gih*100).toFixed(1), n: w.games.toLocaleString()}) : "");
-  if(imageUrls(c).length) li.classList.add("has-img");
-  li.tabIndex = 0;
-  li.onmouseenter = ev => showPreview(c, ev.clientX, ev.clientY);
-  li.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
-  li.onmouseleave = hidePreview;
-  li.onfocus = () => {
-    const r = li.getBoundingClientRect();
-    showPreview(c, r.right, r.top);
-  };
-  li.onblur = hidePreview;
-  li.onkeydown = ev => {
-    if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); li.click(); }
-  };
-  if(inDeck) li.appendChild(moveBtn(c, where));
-  li._card = c;                                    // 長押しで拡大するときに使う
-  li.onclick = () => { hidePreview(); inDeck ? removeCard(c, where) : addCard(c); };
-  return li;
-}
-
-/* ---------- 画像プレビュー ---------- */
-function imageUrls(c){
-  const src = jaCard(c) || c;
-  if(src.image_uris && src.image_uris.normal) return [src.image_uris.normal];
-  if(Array.isArray(src.card_faces)){
-    const urls = src.card_faces.map(f => f.image_uris && f.image_uris.normal).filter(Boolean);
-    if(urls.length) return urls;
-  }
-  if(src !== c) return imageUrlsEn(c);   // 日本語版に画像がなければ英語版で代替
-  return [];
-}
-
-function imageUrlsEn(c){
-  if(c.image_uris && c.image_uris.normal) return [c.image_uris.normal];
-  if(Array.isArray(c.card_faces)){
-    return c.card_faces.map(f => f.image_uris && f.image_uris.normal).filter(Boolean);
-  }
-  return [];
-}
-
-function showPreview(c, x, y){
-  if(!$("imgToggle").checked || gridMode()) return;
-  const urls = imageUrls(c);
-  if(!urls.length) return;
-  const box = $("preview");
-  box.innerHTML = "";
-  urls.forEach(u => {
-    const img = document.createElement("img");
-    img.src = u;
-    img.alt = displayName(c);
-    img.loading = "lazy";
-    box.appendChild(img);
-  });
-  box.style.display = "block";
-  movePreview(x, y);
-}
-
-function movePreview(x, y){
-  const box = $("preview");
-  if(box.style.display !== "block") return;
-  const w = 252, h = box.offsetHeight || 350;
-  let left = x + 18, top = y - h / 2;
-  if(left + w > window.innerWidth - 8) left = x - w - 18;
-  if(left < 8) left = 8;
-  top = Math.min(Math.max(8, top), window.innerHeight - h - 8);
-  box.style.left = left + "px";
-  box.style.top = top + "px";
-}
-
-function hidePreview(){
-  const box = $("preview");
-  box.style.display = "none";
-  box.innerHTML = "";
-}
-
-const esc = s => (s || "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
-
-/* ---------- 表示モード ---------- */
-/* 既定は画像一覧。テキスト表示にチェックを入れたとき、または画像を出さない設定のときは文字表示 */
-const gridMode = () => $("imgToggle").checked && !$("textToggle").checked;
-
-function cardNode(entry, where){
-  return gridMode() ? cardTile(entry, where) : cardRow(entry, where);
-}
-/* メイン⇄サイドの移動ボタン */
-function moveBtn(c, where){
-  const b = document.createElement("button");
-  b.type = "button";
-  b.className = "mv";
-  b.textContent = where === "side" ? "↑" : "↓";
-  b.title = t(where === "side" ? "deck.moveToMain" : "deck.moveToSide");
-  b.setAttribute("aria-label", b.title);
-  b.onclick = ev => { ev.stopPropagation(); hidePreview(); moveCard(c, where); };
-  return b;
-}
-
-function cardTile(entry, where){
-  const inDeck = where !== "pool";
-  const c = entry.card;
-  const li = document.createElement("li");
-  li.className = "tile r-" + c.rarity;
-  li.tabIndex = 0;
-  li._card = c;                                    // 長押しで拡大するときに使う
-  const name = displayName(c);
-  li.title = name + (c.type_line ? "\n" + c.type_line : "");
-
-  const urls = imageUrls(c);
-  if(urls.length){
-    const img = document.createElement("img");
-    img.src = urls[0];
-    img.alt = name;
-    img.loading = "lazy";
-    li.appendChild(img);
-  }else{
-    const d = document.createElement("div");
-    d.className = "noimg";
-    d.textContent = name;
-    li.appendChild(d);
-  }
-  if(entry.n > 1){
-    const b = document.createElement("span");
-    b.className = "badge";
-    b.textContent = "×" + entry.n;
-    li.appendChild(b);
-  }
-  const w = wrOf(c);
-  if(w){
-    const b = document.createElement("span");
-    b.className = "wrbadge" + (isBomb(w) ? " bomb" : "") + (w.alt ? " alt" : "");
-    b.textContent = (w.gih * 100).toFixed(1) + "%";
-    b.title = t("tip.gih", {p: (w.gih * 100).toFixed(1), n: w.games.toLocaleString()}) + "\n" + t("wr.gih.tip") + (isBomb(w) ? "\n" + t("tip.bomb") : "") + (w.alt ? "\n" + t("tip.alt") : "");
-    li.appendChild(b);
-  }
-
-  if(inDeck) li.appendChild(moveBtn(c, where));
-
-  const act = () => { inDeck ? removeCard(c, where) : addCard(c); };
-  li.onclick = act;
-  li.onkeydown = ev => { if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); act(); } };
-  return li;
-}
-
-/* ---------- 日本語表示 ---------- */
-function jaCard(c){
-  return (I18N.isJa() && jaMap[c.collector_number]) || null;
-}
-
-function displayName(c){
-  const j = jaCard(c);
-  const src = j || c;
-  if(src.printed_name) return src.printed_name;
-  if(Array.isArray(src.card_faces)){
-    const names = src.card_faces.map(f => f.printed_name).filter(Boolean);
-    if(names.length) return names.join(" // ");
-  }
-  return c.name;
-}
-
-function render(){
-  // プール（デッキに入っていない分）
-  const remaining = pool.slice();
-  deck.concat(side).forEach(d => {
-    const i = remaining.findIndex(c => c.id === d.id);
-    if(i >= 0) remaining.splice(i, 1);
-  });
-
-  const wrap = $("pool");
-  wrap.innerHTML = "";
-  COLORS.forEach(col => {
-    const list = remaining.filter(c => colorKey(c) === col.key);
-    if(!list.length) return;
-    const sec = document.createElement("div");
-    sec.className = "group";
-    sec.innerHTML = '<div class="group-head"><span class="swatch" style="background:var(' + col.var + ')"></span>' +
-                    '<h3>' + colorLabel(col.key) + '</h3><span>' + t("unit.cards", {n: list.length}) + '</span></div>';
-
-    DECK_SECTIONS.forEach(part => {
-      const sub = list.filter(c => cardSection(c) === part.key);
-      if(!sub.length) return;
-      const h = document.createElement("div");
-      h.className = "sub-sec";
-      h.innerHTML = '<b>' + secLabel(part.key) + '</b><span>' + t("unit.cards", {n: sub.length}) + '</span>';
-      sec.appendChild(h);
-
-      const ul = document.createElement("ul");
-      if(gridMode()) ul.className = "grid";
-      tally(sub)
-        .sort(poolSorter)
-        .forEach(e => ul.appendChild(cardNode(e, "pool")));
-      sec.appendChild(ul);
-    });
-
-    wrap.appendChild(sec);
-  });
-
-  renderDeck();
-}
-
-function renderDeck(){
-  persistPool();
-  const lands = Object.values(landCount).reduce((a,b) => a + b, 0);
-  const total = deck.length + lands;
-  const cnt = $("deckCount");
-  cnt.innerHTML = total + '<span style="font-size:14px;color:var(--muted)"> / 40</span>';
-  cnt.className = "count" + (total === 40 ? " ok" : "");
-
-  const body = $("deckBody");
-  body.innerHTML = "";
-  if(!deck.length){
-    body.innerHTML = '<div class="empty">' + t("deck.empty") + '</div>';
-  }else{
-    DECK_SECTIONS.forEach(sec => {
-      const list = deck.filter(c => cardSection(c) === sec.key);
-      if(!list.length) return;
-      const head = document.createElement("div");
-      head.className = "deck-sec";
-      head.innerHTML = '<h4>' + secLabel(sec.key) + '</h4><span>' + t("unit.cards", {n: list.length}) + '</span>';
-      body.appendChild(head);
-
-      const ul = document.createElement("ul");
-      if(gridMode()) ul.className = "grid";
-      tally(list)
-        .sort(poolSorter)
-        .forEach(e => ul.appendChild(cardNode(e, "main")));
-      body.appendChild(ul);
-    });
-  }
-
-  // サイドボード
-  const sc = $("sideCount");
-  sc.innerHTML = side.length + '<span style="font-size:12px;color:var(--muted)"> / ' + SIDE_MAX + '</span>';
-  sc.className = "count small" + (side.length > SIDE_MAX ? " over" : "");
-  const sb = $("sideBody");
-  sb.innerHTML = "";
-  if(!side.length){
-    sb.innerHTML = '<div class="empty">' + t("deck.sideEmpty") + '</div>';
-  }else{
-    const ul = document.createElement("ul");
-    if(gridMode()) ul.className = "grid";
-    tally(side).sort(poolSorter).forEach(e => ul.appendChild(cardNode(e, "side")));
-    sb.appendChild(ul);
-  }
-
-  // 基本土地
-  const lw = $("lands");
-  lw.innerHTML = '<div class="lands-head"><h4>' + t("deck.lands") + '</h4><span>' + t("unit.total", {n: lands}) + '</span></div>';
-  BASICS.forEach(en => {
-    const ja = landLabel(en);
-    const n = landCount[en] || 0;
-    const row = document.createElement("div");
-    row.className = "land-item";
-
-    const minus = document.createElement("button");
-    minus.className = "step";
-    minus.textContent = "−";
-    minus.disabled = n === 0;
-    minus.setAttribute("aria-label", t("deck.minus", {c: ja}));
-    minus.onclick = () => { landCount[en] = Math.max(0, n - 1); renderDeck(); };
-
-    const plus = document.createElement("button");
-    plus.className = "step";
-    plus.textContent = "＋";
-    plus.setAttribute("aria-label", t("deck.plus", {c: ja}));
-    plus.onclick = () => { landCount[en] = n + 1; renderDeck(); };
-
-    const name = document.createElement("span");
-    name.className = "l-name";
-    name.textContent = ja;
-
-    const num = document.createElement("span");
-    num.className = "l-num";
-    num.textContent = n;
-
-    row.append(name, minus, num, plus);
-    lw.appendChild(row);
-  });
-
-  // マナカーブ
-  const curve = $("curve");
-  curve.innerHTML = "";
-  const buckets = [0,0,0,0,0,0,0,0];
-  deck.forEach(c => { if(!(c.type_line||"").includes("Land")) buckets[Math.min(cmcOf(c), 7)]++; });
-  const max = Math.max(1, ...buckets);
-  buckets.forEach((n, i) => {
-    const d = document.createElement("div");
-    d.className = "bar";
-    d.innerHTML = '<i style="height:' + (n / max * 100) + '%"></i><span>' + (i === 7 ? "7+" : i) + '</span>';
-    d.title = t("tip.curve", {c: (i === 7 ? "7+" : i), n: n});
-    curve.appendChild(d);
-  });
-
-  // ワイルドカード必要数
-  const need = {common:0, uncommon:0, rare:0, mythic:0};
-  deck.concat(side).forEach(c => { if(need[c.rarity] !== undefined) need[c.rarity]++; });
-  $("wc").innerHTML = t("deck.wildcards") + " " +
-    ["common","uncommon","rare","mythic"].map(r => t("rarity." + r) + " <b>" + need[r] + "</b>").join("　");
-
-  // アリーナ用テキスト
-  const lines = ["Deck"];
-  tally(deck).forEach(e => lines.push(e.n + " " + e.card.name + " (" + e.card.set.toUpperCase() + ") " + e.card.collector_number));
-  BASICS.forEach(en => {
-    const n = landCount[en] || 0;
-    if(!n) return;
-    const bc = basicCards[en];
-    lines.push(bc ? n + " " + en + " (" + bc.set.toUpperCase() + ") " + bc.collector_number : n + " " + en);
-  });
-  if(side.length){
-    lines.push("", "Sideboard");
-    tally(side).forEach(e => lines.push(e.n + " " + e.card.name + " (" + e.card.set.toUpperCase() + ") " + e.card.collector_number));
-  }
-  $("exportBox").value = deck.length || side.length || lands ? lines.join("\n") : "";
-}
-
-/* プールから、いま選んでいる追加先へ */
-function addCard(c){ (target === "side" ? side : deck).push(c); render(); }
-/* メインまたはサイドから、プールへ戻す */
-function removeCard(c, from){
-  const arr = from === "side" ? side : deck;
-  const i = arr.findIndex(x => x.id === c.id);
-  if(i >= 0) arr.splice(i, 1);
-  render();
-}
-/* メインとサイドの間で移す */
-function moveCard(c, from){
-  const src = from === "side" ? side : deck, dst = from === "side" ? deck : side;
-  const i = src.findIndex(x => x.id === c.id);
-  if(i >= 0){ src.splice(i, 1); dst.push(c); }
-  render();
-}
-function setTarget(v){
-  target = v;
-  document.querySelectorAll("#targetSeg button").forEach(b => b.classList.toggle("on", b.dataset.target === v));
-}
-
-/* ---------- イベント ---------- */
-$("openBtn").onclick = openPacks;
-$("clearBtn").onclick = () => { deck = []; side = []; landCount = {}; render(); };
-document.querySelectorAll("#targetSeg button").forEach(b => { b.onclick = () => setTarget(b.dataset.target); });
-$("copyBtn").onclick = async () => {
-  const t = $("exportBox").value;
-  if(!t) return;
-  try{
-    await navigator.clipboard.writeText(t);
-    $("copyBtn").textContent = t("deck.copied");
-  }catch(e){
-    $("exportBox").select();
-    $("copyBtn").textContent = t("deck.copyManual");
-  }
-  setTimeout(() => { $("copyBtn").textContent = t("deck.copy"); }, 2200);
-};
-
-$("sortSelect").onchange = () => { hidePreview(); render(); };
-$("wrToggle").onchange = () => { hidePreview(); render(); };
-$("langSelect").value = I18N.lang;
-$("langSelect").onchange = e => I18N.set(e.target.value);
-I18N.onChange(() => { hidePreview(); renderSetOptions(); render(); });
-$("imgToggle").onchange = () => {
-  hidePreview();
-  const t = $("textToggle");
-  t.disabled = !$("imgToggle").checked;   // 画像を出さないときは常にテキスト表示
-  render();
-};
-$("textToggle").onchange = () => { hidePreview(); render(); };
-window.addEventListener("scroll", hidePreview, {passive:true});
-
-/* 指で長押ししたら、カードを画面いっぱいに出す（スマホで文章が読めないため）。
-   画像・名前・その下に出す説明は、ページごとに持っているものを渡す。 */
-CardZoom.setup({
-  images: imageUrls,
-  name: displayName,
-  sub: c => {
-    const w = wrOf(c);
-    return [c.type_line || "", w ? "GIH " + (w.gih * 100).toFixed(1) + "%" : ""].filter(Boolean).join("　");
-  }
-});
-CardZoom.hint();
-loadSets();
-PoolSave.mountHistory("sealed", $("histBox"), snap => { archiveCurrent(); applySnap(snap, "save.switched"); });
-if(!restoreCurrent()) renderDeck();
+I18N.onChange(() => { sel.value = I18N.lang; drawLatest(); });
+document.addEventListener("DOMContentLoaded", loadLatest);
 </script>
 <script src="./goods-widget.js?v=6" defer></script>
 </body>

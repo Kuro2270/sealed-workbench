@@ -18,6 +18,7 @@ const ROOT = ".";
 // 検索結果に出したい順（大きいほど優先）
 const PRIORITY = {
   "index.html": "1.0",
+  "sealed.html": "0.9",
   "guide.html": "0.9",
   "reports.html": "0.9",
   "draft.html": "0.8",

@@ -202,7 +202,7 @@ const JA = {
     ],
     list: [
       ["MTGアリーナを入れる", "パソコンでもスマートフォンでも、無料で始められます。", "index.html#arena", true],
-      ["シールドを練習する", "6パック分の仮想パックで、40枚デッキを組む練習。", "../", false],
+      ["シールドを練習する", "6パック分の仮想パックで、40枚デッキを組む練習。", "../sealed.html", false],
       ["ドラフトを練習する", "8人卓を再現した仮想ドラフトで、ピックの練習。", "../draft.html", false],
       ["環境レポートを見る", "セットごとの強い色・強いカードを確認。", "../reports.html", false]
     ],
@@ -383,7 +383,7 @@ const EN = {
     ],
     list: [
       ["Install MTG Arena", "Free to start, on PC or your phone.", "index.en.html#arena", true],
-      ["Practice Sealed", "Build a 40-card deck from six virtual packs.", "../", false],
+      ["Practice Sealed", "Build a 40-card deck from six virtual packs.", "../sealed.html", false],
       ["Practice Draft", "Practice picking in a simulated eight-player pod.", "../draft.html", false],
       ["Read the set reports", "See the strong colors and cards for each set.", "../reports.html", false]
     ],

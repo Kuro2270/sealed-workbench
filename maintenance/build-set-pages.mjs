@@ -258,7 +258,7 @@ function shell(lang, code, head, body, ogImage){
   const self = lang === "ja" ? `${code}.html` : `${code}.en.html`;
   const og = ogImage || `${SITE}/ogp-${lang}.png`;
   // ナビはカテゴリごとにまとめる（本体のページと同じ並び）
-  const HREF = { start: lang === "en" ? "../start/index.en.html" : "../start/index.html", limited: lang === "en" ? "../start/limited.en.html" : "../start/limited.html", guide:"../guide.html", sealed:"../", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", sassist:"../sealed-assist.html", table:"../table.html",
+  const HREF = { start: lang === "en" ? "../start/index.en.html" : "../start/index.html", limited: lang === "en" ? "../start/limited.en.html" : "../start/limited.html", guide:"../guide.html", sealed:"../sealed.html", draft:"../draft.html", ratings:"../ratings.html", reports:"../reports.html", swiss:"../swiss.html", assist:"../assistant.html", sassist:"../sealed-assist.html", table:"../table.html",
                  goods: lang === "en" ? "../goods/index.en.html" : "../goods/index.html" };
   const PC = new Set(["assist", "sassist"]);   // ログを読む機能はスマホでは使えないので「PC」の札を付ける
   const navGroup = (label, keys) =>
@@ -582,7 +582,7 @@ ${T.faq.map(([q, a]) => `  <details><summary>${esc(q)}</summary><p>${esc(a)}</p>
 </section>` : "";
   const links = `<section class="links"><h3>${esc(T.links)}</h3><ul>
   <li><a href="../reports.html?set=${code}">${esc(T.linkReports)}</a></li>
-  <li><a href="../">${esc(T.linkSealed)}</a>／<a href="../draft.html">${esc(T.linkDraft)}</a>／<a href="../assistant.html">${esc(T.linkAssist)}</a></li>
+  <li><a href="../sealed.html">${esc(T.linkSealed)}</a>／<a href="../draft.html">${esc(T.linkDraft)}</a>／<a href="../assistant.html">${esc(T.linkAssist)}</a></li>
   <li><a href="index${lang === "en" ? ".en" : ""}.html">${esc(T.linkIndex)}</a></li>
 </ul></section>
 <p class="source">${esc(T.source)}</p>`;

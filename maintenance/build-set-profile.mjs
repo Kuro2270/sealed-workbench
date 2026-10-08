@@ -361,7 +361,7 @@ function page(lang, p, nameJa, dataDate){
 })();
 </script>
 <section class="links"><h3>${esc(T.links)}</h3><ul>
-  <li><a href="../?set=${SET}">${esc(T.linkSealed)}</a>／<a href="../draft.html?set=${SET}">${esc(T.linkDraft)}</a></li>
+  <li><a href="../sealed.html?set=${SET}">${esc(T.linkSealed)}</a>／<a href="../draft.html?set=${SET}">${esc(T.linkDraft)}</a></li>
   <li><a href="${SET}${lang === "en" ? ".en" : ""}.html">${esc(T.linkReport)}</a></li>
 </ul></section>
 <p class="source">${esc(T.source)}</p>`;
