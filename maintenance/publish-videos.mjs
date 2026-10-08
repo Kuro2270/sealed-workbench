@@ -91,6 +91,7 @@ async function privacy(lang, id){
 /* 公開した動画に、サイトへの案内コメントを付ける（固定は YouTube Studio で手で。API には固定の機能が無い）。
    許可（YT_REFRESH_TOKEN_*）に force-ssl が無いと 403 になるので、その場合は案内だけ出して続ける */
 const SITE = process.env.SITE_URL || "https://sealed-workbench.com";
+const MODES = ["draft", "sealed", "early"];   // early = 先行版（発売直後のショート）
 const shortName = n => { const m = String(n).replace(/^Magic:\s*The Gathering\s*[:|｜-]?\s*/i, "").split(/\s*[｜|]\s*/); return (m[m.length - 1] || "").trim() || String(n); };
 async function setNameFor(S, lang){
   try{
@@ -102,6 +103,10 @@ async function commentText(lang, S, mode){
   const name = shortName(await setNameFor(S, lang));
   const page = `${SITE}/sets/${S}${lang === "en" ? ".en" : ""}.html`;
   const modeName = lang === "ja" ? (mode === "sealed" ? "シールド" : "ドラフト") : (mode === "sealed" ? "Sealed" : "Draft");
+  // 先行版：サイトにはまだ載っていない（17Lands の決まりで、サイト掲載は発売12日目から）ので、確定版の案内にする
+  if(mode === "early") return lang === "ja"
+    ? `見てくれてありがとうございます。\n\nこれは発売直後の速報です。データは 17Lands のカード勝率・色別勝率で、順位はこれから動きます。\n確定版（ドラフト／シールド）の動画と、全カードの勝率ページは、データが揃う約2週間後に出します。\n\nシールド／ドラフトの構築練習はこちら（無料・登録不要）→ ${SITE}\n\n「この色が強いのは意外だった」「自分の体感と違う」などあれば、コメントで教えてください。`
+    : `Thanks for watching.\n\nThis is an early look from the first days of the format. Data: 17Lands card and colour win rates — rankings will move.\nThe full review (Draft and Sealed) and the all-cards win rate page follow in about two weeks.\n\nFree Sealed / Draft practice → ${SITE}\n\nIf a colour surprised you, or the data doesn't match your experience, tell me in the comments.`;
   const text = lang === "ja"
     ? `見てくれてありがとうございます。\n\n動画で触れた色の勝率・2色の組み合わせ・コモンやレアの評価は、こちらで${name}の${modeName}の全カード分を見られます（無料・登録不要）\n${page}\n\nシールド／ドラフトの構築練習もできます → ${SITE}\n\n「この色が強いのは意外だった」「自分の体感と違う」などあれば、コメントで教えてください。次のセットの動画の参考にします。`
     : `Thanks for watching.\n\nEvery card's win rate for ${name} ${modeName} — colours, two-colour pairs, the best commons and rares — is here (free, no sign-up):\n${page}\n\nFree Sealed / Draft practice too → ${SITE}\n\nIf a colour surprised you, or the data doesn't match your experience, tell me in the comments. It helps shape the next set's video.`;
@@ -111,7 +116,7 @@ async function commentText(lang, S, mode){
    1件目（サイトの案内）と分けて付ける。案内と呼びかけが1つの長いコメントに混ざると、返信が付きにくい */
 async function commentText2(lang, S, mode){
   const name = shortName(await setNameFor(S, lang));
-  const modeName = lang === "ja" ? (mode === "sealed" ? "シールド" : "ドラフト") : (mode === "sealed" ? "Sealed" : "Draft");
+  const modeName = lang === "ja" ? (mode === "sealed" ? "シールド" : mode === "early" ? "発売直後のリミテッド" : "ドラフト") : (mode === "sealed" ? "Sealed" : mode === "early" ? "first-week Limited" : "Draft");
   return lang === "ja"
     ? `${name}の${modeName}で、お気に入りのカードや、うまくいったコンボはありますか？\n「このカードが思った以上に強かった」「この組み合わせで勝てた」など、一言だけでも大丈夫です。ぜひコメントで教えてください。`
     : `What's your favourite card or combo in ${name} ${modeName}?\nEven a one-liner is great: "this card overperformed", "this pair won me the run". Share it in the comments!`;
@@ -148,7 +153,7 @@ const published = [], waiting = [], failed = [];
 for(const S of Object.keys(all).sort()){
   if(ONLY && S !== ONLY) continue;
   for(const L of ["ja", "en"]){
-    for(const M of ["draft", "sealed"]){
+    for(const M of MODES){
       const v = all[S][L] && all[S][L][M];
       if(!v || !v.id || v.public) continue;
       // 手で足したものは、公開を確認して入れている前提なので YouTube に聞かずに配信する（許可の不調で止まらないように）
@@ -175,7 +180,7 @@ const CF = (process.env.COMMENTS_FOR || "").trim().toUpperCase();
 /* ALL を入れると、配信済みのすべての動画について、付いていないほうのコメント（案内・呼びかけ）を付ける */
 if(CF && (CF === "ALL" || all[CF])){
   for(const S of (CF === "ALL" ? Object.keys(all).sort() : [CF])){
-    for(const L of ["ja", "en"]) for(const M of ["draft", "sealed"]){
+    for(const L of ["ja", "en"]) for(const M of MODES){
       const v = all[S][L] && all[S][L][M];
       if(!(v && v.id && v.public) || (v.comment && v.comment2) || comments.some(c => c.id === v.id)) continue;
       console.log(`${S} ${L} ${M}`);

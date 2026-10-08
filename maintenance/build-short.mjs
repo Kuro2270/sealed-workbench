@@ -37,8 +37,10 @@ import { existsSync } from "node:fs";
 
 const SET = process.argv[2];
 const LANG = (process.argv[3] || "ja").toLowerCase();
-const MODE = (process.argv[4] || "draft").toLowerCase();        // draft | sealed（どちらのデータで作るか）
-if(!SET || !["ja", "en"].includes(LANG) || !["draft", "sealed"].includes(MODE)){ console.error("使い方: node maintenance/build-short.mjs <SET> [ja|en] [draft|sealed]"); process.exit(1); }
+const MODE = (process.argv[4] || "draft").toLowerCase();        // draft | sealed | early（どのデータで作るか。early = 発売直後の先行版。build-early.mjs が作る）
+if(!SET || !["ja", "en"].includes(LANG) || !["draft", "sealed", "early"].includes(MODE)){ console.error("使い方: node maintenance/build-short.mjs <SET> [ja|en] [draft|sealed|early]"); process.exit(1); }
+const EARLY = MODE === "early";
+const MINP = EARLY ? 0.2 : 1;                                      // 先行版は試合数が少ないので、組み合わせを選ぶ最低試合数を下げる
 const TAG = MODE === "draft" ? LANG : `${LANG}-${MODE}`;         // 出力名: short/<SET>/ja.mp4, short/<SET>/en-sealed.mp4 など
 const JA = LANG === "ja";
 const KOKORO_DIR = process.env.KOKORO_DIR || "short/kokoro";    // 英語の読み上げ（Kokoro）のモデル置き場
@@ -71,7 +73,8 @@ const UI = JA ? {
   subscribe: "▶ チャンネル登録",
   surpriseH: "意外な事実", nobody: "誰も組んでいない", strongerTogether: "組むと強くなる", weakerTogether: "組むと弱くなる",
   wrRank: (v, r) => `勝率 ${v}%（${r}位）`, wr: v => `勝率 ${v}%`, usedOnly: (g, p) => `使われた試合は ${g}。全体の${p}%だけ`, vsAvg2: (sign, n) => `2色それぞれの平均より ${sign}${n}pt`,
-  outroA: "チャンネル登録を", outroB: "お願いします", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん"
+  outroA: "チャンネル登録を", outroB: "お願いします", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん",
+  earlyBadge: "速報", earlyHookC: "リミテッド速報", earlyH: "まだ序盤のデータです", early1: "順位はこれから動きます", early2: "確定版は約2週間後に", earlyAsOf: d => `${d} 時点`
 } : {
   analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute", hookA: "Limited in 1 minute", hookC: m => m ? "SEALED" : "DRAFT", hookD1: g => `${g} games analyzed`, hookD2: "Best colors & cards",
   whatIs: "What is Limited?", whatIs1: "Build a deck only from", whatIs2: "packs you just opened", sealed: "Sealed", draft: "Draft", thisVideo: "This video",
@@ -84,7 +87,8 @@ const UI = JA ? {
   subscribe: "▶ Subscribe",
   surpriseH: "One surprise", nobody: "Nobody plays it", strongerTogether: "Better together", weakerTogether: "Worse together",
   wrRank: (v, r) => `${v}% win rate (#${r})`, wr: v => `${v}% win rate`, usedOnly: (g, p) => `Only ${g} games — ${p}% of all decks`, vsAvg2: (sign, n) => `${sign}${n}pt vs each colour's average`,
-  outroA: "Please subscribe", outroB: "", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS"
+  outroA: "Please subscribe", outroB: "", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS",
+  earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1", earlyH: "Early data", early1: "Rankings will move", early2: "Full review in ~2 weeks", earlyAsOf: d => `as of ${d}`
 };
 const FONT = "'Noto Sans CJK JP','Noto Sans JP',sans-serif";
 
@@ -122,7 +126,7 @@ function surprise(d, pairs, best, worst, target){
   const totalPair = pairs.reduce((n, p) => n + p.games, 0) || 1;
   const skip = p => (best && p.pair === best.pair) || (worst && p.pair === worst.pair) || (target && p.pair === target.pair);
   // 1) 上位3位以内なのに、ほとんど使われていない組み合わせ（狙い目）
-  const sleeper = pairs.slice(0, 3).find(p => !skip(p) && p.games / totalPair < 0.05 && p.games >= 2000);
+  const sleeper = pairs.slice(0, 3).find(p => !skip(p) && p.games / totalPair < 0.05 && p.games >= 2000 * MINP);
   if(sleeper){
     const rank = pairs.indexOf(sleeper) + 1;
     return {
@@ -134,7 +138,7 @@ function surprise(d, pairs, best, worst, target){
     };
   }
   // 2) 最強・最弱以外で、2色それぞれの平均から 1pt 以上はっきり外れている組み合わせ（組むと強い／弱い）
-  const solid = pairs.filter(p => !skip(p) && p.games >= Math.max(5000, totalPair * 0.04));
+  const solid = pairs.filter(p => !skip(p) && p.games >= Math.max(5000 * MINP, totalPair * 0.04));
   const odd = solid.filter(p => Math.abs(p.gap) >= 0.01).sort((a, b) => Math.abs(b.gap) - Math.abs(a.gap))[0];
   if(odd){
     const up = odd.gap > 0;
@@ -166,14 +170,14 @@ function buildScript(d, nameJa, names){
   // 一番弱い組み合わせ（勝率が最も低いもの。試合数が少なすぎる組み合わせは除く）
   //（全体の 4% 以上、かつ 2,000 試合以上使われている組み合わせから選ぶ。シールドは試合数が少ないので割合で見る）
   const totalPairGames = pairs.reduce((n, p) => n + p.games, 0);
-  const solidPairs = pairs.filter(p => p.games >= Math.max(2000, totalPairGames * 0.04));
+  const solidPairs = pairs.filter(p => p.games >= Math.max(2000 * MINP, totalPairGames * 0.04));
   const worst = (solidPairs.length ? solidPairs : pairs).slice().sort((a, b) => a.wr - b.wr)[0];
   // 狙い目（ドラフトだけ）：最強ではないが勝率が最強に近く（−1.5pt 以内）、使う人が平均より少ない組み合わせ。
   // 人気の色はカードの取り合いになるので、勝率が高くて空いている色を勧める
   let target = null;
-  if(MODE === "draft" && best && pairs.length >= 4){
+  if((MODE === "draft" || EARLY) && best && pairs.length >= 4){
     const avgShare = 1 / pairs.length;
-    const cand = pairs.filter(p => p !== best && p.games >= 2000 && p.wr >= best.wr - 0.015 && p.games / totalPairGames <= avgShare * 0.8)
+    const cand = pairs.filter(p => p !== best && p.games >= 2000 * MINP && p.wr >= best.wr - 0.015 && p.games / totalPairGames <= avgShare * 0.8)
       .sort((a, b) => b.wr - a.wr || a.games - b.games);
     if(cand.length) target = { ...cand[0], share: cand[0].games / totalPairGames, rank: pairs.indexOf(cand[0]) + 1, avgShare };
   }
@@ -184,17 +188,21 @@ function buildScript(d, nameJa, names){
   const games = man(d.total_games);
 
   const scenes = [];
+  const gamesEn = d.total_games >= 10000 ? Math.round(d.total_games / 1000) + " thousand" : manSay(d.total_games);
   scenes.push({ kind: "hook", art: true,
-    say: JA ? `MTGアリーナ、リミテッドの${nameJa}環境。${games}試合のデータが、1分でわかります。`
-            : `MTG Arena Limited: ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} format. ${d.total_games >= 10000 ? Math.round(d.total_games / 1000) + " thousand" : manSay(d.total_games)} games of data, in one minute.`,
-    title: nameJa, games, isSealed: d.mode === "sealed" });
+    say: EARLY ? (JA ? `MTGアリーナ、リミテッドの${nameJa}環境。発売直後の速報です。${games}試合の時点のデータを、1分でまとめました。`
+                     : `MTG Arena Limited: ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} format, early look. ${gamesEn} games so far, in one minute.`)
+       : JA ? `MTGアリーナ、リミテッドの${nameJa}環境。${games}試合のデータが、1分でわかります。`
+            : `MTG Arena Limited: ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} format. ${gamesEn} games of data, in one minute.`,
+    title: nameJa, games, isSealed: d.mode === "sealed", early: EARLY });
 
   // お決まりの前置き：リミテッドとは何か、シールドとドラフトのどちらのデータか
   const isSealed = d.mode === "sealed";
-  scenes.push({ kind: "intro", isSealed,
+  const bothFmt = EARLY && (d.formats || []).some(f => f.mode === "sealed") && (d.formats || []).some(f => f.mode === "draft");
+  scenes.push({ kind: "intro", isSealed, both: bothFmt,
     say: JA ? `リミテッドは、その場で開けたパックだけでデッキを組む遊び方。シールドとドラフトがあります。`
-            + `この動画は、${isSealed ? "シールド" : "ドラフト"}のデータです。`
-            : `Limited means building a deck only from packs you just opened. There are two formats, Sealed and Draft. This video covers ${isSealed ? "Sealed" : "Draft"} data.`,
+            + (EARLY ? (bothFmt ? `この動画は、発売直後のドラフトとシールドを合わせたデータです。` : `この動画は、発売直後のドラフトのデータです。`) : `この動画は、${isSealed ? "シールド" : "ドラフト"}のデータです。`)
+            : `Limited means building a deck only from packs you just opened. There are two formats, Sealed and Draft. This video covers ${EARLY ? (bothFmt ? "first-week Draft and Sealed, combined" : "first-week Draft") : isSealed ? "Sealed" : "Draft"} data.`,
     tail: 0.8 });
 
   if(fast && slow){
@@ -259,6 +267,10 @@ function buildScript(d, nameJa, names){
   topScene(uncommons, UI.uncommon);
 
   if(sur) scenes.push({ kind: "surprise", say: sur.say, ...sur });
+
+  if(EARLY) scenes.push({ kind: "early", asOf: d.as_of || "", tail: 0.8,
+    say: JA ? `まだ序盤のデータなので、順位はこれから動きます。データが揃ったら、確定版を出します。`
+            : `This is early data, so the rankings will move. The full review comes once the data settles.` });
 
   scenes.push({ kind: "outro", art: true,
     say: JA ? `次のセットも出すので、チャンネル登録をお願いします。` : `Subscribe for the next set.`,
@@ -437,7 +449,9 @@ function sceneSvg(sc){
         TS(W / 2, 372, UI.hookA, { size: 96, fill: "#FFFFFF" }) +
         titleSvg +
         `<rect x="${W / 2 - 280}" y="${modeY - 62}" width="560" height="100" rx="50" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
-        T(W / 2, modeY + 8, UI.hookC(sc.isSealed), { size: 66, weight: 900, anchor: "middle", fill: "#06101C" }) +
+        T(W / 2, modeY + 8, sc.early ? UI.earlyHookC : UI.hookC(sc.isSealed), { size: sc.early && !JA ? 56 : 66, weight: 900, anchor: "middle", fill: "#06101C" }) +
+        (sc.early ? `<g transform="rotate(-8 ${W - 150} 120)"><rect x="${W - 270}" y="84" width="240" height="74" rx="37" fill="#E53935" stroke="#FFFFFF" stroke-width="5"/>` +
+                    T(W - 150, 136, UI.earlyBadge, { size: JA ? 48 : 32, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>` : "") +
         (() => {
           const g = UI.hookD1(sc.games), n1 = String(sc.games), l1 = [...g].length, l2 = [...UI.hookD2].length;
           const s1 = JA ? Math.min(150, Math.floor(1000 / l1)) : Math.min(116, Math.floor(1000 / (l1 * 0.58)));
@@ -456,7 +470,7 @@ function sceneSvg(sc){
         T(W / 2, 330, UI.whatIs, { size: 44, fill: MUTED, anchor: "middle" }) +
         T(W / 2, 430, UI.whatIs1, { size: 50, weight: 700, anchor: "middle" }) +
         T(W / 2, 500, UI.whatIs2, { size: 50, weight: 700, anchor: "middle" }) +
-        box(80, UI.sealed, sc.isSealed) + box(560, UI.draft, !sc.isSealed), sc.say);
+        box(80, UI.sealed, sc.isSealed || sc.both) + box(560, UI.draft, !sc.isSealed || sc.both), sc.say);
     }
     case "pace": {
       const wrs = sc.rows.map(r => r.wr * 100), lo = Math.floor(Math.min(...wrs) - 1), hi = Math.ceil(Math.max(...wrs) + 1);
@@ -533,6 +547,16 @@ function sceneSvg(sc){
                  : T(W / 2, 810, sc.big, { size: 140, weight: 900, anchor: "middle" })) +
         T(W / 2, 940, sc.sub, { size: 50, anchor: "middle", fill: BLUE, weight: 700 }) +
         T(W / 2, 1010, sc.note, { size: JA ? 34 : 30, anchor: "middle", fill: MUTED }), sc.say);
+    }
+    case "early": {
+      // 先行版の断り書き：序盤のデータであること、確定版が後で出ること
+      return frame(
+        `<rect x="${W / 2 - 170}" y="470" width="340" height="86" rx="43" fill="#E53935" stroke="#FFFFFF" stroke-width="5"/>` +
+        T(W / 2, 530, UI.earlyBadge, { size: JA ? 56 : 44, weight: 900, anchor: "middle", fill: "#FFFFFF" }) +
+        TS(W / 2, 700, UI.earlyH, { size: JA ? 84 : 96 }) +
+        T(W / 2, 830, UI.early1, { size: 56, weight: 700, anchor: "middle" }) +
+        T(W / 2, 910, UI.early2, { size: 56, weight: 700, anchor: "middle", fill: GOLD }) +
+        (sc.asOf ? T(W / 2, 1010, UI.earlyAsOf(sc.asOf), { size: 40, anchor: "middle", fill: MUTED }) : ""), sc.say);
     }
     case "outro": {
       // 締めは「チャンネル登録をお願いします」だけ。クレジットや表記は概要欄に置く

@@ -263,9 +263,24 @@ function announcePost(ctx, lang, track){
 /* 動画を公開したときの案内。VIDEO_ID と VIDEO_LANG は環境変数で受け取る */
 function videoPost(ctx, lang, track, withVideo = !!VIDEO_FILE){
   const id = process.env.VIDEO_ID; if(!id) return null;
-  const vmode = process.env.VIDEO_MODE === "sealed" ? "sealed" : "draft";
-  const nm = ctx.name[lang], url = ctx.url(lang) + `?from=${track}`;
+  const vmode = process.env.VIDEO_MODE === "sealed" ? "sealed" : process.env.VIDEO_MODE === "early" ? "early" : "draft";
+  const nm = ctx.name[lang];
   const L = lang === "ja";
+  if(vmode === "early"){
+    // 先行版：サイトにはまだ載っていない（発売12日目から）ので、サイトのトップに誘導する
+    const lines = [
+      L ? `【${nm}】速報！発売直後のリミテッド環境を1分で${withVideo ? "" : "（動画）"}` : `${nm} Limited: early look in 60 seconds${withVideo ? "" : " (video)"}`,
+      "",
+      L ? `17Lands の発売直後のデータ（ドラフト＋シールド）から、強い色・2色の組み合わせ・コモン／アンコモンのトップを速報でまとめました。確定版は約2週間後に。` : `Strongest colours, best pairs and top commons/uncommons from the first days of 17Lands data. Full review in about two weeks.`,
+      "",
+      withVideo ? null : `https://www.youtube.com/shorts/${id}`,
+      L ? `シールド／ドラフトの構築練習 ${SITE}/?from=${track}` : `Sealed / Draft practice: ${SITE}/?from=${track}`,
+      TAGS[lang]
+    ].filter(x => x !== null);
+    const reply = withVideo ? (L ? `YouTube でも見られます → https://www.youtube.com/shorts/${id}` : `Also on YouTube → https://www.youtube.com/shorts/${id}`) : null;
+    return { text: fit(lines, track), cards: [], reply };
+  }
+  const url = ctx.url(lang) + `?from=${track}`;
   const d = ctx[vmode] || ctx.draft || ctx.sealed;
   const games = d ? (d.total_games || 0) : 0;
   const best = d && d.colors && d.colors.length ? d.colors[0] : null;

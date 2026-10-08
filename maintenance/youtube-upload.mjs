@@ -23,7 +23,8 @@ const SET = (process.argv[2] || "").toUpperCase();
 const LANG = (process.argv[3] || "ja").toLowerCase();
 const MODE = (process.argv[4] || "draft").toLowerCase();
 const TAG = MODE === "draft" ? LANG : `${LANG}-${MODE}`;
-if(!SET || !["draft", "sealed"].includes(MODE)){ console.error("使い方: node maintenance/youtube-upload.mjs <SET> [ja|en] [draft|sealed]"); process.exit(1); }
+if(!SET || !["draft", "sealed", "early"].includes(MODE)){ console.error("使い方: node maintenance/youtube-upload.mjs <SET> [ja|en] [draft|sealed|early]"); process.exit(1); }
+const EARLY = MODE === "early";   // 先行版（発売直後。データは 17Lands のカード勝率・色別勝率。サイトにはまだ載っていない）
 
 const SITE = process.env.SITE_URL || "https://sealed-workbench.com";
 const ID = process.env.YT_CLIENT_ID, SECRET = process.env.YT_CLIENT_SECRET;
@@ -58,7 +59,43 @@ const bgmCredit = (await readFile(`short/${SET}/${TAG}/bgm.txt`, "utf8").catch((
 const gamesTxt = games ? games.toLocaleString(LANG === "ja" ? "ja-JP" : "en-US") : "";
 
 const pageUrl = `${SITE}/sets/${SET}${LANG === "en" ? ".en" : ""}.html`;
-const meta = LANG === "ja" ? {
+const meta = EARLY ? (LANG === "ja" ? {
+  title: `【${name.ja}】速報！発売直後のリミテッド環境を1分で｜MTGアリーナ #Shorts`,
+  description: [
+    `MTGアリーナ『${name.ja}』のリミテッド環境を、発売直後${gamesTxt ? "・" + gamesTxt + "試合時点" : ""}のデータ（ドラフトとシールドを合算）から速報でまとめました。`,
+    `まだ序盤のデータなので、順位はこれから動きます。確定版（ドラフト／シールド）は、データが揃う約2週間後に出します。`,
+    ``,
+    `▼ 環境レポート・シールド／ドラフトの構築練習（無料・登録なし）`,
+    SITE,
+    ``,
+    `データ: 17Lands（カード勝率・色別勝率） https://www.17lands.com/`,
+    `音声: VOICEVOX:ずんだもん`,
+    ...(bgmCredit ? [`BGM: ${bgmCredit}`] : []),
+    `カード画像・マナシンボル: Scryfall`,
+    ``,
+    `Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.`,
+    ``,
+    `#MTGアリーナ #MTGA #リミテッド #${name.ja.replace(/[\s・]/g, "")}`
+  ].join("\n"),
+  tags: ["MTGアリーナ", "MTGA", "マジック：ザ・ギャザリング", "リミテッド", "ドラフト", "速報", name.ja, "17Lands"]
+} : {
+  title: `${name.en} Limited: Early Look in 60 seconds | MTG Arena #Shorts`,
+  description: [
+    `An early look at the ${name.en} Limited format on MTG Arena, from the first days of data${gamesTxt ? " (" + gamesTxt + " games so far, Draft and Sealed combined)" : " (Draft and Sealed combined)"}.`,
+    `Rankings will move as more games come in. The full review (Draft and Sealed) follows in about two weeks.`,
+    ``,
+    `▼ Format reports, Sealed / Draft practice and the play table (free, no sign-up)`,
+    SITE,
+    ``,
+    `Data: 17Lands (card and colour win rates) https://www.17lands.com/`,
+    `Card images and mana symbols: Scryfall`,
+    ``,
+    `Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.`,
+    ``,
+    `#MTGArena #MTGA #MTGLimited`
+  ].join("\n"),
+  tags: ["MTG Arena", "MTGA", "Magic: The Gathering", "Limited", "Draft", "Early look", name.en, "17Lands"]
+}) : LANG === "ja" ? {
   title: `【${name.ja}】1分でわかるリミテッド環境（${mode === "sealed" ? "シールド" : "ドラフト"}）｜MTGアリーナ #Shorts`,
   description: [
     `MTGアリーナ『${name.ja}』のリミテッド（${mode === "sealed" ? "シールド" : "ドラフト"}）環境を、${gamesTxt ? gamesTxt + "試合の" : ""}実戦データから1分でまとめました。`,

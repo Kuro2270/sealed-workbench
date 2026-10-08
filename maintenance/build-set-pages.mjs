@@ -45,7 +45,7 @@ const L = {
     desc: (s, g, c) => `MTGアリーナ「${s}（${c}）」のリミテッド（ドラフト・シールド）で強いカードを、17Landsの実戦データ（${g}試合）の勝率で採点。コモン・アンコモン・レア別のカード点数ランキングに加えて、環境の速さ、強い色、勝率の高い2色の組み合わせも分かります。`,
     h1: s => `${s}｜リミテッド カード点数ランキングと環境レポート`,
     lead: "マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。カードの点数（評価）は、この勝率で見られます。",
-    mode: { draft: "ドラフト", sealed: "シールド" },
+    mode: { draft: "ドラフト", sealed: "シールド", early: "発売直後の速報" },
     games: (n, d) => `総試合数 ${n}／全体勝率 ${d}`,
     built: d => `集計 ${d}`,
     speedH: "環境の速さ",
@@ -70,7 +70,7 @@ const L = {
     col: { color:"色", pair:"色の組み合わせ", cmc:"マナ総量", wr:"勝率", score:"点数（GIH勝率）", games:"試合数", card:"カード", cards:"種類数" },
     colorName: { W:"白", U:"青", B:"黒", R:"赤", G:"緑" },
     longH: "リミテッド環境まとめ（長尺動画）", longLead: "ドラフトとシールドの両方のデータで、強い色・狙い目の色・ボム・罠・色別のおすすめカードまでまとめました。目次を押すと、その場面から再生します。",
-    videoH: "1分でわかる環境（動画）", videoLead: "この環境の要点を1分のショート動画にまとめました。再生ボタンで YouTube の動画を読み込みます。", videoPlay: "再生", videoOpen: "YouTube で見る",
+    videoH: "1分でわかる環境（動画）", videoLead: "この環境の要点を1分のショート動画にまとめました。再生ボタンで YouTube の動画を読み込みます。", videoEarlyH: "発売直後の速報（動画）", videoEarlyLead: "発売直後の数日分のデータから作った速報です。順位はこの後のデータで動いています。", videoPlay: "再生", videoOpen: "YouTube で見る",
     links: "関連ページ",
     linkRatings: "このセットの全カードの勝率一覧",
     linkReports: "環境レポート（他のセットに切り替え）",
@@ -93,7 +93,7 @@ const L = {
     desc: (s, g, c) => `Which cards are best in ${s} (${c}) Limited on MTG Arena? Card ratings by win rate from ${g} games of 17Lands data, ranked by rarity — plus format speed, the strongest colours and the best two-colour pairs.`,
     h1: s => `${s} | Limited card ratings and format report`,
     lead: "Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data. Use them as card ratings: the higher the win rate, the stronger the card.",
-    mode: { draft: "Draft", sealed: "Sealed" },
+    mode: { draft: "Draft", sealed: "Sealed", early: "Early look" },
     games: (n, d) => `${n} games · overall win rate ${d}`,
     built: d => `Built ${d}`,
     speedH: "Format speed",
@@ -118,7 +118,7 @@ const L = {
     col: { color:"Colour", pair:"Pair", cmc:"Mana value", wr:"Win rate", score:"Rating (GIH WR)", games:"Games", card:"Card", cards:"Cards" },
     colorName: { W:"White", U:"Blue", B:"Black", R:"Red", G:"Green" },
     longH: "Format overview (long video)", longLead: "We covered the strongest colour pairs, sleeper pairs, the best bombs, trap rares and the top commons and uncommons for each colour, using both Draft and Sealed data. Press a chapter to jump to that part of the video.",
-    videoH: "The format in 60 seconds (video)", videoLead: "The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.", videoPlay: "Play", videoOpen: "Watch on YouTube",
+    videoH: "The format in 60 seconds (video)", videoLead: "The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.", videoEarlyH: "Early look (video)", videoEarlyLead: "Made from the first days of data. Rankings have moved since.", videoPlay: "Play", videoOpen: "Watch on YouTube",
     links: "Related pages",
     linkRatings: "All card win rates for this set",
     linkReports: "Set reports (switch sets)",
@@ -485,7 +485,7 @@ function modeSection(lang, code, mode, d, speedIndex, names, setDisplay, videos)
   <h2>${esc(T.mode[mode])} <small>${esc(T.games((d.total_games || 0).toLocaleString(), pct(d.overall_win_rate)))}</small></h2>
   <p class="built">${esc(T.built((d.data_generated_at || d.generated_at || "").slice(0, 10)))}</p>
   <p class="summary">${esc(summaryText(lang, mode, d, setDisplay, cn, pairLabel, colorLabel))}</p>
-${videoSection(lang, code, mode, setDisplay, videos)}`;
+${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoSection(lang, code, "early", setDisplay, videos) : ""}`;
 
   // 環境の速さ
   const best = (d.speed || []).filter(s => s.wr != null).sort((a, b) => b.wr - a.wr)[0];
@@ -620,6 +620,8 @@ function videoSection(lang, code, mode, setDisplay, videos){
   v = v && v[mode];
   if(!v || !v.id || v.public === false) return "";
   const T = L[lang];
+  const early = mode === "early";
+  const vH = early ? T.videoEarlyH : T.videoH, vLead = early ? T.videoEarlyLead : T.videoLead;
   const id = String(v.id);
   // 自前のサムネイル（冒頭のタイトル場面）があればそれを。無ければ YouTube の自動サムネイル
   const posterFile = `assets/video/${code}-${mode === "draft" ? lang : lang + "-" + mode}.jpg`;
@@ -629,8 +631,8 @@ function videoSection(lang, code, mode, setDisplay, videos){
   const watch = `https://www.youtube.com/shorts/${id}`;
   const ld = {
     "@context": "https://schema.org", "@type": "VideoObject",
-    name: v.title || `${setDisplay} ${T.mode[mode]} — ${T.videoH}`,
-    description: T.videoLead,
+    name: v.title || `${setDisplay} ${T.mode[mode]} — ${vH}`,
+    description: vLead,
     thumbnailUrl: [thumb],
     uploadDate: v.uploadedAt || "",
     duration: v.duration || "PT1M",
@@ -639,10 +641,10 @@ function videoSection(lang, code, mode, setDisplay, videos){
     inLanguage: lang
   };
   return `<section class="video"><div class="yt" data-id="${esc(id)}">
-    <img src="${thumbSrc}" alt="${esc(v.title || T.videoH)}" loading="lazy" width="270" height="480">
+    <img src="${thumbSrc}" alt="${esc(v.title || vH)}" loading="lazy" width="270" height="480">
     <button type="button" aria-label="${esc(T.videoPlay)}"><span></span></button>
   </div>
-  <div class="vtext"><h3>${esc(T.videoH)}</h3><p class="lead">${esc(T.videoLead)}</p>
+  <div class="vtext"><h3>${esc(vH)}</h3><p class="lead">${esc(vLead)}</p>
     <p><a href="${watch}" target="_blank" rel="noopener">${esc(T.videoOpen)}</a></p>
   </div>
   <script type="application/ld+json">${JSON.stringify(ld)}</script>
