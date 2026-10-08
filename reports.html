@@ -622,6 +622,16 @@ async function showProfile(code){
       const k = m ? m[1].toUpperCase() : /linear-gradient/.test(bg) ? "M" : "C";
       d.outerHTML = manaI(k);
     });
+    // 下見に先行版のショート（発売直後の速報）が入っていれば、再生ボタンを働かせる（差し込んだ HTML の script は動かないため）
+    box.querySelectorAll(".video .yt button").forEach(btn => {
+      btn.addEventListener("click", function(){
+        const b = this.parentNode, f = document.createElement("iframe");
+        f.src = "https://www.youtube-nocookie.com/embed/" + b.dataset.id + "?autoplay=1&playsinline=1";
+        f.allow = "autoplay; encrypted-media; picture-in-picture"; f.allowFullscreen = true; f.title = this.getAttribute("aria-label");
+        b.innerHTML = ""; b.appendChild(f);
+      });
+    });
+    box.querySelectorAll("script").forEach(sc => sc.remove());
     // 固定ページ冒頭の「勝率データは〇月〇日ごろから」は、上の案内文に合わせて1つにまとめる
     let when = "";
     const first = box.querySelector(".profile > .verdict");

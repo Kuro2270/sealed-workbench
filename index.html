@@ -258,7 +258,8 @@ const sel = document.getElementById("langSelect");
 sel.value = I18N.lang;
 sel.onchange = e => I18N.set(e.target.value);
 
-/* 最新のセット：発売日の新しい順に4つ。名前は data/names/<セット>.json から */
+/* 最新のセット：発売日の新しい順に4つ。名前は data/names/<セット>.json から。
+   勝率データがまだ無い発売直後のセット（下見だけ）も並べ、そちらは下見ページ（速報の動画つき）へ */
 let LATEST = null;
 async function loadLatest(){
   try{
@@ -266,11 +267,16 @@ async function loadLatest(){
     const j = await r.json();
     const m = {};
     (j.articles || []).forEach(a => { if(a.set && a.released_at && !m[a.set]) m[a.set] = a.released_at; });
+    const preview = {};
+    try{
+      const pr = await fetch("./data/profiles/index.json", {cache:"no-cache"});
+      if(pr.ok) ((await pr.json()).profiles || []).forEach(p => { if(p.set && p.released_at && !m[p.set]){ m[p.set] = p.released_at; preview[p.set] = true; } });
+    }catch(e){}
     const top = Object.entries(m).sort((a, b) => b[1].localeCompare(a[1])).slice(0, 4);
     LATEST = await Promise.all(top.map(async ([code, date]) => {
       let name = code;
       try{ const n = await (await fetch("./data/names/" + code + ".json")).json(); if(n.set) name = n.set; }catch(e){}
-      return { code, date, name };
+      return { code, date, name, preview: !!preview[code] };
     }));
   }catch(e){ LATEST = []; }
   drawLatest();
@@ -284,7 +290,7 @@ function drawLatest(){
   const box = document.getElementById("latest");
   if(LATEST === null) return;
   const en = I18N.lang === "en";
-  box.innerHTML = LATEST.map(s => `<a class="setcard" href="./sets/${s.code}${en ? ".en" : ""}.html"><span class="logo"><img src="./assets/logo/${s.code}.png" alt="" data-code="${s.code}" loading="lazy" onerror="logoFallback(this)"></span><span class="code">${s.code}</span><span class="nm">${s.name.replace(/[<>&]/g, "")}</span><span class="dt">${s.date}</span></a>`).join("");
+  box.innerHTML = LATEST.map(s => `<a class="setcard" href="./sets/${s.code}${s.preview ? ".profile" : ""}${en ? ".en" : ""}.html"><span class="logo"><img src="./assets/logo/${s.code}.png" alt="" data-code="${s.code}" loading="lazy" onerror="logoFallback(this)"></span><span class="code">${s.code}</span><span class="nm">${s.name.replace(/[<>&]/g, "")}</span><span class="dt">${s.date}${s.preview ? ` · ${I18N.t("top.latest.preview")}` : ""}</span></a>`).join("");
   document.getElementById("moreSets").href = en ? "./sets/index.en.html" : "./sets/";
   document.querySelector(".latest").parentElement.hidden = LATEST.length === 0;
 }

@@ -17,7 +17,7 @@
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 const manaI = k => `<i class="ms ms-cost ${k === "M" ? "ms-multicolor mfi-m" : "ms-" + (k === "L" ? "c" : k.toLowerCase())} mfi" aria-hidden="true"></i>`;   // 色の見出しはマナシンボルで（mana-font）
-import { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE, pretty } from "./build-set-pages.mjs";
+import { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE, pretty, videoSection } from "./build-set-pages.mjs";
 
 const ARG = (process.argv[2] || "").toUpperCase();
 if(!ARG){ console.error("使い方: node maintenance/build-set-profile.mjs <SET>　または --auto（発売前後で下見が無いセットを探して作る）"); process.exit(1); }
@@ -294,8 +294,10 @@ function page(lang, p, nameJa, dataDate){
     const img = (lang === "ja" ? (r.imgJa || r.img) : r.img) || "";
     return `<tr${img ? ` data-img="${esc(img)}"` : ""}><td>${manaI(c)}${esc(T.colorName[c])}</td><td><span class="rar ${r.rarity}">${T.rarity[r.rarity]}</span><span class="cn">${esc(nm)}</span>${lang === "ja" && r.ja ? ` <small class="en">${esc(r.name)}</small>` : ""}</td><td class="num cost">${manaHtml(r.cost)}</td></tr>`;
   }).join("\n")).join("\n");
+  // 先行版のショート（発売直後の速報）が公開になっていれば、下見の冒頭に出す（「動画を配信」が data/videos.json に記録する）
+  const earlyVideo = videoSection(lang, SET, "early", name, VIDEOS);
   const main = `<article class="mode">
-  <p class="verdict">${esc(T.when(dataDate))}</p>
+  <p class="verdict">${esc(T.when(dataDate))}</p>${earlyVideo ? "\n" + earlyVideo : ""}
   <section><h3>${esc(T.colorsH)}</h3><p class="lead">${esc(T.colorsLead)}</p>
   <div style="overflow-x:auto"><table><thead><tr><th>${esc(T.th.color)}</th><th class="num">${esc(T.th.cards)}</th><th class="num">${esc(T.th.creatures)}</th><th class="num">${esc(T.th.removal)}</th><th class="num">${esc(T.th.flyers)}</th><th class="num">${esc(T.th.tricks)}</th><th class="num">${esc(T.th.draw)}</th><th class="num">${esc(T.th.size)}</th><th class="num">${esc(T.th.cmc)}</th></tr></thead>
   <tbody>${COLORS.map(row).join("\n")}</tbody></table></div></section>
@@ -390,6 +392,8 @@ try{
   hit = p.cards.filter(r => r.ja).length;
   console.error(`日本語名: ${p.cards.length} 枚のうち ${hit} 枚に付きました`);
 }catch(e){ console.error("日本語名を取れませんでした: " + e.message); }
+// 先行版のショート（「動画を配信」が public にしたものだけ載る）
+const VIDEOS = await readJson("data/videos.json", {});
 // 勝率データが出る日の目安：紙の発売日 + 12日
 let dataDate = { ja: "発売2週間後", en: "two weeks after release" };
 if(p.released_at){

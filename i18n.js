@@ -238,6 +238,7 @@
     "top.c3.k":  { ja:"データを見る", en:"DATA" },
     "top.c3.d":  { ja:"セットごとの強い色・速さ・ボムのレアなどを、実戦データで確認できます。", en:"See the strongest colours, the speed and the bomb rares of each set, backed by real match data." },
     "top.latest.h": { ja:"最新のセットの環境レポート", en:"Latest set reports" },
+    "top.latest.preview": { ja:"発売直後：速報・下見", en:"Just released: early look" },
     "top.more":  { ja:"セットの一覧を見る →", en:"See all sets →" },
     "top.feat.h":{ ja:"このサイトでできること", en:"What you can do here" },
     "top.f1":    { ja:"シールド・ドラフトを、仮想パックで何度でも練習", en:"Practice Sealed and Draft as often as you like with virtual packs" },
