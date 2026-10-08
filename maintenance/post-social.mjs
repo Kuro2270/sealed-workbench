@@ -30,6 +30,30 @@ const SCRY_HEADERS = { "User-Agent": "sealed-workbench/1.0 (https://sealed-workb
 
 const SITE = process.env.SITE_URL || "https://sealed-workbench.com";
 const DRY = process.env.DRY_RUN === "1";
+/* X への自動投稿は、X API が使った分だけの課金（PPU）に変わったため止めている（2026年10月）。X_POST=1 のときだけ自動で投稿する。
+   止めているあいだは、投稿文・画像・動画の場所を social-manual/ に書き出し、workflow が Artifacts とまとめ（Summary）に出す。手で X に貼る */
+const X_ENABLED = process.env.X_POST === "1";
+const MANUAL_DIR = "social-manual";
+let manualN = 0;
+async function saveManual(label, text, image, extra){
+  const { mkdir, appendFile } = await import("node:fs/promises");
+  await mkdir(MANUAL_DIR, { recursive: true });
+  const slug = label.replace(/[^\w\-]+/g, "-");
+  let imgName = "";
+  if(image){ imgName = `${slug}.jpg`; await writeFile(`${MANUAL_DIR}/${imgName}`, image); }
+  const vid = extra.video ? String(extra.video).split("/").pop() : "";
+  const md = [
+    `## ${label}`, "",
+    "```", text, "```", "",
+    ...(extra.reply ? [`返信（動画を添付したときは、YouTube のリンクを返信に）:`, "", "```", extra.reply, "```", ""] : []),
+    ...(imgName ? [`画像: ${imgName}`] : []),
+    ...(vid ? [`動画: ${vid}（Artifacts「x-manual」に入っています）`] : []),
+    ""
+  ].join("\n");
+  await appendFile(`${MANUAL_DIR}/x-posts.md`, md + "\n", "utf8");
+  manualN++;
+  return `X: 自動投稿は止めているので、文面を ${MANUAL_DIR}/x-posts.md に書き出しました（手で投稿してください）`;
+}
 const LANGS = (process.env.LANGS || "ja,en").split(",").map(s => s.trim()).filter(Boolean);
 const BSKY_LANGS = (process.env.BSKY_LANGS || "en").split(",").map(s => s.trim()).filter(Boolean);
 const mode = process.argv[2] || "weekly";
@@ -537,6 +561,7 @@ async function send(label, textX, textBsky, image, lang, extra = {}){
   for(const [name, fn, text] of [["X", postX, textX], ["Bluesky", postBsky, textBsky]]){
     // Bluesky は BSKY_LANGS にある言語だけ（test は両方に出す）
     if(name === "Bluesky" && lang && !BSKY_LANGS.includes(lang)){ console.log(`Bluesky: ${lang} は出さない設定（BSKY_LANGS=${BSKY_LANGS.join(",")}）`); continue; }
+    if(name === "X" && !X_ENABLED){ console.log(await saveManual(label, text, image, extra)); continue; }
     const o = { video: extra.video || null, reply: extra.reply || null, fallbackText: name === "X" ? extra.fallbackX : extra.fallbackBsky };
     try{ console.log(await fn(text, image, o)); }
     catch(e){ console.error(`${name}: 失敗 — ${e.message}`); process.exitCode = 1; }
