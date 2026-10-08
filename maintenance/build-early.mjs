@@ -62,11 +62,13 @@ if(!setInfo){ console.error(`${SET}: Scryfall にセットがありません。`
 console.error(`${SET}: ${setInfo.name}（発売 ${setInfo.released_at}）`);
 
 const en = await scryAll(`set:${SET.toLowerCase()} unique:prints`);
-const cmcOf = {}, rarityOf = {};
+const cmcOf = {}, rarityOf = {}, imgEnOf = {};
+const imgOfCard = c => (c.image_uris && c.image_uris.normal) || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris && c.card_faces[0].image_uris.normal) || "";
 for(const c of en){
   for(const k of [c.name, front(c.name)]){
     if(cmcOf[k] == null) cmcOf[k] = c.cmc != null ? c.cmc : (c.card_faces && c.card_faces[0] && c.card_faces[0].cmc) || 0;
     if(!rarityOf[k]) rarityOf[k] = c.rarity;
+    if(!imgEnOf[k]) imgEnOf[k] = imgOfCard(c);
   }
 }
 
@@ -162,7 +164,7 @@ const archetypes = Object.values(pairs).filter(p => p.games > 0).map(p => ({ col
 const byRarity = { common: [], uncommon: [], rare: [], mythic: [] };
 for(const [name, c] of Object.entries(cards)){
   if(!byRarity[c.rarity] || c.games < MIN_GAMES) continue;
-  byRarity[c.rarity].push({ name, cmc: cmcOf[name] != null ? cmcOf[name] : null, color: c.color, gih: c.wins / c.games, iwd: c.iwdG ? c.iwdW / c.iwdG : null, games: c.games });
+  byRarity[c.rarity].push({ name, cmc: cmcOf[name] != null ? cmcOf[name] : null, color: c.color, gih: c.wins / c.games, iwd: c.iwdG ? c.iwdW / c.iwdG : null, games: c.games, imgEn: imgEnOf[name] || "" });
 }
 const top = {};
 for(const r of Object.keys(byRarity)) top[r] = byRarity[r].sort((a, b) => b.gih - a.gih).slice(0, 10);

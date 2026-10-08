@@ -104,6 +104,12 @@
   .profile .early-note h3{margin:0 0 6px;font-size:15px}
   .profile .early-note p{margin:0 0 6px;line-height:1.7}
   .profile .early-note p.lead{margin:0;font-size:12.5px}
+  .profile .early-note p.when{margin:10px 0 0;padding-top:10px;border-top:1px dashed #E3C96A;color:var(--muted);font-size:13px}
+  .profile .early-note .etop{margin:10px 0 4px}
+  .profile .early-note .etop h4{margin:0 0 6px;font-size:13.5px}
+  .profile .early-note .etop ul{list-style:none;margin:0;padding:0;display:flex;gap:12px;flex-wrap:wrap}
+  .profile .early-note .etop li{width:146px;text-align:center;font-size:12.5px;line-height:1.4}
+  .profile .early-note .etop img{width:146px;height:auto;border-radius:7px;display:block;margin:0 0 4px;box-shadow:0 2px 8px rgba(15,28,23,.2)}
   .profile .dot{display:inline-block;margin-right:6px;vertical-align:-1px}
   .profile td.num,.profile th.num{text-align:right}
   .profile td{text-align:left}
@@ -349,6 +355,7 @@ const pct = v => v == null ? "—" : (v * 100).toFixed(1) + "%";
 
 function setStatus(msg, isErr, busy){
   const el = $("status");
+  el.hidden = false;      // 速報版の表示で隠すことがあるので、ふつうの表示では戻す
   el.textContent = msg;
   el.className = "status" + (isErr ? " err" : "") + (busy ? " busy" : "");
 }
@@ -660,7 +667,8 @@ async function showProfile(code){
     if($("video")) $("video").hidden = true;
     // 速報版（速報メモがある）のときは、固定ページの案内文だけを出す（「それまでは下見を…」は速報版には合わない）
     const hasEarly = !!box.querySelector(".early-note");
-    setStatus(hasEarly ? when : (when ? when + " " : "") + t("reports.profileNow"), false);
+    if(hasEarly){ $("status").textContent = ""; $("status").hidden = true; }   // 速報版は、案内文が速報メモの中にあるので、上の帯は出さない
+    else { $("status").hidden = false; setStatus((when ? when + " " : "") + t("reports.profileNow"), false); }
     $("status").classList.add("preview");
     return true;
   }catch(e){ return false; }

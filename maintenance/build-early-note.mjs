@@ -11,6 +11,7 @@
  * 17Lands の利用ガイドラインでは、第三者サイトでのデータの掲載（別の形での可視化）は発売12日目まで控えるよう求められている一方、
  * 記事での個別の数字の引用は初日から差し支えないとされている。そこで、数字を3〜4個だけ含む文章にして載せる。表やグラフにはしない。
  * 17Lands の名前は添える（出どころの明記）が、リンクは置かない。
+ * コモン・アンコモンのトップ3は、カード名と画像だけ（勝率の数字は載せない。数字つきの一覧は「データの掲載」に近づくため）。
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
@@ -22,7 +23,8 @@ const iso = t => new Date(t).toISOString().slice(0, 10);
 
 const d = await readJson(`data/articles/${SET}_early.json`, null);
 if(!d){ console.error(`${SET}: 先行版の記事データ（data/articles/${SET}_early.json）がありません。先に build-early.mjs を実行してください。`); process.exit(1); }
-const namesJa = (await readJson(`data/names/${SET}.json`, { names: {} })).names || {};
+const namesFile = await readJson(`data/names/${SET}.json`, { names: {}, images: {} });
+const namesJa = namesFile.names || {}, imagesJa = namesFile.images || {};
 
 const CJ = { W: "白", U: "青", B: "黒", R: "赤", G: "緑" }, CE = { W: "White", U: "Blue", B: "Black", R: "Red", G: "Green" };
 const pairName = (p, ja) => [...p].map(c => (ja ? CJ : CE)[c] || c).join(ja ? "" : "-");
@@ -51,7 +53,8 @@ const en = [
   ` Rankings will move as more games come in.`
 ].filter(Boolean).join("");
 
-const note = { set: SET, as_of: asOfDate, as_of_label: monthDay(asOfDate), ja, en, source: "17Lands" };
+const top3 = r => (((d.top || {})[r]) || []).slice(0, 3).map(c => ({ name: c.name, ja: namesJa[c.name] || c.name, imgJa: imagesJa[c.name] || c.imgEn || "", imgEn: c.imgEn || imagesJa[c.name] || "" }));
+const note = { set: SET, as_of: asOfDate, as_of_label: monthDay(asOfDate), ja, en, top: { common: top3("common"), uncommon: top3("uncommon") }, source: "17Lands" };
 await mkdir("data/early", { recursive: true });
 await writeFile(`data/early/${SET}.json`, JSON.stringify(note, null, 2) + "\n", "utf8");
 console.error(`${SET}: 速報メモを保存（data/early/${SET}.json）`);
