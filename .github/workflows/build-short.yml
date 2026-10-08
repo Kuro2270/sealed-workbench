@@ -280,6 +280,15 @@ jobs:
             done
           fi
 
+      # YouTube に手で付けるサムネイル（冒頭の場面を 1080×1920 の JPG に。字幕の帯は入らない）
+      - name: サムネイル用の画像を作る
+        if: env.SKIP != '1'
+        run: |
+          if [ -f "short/$SET_CODE/$VTAG/scene-0.png" ]; then
+            ffmpeg -y -loglevel error -i "short/$SET_CODE/$VTAG/scene-0.png" -vf scale=1080:1920 -q:v 2 "short/$SET_CODE/$VTAG.thumbnail.jpg"
+            echo "サムネイル: short/$SET_CODE/$VTAG.thumbnail.jpg（Artifacts に入ります。YouTube Studio でこの動画のサムネイルに設定できます）" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: 動画を保存する
         if: env.SKIP != '1'
         uses: actions/upload-artifact@v4
@@ -287,6 +296,7 @@ jobs:
           name: short-${{ env.SET_CODE }}-${{ env.VTAG }}
           path: |
             short/${{ env.SET_CODE }}/${{ env.VTAG }}.mp4
+            short/${{ env.SET_CODE }}/${{ env.VTAG }}.thumbnail.jpg
             short/${{ env.SET_CODE }}/${{ env.VTAG }}/script.json
             short/${{ env.SET_CODE }}/${{ env.VTAG }}.youtube.json
           retention-days: 30
