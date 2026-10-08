@@ -166,16 +166,28 @@ const put = await fetch(location, { method: "PUT", headers: { Authorization: `Be
 const res = await put.json().catch(() => ({}));
 if(!put.ok || !res.id){ console.error(`アップロードに失敗しました（HTTP ${put.status}）: ${JSON.stringify(res).slice(0, 500)}`); process.exit(1); }
 
-// サムネイル（冒頭のタイトル場面）。YouTube 側にも試す（チャンネルの電話番号確認が済んでいないと 403 で断られるので、その時はサイト側だけ）
+// サムネイル（冒頭のタイトル場面）。YouTube 側にも付ける。
+//   短い動画（ショート）でも API では付けられる。チャンネルの電話番号確認が済んでいないと 403 で断られるので、その時はサイト側だけ。
+//   使う画像は、1080×1920 の short/<SET>/<TAG>.thumbnail.jpg（workflow が冒頭の場面から作る）。無ければサイト用の assets/video/<SET>-<TAG>.jpg（540×960）
 const posterPath = `assets/video/${SET}-${TAG}.jpg`;
 const poster = (await stat(posterPath).catch(() => null)) ? posterPath : null;
-if(poster){
+const thumbPath = `short/${SET}/${TAG}.thumbnail.jpg`;
+const thumb = (await stat(thumbPath).catch(() => null)) ? thumbPath : poster;
+if(thumb){
   try{
-    const img = await readFile(poster);
-    const r = await fetch(`https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId=${encodeURIComponent(res.id)}`, {
-      method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "image/jpeg", "Content-Length": String(img.length) }, body: img });
-    if(r.ok) console.log("YouTube のサムネイルも冒頭の場面にしました。");
-    else console.log(`YouTube のサムネイルは変えられませんでした（HTTP ${r.status}）。チャンネルの電話番号確認が済むと使えます。サイト側は自前のサムネイルを使います。`);
+    const img = await readFile(thumb);
+    let r = null, tok = token;
+    for(let n = 1; n <= 3; n++){
+      r = await fetch(`https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId=${encodeURIComponent(res.id)}`, {
+        method: "POST", headers: { Authorization: `Bearer ${tok}`, "Content-Type": "image/jpeg", "Content-Length": String(img.length) }, body: img });
+      if(r.ok || !(r.status === 401 || r.status >= 500) || n === 3) break;
+      // 発行したばかりのトークンを YouTube が一時的に断ることがある（英語チャンネルで確認）。待って取り直す
+      console.log(`サムネイル: HTTP ${r.status} なので ${10 * n} 秒待ってトークンを取り直します（${n}回目）`);
+      await new Promise(res => setTimeout(res, 10000 * n));
+      tok = await accessToken().catch(() => tok);
+    }
+    if(r.ok) console.log(`YouTube のサムネイルを冒頭の場面にしました（${thumb}）。`);
+    else console.log(`YouTube のサムネイルは変えられませんでした（HTTP ${r.status}: ${(await r.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 200)}）。${r.status === 403 ? "チャンネルの電話番号確認が済むと使えます。" : ""}Artifacts の thumbnail.jpg を Studio で手で付けてください。`);
   }catch(e){ console.log("YouTube のサムネイル設定に失敗: " + e.message); }
 }
 
