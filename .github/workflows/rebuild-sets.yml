@@ -1,0 +1,56 @@
+name: セット別ページを作り直す
+
+# data/long.json（長尺動画）や data/videos.json（ショート動画）が変わったら、検索用のセット別ページ（sets/）を作り直して反映する。
+#   ・long.json を手で直したとき、add-long.mjs で登録したときなど、「サイトのツールには出るのに、セット別ページが古い」ときの保険
+#   ・すぐ直したいときは、このページの「Run workflow」を押す（入力は不要）
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "data/long.json"
+      - "data/videos.json"
+      - "maintenance/build-set-pages.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rebuild-sets
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: セット別ページを作り直す
+        run: |
+          echo "--- 診断 ---"
+          echo "data/long.json のセット: $( [ -f data/long.json ] && grep -o '^  "[A-Z0-9]*": {' data/long.json | tr -d '\": {' | tr '\n' ' ' || echo 無し )"
+          echo "build-set-pages.mjs が長尺に対応: $(grep -c 'function longSection' maintenance/build-set-pages.mjs) （1なら対応済み）"
+          echo "------------"
+          node maintenance/build-set-pages.mjs
+          echo "長尺の枠が入ったページ: $(grep -l 'class=\"longvideo\"' sets/*.html 2>/dev/null | tr '\n' ' ')"
+
+      - name: 変わっていればコミットする
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- sets
+          if git diff --staged --quiet; then
+            echo "変更はありません。"; exit 0
+          fi
+          git status --short | head -20
+          git commit -m "セット別ページを作り直す（動画の反映）"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin main && break
+            echo "再試行 $i"; sleep 5
+          done
