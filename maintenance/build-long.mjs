@@ -1224,6 +1224,31 @@ async function main(){
   if(!keyArt) console.error(`背景：勝率上位のカードの絵を並べて使う（公式の絵に替えるなら short/bg/${SET}.jpg を置く）`);
 
   // カード画像：全場面で使うカードを一度だけ取って使い回す
+  // 英語版の画像：セットの英語版のカードを、発売順（番号の小さい順）にまとめて取り、名前で引けるようにする
+  let enImgMap = null;
+  const enImages = async () => {
+    if(enImgMap) return enImgMap;
+    enImgMap = {};
+    try{
+      let url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(`set:${SET.toLowerCase()} lang:en`)}&unique=prints&order=set`;
+      while(url){
+        const r = await fetch(url, { headers: { ...UA, Accept: "application/json" } });
+        if(!r.ok) break;
+        const j = await r.json();
+        for(const cd of j.data){
+          const u = (cd.image_uris || (cd.card_faces && cd.card_faces[0] && cd.card_faces[0].image_uris) || {}).normal;
+          if(!u) continue;
+          const fr = String(cd.name).split(" // ")[0];
+          if(!enImgMap[cd.name]) enImgMap[cd.name] = u;
+          if(!enImgMap[fr]) enImgMap[fr] = u;
+        }
+        url = j.has_more ? j.next_page : null;
+        if(url) await new Promise(res => setTimeout(res, 120));
+      }
+    }catch(e){}
+    console.error(`英語版のカード画像の一覧: ${Object.keys(enImgMap).length} 件`);
+    return enImgMap;
+  };
   const imgCache = new Map();
   const getImg = async c => {
     const key = c.name; if(imgCache.has(key)) return imgCache.get(key);
@@ -1231,13 +1256,19 @@ async function main(){
     let url = (nm.images || {})[c.name] || (nm.images || {})[String(c.name).split(" // ")[0]];
     if(EN){   // 英語版：保存してあるのは日本語版のカード画像なので、英語版の画像を Scryfall から取り直す
       const front = String(c.name).split(" // ")[0];
-      const pick = j => (j.image_uris || (j.card_faces && j.card_faces[0] && j.card_faces[0].image_uris) || {}).normal || null;
-      for(const q of [`exact=${encodeURIComponent(c.name)}&set=${SET.toLowerCase()}`, `exact=${encodeURIComponent(front)}&set=${SET.toLowerCase()}`, `exact=${encodeURIComponent(front)}`]){
-        try{
-          const r = await fetch(`https://api.scryfall.com/cards/named?${q}`, { headers: { ...UA, Accept: "application/json" } });
-          await new Promise(res => setTimeout(res, 110));
-          if(r.ok){ const u = pick(await r.json()); if(u){ url = u; break; } }
-        }catch(e){}
+      const hit = (await enImages())[c.name] || (await enImages())[front];
+      if(hit) url = hit;
+      else{
+        const pick = j => (j.image_uris || (j.card_faces && j.card_faces[0] && j.card_faces[0].image_uris) || {}).normal || null;
+        let got = null;
+        for(const q of [`exact=${encodeURIComponent(c.name)}&set=${SET.toLowerCase()}&lang=en`, `exact=${encodeURIComponent(front)}&set=${SET.toLowerCase()}&lang=en`, `exact=${encodeURIComponent(front)}`]){
+          try{
+            const r = await fetch(`https://api.scryfall.com/cards/named?${q}`, { headers: { ...UA, Accept: "application/json" } });
+            await new Promise(res => setTimeout(res, 110));
+            if(r.ok){ got = pick(await r.json()); if(got) break; }
+          }catch(e){}
+        }
+        if(got) url = got; else { console.error(`英語版のカード画像が取れませんでした（日本語版の画像で代用）: ${c.name}`); }
       }
     }
     if(url){
