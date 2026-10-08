@@ -414,7 +414,7 @@ ${GOODS_CSS}
 <body>
 <header>
   <div class="wrap">
-    <div class="brandrow"><div class="brand"><a href="../">${esc(T.site)}</a></div>
+    <div class="brandrow"><div class="brand"><img class="brandlogo" src="/assets/logo/arena.png" alt="MTG Arena" width="97" height="34" style="height:34px;width:auto;vertical-align:middle;margin:-5px 12px 0 0" onerror="this.remove()"><a href="../">${esc(T.site)}</a></div>
       <select class="langsel" aria-label="Language" onchange="location.href=this.value">
         <option value="${esc(lang === "ja" ? self : other)}"${lang === "ja" ? " selected" : ""}>日本語</option>
         <option value="${esc(lang === "en" ? self : other)}"${lang === "en" ? " selected" : ""}>English</option>
