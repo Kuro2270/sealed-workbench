@@ -41,11 +41,13 @@ async function tokenFor(lang){
   const token = j.access_token;
   if(!token){ console.error(`${lang}: YouTube のアクセストークンを取れませんでした（HTTP ${tr.status}: ${j.error || ""} ${j.error_description || ""}）。トークン${refresh.length}文字、先頭${refresh.slice(0, 6)}…`); return null; }
   /* 診断：このトークンが誰のどの許可か（トークン自体は表示しない） */
+  console.log(`${lang}: 更新応答 HTTP ${tr.status} ／ 項目: ${Object.keys(j).join(",")} ／ トークン${token.length}文字（${token.slice(0, 4)}…）／ 更新用トークン${refresh.length}文字（${refresh.slice(0, 3)}…${refresh.slice(-2)}）`);
   try{
-    const ti = await (await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(token)}`)).json();
+    const tir = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(token)}`);
+    const ti = await tir.json().catch(() => ({}));
     const sc = String(ti.scope || "").split(" ").map(x => x.replace("https://www.googleapis.com/auth/", "")).join(", ");
-    console.log(`${lang}: アクセストークン取得OK（許可: ${sc || "不明"} ／ 残り${ti.expires_in || "?"}秒 ／ ${ti.error_description || "有効"}）`);
-  }catch(e){ console.log(`${lang}: アクセストークン取得OK（診断は取れませんでした）`); }
+    console.log(`${lang}: tokeninfo HTTP ${tir.status} ／ 許可: ${sc || "不明"} ／ 残り${ti.expires_in || "?"}秒 ／ ${ti.error_description || "有効"}`);
+  }catch(e){ console.log(`${lang}: 診断は取れませんでした（${e.message}）`); }
   return token;
 }
 
