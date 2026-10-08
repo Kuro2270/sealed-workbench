@@ -22,7 +22,8 @@
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { execFileSync } from "node:child_process";
+import { execFileSync, execFile } from "node:child_process";
+import { cpus } from "node:os";
 import { resolve } from "node:path";
 import { existsSync } from "node:fs";
 
@@ -1284,18 +1285,31 @@ async function main(){
   console.error(ZUNDA ? `ずんだもん: 右下に出す（${ZDIR}/）` : "ずんだもん: 出さない（short/zunda/ に素材が無い）");
   // 画像と動画
   const segs = []; let total = 0; const chapters = [];
+  // 場面ごとの動画（ffmpeg）は、いくつかを同時に作る。1本ずつだと、フィルタが1つの CPU しか使えずに待つ時間が長いため。
+  // 同時に作る数：LONG_JOBS（省略時は CPU の数＋1、2〜4）。画質の設定（preset・crf）は変えない
+  const JOBS = Math.max(1, +process.env.LONG_JOBS || Math.min(4, Math.max(2, cpus().length + 1)));
+  const running = new Set(); let jobErr = null;
+  const runFfmpeg = args => new Promise((res, rej) => execFile("ffmpeg", args, { maxBuffer: 1 << 26 }, (e, so, se) => e ? rej(new Error(String(se || e.message).slice(-1500))) : res()));
+  const launch = async (args, label) => {
+    while(running.size >= JOBS){ await Promise.race(running); if(jobErr) throw jobErr; }
+    const pr = runFfmpeg(args).then(() => console.error(label), e => { jobErr = jobErr || e; }).finally(() => running.delete(pr));
+    running.add(pr);
+  };
+  console.error(`場面の動画を作る: 同時に ${JOBS} 本`);
   for(const [i, sc] of scenes.entries()){
+    if(jobErr) throw jobErr;
     const base = `${OUT}/scene-${i}`;
     const len = sc.dur + (sc.tail || 0.4), pad = len - sc.dur, N = Math.ceil(len * 30);
     await sharp(Buffer.from(sceneSvg(sc)), { density: 72 }).resize(W, H).png().toFile(base + ".png");
     // 字幕ページ（読み上げの文字数の割合で時間を割り振る）
     const pages = sc.cap ? capPages(sc.cap) : capPages(sc.say), nChars = pages.reduce((n, p) => n + [...p].length, 0) || 1;
-    let t = 0; const caps = [];
+    let t = 0; const caps = [], capJobs = [];
     for(const [k, pg] of pages.entries()){
       const d = sc.dur * [...pg].length / nChars, f = `${base}-cap${k}.png`;
-      await sharp(Buffer.from(capSvg(pg)), { density: 72 }).resize(W, H - CAP_Y).png().toFile(f);
+      capJobs.push(sharp(Buffer.from(capSvg(pg)), { density: 72 }).resize(W, H - CAP_Y).png().toFile(f));
       caps.push({ f, a: t, b: k === pages.length - 1 ? len : t + d }); t += d;
     }
+    await Promise.all(capJobs);
     if(sc.chapter) chapters.push({ at: total, title: sc.chapter });
     if(STILLS){ console.error(`${i} ${sc.kind} → ${base}.png`); total += len; continue; }
 
@@ -1304,21 +1318,25 @@ async function main(){
     const bgFilter = useArt
       ? `[0:v]scale=${W * 2}:${H * 2}:force_original_aspect_ratio=increase,crop=${W * 2}:${H * 2},zoompan=z='1+0.04*on/${N}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${N}:s=${W}x${H}:fps=30,eq=saturation=${sc.kind === "hook" ? 1.05 : 0.9},gblur=sigma=${sc.kind === "hook" ? (artMode === "key" ? 0.6 : 1.5) : 7}[b0];color=c=0x0A2038@${sc.kind === "hook" ? (artMode === "key" ? 0.12 : 0.18) : 0.5}:s=${W}x${H}:r=30[tint];[b0][tint]overlay=shortest=1[bg]`
       : HAS_BG
-        ? `[0:v]fps=30,scale=iw*sar:ih,setsar=1,scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},eq=saturation=0.7,gblur=sigma=5,setsar=1[b0];color=c=0x0A2038@0.6:s=${W}x${H}:r=30[tint];[b0][tint]overlay=shortest=1[bg]`
+        // 背景は強くぼかして暗くするので、1/4 の大きさでぼかしてから戻す（見た目はほぼ同じで、処理は大幅に軽くなる）
+        ? `[0:v]fps=30,scale=iw*sar:ih,setsar=1,scale=${W / 4}:${H / 4}:force_original_aspect_ratio=increase,crop=${W / 4}:${H / 4},eq=saturation=0.7,gblur=sigma=1.25,setsar=1[b0];color=c=0x0A2038@0.6:s=${W / 4}x${H / 4}:r=30[tint];[b0][tint]overlay=shortest=1,scale=${W}:${H}:flags=bicubic[bg]`
         : `[0:v]null[bg]`;
     const zIn = ZUNDA ? ["-f", "concat", "-safe", "0", "-i", await zundaList(i, base + ".wav", len, OUT)] : [];
-    const inputs = [...first, "-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", base + ".wav", ...caps.flatMap(c => ["-loop", "1", "-framerate", "30", "-i", c.f]), ...zIn];
+    // 静止画は「-loop 1」で読むと、毎コマ PNG を読み込み直して遅い。1コマだけ読んで、loop フィルタで繰り返す（出来上がる絵は同じ）
+    const inputs = [...first, "-framerate", "30", "-i", base + ".png", "-i", base + ".wav", ...caps.flatMap(c => ["-framerate", "30", "-i", c.f]), ...zIn];
+    const still = "format=yuva420p,loop=loop=-1:size=1:start=0,setpts=N/(30*TB)";
     // ずんだもんは、画面の右下のすみ（字幕の右どなり）に置く。図や字幕と重ならないよう、小さめにして、上下には揺らさない
     const zx = W - 24 - ZW, zy = H - ZH;      // 画面の右下のすみ。上下には揺らさない
-    let fc = `${bgFilter};[1:v]format=rgba${sc.kind === "hook" ? "" : ",fade=t=in:d=0.2:alpha=1"}[fg];[bg][fg]overlay=shortest=1[${ZUNDA ? "vz" : "v0"}]` +
+    let fc = `${bgFilter};[1:v]${still}${sc.kind === "hook" ? "" : ",fade=t=in:d=0.2:alpha=1"}[fg];[bg][fg]overlay=shortest=1[${ZUNDA ? "vz" : "v0"}]` +
       (ZUNDA ? `;[${3 + caps.length}:v]fps=30,scale=${ZW}:${ZH},format=rgba[zz];[vz][zz]overlay=x=${zx}:y=${zy}:shortest=1[v0]` : "");
-    caps.forEach((c, k) => { fc += `;[v${k}][${3 + k}:v]overlay=0:${CAP_Y}:enable='between(t,${c.a.toFixed(2)},${c.b.toFixed(2)})':shortest=1[v${k + 1}]`; });
+    caps.forEach((c, k) => { fc += `;[${3 + k}:v]${still}[c${k}];[v${k}][c${k}]overlay=0:${CAP_Y}:enable='between(t,${c.a.toFixed(2)},${c.b.toFixed(2)})':shortest=1[v${k + 1}]`; });
     fc += `;[v${caps.length}]format=yuv420p[v];[2:a]apad=pad_dur=${pad.toFixed(2)},afade=t=in:d=0.012,afade=t=out:st=${(len - 0.03).toFixed(3)}:d=0.03,aformat=sample_rates=48000:channel_layouts=stereo[a]`;
-    execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...inputs, "-filter_complex", fc, "-map", "[v]", "-map", "[a]", "-t", String(len),
-      "-c:v", "libx264", "-preset", process.env.LONG_PRESET || "veryfast", "-crf", "22", "-threads", "0", "-c:a", "aac", "-b:a", "160k", base + ".mp4"]);
+    await launch(["-y", "-loglevel", "error", ...inputs, "-filter_complex", fc, "-map", "[v]", "-map", "[a]", "-t", String(len),
+      "-c:v", "libx264", "-preset", process.env.LONG_PRESET || "veryfast", "-crf", "22", "-threads", "0", "-c:a", "aac", "-b:a", "160k", base + ".mp4"], `${i} ${sc.kind.padEnd(8)} ${sc.dur.toFixed(1)}s → ${len.toFixed(1)}s`);
     segs.push(`file 'scene-${i}.mp4'`); total += len;
-    console.error(`${i} ${sc.kind.padEnd(8)} ${sc.dur.toFixed(1)}s → ${len.toFixed(1)}s`);
   }
+  await Promise.all(running);
+  if(jobErr) throw jobErr;
 
   // 目次（YouTube の概要欄に貼る）と概要欄の下書き
   const ts = s => { const m = Math.floor(s / 60), r = Math.floor(s % 60); return `${m}:${String(r).padStart(2, "0")}`; };
