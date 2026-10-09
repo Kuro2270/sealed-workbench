@@ -249,9 +249,7 @@ function buildScript(ctx){
   if(pairsD.length){
     scenes.push({ kind: "pairs", chapter: L("色の組み合わせ", "Colour pairs"), pairsD, rankS, bestD, worstD,
       say: EN ? `Now, colour pairs. The strongest in Draft is ${pairName(bestD.pair)}, with a ${pt(bestD.wr)} percent win rate. The top three are ${andList(pairsD.slice(0, 3).map(p => pairName(p.pair)))}. ` +
-           (sleepersTop.length ? `Of these, ${andList(sleepersTop.map(p => pairName(p.pair)))} ${sleepersTop.length > 1 ? "are" : "is"} under-drafted, so I'll cover ${sleepersTop.length > 1 ? "them" : "it"} later as a sleeper pair. ` : "") +
            `Blue bars are Draft win rates, and yellow bars are Sealed. ` + (pairsD.slice(0, 3).every((p, i) => rankS[p.pair] === i + 1) ? `The top of the Sealed ranking is the same.` : `You can see the Sealed ranking is shuffled.`) : `色の組み合わせです。ドラフトで一番強いのは${pairName(bestD.pair)}、勝率${pt(bestD.wr)}パーセント。上位三つは、${pairsD.slice(0, 3).map(p => pairName(p.pair)).join("、")}です。` +
-           (sleepersTop.length ? `このうち${sleepersTop.map(p => pairName(p.pair)).join("と")}は、使う人が少ない狙い目なので、あとで紹介します。` : "") +
            `青い棒がドラフト、黄色い棒がシールドの勝率です。` + (pairsD.slice(0, 3).every((p, i) => rankS[p.pair] === i + 1) ? `シールドでも、上位の顔ぶれは同じです。` : `シールドでは順位が入れ替わっているのが分かります。`),
       tail: 0.6 });
   }
@@ -261,12 +259,25 @@ function buildScript(ctx){
     const tD = tierOf(pairsD), tS = tierOf(pairsS);
     const sD = tD.S.map(p => pairName(p.pair)), sS = tS.S.map(p => pairName(p.pair));
     const sameS = sD.length === sS.length && sD.every(n => sS.includes(n));
-    scenes.push({ kind: "tier", chapter: null, tiersD: tD, tiersS: tS, bestD, worstD,
+    const tierBase = { kind: "tier", chapter: null, tiersD: tD, tiersS: tS, bestD, worstD };
+    scenes.push({ ...tierBase,
       say: EN ? `Here's the same data as a tier list, Draft on the left and Sealed on the right. S tier in Draft: ${andList(sD.slice(0, 3))}. ` +
                 (pairsS.length ? (sameS ? `Sealed has the same S tier.` : `In Sealed, S tier is ${andList(sS.slice(0, 3))}.`) : "")
               : `同じデータをティア表にしました。左がドラフト、右がシールドです。ドラフトのSティアは${sD.slice(0, 3).join("、")}。` +
                 (pairsS.length ? (sameS ? `シールドもSティアは同じです。` : `シールドでは${sS.slice(0, 3).join("、")}がSティアです。`) : ""),
       tail: 0.6 });
+    // 狙い目：同じティア表の上で、その組み合わせだけを光らせて言う（画面は切り替えない）。詳しくは「狙い目の色」の章で
+    if(sleepers.length){
+      const picks = sleepers.map(p => ({ pair: p.pair, rank: rankD[p.pair], share: Math.round(p.games / totalPG * 100), wr: p.wr }));
+      const avgSh = Math.round(avgShareP * 100);
+      scenes.push({ ...tierBase, nofade: true, picks, avgShare: avgSh, tail: 0.6,
+        say: EN ? `And the sleeper pick${picks.length > 1 ? "s" : ""}: ${andList(picks.map(p => pairName(p.pair)))}. ` +
+                  picks.map(p => `${pairName(p.pair)} wins ${pt(p.wr)} percent, number ${p.rank}, but only ${p.share} percent of drafters take it, against an average of ${avgSh}.`).join(" ") +
+                  ` ${picks.length > 1 ? "Their" : "Its"} cards come to you. More on ${picks.length > 1 ? "these" : "this"} later.`
+                : `ここで狙い目です。${picks.map(p => pairName(p.pair)).join("と")}。` +
+                  picks.map(p => `${pairName(p.pair)}は勝率${pt(p.wr)}パーセントで${p.rank}位ですが、使っている人は${p.share}パーセントと、平均の${avgSh}パーセントより少なめ。`).join("") +
+                  `カードが流れてきやすい色です。あとで詳しく見ます。` });
+    }
   }
 
   /* --- 上位3つ＋最弱の深堀り --- */
@@ -790,26 +801,49 @@ function sceneSvg(sc){
     case "tier": {
       // 左：ドラフト、右：シールド。各 4 行（S/A/B/C）。字幕（y=900〜）より上に収める
       const TCOL = { S: GOLD, A: UP, B: "#2F7DF6", C: MUTED };
-      const panel = (x0, title, tiers) => {
+      const picks = sc.picks || [];
+      const panel = (x0, title, tiers, withPicks) => {
         const PW = 900;
         let s = T(x0, 190, title, { size: 36, fill: MUTED });
+        const marks = [];
         ["S", "A", "B", "C"].forEach((t, i) => {
-          const y = 215 + i * 166, list = tiers[t] || [];
-          s += `<rect x="${x0}" y="${y}" width="${PW}" height="150" rx="18" fill="${DEEP}" fill-opacity="0.55" stroke="${TCOL[t]}" stroke-width="3"/>` +
-               `<rect x="${x0}" y="${y}" width="120" height="150" rx="18" fill="${TCOL[t]}"/>` +
-               T(x0 + 60, y + 102, t, { size: 84, weight: 900, anchor: "middle", fill: "#06101C" });
+          const y = 215 + i * 150, list = tiers[t] || [];
+          s += `<rect x="${x0}" y="${y}" width="${PW}" height="136" rx="18" fill="${DEEP}" fill-opacity="0.55" stroke="${TCOL[t]}" stroke-width="3"/>` +
+               `<rect x="${x0}" y="${y}" width="120" height="136" rx="18" fill="${TCOL[t]}"/>` +
+               T(x0 + 60, y + 96, t, { size: 80, weight: 900, anchor: "middle", fill: "#06101C" });
           const cw = Math.min(150, Math.floor((PW - 150) / Math.max(list.length, 1)));
           list.forEach((p, j) => {
             const x = x0 + 145 + j * cw, sz = Math.min(54, cw - 60);
             const hot = p === sc.bestD, cold = p === sc.worstD;
-            s += pairSymbols(p.pair, x, y + 46, sz);
-            s += T(x + sz + 5, y + 96, pairShort(p.pair), { size: EN ? 24 : 24, anchor: "middle", fill: PAPER, weight: 700 });
-            s += T(x + sz + 5, y + 130, pt(p.wr) + "%", { size: 26, anchor: "middle", weight: hot || cold ? 900 : 400, fill: hot ? GOLD : cold ? DOWN : MUTED });
+            const picked = withPicks && picks.some(k => k.pair === p.pair);
+            let chip = pairSymbols(p.pair, x, y + 40, sz) +
+                       T(x + sz + 5, y + 88, pairShort(p.pair), { size: 24, anchor: "middle", fill: PAPER, weight: 700 }) +
+                       T(x + sz + 5, y + 120, pt(p.wr) + "%", { size: 26, anchor: "middle", weight: hot || cold || picked ? 900 : 400, fill: picked ? GOLD : hot ? GOLD : cold ? DOWN : MUTED });
+            // 狙い目を言うときは、その組み合わせだけ残して、ほかは薄くする
+            if(withPicks && picks.length && !picked) chip = `<g opacity="0.3">${chip}</g>`;
+            s += chip;
+            if(picked) marks.push({ x: x - 12, y: y + 6, w: cw - 6, h: 124 });
           });
         });
+        for(const m of marks){
+          s += `<rect x="${m.x - 4}" y="${m.y - 4}" width="${m.w + 8}" height="${m.h + 8}" rx="22" fill="none" stroke="${GOLD}" stroke-width="14" stroke-opacity="0.35"/>` +
+               `<rect x="${m.x}" y="${m.y}" width="${m.w}" height="${m.h}" rx="18" fill="${GOLD}" fill-opacity="0.22" stroke="${GOLD}" stroke-width="6"/>` +
+               `<rect x="${m.x + m.w / 2 - 70}" y="${m.y - 30}" width="140" height="44" rx="22" fill="${GOLD}"/>` +
+               T(m.x + m.w / 2, m.y + 1, L("狙い目", "AIM FOR"), { size: 28, weight: 900, anchor: "middle", fill: "#06101C" });
+        }
         return s;
       };
-      return frame(panel(60, L("ドラフト", "Draft"), sc.tiersD) + panel(960, L("シールド", "Sealed"), sc.tiersS), sc);
+      // シールドの表は、狙い目を言うときは薄くする（狙い目はドラフトの話なので）
+      let out = panel(60, L("ドラフト", "Draft"), sc.tiersD, true);
+      const sealed = panel(960, L("シールド", "Sealed"), sc.tiersS, false);
+      out += picks.length ? `<g opacity="0.35">${sealed}</g>` : sealed;
+      if(picks.length){
+        // 説明（表の下、字幕の上）
+        const y = 858;
+        out += `<rect x="60" y="${y - 40}" width="1800" height="58" rx="16" fill="${DEEP}" fill-opacity="0.85" stroke="${GOLD}" stroke-width="3"/>` +
+               T(84, y, L("狙い目（強いのに空いている）：", "Aim for (strong, under-drafted): ") + picks.map(p => `${pairName(p.pair)} ${L(`${p.rank}位・使用率${p.share}%`, `#${p.rank}, drafted ${p.share}%`)}`).join(L("　", "   ")) + L(`（平均 ${sc.avgShare}%）`, ` (avg ${sc.avgShare}%)`), { size: 26, fill: GOLD, weight: 700 });
+      }
+      return frame(out, sc);
     }
     case "deep": {
       const worst = sc.variant === "worst", sleeper = sc.variant === "sleeper", col = worst ? DOWN : sleeper ? GREEN : UP;
@@ -1408,7 +1442,7 @@ async function main(){
     const still = "format=yuva420p,loop=loop=-1:size=1:start=0,setpts=N/(30*TB)";
     // ずんだもんは、画面の右下のすみ（字幕の右どなり）に置く。図や字幕と重ならないよう、小さめにして、上下には揺らさない
     const zx = W - 24 - ZW, zy = H - ZH;      // 画面の右下のすみ。上下には揺らさない
-    let fc = `${bgFilter};[1:v]${still}${sc.kind === "hook" ? "" : ",fade=t=in:d=0.2:alpha=1"}[fg];[bg][fg]overlay=shortest=1[${ZUNDA ? "vz" : "v0"}]` +
+    let fc = `${bgFilter};[1:v]${still}${sc.kind === "hook" || sc.nofade ? "" : ",fade=t=in:d=0.2:alpha=1"}[fg];[bg][fg]overlay=shortest=1[${ZUNDA ? "vz" : "v0"}]` +
       (ZUNDA ? `;[${3 + caps.length}:v]fps=30,scale=${ZW}:${ZH},format=rgba[zz];[vz][zz]overlay=x=${zx}:y=${zy}:shortest=1[v0]` : "");
     caps.forEach((c, k) => { fc += `;[${3 + k}:v]${still}[c${k}];[v${k}][c${k}]overlay=0:${CAP_Y}:enable='between(t,${c.a.toFixed(2)},${c.b.toFixed(2)})':shortest=1[v${k + 1}]`; });
     fc += `;[v${caps.length}]format=yuv420p[v];[2:a]apad=pad_dur=${pad.toFixed(2)},afade=t=in:d=0.012,afade=t=out:st=${(len - 0.03).toFixed(3)}:d=0.03,aformat=sample_rates=48000:channel_layouts=stereo[a]`;
