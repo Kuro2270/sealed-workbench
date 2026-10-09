@@ -345,21 +345,55 @@ function wrap(s, n = 18){
     if(out.length > 5) out = fit(38);        // 5 行に入らないときは 1 行を長くする（5 行のときは字も小さくなる）
     return out.slice(0, 5);
   }
-  // 「61.4%」「sealed-workbench.com」のような並びは1つの塊として扱う
-  const toks = s.match(/[0-9０-９][0-9０-９.,%]*|[A-Za-z][A-Za-z0-9.\-]*|[^0-9０-９A-Za-z]/g) || [];
-  const out = []; let cur = "";
-  for(const t of toks){
-    const punct = /^[、。]$/.test(t);
-    if(!punct && cur.length + t.length > n && cur){ out.push(cur); cur = ""; }
-    cur += t;
-    if(punct && cur.length >= n * 0.45){ out.push(cur); cur = ""; }   // 句読点があれば早めに折る
-  }
-  if(cur) out.push(cur);
+  // 日本語は「、」「。」で区切った句を単位にして行に詰める（カード名や数字が行の途中で切れないように）。
+  // 1 句が長すぎるときだけ、数字・英字のかたまりを壊さない位置で切る
+  const clauses = s.split(/(?<=[、。])/).filter(Boolean)
+    .reduce((acc, cl) => { if(acc.length && /^[0-9０-９][0-9０-９.,]*%/.test(cl)) acc[acc.length - 1] += cl; else acc.push(cl); return acc; }, []);   // 「〜、66.4%。」は前の句とつなげる（名前と数字を離さない）
+  const splitLong = (cl, m) => {
+    // 助詞（より・と・で・は・が・を・に・も）の前で切れる位置があればそこで（「の」は名詞の途中になりやすいので使わない）、無ければ数字・英字を壊さない位置で切る
+    const toks = cl.match(/[0-9０-９][0-9０-９.,%]*|[A-Za-z][A-Za-z0-9.\-]*|[^0-9０-９A-Za-z]/g) || [];
+    const out = []; let cur = "";
+    const flush = () => { if(cur){ out.push(cur); cur = ""; } };
+    let i = 0;
+    while(i < toks.length){
+      const t = toks[i];
+      if(cur && [...cur].length + [...t].length > m){
+        // 行の後半（40% 以降）にある助詞の前まで戻って切る
+        const chars = [...cur]; let cut = -1;
+        for(let k = chars.length - 1; k >= Math.floor(m * 0.4); k--){
+          const rest = chars.slice(k).join("");
+          if(/^(より|と|で|は|が|を|に|も)/.test(rest)){ cut = k; break; }
+        }
+        if(cut > 0){ out.push(chars.slice(0, cut).join("")); cur = chars.slice(cut).join(""); } else flush();
+      }
+      cur += t; i++;
+    }
+    flush();
+    return out;
+  };
+  const fit = m => {
+    const out = []; let cur = "";
+    for(const cl of clauses){
+      const L = [...cl].length;
+      if(L > m){ if(cur){ out.push(cur); cur = ""; } const parts = splitLong(cl, m); out.push(...parts.slice(0, -1)); cur = parts[parts.length - 1]; continue; }
+      if(cur && [...cur].length + L > m){ out.push(cur); cur = cl; } else cur += cl;
+    }
+    if(cur) out.push(cur);
+    return out;
+  };
+  let out = fit(n);
+  if(out.length > 5) out = fit(n + 2);        // 5 行に入らないときは 1 行を少し長く（5 行のときは字も小さくなる）
   return out.slice(0, 5);
 }
 /* YouTube Shorts は下 20% 弱にタイトルやボタンが重なるので、字幕はその上に置く */
 const SAFE_BOTTOM = 270;
 const BOMB_CAP_BOTTOM = 170;   // ボムの場面だけ、字幕の枠をここまで下げる（カードを大きく見せるため。YouTube の題名の帯に少しかかる）
+/* 字幕の枠の上端（場面の図をその上に収めるため） */
+function captionTop(say, bottom = SAFE_BOTTOM){
+  const lines = wrap(say.replace(/パーセント/g, "%").replace(/ percent/g, "%"));
+  const lh = lines.length >= 5 ? 60 : 70;
+  return H - bottom - 40 - (lines.length * lh + 64);
+}
 function caption(say, bottom = SAFE_BOTTOM){
   const lines = wrap(say.replace(/パーセント/g, "%").replace(/ percent/g, "%"));
   const fs = lines.length >= 5 ? 44 : 50, lh = lines.length >= 5 ? 60 : 70;   // 5 行のときは少し詰めて、上のキャラクターに枠がかからないようにする
@@ -514,7 +548,13 @@ function sceneSvg(sc){
       const sz = JA ? Math.min(150, Math.floor(980 / Math.max(...lines.map(l => [...l].length), 4))) : fit;
       let y = 520;
       let titleSvg = "";
-      for(const l of lines){ titleSvg += TS(W / 2, y, l, { size: sz, fill: "#FFD23F" }); y += Math.round(sz * 1.06); }
+      if(sc.logo){
+        // 公式のセットのロゴ（short/logo/<SET>.png）があれば、文字の代わりにそれを主役にする（サムネイルと同じ）
+        titleSvg = `<image href="${sc.logo}" x="90" y="400" width="900" height="330" preserveAspectRatio="xMidYMid meet"/>`;
+        y = 840;   // ロゴの下端（730）から離して、種類のピルを置く
+      }else{
+        for(const l of lines){ titleSvg += TS(W / 2, y, l, { size: sz, fill: "#FFD23F" }); y += Math.round(sz * 1.06); }
+      }
       const modeY = y - 58 + 44;   // タイトルとの間に余裕を持たせる（+44）。動画ページでは中央に再生ボタンが載るので、真ん中（縦960付近）には文字を置かない
       return frame(
         `<defs>
@@ -590,19 +630,23 @@ function sceneSvg(sc){
     case "bombs": {
       // 5 枚を縦に並べる（カード画像＋順位・レアリティ・名前・勝率）。2 画面で 10 枚。
       // カードを大きく見せるため、この場面だけ字幕の枠を下げる（BOMB_CAP_BOTTOM）。右はしのキャラクターには名前がかからない幅（520px）にする
-      const CW = 160, CH = 224, ROW = 236, Y0 = 244, TX = 280;
+      // 字幕の枠の高さは読み上げの長さで変わるので、枠の上端より上に 5 枚が収まるように、行の高さをその場で決める
+      const capTop = captionTop(sc.say, BOMB_CAP_BOTTOM), Y0 = 244;
+      const ROW = Math.min(236, Math.floor((capTop - 16 - Y0) / 5)), f = ROW / 236;
+      const CH = Math.round(224 * f), CW = Math.round(160 * f), TX = 120 + CW;
+      const sz = v => Math.round(v * Math.max(0.8, f));                                       // 文字は縮めすぎない
       let s = T(80, 222, UI.bombsH(sc.from, sc.to), { size: 36, fill: MUTED });
       sc.cards.forEach((c, i) => {
         const y = Y0 + i * ROW, col = COLOR[c.color] || MUTED, rank = sc.from + i;
         if(c.imgPath) s += `<image href="${c.imgPath}" x="80" y="${y}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/>`;
         else s += `<rect x="80" y="${y}" width="${CW}" height="${CH}" rx="12" fill="${col}" opacity="0.85"/>`;
-        s += T(TX, y + 50, UI.rank(rank), { size: 38, fill: rank === 1 ? GOLD : MUTED, weight: rank === 1 ? 900 : 400 });
-        s += T(TX + (JA ? 100 : 86), y + 50, UI.bombsTag[c.rarity] || "", { size: 28, fill: c.rarity === "mythic" ? DOWN : GOLD, weight: 700 });
+        s += T(TX, y + sz(50), UI.rank(rank), { size: sz(38), fill: rank === 1 ? GOLD : MUTED, weight: rank === 1 ? 900 : 400 });
+        s += T(TX + (JA ? sz(100) : sz(86)), y + sz(50), UI.bombsTag[c.rarity] || "", { size: sz(28), fill: c.rarity === "mythic" ? DOWN : GOLD, weight: 700 });
         const lines = wrapName(c.label, JA ? 11 : 20).slice(0, 2);
-        let size = lines.length > 1 ? (JA ? 42 : 36) : (JA ? 50 : 44);
-        size = Math.min(size, Math.floor(520 / Math.max(...lines.map(l => JA ? [...l].length : l.length * 0.58), 1)));
-        lines.forEach((l, j) => { s += T(TX, y + (lines.length > 1 ? 104 : 124) + j * (size + 4), l, { size, weight: 900 }); });
-        s += T(TX, y + 212, UI.gih(pt(c.gih)), { size: 36, fill: BLUE, weight: 700 });
+        let size = lines.length > 1 ? sz(JA ? 42 : 36) : sz(JA ? 50 : 44);
+        size = Math.min(size, Math.floor((1040 - 240 - TX) / Math.max(...lines.map(l => JA ? [...l].length : l.length * 0.58), 1)));   // 右はしのキャラクターにかからない幅
+        lines.forEach((l, j) => { s += T(TX, y + (lines.length > 1 ? sz(104) : sz(124)) + j * (size + 4), l, { size, weight: 900 }); });
+        s += T(TX, y + CH - 12, UI.gih(pt(c.gih)), { size: sz(36), fill: BLUE, weight: 700 });
       });
       return frame(s, sc.say, { capBottom: BOMB_CAP_BOTTOM });
     }
