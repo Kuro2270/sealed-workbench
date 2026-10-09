@@ -568,12 +568,12 @@ function buildScript(ctx){
   });
   if(bombs.length >= 10){
     scenes.push({ kind: "bombs", chapter: L("ボムのレア10枚", "Top 10 bomb rares"), cards: bombs.slice(0, 5), avgD, part: 1,
-      say: EN ? `Now the bombs: the top ten. They're ranked by win rate when drawn, the GIH win rate, among mythics and rares, counting only cards with at least 1,500 games. ` + bombs.slice(0, 5).map(c => `Number ${c.rank}, ${c.label}, ${pt(c.gih)} percent. `).join("") : `ここからがボム、十枚です。引いた試合の勝率、GIH勝率の高い順で、神話レアとレアから選びました。試合数が少ないカードは数字がぶれるので、千五百試合以上のカードに限っています。` +
+      say: EN ? `Now the bombs: the top ten. They're ranked by win rate in games where you drew the card, among mythics and rares, counting only cards with at least 1,500 games. ` + bombs.slice(0, 5).map(c => `Number ${c.rank}, ${c.label}, ${pt(c.gih)} percent. `).join("") : `ここからがボム、十枚です。引けた試合での勝率が高い順で、神話レアとレアから選びました。試合数が少ないカードは数字がぶれるので、千五百試合以上のカードに限っています。` +
            bombs.slice(0, 5).map(c => `${c.rank}位、${c.label}、${pt(c.gih)}パーセント。`).join(""), tail: 0.6 });
     scenes.push({ kind: "bombs", chapter: null, cards: bombs.slice(5, 10), avgD, part: 2,
-      say: EN ? bombs.slice(5, 10).map(c => `Number ${c.rank}, ${c.label}, ${pt(c.gih)} percent. `).join("") + `If you draw any of these, build your deck around it, even if the colours don't quite fit. The format average is ${pt(avgD)} percent, and every one of these is well above it.`
+      say: EN ? bombs.slice(5, 10).map(c => `Number ${c.rank}, ${c.label}, ${pt(c.gih)} percent. `).join("") + `If you open any of these, they're worth moving your colours to fit. The format average is ${pt(avgD)} percent, and every one of these is well above it.`
          : bombs.slice(5, 10).map(c => `${c.rank}位、${c.label}、${pt(c.gih)}パーセント。`).join("")
-         + `これらは、引けたら、色が少し合わなくても、デッキの軸にして構わないカードです。全体の平均勝率は${pt(avgD)}パーセントなので、どれも大きく上回っています。`, tail: 0.6 });
+         + `これらは、引けたら、色を合わせに行く価値が十分にあるカードです。全体の平均勝率は${pt(avgD)}パーセントなので、どれも大きく上回っています。`, tail: 0.6 });
   }
 
   if(bombs.length >= 3) scenes[0].cards = bombs.slice(0, 3);     // 冒頭の画面に並べるボム
@@ -934,7 +934,7 @@ function sceneSvg(sc){
         s += T(130, y + 140, L(`ドラフト ${r.rd}位  →  シールド ${r.rs}位`, `Draft #${r.rd}  →  Sealed #${r.rs}`), { size: 44, weight: 700, fill: up ? GREEN : DOWN });
         s += T(780, y + 60, up ? "▲" : "▼", { size: 60, anchor: "end", fill: up ? GREEN : DOWN });
       });
-      s += panel(940, 210, 900, 590) + T(980, 275, L("レア・神話レア（GIH勝率）", "Rares & mythics (GIH win rate)"), { size: 36, fill: GOLD, weight: 700 });
+      s += panel(940, 210, 900, 590) + T(980, 275, L("レア・神話レア（引けた試合の勝率）", "Rares & mythics (win rate when drawn)"), { size: 36, fill: GOLD, weight: 700 });
       const list = [...sc.cUp.slice(0, 2).map(c => ({ ...c, up: true })), ...sc.cDown.slice(0, 2).map(c => ({ ...c, up: false }))];
       list.forEach((c, i) => {
         const y = 335 + i * 110;
@@ -946,7 +946,7 @@ function sceneSvg(sc){
       return frame(s, sc);
     }
     case "bombs": {
-      let s = T(80, 175, L(`ボム ${sc.part === 1 ? "1〜5位" : "6〜10位"}（神話レア・レア、GIH勝率）`, `Bombs ${sc.part === 1 ? "#1–5" : "#6–10"} (mythic & rare, GIH win rate)`), { size: 38, fill: MUTED });
+      let s = T(80, 175, L(`ボム ${sc.part === 1 ? "1〜5位" : "6〜10位"}（神話レア・レア、引けた試合の勝率）`, `Bombs ${sc.part === 1 ? "#1–5" : "#6–10"} (mythic & rare, win rate when drawn)`), { size: 38, fill: MUTED });
       s += cardRow(sc.cards, c => [
         { t: `${L("ドラフト", "Draft")} ${pt(c.gih)}%`, size: 40, w: 900, fill: UP },
         { t: c.sGih != null ? `${L("シールド", "Sealed")} ${pt(c.sGih)}%` : `${L("シールド", "Sealed")} —`, size: 32, fill: GOLD },
@@ -1019,7 +1019,7 @@ function sceneSvg(sc){
       const kname = sc.color === "M" ? L("マルチカラー", "Multicolour") : sc.color === "C" ? L("無色", "Colourless") : CJ[sc.color];
       let s = (badge ? `<circle cx="120" cy="180" r="40" fill="${badge.f}" stroke="${PAPER}" stroke-width="3"/>` + T(120, 196, badge.t, { size: 44, weight: 900, anchor: "middle", fill: DEEP }) : symbol(sc.color, 120, 180, 80)) +
               T(190, 196, L(`${kname}のおすすめ コモン・アンコモン`, `${kname} commons & uncommons`), { size: 50, weight: 900 }) +
-              T(W - 80, 196, L("引いた試合の勝率（GIH）の高い順", "Ranked by win rate when drawn (GIH)"), { size: L(30, 28), fill: MUTED, anchor: "end" }) +
+              T(W - 80, 196, L("引けた試合の勝率の高い順", "Ranked by win rate when drawn"), { size: L(30, 28), fill: MUTED, anchor: "end" }) +
               // マルチカラーは 17Lands の分け方：能力に別の色を使う単色カードも入る。「ん？」とならないよう、見出しの下に一言
               (sc.color === "M" ? T(190, 228, L("※ 17Landsの分類に合わせています。カード自体は単色でも、能力のコストに別の色を使うカードを含みます", "* Follows 17Lands' grouping: includes mono-coloured cards whose abilities use a second colour (hybrid / activation costs)"), { size: 22, fill: GOLD }) : "");
       const panelFor = (x, title, list, avg, accent) => {
@@ -1046,7 +1046,7 @@ function sceneSvg(sc){
     case "removal": {
       let s = T(80, 175, `${sc.jp}の除去 強さ順（${sc.jp}全体の平均 ${pt(sc.commonAvg)}% より高いもの）`, { size: 38, fill: MUTED });
       s += cardRow(sc.cards, c => [
-        { t: `GIH ${pt(c.gih)}%`, size: 40, w: 900, fill: GREEN },
+        { t: `引けた試合の勝率 ${pt(c.gih)}%`, size: 40, w: 900, fill: GREEN },
         { t: `平均より ${sgn(c.gih - sc.commonAvg)}pt`, size: 30, fill: PAPER },
         { t: `マナ総量 ${c.cmc ?? "—"}`, size: 28, fill: MUTED, w: 400 }
       ], GREEN, 250);
@@ -1111,7 +1111,7 @@ function sceneSvg(sc){
         });
         return o;
       };
-      colsDef.forEach((d, i) => { s += col(i, d[0], d[1], d[2], d[3], c => L(`GIH勝率 ${pt(c.gih)}%`, `GIH win rate ${pt(c.gih)}%`)); });
+      colsDef.forEach((d, i) => { s += col(i, d[0], d[1], d[2], d[3], c => L(`引けた試合の勝率 ${pt(c.gih)}%`, `Win rate when drawn ${pt(c.gih)}%`)); });
       return frame(s, sc);
     }
     case "outro": {
