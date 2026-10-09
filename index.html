@@ -173,7 +173,8 @@
   @media (max-width:860px){ .tools{grid-template-columns:1fr} .tool p{min-height:0} }
   .newbie{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
   .newbie p{margin:0 0 10px;font-size:14px}
-  .newbie .cta a{background:var(--pine)}
+  .newbie .cta a{background:var(--pine);transition:background .15s,transform .15s,box-shadow .15s}
+  .newbie .cta a:hover{background:var(--gold);transform:translateY(-1px);box-shadow:0 4px 12px rgba(47,125,246,.35)}
   .feat{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:8px 22px}
   .feat li{font-size:13.5px;line-height:1.7;padding-left:1.2em;position:relative}
   .feat li::before{content:"";position:absolute;left:0;top:.7em;width:7px;height:7px;border-radius:2px;background:var(--gold)}
