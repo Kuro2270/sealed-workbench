@@ -253,6 +253,16 @@ function buildScript(d, nameJa, names){
     });
   }
 
+  // 速報の断り書き＋登録のお願い：2 段構え。1 段目で「序盤のデータ」、2 段目（同じ画面）で登録ボタンを出して「確定版を出すので登録を」
+  //   前半（ボムの直後）に置く。後ろに置くと、そこまで見ない人には届かないため
+  if(EARLY){
+    const base = { kind: "early", asOf: d.as_of || "", tail: 0.6 };
+    scenes.push({ ...base, say: JA ? `まだ序盤のデータなので、順位はこれから動きます。` : `This is early data, so the rankings will move.` });
+    scenes.push({ ...base, nofade: true, subscribe: true, tail: 0.8,
+      say: JA ? `データが揃ったら確定版を出すので、チャンネル登録をぜひお願いします。`
+              : `The full review comes once the data settles, so please subscribe and don't miss it.` });
+  }
+
   if(fast && slow){
     // 速さは一言だけ。数字は画面に任せる（読み上げるとくどい）
     const paceKey = UI.pace[(d.verdict || {}).key] ? (d.verdict || {}).key : (spread < 2 ? "mid" : faster ? "fast" : "slow");
@@ -297,11 +307,8 @@ function buildScript(d, nameJa, names){
 
   // 「意外な事実」の場面は入れない（2026年10月。狙い目はティア表で言う）
 
-  if(EARLY) scenes.push({ kind: "early", asOf: d.as_of || "", tail: 0.8,
-    say: JA ? `まだ序盤のデータなので、順位はこれから動きます。データが揃ったら、確定版を出します。`
-            : `This is early data, so the rankings will move. The full review comes once the data settles.` });
-
-  scenes.push({ kind: "outro", art: true,
+  // 速報は、断り書きと登録のお願いを前半（ボムの直後）で済ませてあるので、締めの場面は付けない（最後は情報で終える）
+  if(!EARLY) scenes.push({ kind: "outro", art: true,
     say: JA ? `次のセットも出すので、チャンネル登録をお願いします。` : `Subscribe for the next set.`,
     site: SITE, tail: 1.0 });
   return scenes;
@@ -388,6 +395,20 @@ function wrap(s, n = 18){
 /* YouTube Shorts は下 20% 弱にタイトルやボタンが重なるので、字幕はその上に置く */
 const SAFE_BOTTOM = 270;
 const BOMB_CAP_BOTTOM = 170;   // ボムの場面だけ、字幕の枠をここまで下げる（カードを大きく見せるため。YouTube の題名の帯に少しかかる）
+/* 登録ボタン（動きを付けて重ねる層）。幅 640・高さ 130。右はしのキャラクターにかからない位置（x=100）に置く */
+function subscribeButton(){
+  return `<rect x="0" y="0" width="640" height="130" rx="65" fill="#E53935" stroke="#FFFFFF" stroke-width="6"/>` +
+         T(320, 86, UI.subscribe, { size: 60, weight: 900, anchor: "middle", fill: "#FFFFFF" });
+}
+function popSvg(inner, w, h){
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w * SCALE}" height="${h * SCALE}" viewBox="0 0 ${w} ${h}" font-family="${FONT}"><g>${inner}</g></svg>`;
+}
+/* 場面に重ねる「動く層」。セリフのあいだに現れて、ぽんと跳ねる */
+function popLayer(sc){
+  if(sc.kind === "early" && sc.subscribe) return { svg: popSvg(subscribeButton(), 640, 130), w: 640, h: 130, x: 100, y: 1080 };
+  return null;
+}
+
 /* 字幕の枠の上端（場面の図をその上に収めるため） */
 function captionTop(say, bottom = SAFE_BOTTOM){
   const lines = wrap(say.replace(/パーセント/g, "%").replace(/ percent/g, "%"));
@@ -692,7 +713,9 @@ function sceneSvg(sc){
         TS(W / 2, 700, UI.earlyH, { size: JA ? 84 : 96 }) +
         T(W / 2, 830, UI.early1, { size: 56, weight: 700, anchor: "middle" }) +
         T(W / 2, 910, UI.early2, { size: 56, weight: 700, anchor: "middle", fill: GOLD }) +
-        (sc.asOf ? T(W / 2, 1010, UI.earlyAsOf(sc.asOf), { size: 40, anchor: "middle", fill: MUTED }) : ""), sc.say);
+        (sc.asOf ? T(W / 2, 1010, UI.earlyAsOf(sc.asOf), { size: 40, anchor: "middle", fill: MUTED }) : "") +
+        // 2 段目の登録ボタンは、動きを付けるため別の層（sc.pop）で重ねる（画像だけの確認では静止画に描く）
+        (sc.subscribe && process.env.SHORT_STILLS ? popSvg(subscribeButton(), 640, 130).replace(/^<svg[^>]*>|<\/svg>$/g, "").replace("<g>", `<g transform="translate(100 1080)">`) : ""), sc.say);
     }
     case "outro": {
       // 締めは「チャンネル登録をお願いします」だけ。クレジットや表記は概要欄に置く
@@ -974,6 +997,15 @@ async function main(){
     if(ZUNDA){   // 口パクの動画を、最後の入力として足す
       const zi = args.indexOf("-filter_complex");
       args.splice(zi, 0, "-f", "concat", "-safe", "0", "-i", await zundaList(i, wavIn, len, `${OUT}/${TAG}`));
+    }
+    const pop = popLayer(sc);
+    if(pop){   // 動く層（登録ボタンなど）：いちばん最後の入力として足し、下から浮き上がって、ゆっくり跳ねる
+      await sharp(Buffer.from(pop.svg), { density: 72 }).png().toFile(base + ".pop.png");
+      const fi = args.indexOf("-filter_complex");
+      const idx = args.filter(a => a === "-i").length;
+      args.splice(fi, 0, "-loop", "1", "-framerate", "30", "-i", base + ".pop.png");
+      const bounce = `${pop.y}+60*max(0\,1-t*4)-12*abs(sin(2.6*t))*min(1\,t*4)`;   // 0.25 秒で浮き上がり、その後は上下に小さく跳ねる
+      args[fi + 1] = args[fi + 1].replace(/,?format=yuv420p\[v\];/, `null[v0];[${idx}:v]scale=${pop.w}:${pop.h},format=rgba,fade=t=in:d=0.25:alpha=1[pp];[v0][pp]overlay=x=${pop.x}:y='${bounce}':shortest=1,format=yuv420p[v];`);
     }
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...args,
       "-map", "[v]", "-map", "[a]", "-t", String(len), "-c:v", "libx264", "-preset", "fast", "-crf", "20", "-c:a", "aac", "-b:a", "160k",
