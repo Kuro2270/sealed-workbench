@@ -210,58 +210,11 @@ function buildScript(d, nameJa, names){
   const scenes = [];
   const gamesEn = d.total_games >= 10000 ? Math.round(d.total_games / 1000) + " thousand" : manSay(d.total_games);
   scenes.push({ kind: "hook", art: true,
-    say: EARLY ? (JA ? `MTGアリーナ、リミテッドの${nameJa}環境。発売直後の速報です。${games}試合の時点のデータを、1分でまとめました。`
-                     : `MTG Arena Limited: ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} format, early look. ${gamesEn} games so far, in one minute.`)
+    say: EARLY ? (JA ? `MTGアリーナ、${nameJa}のリミテッド速報。1分でまとめました。`
+                     : `MTG Arena Limited: ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} format. The early look, in one minute.`)
        : JA ? `MTGアリーナ、リミテッドの${nameJa}環境。${games}試合のデータが、1分でわかります。`
             : `MTG Arena Limited: ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} format. ${gamesEn} games of data, in one minute.`,
     title: nameJa, games, isSealed: d.mode === "sealed", early: EARLY });
-
-  // 「リミテッドとは」の前置きは入れない（見にくる人は知っているので、ここで離れてしまう。2026年10月の視聴データから）
-  // 先に結論：色の組み合わせのティア表 → レア・神話レアのボム → 速さ → コモン・アンコモン
-  if(colors.length && best){
-    const top2 = colors.slice(0, 2).map(c => CN[c.color]).join(JA ? "と" : " and ");
-    const sNames = tiers.S.slice(0, 3).map(p => pairName(p.pair));   // 読むのは 3 つまで
-    let say = JA ? `色の組み合わせをティア表にしました。Sティアは${sNames.join("と")}。強い色は${top2}です。`
-                 : `Here is the colour-pair tier list. S tier: ${sNames.join(" and ")}. The strongest colours are ${top2}.`;
-    if(worst && worst !== best) say += JA ? `一番下は${pairName(worst.pair)}、${pt(worst.wr)}パーセントです。`
-                                         : ` At the bottom: ${pairName(worst.pair)}, at ${pt(worst.wr)} percent.`;
-    const worstShown = worst && worst !== best ? worst : null;
-    scenes.push({ kind: "tier", say, colors, tiers, best, worst: worstShown, tail: 0.8 });
-    // 狙い目（ドラフトだけ）：同じティア表の上で、その組み合わせを光らせて言う（場面は続きなので、画面は切り替えない）
-    if(target){
-      const sh = Math.round(target.share * 100), av = Math.round(target.avgShare * 100);
-      scenes.push({ kind: "tier", colors, tiers, best, worst: worstShown, nofade: true, tail: 0.8,
-        pick: { pair: target.pair, note: UI.share(sh, av, target.rank) },
-        say: target.isBest
-          ? (JA ? `狙い目は、最強の${pairName(target.pair)}そのもの。勝率1位なのに、使っている人は${sh}パーセントと平均の${av}パーセントより少なめ。カードが流れてきやすい色です。`
-                : `The pick to aim for is the best pair itself, ${pairName(target.pair)}. Number one, yet only ${sh} percent of drafters take it, against an average of ${av}. Its cards come to you.`)
-          : (JA ? `狙い目は${pairName(target.pair)}。勝率${pt(target.wr)}パーセントで${target.rank}位ですが、使っている人は${sh}パーセントと平均の${av}パーセントより少なめ。カードが流れてきやすい色です。`
-                : `The pick to aim for: ${pairName(target.pair)}. ${pt(target.wr)} percent, number ${target.rank}, but only ${sh} percent of drafters take it, against an average of ${av}. Its cards come to you.`) });
-    }
-  }
-  if(bombs.length){
-    const pages = [bombs.slice(0, 5), bombs.slice(5, 10)].filter(pg => pg.length);
-    pages.forEach((pg, i) => {
-      const from = i * 5 + 1, to = i * 5 + pg.length;
-      // 各画面、上から 3 枚は名前と勝率を読む（残りは画面に任せる）
-      const three = pg.slice(0, 3);
-      const namesJa = three.map((c, k) => `${from + k}位は${c.label}、${pt(c.gih)}パーセント`).join("。");
-      const namesEn = three.map((c, k) => `number ${from + k}, ${c.name}, at ${pt(c.gih)} percent`).join("; ");
-      scenes.push({ kind: "bombs", page: i, from, to, cards: pg, label: `bombs${i + 1}`, tail: 0.8, minDur: 6,   // 5 枚を見る時間として、短くても 6 秒は置く
-        say: i === 0 ? (JA ? `レアと神話レアのボム、トップ10です。${namesJa}。` : `Top ten rare and mythic bombs. ${namesEn[0].toUpperCase() + namesEn.slice(1)}.`)
-                     : (JA ? `続いて${from}位から${to}位。${namesJa}。` : `Numbers ${from} to ${to}. ${namesEn[0].toUpperCase() + namesEn.slice(1)}.`) });
-    });
-  }
-
-  // 速報の断り書き＋登録のお願い：2 段構え。1 段目で「序盤のデータ」、2 段目（同じ画面）で登録ボタンを出して「確定版を出すので登録を」
-  //   前半（ボムの直後）に置く。後ろに置くと、そこまで見ない人には届かないため
-  if(EARLY){
-    const base = { kind: "early", asOf: d.as_of || "", tail: 0.6 };
-    scenes.push({ ...base, say: JA ? `まだ序盤のデータなので、順位はこれから動きます。` : `This is early data, so the rankings will move.` });
-    scenes.push({ ...base, nofade: true, subscribe: true, tail: 0.8,
-      say: JA ? `データが揃ったら確定版を出すので、チャンネル登録をぜひお願いします。`
-              : `The full review comes once the data settles, so please subscribe and don't miss it.` });
-  }
 
   if(fast && slow){
     // 速さは一言だけ。数字は画面に任せる（読み上げるとくどい）
@@ -273,13 +226,51 @@ function buildScript(d, nameJa, names){
                    : br.max ? (JA ? `${pace[bi - 1].max}から${br.max}` : `between ${pace[bi - 1].max} and ${br.max}`)
                    : (JA ? `${pace[bi - 1].max}以上` : `${pace[bi - 1].max} or more`);
     scenes.push({ kind: "pace",
-      say: JA ? `環境の速さは、${paceWord}です。平均マナ総量${bestBand}のデッキが、勝率${pt(br.wr)}パーセントで一番勝っています。`
-              : `The format is ${paceWord.toLowerCase()}. Decks with an average mana value ${bestBand} win the most, at ${pt(br.wr)} percent.`,
+      say: JA ? `環境の速さは、${paceWord}です。平均マナ総量${bestBand}のデッキが、一番勝っています。`
+              : `The format is ${paceWord.toLowerCase()}. Decks with an average mana value ${bestBand} win the most.`,
       paceWord, tail: 0.8,
       rows: pace.map((s, i) => ({ label: i === 0 ? UI.under(s.max) : s.max ? UI.between(pace[i - 1].max, s.max) : UI.over(pace[i - 1].max), wr: s.wr })),
       headline: paceKey === "lean-fast" ? UI.lighter : paceKey === "lean-slow" ? UI.heavier
               : (paceKey === "fast" || paceKey === "slow") && spread >= 1 ? (faster ? UI.light(spread.toFixed(1).replace(/\.0$/, "")) : UI.heavy(spread.toFixed(1).replace(/\.0$/, "")))
               : UI.noCurve });
+  }
+
+
+  // 「リミテッドとは」の前置きは入れない（見にくる人は知っているので、ここで離れてしまう。2026年10月の視聴データから）
+  // 速さ → 色の組み合わせのティア表（＋狙い目）→ レア・神話レアのボム → コモン・アンコモン → 断り書き＋登録のお願い
+  if(colors.length && best){
+    const top2 = colors.slice(0, 2).map(c => CN[c.color]).join(JA ? "と" : " and ");
+    const sNames = tiers.S.slice(0, 3).map(p => pairName(p.pair));   // 読むのは 3 つまで
+    let say = JA ? `色の組み合わせのティア表です。Sティアは${sNames.join("と")}。`
+                 : `The colour-pair tier list. S tier: ${sNames.join(" and ")}.`;
+    if(worst && worst !== best) say += JA ? `一番下は${pairName(worst.pair)}です。` : ` At the bottom: ${pairName(worst.pair)}.`;
+    const worstShown = worst && worst !== best ? worst : null;
+    scenes.push({ kind: "tier", say, colors, tiers, best, worst: worstShown, tail: 0.8 });
+    // 狙い目（ドラフトだけ）：同じティア表の上で、その組み合わせを光らせて言う（場面は続きなので、画面は切り替えない）
+    if(target){
+      const sh = Math.round(target.share * 100), av = Math.round(target.avgShare * 100);
+      scenes.push({ kind: "tier", colors, tiers, best, worst: worstShown, nofade: true, tail: 0.8,
+        pick: { pair: target.pair, note: UI.share(sh, av, target.rank) },
+        say: target.isBest
+          ? (JA ? `狙い目は、最強の${pairName(target.pair)}そのもの。勝率1位なのに使う人は少なめで、カードが流れてきやすい。`
+                : `The pick to aim for is the best pair itself, ${pairName(target.pair)}. Number one, yet under-drafted. Its cards come to you.`)
+          : (JA ? `狙い目は${pairName(target.pair)}。勝率${target.rank}位なのに使う人は少なめで、カードが流れてきやすい。`
+                : `The pick to aim for: ${pairName(target.pair)}. Number ${target.rank} by win rate, yet under-drafted. Its cards come to you.`) });
+    }
+  }
+  if(bombs.length){
+    const pages = [bombs.slice(0, 5), bombs.slice(5, 10)].filter(pg => pg.length);
+    pages.forEach((pg, i) => {
+      const from = i * 5 + 1, to = i * 5 + pg.length;
+      // 各画面、上から 3 枚は名前と勝率を読む（残りは画面に任せる）
+      const three = pg.slice(0, 3);
+      scenes.push({ kind: "bombs", page: i, from, to, cards: pg, label: `bombs${i + 1}`, tail: 0.8, minDur: 6,   // 5 枚を見る時間として、短くても 6 秒は置く
+        // 1〜5 位は順位と数字を読む。6〜10 位は数字を読み上げず、「これも中心に据えていい」と言う（棒読みにしない）
+        say: i === 0 ? (JA ? `レアと神話レアのボム、トップ10。1位は${three[0].label}、${pt(three[0].gih)}パーセント。${three.slice(1).map(c => c.label).join("、")}も、迷わずピックです。`
+                           : `Top ten rare and mythic bombs. Number one: ${three[0].name}, at ${pt(three[0].gih)} percent. ${three.slice(1).map(c => c.name).join(" and ")} are first-picks too.`)
+                     : (JA ? `${from}位から${to}位も十分なボムです。引いたら、これを中心にデッキを組みましょう。`
+                           : `Numbers ${from} to ${to} are still bombs. Open one, and build your deck around it.`) });
+    });
   }
 
   // カード名は読まず画面に任せる。読むと忙しいので、どの色が強いかだけ言う
@@ -300,10 +291,21 @@ function buildScript(d, nameJa, names){
            : (prevTop.col === col ? `${CN[col]} is strong here too.` : `${CN[col]} leads here.`);
     }
     prevTop = { col };
-    scenes.push({ kind: "top", label, say: JA ? `${label}のトップ3はこちら。${lead}` : `Here are the top three ${label}s. ${lead}`, cards, tail: 1.0 });
+    const brief = label === UI.uncommon;   // 2 枠目（アンコモン）は「トップ3はこちら」だけ（動画の長さを抑える）
+    scenes.push({ kind: "top", label, say: JA ? `${label}のトップ3はこちら。${brief ? "" : lead}` : `Top three ${label}s. ${brief ? "" : lead}`, cards, tail: 1.0 });
   };
   topScene(commons, UI.common);
   topScene(uncommons, UI.uncommon);
+
+  // 速報の断り書き＋登録のお願い：2 段構え。1 段目で「序盤のデータ」、2 段目（同じ画面）で登録ボタンを出して「確定版を出すので登録を」
+  //   コモン・アンコモン・速さのあと、最後に置く（カードの紹介を先に見せてから、締めとしてお願いする）
+  if(EARLY){
+    const base = { kind: "early", asOf: d.as_of || "", tail: 0.6 };
+    scenes.push({ ...base, say: JA ? `まだ序盤のデータなので、順位はこれから動きます。` : `This is early data, so the rankings will move.` });
+    scenes.push({ ...base, nofade: true, subscribe: true, tail: 0.8,
+      say: JA ? `確定版も出すので、チャンネル登録をぜひお願いします。`
+              : `The full review is coming, so please subscribe.` });
+  }
 
   // 「意外な事実」の場面は入れない（2026年10月。狙い目はティア表で言う）
 
