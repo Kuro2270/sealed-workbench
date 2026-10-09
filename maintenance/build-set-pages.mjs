@@ -40,7 +40,8 @@ const pct = v => v == null ? "—" : (v * 100).toFixed(1) + "%";
 /* ---------- 文言（日本語・英語） ---------- */
 const L = {
   ja: {
-    site: "MTGアリーナ リミテッド・ワークベンチ",
+    site: "リミテッド・ワークベンチ",            // ヘッダーの文字（左のロゴが「MTGアリーナ」を担う）
+    siteFull: "MTGアリーナ リミテッド・ワークベンチ",   // <title> 用（検索向けに「MTGアリーナ」を残す）
     title: (s, c) => `${s}（${c}）リミテッド カード点数ランキング・評価｜勝率で見る強いカード`,
     desc: (s, g, c) => `MTGアリーナ「${s}（${c}）」のリミテッド（ドラフト・シールド）で強いカードを、17Landsの実戦データ（${g}試合）の勝率で採点。コモン・アンコモン・レア別のカード点数ランキングに加えて、環境の速さ、強い色、勝率の高い2色の組み合わせも分かります。`,
     h1: s => `${s}｜リミテッド カード点数ランキングと環境レポート`,
@@ -88,7 +89,8 @@ const L = {
     otherLang: "English", otherHref: c => `${c}.en.html`
   },
   en: {
-    site: "MTG Arena Limited Workbench",
+    site: "Limited Workbench",
+    siteFull: "MTG Arena Limited Workbench",
     title: (s, c) => `${s} (${c}) Limited card ratings — best cards ranked by win rate (MTG Arena)`,
     desc: (s, g, c) => `Which cards are best in ${s} (${c}) Limited on MTG Arena? Card ratings by win rate from ${g} games of 17Lands data, ranked by rarity — plus format speed, the strongest colours and the best two-colour pairs.`,
     h1: s => `${s} | Limited card ratings and format report`,
@@ -414,7 +416,7 @@ ${GOODS_CSS}
 <body>
 <header>
   <div class="wrap">
-    <div class="brandrow"><div class="brand"><img class="brandlogo" src="/assets/logo/arena.png" alt="MTG Arena" width="97" height="34" style="height:34px;width:auto;vertical-align:middle;margin:-5px 12px 0 0" onerror="this.remove()"><a href="../">${esc(T.site)}</a></div>
+    <div class="brandrow"><div class="brand"><a href="/" class="brandhome" aria-label="Home" style="display:inline-block;margin:0 12px 0 0;vertical-align:middle"><img class="brandlogo" src="/assets/logo/arena.png" alt="MTG Arena" width="97" height="34" style="height:34px;width:auto;display:block;margin-top:-5px" onerror="this.parentNode.remove()"></a><a href="../">${esc(T.site)}</a></div>
       <select class="langsel" aria-label="Language" onchange="location.href=this.value">
         <option value="${esc(lang === "ja" ? self : other)}"${lang === "ja" ? " selected" : ""}>日本語</option>
         <option value="${esc(lang === "en" ? self : other)}"${lang === "en" ? " selected" : ""}>English</option>
@@ -560,7 +562,7 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos, 
   const canonical = pretty(`${SITE}/${OUT}/${code}${lang === "en" ? ".en" : ""}.html`);
   const altJa = pretty(`${SITE}/${OUT}/${code}.html`), altEn = pretty(`${SITE}/${OUT}/${code}.en.html`);
   const title = T.title(setDisplay, code);
-  const head = `<title>${esc(title)} — ${esc(T.site)}</title>
+  const head = `<title>${esc(title)} — ${esc(T.siteFull)}</title>
 <meta name="description" content="${esc(T.desc(setDisplay, totalGames, code))}">
 <link rel="canonical" href="${canonical}">
 <link rel="alternate" hreflang="ja" href="${altJa}">
@@ -656,7 +658,7 @@ function videoSection(lang, code, mode, setDisplay, videos){
 function indexPage(lang, rows, profileOnly = []){
   const T = L[lang];
   const canonical = pretty(`${SITE}/${OUT}/index${lang === "en" ? ".en" : ""}.html`);
-  const head = `<title>${esc(T.indexH1)} — ${esc(T.site)}</title>
+  const head = `<title>${esc(T.indexH1)} — ${esc(T.siteFull)}</title>
 <meta name="description" content="${esc(T.indexLead)}">
 <link rel="canonical" href="${canonical}">
 <link rel="alternate" hreflang="ja" href="${pretty(`${SITE}/${OUT}/index.html`)}">

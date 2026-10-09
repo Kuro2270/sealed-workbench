@@ -14,7 +14,7 @@
 (function(){
   const STRINGS = {
     /* ---- 共通 ---- */
-    "site.name":        { ja:"MTGアリーナ リミテッド・ワークベンチ", en:"MTG Arena Limited Workbench" },
+    "site.name":        { ja:"リミテッド・ワークベンチ", en:"Limited Workbench" },   // 「MTGアリーナ」は左のロゴが担うので、文字では省く
     "nav.sealed":       { ja:"シールド練習",       en:"Sealed practice" },
     "nav.draft":        { ja:"ドラフト練習",       en:"Draft practice" },
     "nav.ratings":      { ja:"カード勝率一覧",     en:"Card win rates" },
