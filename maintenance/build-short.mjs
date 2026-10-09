@@ -174,12 +174,19 @@ function buildScript(d, nameJa, names){
   const worst = (solidPairs.length ? solidPairs : pairs).slice().sort((a, b) => a.wr - b.wr)[0];
   // 狙い目（ドラフトだけ）：最強ではないが勝率が最強に近く（−1.5pt 以内）、使う人が平均より少ない組み合わせ。
   // 人気の色はカードの取り合いになるので、勝率が高くて空いている色を勧める
+  //   まず「最強に近い（−1.5pt 以内）かつ使用率が平均の 80% 以下」を探し、無ければ長尺と同じゆるい決まり
+  //  （全体の平均勝率 −0.5pt 以上、使用率が平均の 85% 以下、最強・最弱以外）で探す。それでも無ければ出さない
   let target = null;
   if((MODE === "draft" || EARLY) && best && pairs.length >= 4){
     const avgShare = 1 / pairs.length;
-    const cand = pairs.filter(p => p !== best && p.games >= 2000 * MINP && p.wr >= best.wr - 0.015 && p.games / totalPairGames <= avgShare * 0.8)
-      .sort((a, b) => b.wr - a.wr || a.games - b.games);
-    if(cand.length) target = { ...cand[0], share: cand[0].games / totalPairGames, rank: pairs.indexOf(cand[0]) + 1, avgShare };
+    const avgWr = pairs.reduce((n, p) => n + p.wr * p.games, 0) / (totalPairGames || 1);
+    const pick = cand => { if(!cand.length) return; const c = cand.sort((a, b) => b.wr - a.wr || a.games - b.games)[0]; target = { ...c, share: c.games / totalPairGames, rank: pairs.indexOf(c) + 1, avgShare }; };
+    pick(pairs.filter(p => p !== best && p.games >= 2000 * MINP && p.wr >= best.wr - 0.015 && p.games / totalPairGames <= avgShare * 0.8));
+    if(!target) pick(pairs.filter(p => p !== best && p !== worst && p.games >= 1500 * MINP && p.wr >= avgWr - 0.005 && p.games / totalPairGames <= avgShare * 0.85));
+    //   それも無く、最強そのものが平均より使われていなければ、最強を「狙い目でもある」として言う
+    if(!target && best.games / totalPairGames <= avgShare * 0.9){ pick([best]); target.isBest = true; }
+    //   最後の手：平均より使われていない組み合わせのうち、いちばん勝率が高いもの（最弱は除く）
+    if(!target) pick(pairs.filter(p => p !== best && p !== worst && p.games >= 1500 * MINP && p.games / totalPairGames < avgShare));
   }
   const top3 = list => (list || []).slice(0, 3)
     .map(c => ({ ...c, label: JA ? ((names.names || {})[c.name] || c.name) : c.name, img: JA ? (names.images || {})[c.name] : (c.imgEn || null) }));
@@ -197,7 +204,7 @@ function buildScript(d, nameJa, names){
     .map(c => ({ ...c, rarity: c.rarity || ((d.top.mythic || []).some(m => m.name === c.name) ? "mythic" : "rare") }))
     .sort((a, b) => b.gih - a.gih).slice(0, 10)
     .map(c => ({ ...c, label: JA ? ((names.names || {})[c.name] || c.name) : c.name, img: JA ? (names.images || {})[c.name] : (c.imgEn || null) }));
-  const sur = surprise(d, pairs, best, worst, target);
+  // 「意外な事実」（surprise）は 2026年10月から使っていない
   const games = man(d.total_games);
 
   const scenes = [];
@@ -225,19 +232,24 @@ function buildScript(d, nameJa, names){
       const sh = Math.round(target.share * 100), av = Math.round(target.avgShare * 100);
       scenes.push({ kind: "tier", colors, tiers, best, worst: worstShown, nofade: true, tail: 0.8,
         pick: { pair: target.pair, note: UI.share(sh, av, target.rank) },
-        say: JA ? `狙い目は${pairName(target.pair)}。勝率${pt(target.wr)}パーセントで${target.rank}位ですが、使っている人は${sh}パーセントと平均より少なめ。カードが流れてきやすい色です。`
-                : `The pick to aim for: ${pairName(target.pair)}. ${pt(target.wr)} percent, number ${target.rank}, but only ${sh} percent of drafters take it, so its cards come to you.` });
+        say: target.isBest
+          ? (JA ? `狙い目は、最強の${pairName(target.pair)}そのもの。勝率1位なのに、使っている人は${sh}パーセントと平均の${av}パーセントより少なめ。カードが流れてきやすい色です。`
+                : `The pick to aim for is the best pair itself, ${pairName(target.pair)}. Number one, yet only ${sh} percent of drafters take it, against an average of ${av}. Its cards come to you.`)
+          : (JA ? `狙い目は${pairName(target.pair)}。勝率${pt(target.wr)}パーセントで${target.rank}位ですが、使っている人は${sh}パーセントと平均の${av}パーセントより少なめ。カードが流れてきやすい色です。`
+                : `The pick to aim for: ${pairName(target.pair)}. ${pt(target.wr)} percent, number ${target.rank}, but only ${sh} percent of drafters take it, against an average of ${av}. Its cards come to you.`) });
     }
   }
   if(bombs.length){
     const pages = [bombs.slice(0, 5), bombs.slice(5, 10)].filter(pg => pg.length);
     pages.forEach((pg, i) => {
       const from = i * 5 + 1, to = i * 5 + pg.length;
-      const c1 = pg[0];
+      // 各画面、上から 3 枚は名前と勝率を読む（残りは画面に任せる）
+      const three = pg.slice(0, 3);
+      const namesJa = three.map((c, k) => `${from + k}位は${c.label}、${pt(c.gih)}パーセント`).join("。");
+      const namesEn = three.map((c, k) => `number ${from + k}, ${c.name}, at ${pt(c.gih)} percent`).join("; ");
       scenes.push({ kind: "bombs", page: i, from, to, cards: pg, label: `bombs${i + 1}`, tail: 0.8, minDur: 6,   // 5 枚を見る時間として、短くても 6 秒は置く
-        say: i === 0 ? (JA ? `レアと神話レアのボム、トップ10です。1位は${c1.label}、勝率${pt(c1.gih)}パーセント。`
-                           : `Top ten rare and mythic bombs. Number one is ${c1.name}, at ${pt(c1.gih)} percent.`)
-                     : (JA ? `続いて${from}位から${to}位。` : `And numbers ${from} to ${to}.`) });
+        say: i === 0 ? (JA ? `レアと神話レアのボム、トップ10です。${namesJa}。` : `Top ten rare and mythic bombs. ${namesEn[0].toUpperCase() + namesEn.slice(1)}.`)
+                     : (JA ? `続いて${from}位から${to}位。${namesJa}。` : `Numbers ${from} to ${to}. ${namesEn[0].toUpperCase() + namesEn.slice(1)}.`) });
     });
   }
 
@@ -283,7 +295,7 @@ function buildScript(d, nameJa, names){
   topScene(commons, UI.common);
   topScene(uncommons, UI.uncommon);
 
-  if(sur) scenes.push({ kind: "surprise", say: sur.say, ...sur });
+  // 「意外な事実」の場面は入れない（2026年10月。狙い目はティア表で言う）
 
   if(EARLY) scenes.push({ kind: "early", asOf: d.as_of || "", tail: 0.8,
     say: JA ? `まだ序盤のデータなので、順位はこれから動きます。データが揃ったら、確定版を出します。`
