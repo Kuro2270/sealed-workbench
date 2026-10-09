@@ -117,6 +117,16 @@ function pairRows(d){
     .sort((a, b) => b.wr - a.wr);
 }
 
+/* 2色の組み合わせを S/A/B/C に分ける（ショートと同じ決まり）：最強〜最弱の幅の、上から 15% 以内が S、45% 以内が A、75% 以内が B、残りが C。
+   幅が 2pt 未満の環境では 2pt として見る（差が小さいのに全部 S にならないように） */
+function tierOf(rows){
+  const tiers = { S: [], A: [], B: [], C: [] };
+  if(!rows.length) return tiers;
+  const top = rows[0].wr, range = Math.max(0.02, top - rows[rows.length - 1].wr);
+  for(const p of rows){ const f = (top - p.wr) / range; (f <= 0.15 ? tiers.S : f <= 0.45 ? tiers.A : f <= 0.75 ? tiers.B : tiers.C).push(p); }
+  return tiers;
+}
+
 /* 除去の判定（build-set-profile.mjs と同じ。クリーチャーを直接どうにかする呪文・能力のだいたいの目安） */
 const face = c => (c.card_faces && c.card_faces[0]) || c;
 const oracle = c => (c.card_faces ? c.card_faces.map(f => f.oracle_text || "").join("\n") : (c.oracle_text || ""));
@@ -243,6 +253,19 @@ function buildScript(ctx){
            `Blue bars are Draft win rates, and yellow bars are Sealed. ` + (pairsD.slice(0, 3).every((p, i) => rankS[p.pair] === i + 1) ? `The top of the Sealed ranking is the same.` : `You can see the Sealed ranking is shuffled.`) : `色の組み合わせです。ドラフトで一番強いのは${pairName(bestD.pair)}、勝率${pt(bestD.wr)}パーセント。上位三つは、${pairsD.slice(0, 3).map(p => pairName(p.pair)).join("、")}です。` +
            (sleepersTop.length ? `このうち${sleepersTop.map(p => pairName(p.pair)).join("と")}は、使う人が少ない狙い目なので、あとで紹介します。` : "") +
            `青い棒がドラフト、黄色い棒がシールドの勝率です。` + (pairsD.slice(0, 3).every((p, i) => rankS[p.pair] === i + 1) ? `シールドでも、上位の顔ぶれは同じです。` : `シールドでは順位が入れ替わっているのが分かります。`),
+      tail: 0.6 });
+  }
+
+  /* --- ティア表（ドラフトとシールドを並べる） --- */
+  if(pairsD.length){
+    const tD = tierOf(pairsD), tS = tierOf(pairsS);
+    const sD = tD.S.map(p => pairName(p.pair)), sS = tS.S.map(p => pairName(p.pair));
+    const sameS = sD.length === sS.length && sD.every(n => sS.includes(n));
+    scenes.push({ kind: "tier", chapter: null, tiersD: tD, tiersS: tS, bestD, worstD,
+      say: EN ? `Here's the same data as a tier list, Draft on the left and Sealed on the right. S tier in Draft: ${andList(sD.slice(0, 3))}. ` +
+                (pairsS.length ? (sameS ? `Sealed has the same S tier.` : `In Sealed, S tier is ${andList(sS.slice(0, 3))}.`) : "")
+              : `同じデータをティア表にしました。左がドラフト、右がシールドです。ドラフトのSティアは${sD.slice(0, 3).join("、")}。` +
+                (pairsS.length ? (sameS ? `シールドもSティアは同じです。` : `シールドでは${sS.slice(0, 3).join("、")}がSティアです。`) : ""),
       tail: 0.6 });
   }
 
@@ -763,6 +786,30 @@ function sceneSvg(sc){
         }
       });
       return frame(s, sc);
+    }
+    case "tier": {
+      // 左：ドラフト、右：シールド。各 4 行（S/A/B/C）。字幕（y=900〜）より上に収める
+      const TCOL = { S: GOLD, A: UP, B: "#2F7DF6", C: MUTED };
+      const panel = (x0, title, tiers) => {
+        const PW = 900;
+        let s = T(x0, 190, title, { size: 36, fill: MUTED });
+        ["S", "A", "B", "C"].forEach((t, i) => {
+          const y = 215 + i * 166, list = tiers[t] || [];
+          s += `<rect x="${x0}" y="${y}" width="${PW}" height="150" rx="18" fill="${DEEP}" fill-opacity="0.55" stroke="${TCOL[t]}" stroke-width="3"/>` +
+               `<rect x="${x0}" y="${y}" width="120" height="150" rx="18" fill="${TCOL[t]}"/>` +
+               T(x0 + 60, y + 102, t, { size: 84, weight: 900, anchor: "middle", fill: "#06101C" });
+          const cw = Math.min(150, Math.floor((PW - 150) / Math.max(list.length, 1)));
+          list.forEach((p, j) => {
+            const x = x0 + 145 + j * cw, sz = Math.min(54, cw - 60);
+            const hot = p === sc.bestD, cold = p === sc.worstD;
+            s += pairSymbols(p.pair, x, y + 46, sz);
+            s += T(x + sz + 5, y + 96, pairShort(p.pair), { size: EN ? 24 : 24, anchor: "middle", fill: PAPER, weight: 700 });
+            s += T(x + sz + 5, y + 130, pt(p.wr) + "%", { size: 26, anchor: "middle", weight: hot || cold ? 900 : 400, fill: hot ? GOLD : cold ? DOWN : MUTED });
+          });
+        });
+        return s;
+      };
+      return frame(panel(60, L("ドラフト", "Draft"), sc.tiersD) + panel(960, L("シールド", "Sealed"), sc.tiersS), sc);
     }
     case "deep": {
       const worst = sc.variant === "worst", sleeper = sc.variant === "sleeper", col = worst ? DOWN : sleeper ? GREEN : UP;
