@@ -104,8 +104,7 @@ function navHtml(current) {
     ? `<a href="${href}"${href === current ? ' class="on"' : ""}><span data-i18n="${key}">${label}</span><b class="pcb" data-i18n="nav.pc">PC</b></a>`
     : `<a href="${href}"${href === current ? ' class="on"' : ""} data-i18n="${key}">${label}</a>`;
   return `<nav>
-      <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span>
-        ${a("./guide.html", "nav.guide", "使い方")}</div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span></div>
       <div class="ng"><span class="ngl" data-i18n="navgrp.build">仮想パックで練習する</span><span class="ngs" data-i18n="navsub.build">6パック開封・8人ドラフト</span>
         ${a("./sealed.html", "nav.sealed", "シールド練習")}
         ${a("./draft.html", "nav.draft", "ドラフト練習")}</div>
@@ -134,7 +133,7 @@ export function replaceNav(text, current) {
 
 /* ---------- 実行 ---------- */
 const PAGE_SELF = {
-  "sealed.html": "./sealed.html", "draft.html": "./draft.html", "guide.html": "./guide.html",
+  "sealed.html": "./sealed.html", "draft.html": "./draft.html",
   "ratings.html": "./ratings.html", "reports.html": "./reports.html", "swiss.html": "./swiss.html",
   "assistant.html": "./assistant.html", "table.html": "./table.html", "privacy.html": "./privacy.html",
   "404.html": ""

@@ -3,7 +3,7 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://sealed-workbench.com/</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/"/>
@@ -11,17 +11,8 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/"/>
   </url>
   <url>
-    <loc>https://sealed-workbench.com/guide</loc>
-    <lastmod>2026-10-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/guide"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/guide"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/guide"/>
-  </url>
-  <url>
     <loc>https://sealed-workbench.com/reports</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/reports"/>
@@ -29,17 +20,8 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/reports"/>
   </url>
   <url>
-    <loc>https://sealed-workbench.com/sealed</loc>
-    <lastmod>2026-10-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sealed"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sealed"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sealed"/>
-  </url>
-  <url>
     <loc>https://sealed-workbench.com/draft</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/draft"/>
@@ -48,7 +30,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/assistant</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/assistant"/>
@@ -57,7 +39,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sealed-assist</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sealed-assist"/>
@@ -66,7 +48,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/swiss</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/swiss"/>
@@ -75,7 +57,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/table</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/table"/>
@@ -84,7 +66,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/faq</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/faq"/>
@@ -93,7 +75,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/contact</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/contact"/>
@@ -102,7 +84,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/privacy</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/privacy"/>
@@ -111,7 +93,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/start/</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/start/"/>
@@ -119,7 +101,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/start/index.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/start/"/>
@@ -127,7 +109,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/start/limited</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/start/limited"/>
@@ -135,7 +117,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/start/limited.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/start/limited"/>
@@ -143,7 +125,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/goods/</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/goods/"/>
@@ -151,7 +133,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/goods/index.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/goods/"/>
@@ -159,7 +141,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/BLB</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/BLB"/>
@@ -168,7 +150,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/BLB.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/BLB"/>
@@ -177,7 +159,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/DFT</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/DFT"/>
@@ -186,7 +168,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/DFT.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/DFT"/>
@@ -195,7 +177,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/DSK</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/DSK"/>
@@ -204,7 +186,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/DSK.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/DSK"/>
@@ -213,7 +195,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/ECL</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/ECL"/>
@@ -222,7 +204,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/ECL.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/ECL"/>
@@ -231,7 +213,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/EOE</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/EOE"/>
@@ -240,7 +222,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/EOE.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/EOE"/>
@@ -249,7 +231,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/FDN</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/FDN"/>
@@ -258,7 +240,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/FDN.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/FDN"/>
@@ -267,7 +249,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/FIN</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/FIN"/>
@@ -276,7 +258,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/FIN.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/FIN"/>
@@ -284,26 +266,8 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/FIN"/>
   </url>
   <url>
-    <loc>https://sealed-workbench.com/sets/FRA.profile</loc>
-    <lastmod>2026-10-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/FRA.profile"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/FRA.profile.en"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/FRA.profile"/>
-  </url>
-  <url>
-    <loc>https://sealed-workbench.com/sets/FRA.profile.en</loc>
-    <lastmod>2026-10-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/FRA.profile"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/FRA.profile.en"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/FRA.profile"/>
-  </url>
-  <url>
     <loc>https://sealed-workbench.com/sets/HOB</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/HOB"/>
@@ -312,7 +276,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/HOB.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/HOB"/>
@@ -321,7 +285,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/MSH</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/MSH"/>
@@ -330,7 +294,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/MSH.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/MSH"/>
@@ -339,7 +303,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/OM1</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/OM1"/>
@@ -348,7 +312,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/OM1.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/OM1"/>
@@ -357,7 +321,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/OTJ</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/OTJ"/>
@@ -366,7 +330,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/OTJ.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/OTJ"/>
@@ -375,7 +339,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/SOS</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/SOS"/>
@@ -384,7 +348,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/SOS.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/SOS"/>
@@ -393,7 +357,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/TDM</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/TDM"/>
@@ -402,7 +366,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/TDM.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/TDM"/>
@@ -411,7 +375,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/TLA</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/TLA"/>
@@ -420,7 +384,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/TLA.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/TLA"/>
@@ -429,7 +393,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/TMT</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/TMT"/>
@@ -438,7 +402,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/TMT.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/TMT"/>
@@ -447,7 +411,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/"/>
@@ -456,7 +420,7 @@
   </url>
   <url>
     <loc>https://sealed-workbench.com/sets/index.en</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/"/>
