@@ -289,9 +289,13 @@ function buildScript(ctx){
     const sameS = sD.length === sS.length && sD.every(n => sS.includes(n));
     const tierBase = { kind: "tier", chapter: null, tiersD: tD, tiersS: tS, bestD, worstD, avgD, avgS, three: THREE };
     scenes.push({ ...tierBase, chapter: L("色の組み合わせ", "Colour pairs"),
-      say: EN ? `Now, colour pairs, as a tier list: Draft on the left, Sealed on the right, with three-colour decks included. The strongest in Draft is ${pairName(bestD.pair)}, at ${pt(bestD.wr)} percent. S tier in Draft: ${andList(sD.slice(0, 3))}. ` +
+      say: EN ? `Now, colour pairs, as a tier list: Draft on the left, Sealed on the right, with three-colour decks included. ` +
+                (sD.length <= 1 ? `In Draft, ${pairName(bestD.pair)} stands alone in S tier at ${pt(bestD.wr)} percent. `
+                                : `S tier in Draft: ${andList(sD.slice(0, 3))}, led by ${pairName(bestD.pair)} at ${pt(bestD.wr)} percent. `) +
                 (pairsS.length ? (sameS ? `Sealed has the same S tier. ` : `In Sealed, S tier is ${andList(sS.slice(0, 3))}. `) : "") + (tierRowsD.some(p => p.multi) ? multiNote : "")
-              : `色の組み合わせです。ティア表にしました。左がドラフト、右がシールドで、三色の組み合わせも載せています。ドラフトで一番強いのは${pairName(bestD.pair)}、勝率${pt(bestD.wr)}パーセント。Sティアは${sD.slice(0, 3).join("、")}です。` +
+              : `色の組み合わせです。ティア表にしました。左がドラフト、右がシールドで、三色の組み合わせも載せています。` +
+                (sD.length <= 1 ? `ドラフトのSティアは${pairName(bestD.pair)}だけで、勝率${pt(bestD.wr)}パーセントです。`
+                                : `ドラフトのSティアは${sD.slice(0, 3).join("、")}。中でも${pairName(bestD.pair)}が勝率${pt(bestD.wr)}パーセントで最強です。`) +
                 (pairsS.length ? (sameS ? `シールドもSティアは同じです。` : `シールドでは${sS.slice(0, 3).join("、")}がSティアです。`) : "") + (tierRowsD.some(p => p.multi) ? multiNote : ""),
       tail: 0.6 });
     // 狙い目：同じティア表の上で、その組み合わせだけを光らせて言う（画面は切り替えない）。詳しくは「狙い目の色」の章で
@@ -1138,9 +1142,11 @@ function popLayer(sc){
 }
 
 /* 字幕：読み上げの文を、2行に収まるページに分ける。ページごとに読み上げの長さ（文字数）の割合で出す時間を決める */
+/* 1 行に入る文字数（箱の幅と字の大きさから）。日本語は全角 1 文字 = fs、英語は 1 文字 ≈ 0.55fs */
+function capLineMax(){ return Math.floor((CAPBOX.bw - 70) / (CAPBOX.size * (EN ? 0.55 : 1))); }
 function capPages(text){
-  if(EN){      // 英語：文ごとに区切り、長いものはカンマで割る。1ページは2行（約120字）まで
-    const maxE = 120, sentsE = text.replace(/ percent/g, "%").split(/(?<=[.!?])\s+/).map(x => x.trim()).filter(Boolean), piecesE = [];
+  if(EN){      // 英語：文ごとに区切り、長いものはカンマで割る。1ページは2行まで
+    const maxE = capLineMax() * 2 - 6, sentsE = text.replace(/ percent/g, "%").split(/(?<=[.!?])\s+/).map(x => x.trim()).filter(Boolean), piecesE = [];
     for(const x of sentsE){
       if(x.length <= maxE){ piecesE.push(x); continue; }
       let cur = "";
@@ -1152,35 +1158,37 @@ function capPages(text){
     if(curE) pagesE.push(curE);
     return pagesE;
   }
-  const max = 70;
+  const lineMax = capLineMax(), max = lineMax * 2;
+  // 1 ページ = 2 行。「読点か句点で 2 行に割ったとき、両方の行が入る」ことを条件に詰める（割れない長さの文は、字を小さくして収める）
+  const okPage = pg => { const ch = [...pg]; if(ch.length <= lineMax) return true;
+    return ch.some((c, i) => (c === "、" || c === "。") && i + 1 <= lineMax && ch.length - (i + 1) <= lineMax && i + 1 < ch.length); };
   const sents = text.replace(/パーセント/g, "%").split(/(?<=。)/).map(s => s.trim()).filter(Boolean);
   const pieces = [];
   for(const s of sents){
-    if([...s].length <= max){ pieces.push(s); continue; }
+    if(okPage(s)){ pieces.push(s); continue; }
     let cur = "";
-    for(const part of s.split(/(?<=、)/)){ if([...cur].length + [...part].length > max && cur){ pieces.push(cur); cur = part; } else cur += part; }
+    for(const part of s.split(/(?<=、)/)){ if(cur && !okPage(cur + part)){ pieces.push(cur); cur = part; } else cur += part; }
     if(cur) pieces.push(cur);
   }
   const pages = []; let cur = "";
-  for(const p of pieces){ if(cur && [...cur].length + [...p].length > max){ pages.push(cur); cur = p; } else cur += p; }
+  for(const p of pieces){ if(cur && !okPage(cur + p)){ pages.push(cur); cur = p; } else cur += p; }
   if(cur) pages.push(cur);
   return pages;
 }
 let CAPBOX = { x0: 120, bw: W - 240, size: 42 };      // ずんだもんを出すときは、右をあけるために字幕の箱を細くする
 function capSvg(page){
-  const chars = [...page], half = Math.ceil(chars.length / 2);
+  const chars = [...page], half = Math.ceil(chars.length / 2), lineMax = capLineMax();
   let lines = [page];
-  if(EN){
-    if(chars.length > 62){      // 2行に割る。真ん中に近い空白で
-      const sp = chars.map((c, i) => c === " " ? i : -1).filter(i => i > 0).sort((a, b) => Math.abs(a - half) - Math.abs(b - half))[0] || half;
-      lines = [chars.slice(0, sp).join("").trim(), chars.slice(sp).join("").trim()];
-    }
-  }else if(chars.length > 36){
-    // 2行に割る。読点があればその近くで
-    const idx = [...page].map((c, i) => (c === "、" || c === "。") ? i + 1 : -1).filter(i => i > 0).sort((a, b) => Math.abs(a - half) - Math.abs(b - half))[0] || half;
-    lines = [chars.slice(0, idx).join(""), chars.slice(idx).join("")];
+  if(chars.length > lineMax){
+    // 2行に割る。区切り（英語は空白、日本語は読点）のうち、両方の行が収まるもので、真ん中にいちばん近いところ。無ければ真ん中で切る
+    const cands = chars.map((c, i) => (EN ? c === " " : (c === "、" || c === "。")) ? (EN ? i : i + 1) : -1).filter(i => i > 0 && i < chars.length);
+    const fits = cands.filter(i => i <= lineMax && chars.length - i <= lineMax).sort((a, b) => Math.abs(a - half) - Math.abs(b - half));
+    const idx = fits[0] ?? (cands.sort((a, b) => Math.abs(a - half) - Math.abs(b - half))[0] ?? half);
+    lines = [chars.slice(0, idx).join("").trim(), chars.slice(idx).join("").trim()];
   }
-  const lh = 56, boxH = lines.length * lh + 44, x0 = CAPBOX.x0, bw = CAPBOX.bw, cx = x0 + bw / 2, fs = CAPBOX.size;
+  // それでも長い行があれば、字を小さくして収める（箱からはみ出させない）
+  const longest = Math.max(...lines.map(l => [...l].length)), fs = Math.min(CAPBOX.size, Math.floor((CAPBOX.bw - 70) / (longest * (EN ? 0.55 : 1))));
+  const lh = 56, boxH = lines.length * lh + 44, x0 = CAPBOX.x0, bw = CAPBOX.bw, cx = x0 + bw / 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H - CAP_Y}" viewBox="0 0 ${W} ${H - CAP_Y}" font-family="${FONT}">
   <defs><linearGradient id="ffw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A4FC4"/><stop offset="1" stop-color="#0B1763"/></linearGradient></defs>
   <rect x="${x0 + 5}" y="8" width="${bw}" height="${boxH}" rx="18" fill="#000" opacity="0.4"/>
