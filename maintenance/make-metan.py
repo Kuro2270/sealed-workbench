@@ -1,17 +1,7 @@
-#!/usr/bin/env python3
-"""
-四国めたんの口パク用の画像（6枚）を、坂本アヒル氏の立ち絵 PSD から作る。
-  python3 maintenance/make-metan.py <PSDのパス> [出力フォルダ=short/metan]
-白ロリ服を赤に塗り替え、おでこに赤いゴーグル（レンズは左右の目の上。バンドは描かない）、後ろに炎の装飾を足し、
-口（閉じ・半開き・開き）× 目（開き・閉じ）で保存する。
-必要: pip install psd-tools pillow numpy matplotlib
-"""
-import sys, os
 from psd_tools import PSDImage
 from PIL import Image, ImageFilter, ImageDraw
 import numpy as np, matplotlib.colors as mc, random, sys
-PSD=sys.argv[1] if len(sys.argv)>1 else "metan.psd"; OUT=sys.argv[2] if len(sys.argv)>2 else "short/metan"; os.makedirs(OUT,exist_ok=True)
-psd=PSDImage.open(PSD); CW,CH=psd.size
+psd=PSDImage.open("metan.psd"); CW,CH=psd.size
 def find(path):
     g=psd
     for name in path: g=[l for l in g if l.name==name][0]
@@ -32,6 +22,19 @@ def redden(im):
     col=np.where((t<0.6)[...,None], dark+(mid-dark)*(t/0.6)[...,None], mid+(light-mid)*((t-0.6)/0.4)[...,None])
     out=a.copy(); out[...,:3]=np.where(mask[...,None],col,a[...,:3])
     return Image.fromarray((out*255).astype(np.uint8))
+
+def hair_orange(im):
+    # 髪（桃〜紫の色相）をオレンジに。明るさはそのまま、色相だけ回して少し鮮やかに
+    a=np.array(im.convert("RGBA")).astype(float)/255
+    hsv=mc.rgb_to_hsv(a[...,:3]); hue=hsv[...,0]*360; sat=hsv[...,1]; val=hsv[...,2]
+    mask=(hue>250)&(hue<340)&(sat>0.15)&(a[...,3]>0.1)
+    hsv2=hsv.copy()
+    hsv2[...,0]=np.where(mask, (14/360.0), hsv[...,0])          # 赤寄りのオレンジ
+    hsv2[...,1]=np.where(mask, np.clip(sat*1.15+0.08,0,1), sat)
+    rgb=mc.hsv_to_rgb(hsv2)
+    out=a.copy(); out[...,:3]=np.where(mask[...,None], rgb, a[...,:3])
+    return Image.fromarray((out*255).astype(np.uint8))
+
 def tongue(d, cx, base_y, h, w, col, lean=0.0, k=0):
     # 炎の舌：下が丸く、上が細く揺れる形。左右にゆらぎを付ける
     pts=[]
@@ -47,27 +50,64 @@ def tongue(d, cx, base_y, h, w, col, lean=0.0, k=0):
         x=cx+lean*h*t*t+0.12*w*np.sin(t*7+k)
         pts.append((x+ww,y))
     d.polygon(pts,fill=col)
+def _noise(W,H,seed,scales=((8,1.0),(16,0.6),(32,0.35),(64,0.2)),stretch=3.0):
+    # 乱流っぽいノイズ：粗い乱数を拡大してぼかしたものを数段重ねる。縦に引き伸ばして炎の流れにする
+    rng=np.random.default_rng(seed); acc=np.zeros((H,W)); tot=0
+    for cells,w in scales:
+        g=rng.random((max(2,int(cells/stretch)),cells))
+        im=Image.fromarray((g*255).astype(np.uint8)).resize((W,H),Image.BICUBIC)
+        acc+=np.array(im).astype(float)/255*w; tot+=w
+    return acc/tot
 def flames(size, seed=1):
     random.seed(seed); W,H=size
-    fl=Image.new("RGBA",size,(0,0,0,0))
-    # 舌の配置：左右の肩の外側と、頭の後ろ。外側（赤橙）→内側（黄）の順に重ねる
+    # 1) 舌の形（なめらかなマスク）：左右の肩の外側と頭の後ろ
+    shape=Image.new("L",size,0); d=ImageDraw.Draw(shape)
     spots=[]
-    for i in range(14):
-        side=random.choice([-1,1]); cx=W*0.5+side*random.uniform(W*0.22,W*0.46); base=random.uniform(H*0.75,H*1.02)
-        spots.append((cx,base,random.uniform(H*0.45,H*0.85),random.uniform(W*0.05,W*0.11),side*random.uniform(0.05,0.25),i))
-    for i in range(6):
-        cx=W*0.5+random.uniform(-W*0.25,W*0.25); base=random.uniform(H*0.5,H*0.7)
-        spots.append((cx,base,random.uniform(H*0.35,H*0.6),random.uniform(W*0.05,W*0.1),random.uniform(-0.2,0.2),20+i))
-    for col,shrink,blur in [((225,55,10,235),1.0,10),((255,140,20,240),0.72,6),((255,215,70,245),0.45,4),((255,250,200,230),0.22,3)]:
-        layer=Image.new("RGBA",size,(0,0,0,0)); d=ImageDraw.Draw(layer)
-        for (cx,base,h,w,lean,k) in spots: tongue(d,cx,base,h*shrink**0.6,w*shrink,col,lean,k)
-        layer=layer.filter(ImageFilter.GaussianBlur(blur))
-        fl=Image.alpha_composite(fl,layer)
-    # 外周はやわらかく透明に（四角い枠に見えないように）
-    a=np.array(fl); yy,xx=np.mgrid[0:H,0:W]; dx=(xx-W*0.5)/(W*0.52); dy=(yy-H*0.62)/(H*0.62); r=np.sqrt(dx*dx+dy*dy)
-    edge=np.clip((1.0-r)/0.2,0,1); edge=edge*edge*(3-2*edge)
-    a[...,3]=(a[...,3]*edge).astype(np.uint8); return Image.fromarray(a)
-
+    for i in range(16):
+        side=random.choice([-1,1]); cx=W*0.5+side*random.uniform(W*0.2,W*0.46); base=random.uniform(H*0.78,H*1.05)
+        spots.append((cx,base,random.uniform(H*0.6,H*1.0),random.uniform(W*0.06,W*0.12),-side*random.uniform(0.25,0.55),i))
+    for i in range(7):
+        cx=W*0.5+random.uniform(-W*0.28,W*0.28); base=random.uniform(H*0.5,H*0.72)
+        spots.append((cx,base,random.uniform(H*0.4,H*0.7),random.uniform(W*0.05,W*0.1),(-0.25 if cx>W*0.5 else 0.25)*random.uniform(0.5,1.0),20+i))
+    for (cx,base,h,w,lean,k) in spots: tongue(d,cx,base,h,w,255,lean,k)
+    shape=np.array(shape.filter(ImageFilter.GaussianBlur(9))).astype(float)/255
+    # 2) 乱流で縁をちぎる・内部にむらを作る。下ほど濃く、上ほど細く消える
+    n=_noise(W,H,seed)
+    yy,xx=np.mgrid[0:H,0:W]; up=np.clip((yy/H-0.1)/0.9,0,1)          # 0=上 … 1=下
+    inten=shape*np.clip((n-0.3)*2.4,0,1)*(0.4+0.6*up)
+    half=W*(0.14+0.44*up)                                   # 上に行くほど許す幅を狭める（頭の上へ収束）
+    taper=np.clip((half-np.abs(xx-W*0.5))/(W*0.12)+0.5,0,1); taper=taper*taper*(3-2*taper)
+    inten=np.clip(inten*1.6*taper,0,1)
+    # 3) 色：暗い赤 → 橙 → 黄 → 白（強さで決める）。中心ほど明るい
+    core=shape*np.clip((n-0.45)*2.6,0,1)*(0.5+0.5*up)
+    t=np.clip(inten*0.85+core*0.8,0,1)
+    stops=[(0.00,(200,40,8)),(0.3,(240,85,12)),(0.55,(255,140,20)),(0.8,(255,215,80)),(1.0,(255,252,225))]
+    rgb=np.zeros((H,W,3))
+    for (t0,c0),(t1,c1) in zip(stops[:-1],stops[1:]):
+        m=(t>=t0)&(t<=t1); f=((t-t0)/(t1-t0))[...,None]
+        rgb=np.where(m[...,None], np.array(c0)+(np.array(c1)-np.array(c0))*f, rgb)
+    alpha=np.clip(inten*1.9,0,1)
+    # 4) 外側の光（ぼかした加算）
+    glow=Image.fromarray((alpha*255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(26))
+    ga=np.array(glow).astype(float)/255*0.55
+    out=np.zeros((H,W,4))
+    out[...,:3]=rgb; out[...,3]=np.clip(alpha+ga*(1-alpha),0,1)*255
+    out[...,:3]=np.where((alpha<0.05)[...,None], np.array([255,90,10]), out[...,:3])   # 光の部分は橙
+    # 4b) 火の粉：小さな明るい点を上のほうにまく
+    sp=Image.new("RGBA",size,(0,0,0,0)); sd=ImageDraw.Draw(sp); rs=random.Random(seed+99)
+    for i in range(70):
+        x=rs.uniform(W*0.05,W*0.95); y=rs.uniform(H*0.05,H*0.75); rr=rs.uniform(1.2,3.2)
+        c=rs.choice([(255,230,120),(255,170,40),(255,120,20)])
+        sd.ellipse((x-rr,y-rr,x+rr,y+rr),fill=c+(rs.randint(140,230),))
+    sp=sp.filter(ImageFilter.GaussianBlur(0.8)); spa=np.array(sp).astype(float)
+    a2=spa[...,3:4]/255
+    out[...,:3]=out[...,:3]*(1-a2)+spa[...,:3]*a2
+    out[...,3]=np.clip(out[...,3]+a2[...,0]*255*(1-out[...,3]/255),0,255)
+    # 5) 端は透明に
+    dx=(xx-W*0.5)/(W*0.52); dy=(yy-H*0.62)/(H*0.62); r=np.sqrt(dx*dx+dy*dy)
+    edge=np.clip((1.12-r)/0.5,0,1); edge=edge*edge*(3-2*edge)
+    out[...,3]*=edge
+    return Image.fromarray(out.astype(np.uint8))
 def lens(rx, ry, tilt):
     # 1枚のレンズ（縁つき・上が明るいグラデーション・ハイライト）。少し傾けて返す
     S=4; w,h=(rx+16)*2*S,(ry+16)*2*S
@@ -117,13 +157,14 @@ def goggles(size):
 
 def build(eye, mouth):
     canvas=Image.new("RGBA",(CW,CH),(0,0,0,0))
-    def put(path, red=False):
+    def put(path, red=False, hair=False):
         im,bb=layer_img(path)
         if im is None: return
         if red: im=redden(im)
+        if hair: im=hair_orange(im)
         canvas.alpha_composite(im,(bb[0],bb[1]))
-    put(["ツインドリル右"]); put(["ツインドリル左"])
-    put(["*白ロリ服","!体"],red=True)
+    put(["ツインドリル右"],hair=True); put(["ツインドリル左"],hair=True)
+    put(["*白ロリ服","!体"],red=True,hair=True)
     put(["*白ロリ服","!右腕","*普通"],red=True); put(["*白ロリ服","!左腕","*普通"],red=True)
     put(["!顔色","*普通2"])
     put(["!口",{"closed":"*ほほえみ","half":"*ゆ","open":"*わあー"}[mouth]])
@@ -134,7 +175,7 @@ def build(eye, mouth):
     put(["!眉","*ごきげん"])
     # 髪留めはゴーグルと重なるので外す
     # バンドは描かない（髪の外に出て見えると不自然なため）。レンズとブリッジだけ
-    put(["!前髪もみあげ"])
+    put(["!前髪もみあげ"],hair=True)
     canvas.alpha_composite(goggles((CW,CH)))
     return canvas
 # bust-up crop & flames
@@ -146,5 +187,5 @@ for eye in ["open","closed"]:
         out.alpha_composite(flames(c.size, seed=7))
         out.alpha_composite(c)
         out=out.resize((372,380),Image.LANCZOS)
-        out.save(os.path.join(OUT,f"{eye}_{mouth}.png"))
+        out.save(f"{eye}_{mouth}.png")
 print("ok")
