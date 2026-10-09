@@ -63,7 +63,7 @@ const CN = JA ? COLOR_JA : COLOR_EN;                 // この言語での色の
 /* 画面とナレーションの決まり文句。言語ごとにここだけ変える */
 const UI = JA ? {
   analysis: "リミテッド環境分析", arena: "MTGアリーナ", report: "リミテッド環境レポート", games: g => `${g}試合`, inOneMinute: "のデータが1分でわかる", hookA: "1分でわかる", hookC: m => m ? "シールド環境" : "ドラフト環境", hookD1: g => `${g}試合を分析`, hookD2: "強い色とカードを紹介",
-  tierH: "色の組み合わせ ティア表", bombsH: (a, b) => `レア・神話レアのボム トップ10（${a}〜${b}位）`, bombsTag: { mythic: "神話レア", rare: "レア" },
+  tierH: "色の組み合わせ ティア表", targetTag: "狙い目", bombsH: (a, b) => `レア・神話レアのボム トップ10（${a}〜${b}位）`, bombsTag: { mythic: "神話レア", rare: "レア" },
   speedH: "環境の速さ", speedSub: "平均マナ総量ごとの勝率", under: m => `${m}未満`, between: (a, b) => `${a}〜${b}`, over: m => `${m}以上`,
   pace: { fast: "速い", "lean-fast": "やや速い", mid: "普通", even: "普通", "lean-slow": "やや遅い", slow: "遅い", slower: "かなり遅い" },
   noCurve: "カーブで差がつかない", light: n => `軽いデッキが${n}pt有利`, heavy: n => `重いデッキが${n}pt有利`, lighter: "軽いほど勝つ", heavier: "重いほど勝つ",
@@ -77,12 +77,12 @@ const UI = JA ? {
   earlyBadge: "速報", earlyHookC: "リミテッド速報", earlyH: "まだ序盤のデータです", early1: "順位はこれから動きます", early2: "確定版は約2週間後に", earlyAsOf: d => `${d} 時点`
 } : {
   analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute", hookA: "Limited in 1 minute", hookC: m => m ? "SEALED" : "DRAFT", hookD1: g => `${g} games analyzed`, hookD2: "Best colors & cards",
-  tierH: "Colour-pair tier list", bombsH: (a, b) => `Top 10 rare & mythic bombs (#${a}–${b})`, bombsTag: { mythic: "Mythic", rare: "Rare" },
+  tierH: "Colour-pair tier list", targetTag: "AIM FOR", bombsH: (a, b) => `Top 10 rare & mythic bombs (#${a}–${b})`, bombsTag: { mythic: "Mythic", rare: "Rare" },
   speedH: "Format speed", speedSub: "Win rate by average mana value", under: m => `under ${m}`, between: (a, b) => `${a}–${b}`, over: m => `${m}+`,
   pace: { fast: "Fast", "lean-fast": "Leans fast", mid: "Average", even: "Average", "lean-slow": "Leans slow", slow: "Slow", slower: "Very slow" },
   noCurve: "Curve barely matters", light: n => `Light decks +${n}pt`, heavy: n => `Heavy decks +${n}pt`, lighter: "Lighter wins", heavier: "Heavier wins",
   colorsH: "Colour strength", bestPair: "Best pair", targetPair: "Aim for this (strong, under-drafted)", worsePair: "Weakest pair", vsAvg: (sign, n) => `vs 2-colour avg ${sign}${n}pt`,
-  share: (s, a, r) => `#${r} by win rate · drafted ${s}% (avg ${a}%)`, targetH: "Draft pick to aim for", targetT: "Strong, but under-drafted", shareNote: (s, a) => `Drafted by ${s}% (average ${a}%)`,
+  share: (s, a, r) => `#${r} · drafted ${s}% (avg ${a}%)`, targetH: "Draft pick to aim for", targetT: "Strong, but under-drafted", shareNote: (s, a) => `Drafted by ${s}% (average ${a}%)`,
   topH: label => `Top 3 ${label}s by win rate`, common: "common", uncommon: "uncommon", rank: i => `#${i}`, gih: v => `GIH WR ${v}%`,
   subscribe: "▶ Subscribe",
   surpriseH: "One surprise", nobody: "Nobody plays it", strongerTogether: "Better together", weakerTogether: "Worse together",
@@ -218,14 +218,23 @@ function buildScript(d, nameJa, names){
                  : `Here is the colour-pair tier list. S tier: ${sNames.join(" and ")}. The strongest colours are ${top2}.`;
     if(worst && worst !== best) say += JA ? `一番下は${pairName(worst.pair)}、${pt(worst.wr)}パーセントです。`
                                          : ` At the bottom: ${pairName(worst.pair)}, at ${pt(worst.wr)} percent.`;
-    scenes.push({ kind: "tier", say, colors, tiers, best, worst: worst && worst !== best ? worst : null, tail: 0.8 });
+    const worstShown = worst && worst !== best ? worst : null;
+    scenes.push({ kind: "tier", say, colors, tiers, best, worst: worstShown, tail: 0.8 });
+    // 狙い目（ドラフトだけ）：同じティア表の上で、その組み合わせを光らせて言う（場面は続きなので、画面は切り替えない）
+    if(target){
+      const sh = Math.round(target.share * 100), av = Math.round(target.avgShare * 100);
+      scenes.push({ kind: "tier", colors, tiers, best, worst: worstShown, nofade: true, tail: 0.8,
+        pick: { pair: target.pair, note: UI.share(sh, av, target.rank) },
+        say: JA ? `狙い目は${pairName(target.pair)}。勝率${pt(target.wr)}パーセントで${target.rank}位ですが、使っている人は${sh}パーセントと平均より少なめ。カードが流れてきやすい色です。`
+                : `The pick to aim for: ${pairName(target.pair)}. ${pt(target.wr)} percent, number ${target.rank}, but only ${sh} percent of drafters take it, so its cards come to you.` });
+    }
   }
   if(bombs.length){
     const pages = [bombs.slice(0, 5), bombs.slice(5, 10)].filter(pg => pg.length);
     pages.forEach((pg, i) => {
       const from = i * 5 + 1, to = i * 5 + pg.length;
       const c1 = pg[0];
-      scenes.push({ kind: "bombs", page: i, from, to, cards: pg, label: `bombs${i + 1}`, tail: 0.8,
+      scenes.push({ kind: "bombs", page: i, from, to, cards: pg, label: `bombs${i + 1}`, tail: 0.8, minDur: 6,   // 5 枚を見る時間として、短くても 6 秒は置く
         say: i === 0 ? (JA ? `レアと神話レアのボム、トップ10です。1位は${c1.label}、勝率${pt(c1.gih)}パーセント。`
                            : `Top ten rare and mythic bombs. Number one is ${c1.name}, at ${pt(c1.gih)} percent.`)
                      : (JA ? `続いて${from}位から${to}位。` : `And numbers ${from} to ${to}.`) });
@@ -249,17 +258,6 @@ function buildScript(d, nameJa, names){
       headline: paceKey === "lean-fast" ? UI.lighter : paceKey === "lean-slow" ? UI.heavier
               : (paceKey === "fast" || paceKey === "slow") && spread >= 1 ? (faster ? UI.light(spread.toFixed(1).replace(/\.0$/, "")) : UI.heavy(spread.toFixed(1).replace(/\.0$/, "")))
               : UI.noCurve });
-  }
-
-  // 狙い目（ドラフトだけ）：人気の色は取り合いになるので、強いのに空いている組み合わせを勧める。
-  // 「意外な事実」がある回はそちらを出し、無い回にこの場面を入れる（動画の長さを揃えるため）
-  if(target && !sur){
-    const sh = Math.round(target.share * 100), av = Math.round(target.avgShare * 100);
-    scenes.push({ kind: "target", heading: UI.targetH, title: UI.targetT,
-      pair: target.pair, big: pairName(target.pair), sub: UI.wrRank(pt(target.wr), target.rank), note: UI.shareNote(sh, av),
-      say: JA ? `狙い目は${pairName(target.pair)}。勝率${pt(target.wr)}パーセントで${target.rank}位ですが、使っている人は${sh}パーセントと平均より少なめ。人気の色は取り合いになるので、カードが流れてきやすいこの色が狙い目です。`
-              : `Aim for ${pairName(target.pair)}. It wins ${pt(target.wr)} percent, number ${target.rank}, yet only ${sh} percent of drafters take it. Popular colours get fought over; this one's cards come to you.`,
-      tail: 0.8 });
   }
 
   // カード名は読まず画面に任せる。読むと忙しいので、どの色が強いかだけ言う
@@ -349,10 +347,11 @@ function wrap(s, n = 18){
 }
 /* YouTube Shorts は下 20% 弱にタイトルやボタンが重なるので、字幕はその上に置く */
 const SAFE_BOTTOM = 270;
-function caption(say){
+const BOMB_CAP_BOTTOM = 170;   // ボムの場面だけ、字幕の枠をここまで下げる（カードを大きく見せるため。YouTube の題名の帯に少しかかる）
+function caption(say, bottom = SAFE_BOTTOM){
   const lines = wrap(say.replace(/パーセント/g, "%").replace(/ percent/g, "%"));
   const fs = lines.length >= 5 ? 44 : 50, lh = lines.length >= 5 ? 60 : 70;   // 5 行のときは少し詰めて、上のキャラクターに枠がかからないようにする
-  const boxH = lines.length * lh + 64, y0 = H - SAFE_BOTTOM - 40 - boxH, x0 = 56, bw = W - 112;
+  const boxH = lines.length * lh + 64, y0 = H - bottom - 40 - boxH, x0 = 56, bw = W - 112;
   /* 1990年代のRPG風の青いメッセージウィンドウ（青のグラデーション＋白い二重の枠＋右下の送りカーソル）。ロゴや既存ゲームの素材は使わない */
   return `<defs><linearGradient id="ffw" x1="0" y1="0" x2="0" y2="1">` +
       `<stop offset="0" stop-color="#2A4FC4"/><stop offset="1" stop-color="#0B1763"/></linearGradient></defs>` +
@@ -445,7 +444,7 @@ function frame(inner, say, opts = {}){
   ${HAS_BG ? "" : `<rect width="${W}" height="${H}" fill="url(#bg)"/>`}
   ${opts.header === false ? "" : header()}
   ${inner}
-  ${say ? caption(say) : ""}
+  ${say ? caption(say, opts.capBottom) : ""}
 </svg>`;
 }
 
@@ -544,31 +543,56 @@ function sceneSvg(sc){
              `<rect x="80" y="${y}" width="104" height="116" rx="20" fill="${TCOL[t]}"/>` +
              T(132, y + 82, t, { size: 72, weight: 900, anchor: "middle", fill: "#06101C" });
         const cw = Math.min(164, Math.floor(810 / Math.max(list.length, 1)));
+        let pickedAt = null;
         list.forEach((p, j) => {
           const x = 210 + j * cw, sz = Math.min(54, cw - 70);
-          s += pairSymbols(p.pair, x, y + 40, sz);
-          s += T(x + sz + 6, y + 104, pt(p.wr) + "%", { size: 26, anchor: "middle", weight: p === sc.best ? 900 : 400, fill: p === sc.best ? GOLD : p === sc.worst ? DOWN : PAPER });
+          const picked = sc.pick && p.pair === sc.pick.pair;
+          let chip = pairSymbols(p.pair, x, y + 40, sz) +
+                     T(x + sz + 6, y + 104, pt(p.wr) + "%", { size: 26, anchor: "middle", weight: picked || p === sc.best ? 900 : 400, fill: picked ? GOLD : p === sc.best ? GOLD : p === sc.worst ? DOWN : PAPER });
+          // 狙い目を言うときは、その組み合わせだけ残して、ほかは薄くする（どれを勧めているか一目で分かるように）
+          if(sc.pick && !picked) chip = `<g opacity="0.3">${chip}</g>`;
+          if(picked) pickedAt = { x: x - 14, y: y + 6, w: cw - 4, h: 104 };
+          s += chip;
         });
+        if(pickedAt){
+          const { x, y: py, w, h } = pickedAt;
+          s += `<rect x="${x - 4}" y="${py - 4}" width="${w + 8}" height="${h + 8}" rx="22" fill="none" stroke="${GOLD}" stroke-width="14" stroke-opacity="0.35"/>` +
+               `<rect x="${x}" y="${py}" width="${w}" height="${h}" rx="18" fill="${GOLD}" fill-opacity="0.22" stroke="${GOLD}" stroke-width="6"/>` +
+               // 「狙い目」の札を、枠の上にかぶせる
+               `<rect x="${x + w / 2 - 70}" y="${py - 30}" width="140" height="44" rx="22" fill="${GOLD}"/>` +
+               T(x + w / 2, py + 1, UI.targetTag, { size: 28, weight: 900, anchor: "middle", fill: "#06101C" });
+          sc._pickBox = pickedAt;
+        }
       });
+      if(sc.pick){
+        // 狙い目の説明（表の下）。光らせた枠から線でつなぐ
+        const y = 1030, pb = sc._pickBox;
+        if(pb) s += `<line x1="${pb.x + pb.w / 2}" y1="${pb.y + pb.h + 4}" x2="${pb.x + pb.w / 2}" y2="${y}" stroke="${GOLD}" stroke-width="5" stroke-dasharray="10 8"/>`;
+        s += `<rect x="80" y="${y}" width="720" height="130" rx="24" fill="${DEEP}" fill-opacity="${HAS_BG ? 0.85 : 0.6}" stroke="${GOLD}" stroke-width="5"/>` +
+             T(110, y + 56, UI.targetPair, { size: 34, fill: GOLD, weight: 900 }) +
+             pairSymbols(sc.pick.pair, 110, y + 96, 44) + T(228, y + 110, pairName(sc.pick.pair), { size: JA ? 40 : 34, weight: 900 }) +
+             T(780, y + 108, sc.pick.note, { size: 24, anchor: "end", fill: MUTED });
+      }
       return frame(s, sc.say);
     }
     case "bombs": {
-      // 5 枚を縦に並べる（小さめのカード画像＋順位・レアリティ・名前・勝率）。2 画面で 10 枚
-      const CW = 126, CH = 176, ROW = 188, Y0 = 250, TX = 240;
+      // 5 枚を縦に並べる（カード画像＋順位・レアリティ・名前・勝率）。2 画面で 10 枚。
+      // カードを大きく見せるため、この場面だけ字幕の枠を下げる（BOMB_CAP_BOTTOM）。右はしのキャラクターには名前がかからない幅（520px）にする
+      const CW = 160, CH = 224, ROW = 236, Y0 = 244, TX = 280;
       let s = T(80, 222, UI.bombsH(sc.from, sc.to), { size: 36, fill: MUTED });
       sc.cards.forEach((c, i) => {
         const y = Y0 + i * ROW, col = COLOR[c.color] || MUTED, rank = sc.from + i;
         if(c.imgPath) s += `<image href="${c.imgPath}" x="80" y="${y}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/>`;
         else s += `<rect x="80" y="${y}" width="${CW}" height="${CH}" rx="12" fill="${col}" opacity="0.85"/>`;
-        s += T(TX, y + 44, UI.rank(rank), { size: 34, fill: rank === 1 ? GOLD : MUTED, weight: rank === 1 ? 900 : 400 });
-        s += T(TX + (JA ? 90 : 80), y + 44, UI.bombsTag[c.rarity] || "", { size: 26, fill: c.rarity === "mythic" ? DOWN : GOLD, weight: 700 });
-        const lines = wrapName(c.label, JA ? 11 : 22).slice(0, 2);
-        let size = lines.length > 1 ? (JA ? 38 : 34) : (JA ? 44 : 40);
-        if(JA) size = Math.min(size, Math.floor(560 / Math.max(...lines.map(l => [...l].length), 1)));
-        lines.forEach((l, j) => { s += T(TX, y + (lines.length > 1 ? 82 : 100) + j * (size + 2), l, { size, weight: 900 }); });
-        s += T(TX, y + 172, UI.gih(pt(c.gih)), { size: 34, fill: BLUE, weight: 700 });
+        s += T(TX, y + 50, UI.rank(rank), { size: 38, fill: rank === 1 ? GOLD : MUTED, weight: rank === 1 ? 900 : 400 });
+        s += T(TX + (JA ? 100 : 86), y + 50, UI.bombsTag[c.rarity] || "", { size: 28, fill: c.rarity === "mythic" ? DOWN : GOLD, weight: 700 });
+        const lines = wrapName(c.label, JA ? 11 : 20).slice(0, 2);
+        let size = lines.length > 1 ? (JA ? 42 : 36) : (JA ? 50 : 44);
+        size = Math.min(size, Math.floor(520 / Math.max(...lines.map(l => JA ? [...l].length : l.length * 0.58), 1)));
+        lines.forEach((l, j) => { s += T(TX, y + (lines.length > 1 ? 104 : 124) + j * (size + 4), l, { size, weight: 900 }); });
+        s += T(TX, y + 212, UI.gih(pt(c.gih)), { size: 36, fill: BLUE, weight: 700 });
       });
-      return frame(s, sc.say);
+      return frame(s, sc.say, { capBottom: BOMB_CAP_BOTTOM });
     }
     case "top": {
       // 3枚を縦に並べ、左にカード、右に順位・名前・勝率。字幕の枠（下から 300+40+箱）にかからない範囲でカードをできるだけ大きく
@@ -856,7 +880,7 @@ async function main(){
         `[1:a]volume=${process.env.SE_VOLUME || "0.31"},aformat=sample_rates=24000:channel_layouts=mono[se];[0:a]aformat=sample_rates=24000:channel_layouts=mono[n];` +
         `[n][se]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[o]`, "-map", "[o]", wavIn]);
     }
-    const len = dur + (sc.tail || 0.35), pad = len - dur, N = Math.ceil(len * 30);   // 読み終わりに少し置く（カードを見せる場面は長め）
+    const len = Math.max(dur + (sc.tail || 0.35), sc.minDur || 0), pad = len - dur, N = Math.ceil(len * 30);   // minDur: 読み終わっても最低この長さは見せる   // 読み終わりに少し置く（カードを見せる場面は長め）
     const audio = `[${(sc.art && artPath) || HAS_BG ? 2 : 1}:a]apad=pad_dur=${pad.toFixed(2)},afade=t=in:d=0.012,afade=t=out:st=${(len - 0.03).toFixed(3)}:d=0.03,aformat=sample_rates=48000:channel_layouts=stereo[a]`;   // 頭と終わりを短くなだらかに（つなぎ目のプチ音対策）
     const audioIdx = (sc.art && artPath) || HAS_BG ? 2 : 1;
     const zp = zundaPos();
@@ -883,13 +907,13 @@ async function main(){
                 `[0:v]fps=30,scale=iw*sar:ih,setsar=1,scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},` +   // 縦長ピクセルの録画（1440×1080 など）も正しい比率に直す
                 `eq=saturation=0.7,gblur=sigma=5,setsar=1[bg0];` +
                 `color=c=0x0A2038@0.6:s=${W}x${H}:r=30[tint];[bg0][tint]overlay=shortest=1[bg];` +   // 紺の膜で暗くして文字を立たせる
-                `[1:v]scale=${W}:${H},format=rgba,fade=t=in:d=0.2:alpha=1[fg];` +
+                `[1:v]scale=${W}:${H},format=rgba${sc.nofade ? "" : ",fade=t=in:d=0.2:alpha=1"}[fg];` +   // nofade: 前の場面と同じ画面が続くとき（ちらつかせない）
                 `${ZPRE}[bgz][fg]overlay=shortest=1,format=yuv420p[v];${audio}`];
     }else{
       args = ["-loop", "1", "-framerate", "30", "-i", base + ".png", "-i", wavIn,
               "-filter_complex",
                 `[0:v]zoompan=z='1+0.05*on/${N}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${N}:s=${W}x${H}:fps=30,` +
-                `fade=t=in:d=0.15[vz];${ZF}${audio}`];
+                `${sc.nofade ? "null" : "fade=t=in:d=0.15"}[vz];${ZF}${audio}`];
     }
     if(ZUNDA){   // 口パクの動画を、最後の入力として足す
       const zi = args.indexOf("-filter_complex");
