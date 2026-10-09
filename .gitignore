@@ -4,6 +4,8 @@ short/symbols/
 short/*/
 !short/logo/
 !short/bgm/
+# 英語版のキャラクター（四国めたん）の口パク素材
+!short/metan/
 node_modules/
 long/
 social-manual/
