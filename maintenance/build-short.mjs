@@ -63,7 +63,7 @@ const CN = JA ? COLOR_JA : COLOR_EN;                 // この言語での色の
 /* 画面とナレーションの決まり文句。言語ごとにここだけ変える */
 const UI = JA ? {
   analysis: "リミテッド環境分析", arena: "MTGアリーナ", report: "リミテッド環境レポート", games: g => `${g}試合`, inOneMinute: "のデータが1分でわかる", hookA: "1分でわかる", hookC: m => m ? "シールド環境" : "ドラフト環境", hookD1: g => `${g}試合を分析`, hookD2: "強い色とカードを紹介",
-  whatIs: "リミテッドとは", whatIs1: "その場で開けたパックだけで", whatIs2: "デッキを組む遊び方", sealed: "シールド", draft: "ドラフト", thisVideo: "この動画はこちら",
+  tierH: "色の組み合わせ ティア表", bombsH: (a, b) => `レア・神話レアのボム トップ10（${a}〜${b}位）`, bombsTag: { mythic: "神話レア", rare: "レア" },
   speedH: "環境の速さ", speedSub: "平均マナ総量ごとの勝率", under: m => `${m}未満`, between: (a, b) => `${a}〜${b}`, over: m => `${m}以上`,
   pace: { fast: "速い", "lean-fast": "やや速い", mid: "普通", even: "普通", "lean-slow": "やや遅い", slow: "遅い", slower: "かなり遅い" },
   noCurve: "カーブで差がつかない", light: n => `軽いデッキが${n}pt有利`, heavy: n => `重いデッキが${n}pt有利`, lighter: "軽いほど勝つ", heavier: "重いほど勝つ",
@@ -77,7 +77,7 @@ const UI = JA ? {
   earlyBadge: "速報", earlyHookC: "リミテッド速報", earlyH: "まだ序盤のデータです", early1: "順位はこれから動きます", early2: "確定版は約2週間後に", earlyAsOf: d => `${d} 時点`
 } : {
   analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute", hookA: "Limited in 1 minute", hookC: m => m ? "SEALED" : "DRAFT", hookD1: g => `${g} games analyzed`, hookD2: "Best colors & cards",
-  whatIs: "What is Limited?", whatIs1: "Build a deck only from", whatIs2: "packs you just opened", sealed: "Sealed", draft: "Draft", thisVideo: "This video",
+  tierH: "Colour-pair tier list", bombsH: (a, b) => `Top 10 rare & mythic bombs (#${a}–${b})`, bombsTag: { mythic: "Mythic", rare: "Rare" },
   speedH: "Format speed", speedSub: "Win rate by average mana value", under: m => `under ${m}`, between: (a, b) => `${a}–${b}`, over: m => `${m}+`,
   pace: { fast: "Fast", "lean-fast": "Leans fast", mid: "Average", even: "Average", "lean-slow": "Leans slow", slow: "Slow", slower: "Very slow" },
   noCurve: "Curve barely matters", light: n => `Light decks +${n}pt`, heavy: n => `Heavy decks +${n}pt`, lighter: "Lighter wins", heavier: "Heavier wins",
@@ -182,8 +182,21 @@ function buildScript(d, nameJa, names){
     if(cand.length) target = { ...cand[0], share: cand[0].games / totalPairGames, rank: pairs.indexOf(cand[0]) + 1, avgShare };
   }
   const top3 = list => (list || []).slice(0, 3)
-    .map(c => ({ ...c, label: JA ? ((names.names || {})[c.name] || c.name) : c.name, img: JA ? (names.images || {})[c.name] : null }));
+    .map(c => ({ ...c, label: JA ? ((names.names || {})[c.name] || c.name) : c.name, img: JA ? (names.images || {})[c.name] : (c.imgEn || null) }));
   const commons = top3(d.top && d.top.common), uncommons = top3(d.top && d.top.uncommon);
+  // ティア表：試合数が少なすぎる組み合わせ（全体の 1% 未満）は除き、最強〜最弱の幅のどこにいるかで S/A/B/C に分ける
+  //（上から 15% 以内が S、45% 以内が A、75% 以内が B、残りが C。幅が 2pt 未満の環境では 2pt として見る）
+  const tierPairs = pairs.filter(p => p.games >= Math.max(1000 * MINP, totalPairGames * 0.01));
+  const tiers = { S: [], A: [], B: [], C: [] };
+  if(tierPairs.length){
+    const topWr = tierPairs[0].wr, range = Math.max(0.02, topWr - tierPairs[tierPairs.length - 1].wr);
+    for(const p of tierPairs){ const f = (topWr - p.wr) / range; (f <= 0.15 ? tiers.S : f <= 0.45 ? tiers.A : f <= 0.75 ? tiers.B : tiers.C).push(p); }
+  }
+  // ボム：レアと神話レアを合わせて勝率順に 10 枚（5 枚ずつ 2 画面）
+  const bombs = [...(d.top && d.top.rare || []), ...(d.top && d.top.mythic || [])]
+    .map(c => ({ ...c, rarity: c.rarity || ((d.top.mythic || []).some(m => m.name === c.name) ? "mythic" : "rare") }))
+    .sort((a, b) => b.gih - a.gih).slice(0, 10)
+    .map(c => ({ ...c, label: JA ? ((names.names || {})[c.name] || c.name) : c.name, img: JA ? (names.images || {})[c.name] : (c.imgEn || null) }));
   const sur = surprise(d, pairs, best, worst, target);
   const games = man(d.total_games);
 
@@ -196,14 +209,28 @@ function buildScript(d, nameJa, names){
             : `MTG Arena Limited: ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} format. ${gamesEn} games of data, in one minute.`,
     title: nameJa, games, isSealed: d.mode === "sealed", early: EARLY });
 
-  // お決まりの前置き：リミテッドとは何か、シールドとドラフトのどちらのデータか
-  const isSealed = d.mode === "sealed";
-  const bothFmt = EARLY && (d.formats || []).some(f => f.mode === "sealed") && (d.formats || []).some(f => f.mode === "draft");
-  scenes.push({ kind: "intro", isSealed, both: bothFmt,
-    say: JA ? `リミテッドは、その場で開けたパックだけでデッキを組む遊び方。シールドとドラフトがあります。`
-            + (EARLY ? (bothFmt ? `この動画は、発売直後のドラフトとシールドを合わせたデータです。` : `この動画は、発売直後のドラフトのデータです。`) : `この動画は、${isSealed ? "シールド" : "ドラフト"}のデータです。`)
-            : `Limited means building a deck only from packs you just opened. There are two formats, Sealed and Draft. This video covers ${EARLY ? (bothFmt ? "first-week Draft and Sealed, combined" : "first-week Draft") : isSealed ? "Sealed" : "Draft"} data.`,
-    tail: 0.8 });
+  // 「リミテッドとは」の前置きは入れない（見にくる人は知っているので、ここで離れてしまう。2026年10月の視聴データから）
+  // 先に結論：色の組み合わせのティア表 → レア・神話レアのボム → 速さ → コモン・アンコモン
+  if(colors.length && best){
+    const top2 = colors.slice(0, 2).map(c => CN[c.color]).join(JA ? "と" : " and ");
+    const sNames = tiers.S.slice(0, 3).map(p => pairName(p.pair));   // 読むのは 3 つまで
+    let say = JA ? `色の組み合わせをティア表にしました。Sティアは${sNames.join("と")}。強い色は${top2}です。`
+                 : `Here is the colour-pair tier list. S tier: ${sNames.join(" and ")}. The strongest colours are ${top2}.`;
+    if(worst && worst !== best) say += JA ? `一番下は${pairName(worst.pair)}、${pt(worst.wr)}パーセントです。`
+                                         : ` At the bottom: ${pairName(worst.pair)}, at ${pt(worst.wr)} percent.`;
+    scenes.push({ kind: "tier", say, colors, tiers, best, worst: worst && worst !== best ? worst : null, tail: 0.8 });
+  }
+  if(bombs.length){
+    const pages = [bombs.slice(0, 5), bombs.slice(5, 10)].filter(pg => pg.length);
+    pages.forEach((pg, i) => {
+      const from = i * 5 + 1, to = i * 5 + pg.length;
+      const c1 = pg[0];
+      scenes.push({ kind: "bombs", page: i, from, to, cards: pg, label: `bombs${i + 1}`, tail: 0.8,
+        say: i === 0 ? (JA ? `レアと神話レアのボム、トップ10です。1位は${c1.label}、勝率${pt(c1.gih)}パーセント。`
+                           : `Top ten rare and mythic bombs. Number one is ${c1.name}, at ${pt(c1.gih)} percent.`)
+                     : (JA ? `続いて${from}位から${to}位。` : `And numbers ${from} to ${to}.`) });
+    });
+  }
 
   if(fast && slow){
     // 速さは一言だけ。数字は画面に任せる（読み上げるとくどい）
@@ -224,23 +251,15 @@ function buildScript(d, nameJa, names){
               : UI.noCurve });
   }
 
-  if(colors.length && best){
-    const top2 = colors.slice(0, 2).map(c => CN[c.color]).join(JA ? "と" : " and ");
-    let say = JA ? `強い色は${top2}。組み合わせなら${pairName(best.pair)}が${pt(best.wr)}パーセントで最強。`
-                 : `The strongest colours are ${top2}. The best pair is ${pairName(best.pair)}, at ${pt(best.wr)} percent.`;
-    if(worst && worst !== best) say += JA ? `逆に一番弱いのは${pairName(worst.pair)}で、${pt(worst.wr)}パーセントです。`
-                                         : ` The weakest pair is ${pairName(worst.pair)}, at ${pt(worst.wr)} percent.`;
-    scenes.push({ kind: "colors", say, colors, best, worst: worst && worst !== best ? worst : null });
-    // 狙い目（ドラフトだけ）：人気の色は取り合いになるので、強いのに空いている組み合わせを勧める。
-    // 「意外な事実」がある回はそちらを出し、無い回にこの場面を入れる（動画の長さを揃えるため）
-    if(target && !sur){
-      const sh = Math.round(target.share * 100), av = Math.round(target.avgShare * 100);
-      scenes.push({ kind: "target", heading: UI.targetH, title: UI.targetT,
-        pair: target.pair, big: pairName(target.pair), sub: UI.wrRank(pt(target.wr), target.rank), note: UI.shareNote(sh, av),
-        say: JA ? `狙い目は${pairName(target.pair)}。勝率${pt(target.wr)}パーセントで${target.rank}位ですが、使っている人は${sh}パーセントと平均より少なめ。人気の色は取り合いになるので、カードが流れてきやすいこの色が狙い目です。`
-                : `Aim for ${pairName(target.pair)}. It wins ${pt(target.wr)} percent, number ${target.rank}, yet only ${sh} percent of drafters take it. Popular colours get fought over; this one's cards come to you.`,
-        tail: 0.8 });
-    }
+  // 狙い目（ドラフトだけ）：人気の色は取り合いになるので、強いのに空いている組み合わせを勧める。
+  // 「意外な事実」がある回はそちらを出し、無い回にこの場面を入れる（動画の長さを揃えるため）
+  if(target && !sur){
+    const sh = Math.round(target.share * 100), av = Math.round(target.avgShare * 100);
+    scenes.push({ kind: "target", heading: UI.targetH, title: UI.targetT,
+      pair: target.pair, big: pairName(target.pair), sub: UI.wrRank(pt(target.wr), target.rank), note: UI.shareNote(sh, av),
+      say: JA ? `狙い目は${pairName(target.pair)}。勝率${pt(target.wr)}パーセントで${target.rank}位ですが、使っている人は${sh}パーセントと平均より少なめ。人気の色は取り合いになるので、カードが流れてきやすいこの色が狙い目です。`
+              : `Aim for ${pairName(target.pair)}. It wins ${pt(target.wr)} percent, number ${target.rank}, yet only ${sh} percent of drafters take it. Popular colours get fought over; this one's cards come to you.`,
+      tail: 0.8 });
   }
 
   // カード名は読まず画面に任せる。読むと忙しいので、どの色が強いかだけ言う
@@ -509,57 +528,46 @@ function sceneSvg(sc){
                  TS(W / 2, 1420 + Math.round(s2 * 1.35), UI.hookD2, { size: s2 });
         })(), null, { header: false });
     }
-    case "intro": {
-      const box = (x, label, on) =>
-        `<rect x="${x}" y="640" width="440" height="300" rx="28" fill="${DEEP}" fill-opacity="${HAS_BG ? 0.72 : 0.25}" stroke="${on ? BLUE : MUTED}" stroke-width="${on ? 6 : 3}"/>` +
-        T(x + 220, 790, label, { size: 68, weight: 900, anchor: "middle", fill: on ? PAPER : MUTED }) +
-        (on ? T(x + 220, 870, UI.thisVideo, { size: 32, anchor: "middle", fill: BLUE, weight: 700 }) : "");
-      return frame(
-        T(W / 2, 330, UI.whatIs, { size: 44, fill: MUTED, anchor: "middle" }) +
-        T(W / 2, 430, UI.whatIs1, { size: 50, weight: 700, anchor: "middle" }) +
-        T(W / 2, 500, UI.whatIs2, { size: 50, weight: 700, anchor: "middle" }) +
-        box(80, UI.sealed, sc.isSealed || sc.both) + box(560, UI.draft, !sc.isSealed || sc.both), sc.say);
-    }
-    case "pace": {
-      const wrs = sc.rows.map(r => r.wr * 100), lo = Math.floor(Math.min(...wrs) - 1), hi = Math.ceil(Math.max(...wrs) + 1);
-      const X0 = 330, X1 = W - 120, sx = v => X0 + (v - lo) / (hi - lo) * (X1 - X0);
-      let s = T(80, 300, UI.speedH, { size: 40, fill: MUTED }) +
-              T(80, 390, sc.paceWord, { size: 96, weight: 900, fill: BLUE }) +
-              T(80 + [...sc.paceWord].length * (JA ? 100 : 56) + 24, 388, sc.headline, { size: 40, fill: PAPER });
-      s += T(80, 470, UI.speedSub, { size: 34, fill: MUTED });
-      sc.rows.forEach((r, i) => {
-        const y = 580 + i * 130;
-        s += T(X0 - 30, y + 16, r.label, { size: JA ? 40 : 34, anchor: "end" });
-        s += `<line x1="${X0}" x2="${X1}" y1="${y}" y2="${y}" stroke="${PAPER}" stroke-opacity="0.12" stroke-width="3"/>`;
-        s += `<line x1="${X0}" x2="${sx(r.wr * 100)}" y1="${y}" y2="${y}" stroke="${BLUE}" stroke-width="10" stroke-linecap="round"/>`;
-        s += `<circle cx="${sx(r.wr * 100)}" cy="${y}" r="22" fill="${BLUE}" stroke="${PAPER}" stroke-width="4"/>`;
-        s += T(sx(r.wr * 100), y - 40, pt(r.wr) + "%", { size: 44, weight: 900, anchor: "middle" });
+    case "tier": {
+      // 上：単色の強さ（小さく）。下：2色の組み合わせのティア表（S/A/B/C）。右はしのキャラクターにかからないよう y=1000 までに収める
+      let s = T(80, 222, UI.colorsH, { size: 36, fill: MUTED });
+      sc.colors.forEach((c, i) => {
+        const x = 130 + i * 205;
+        s += symbol(c.color, x, 300, 92);
+        s += T(x, 392, pt(c.wr) + "%", { size: 34, anchor: "middle", weight: i < 2 ? 900 : 400, fill: i < 2 ? PAPER : MUTED });
+      });
+      s += T(80, 472, UI.tierH, { size: 36, fill: MUTED });
+      const TCOL = { S: GOLD, A: UP, B: BLUE, C: MUTED };
+      ["S", "A", "B", "C"].forEach((t, i) => {
+        const y = 500 + i * 128, list = sc.tiers[t] || [];
+        s += `<rect x="80" y="${y}" width="${W - 160}" height="116" rx="20" fill="${DEEP}" fill-opacity="${HAS_BG ? 0.72 : 0.25}" stroke="${TCOL[t]}" stroke-width="3"/>` +
+             `<rect x="80" y="${y}" width="104" height="116" rx="20" fill="${TCOL[t]}"/>` +
+             T(132, y + 82, t, { size: 72, weight: 900, anchor: "middle", fill: "#06101C" });
+        const cw = Math.min(164, Math.floor(810 / Math.max(list.length, 1)));
+        list.forEach((p, j) => {
+          const x = 210 + j * cw, sz = Math.min(54, cw - 70);
+          s += pairSymbols(p.pair, x, y + 40, sz);
+          s += T(x + sz + 6, y + 104, pt(p.wr) + "%", { size: 26, anchor: "middle", weight: p === sc.best ? 900 : 400, fill: p === sc.best ? GOLD : p === sc.worst ? DOWN : PAPER });
+        });
       });
       return frame(s, sc.say);
     }
-    case "colors": {
-      const three = !!sc.target;
-      const cy = three ? 320 : 350;   // 3枚のときは全体を少し上に
-      let s = T(80, three ? 215 : 230, UI.colorsH, { size: 40, fill: MUTED });
-      sc.colors.forEach((c, i) => {
-        const x = 130 + i * 205;
-        s += symbol(c.color, x, cy, three ? 120 : 132);
-        s += T(x, cy + 130, pt(c.wr) + "%", { size: 40, anchor: "middle", weight: i < 2 ? 900 : 400, fill: i < 2 ? PAPER : MUTED });
+    case "bombs": {
+      // 5 枚を縦に並べる（小さめのカード画像＋順位・レアリティ・名前・勝率）。2 画面で 10 枚
+      const CW = 126, CH = 176, ROW = 188, Y0 = 250, TX = 240;
+      let s = T(80, 222, UI.bombsH(sc.from, sc.to), { size: 36, fill: MUTED });
+      sc.cards.forEach((c, i) => {
+        const y = Y0 + i * ROW, col = COLOR[c.color] || MUTED, rank = sc.from + i;
+        if(c.imgPath) s += `<image href="${c.imgPath}" x="80" y="${y}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/>`;
+        else s += `<rect x="80" y="${y}" width="${CW}" height="${CH}" rx="12" fill="${col}" opacity="0.85"/>`;
+        s += T(TX, y + 44, UI.rank(rank), { size: 34, fill: rank === 1 ? GOLD : MUTED, weight: rank === 1 ? 900 : 400 });
+        s += T(TX + (JA ? 90 : 80), y + 44, UI.bombsTag[c.rarity] || "", { size: 26, fill: c.rarity === "mythic" ? DOWN : GOLD, weight: 700 });
+        const lines = wrapName(c.label, JA ? 11 : 22).slice(0, 2);
+        let size = lines.length > 1 ? (JA ? 38 : 34) : (JA ? 44 : 40);
+        if(JA) size = Math.min(size, Math.floor(560 / Math.max(...lines.map(l => [...l].length), 1)));
+        lines.forEach((l, j) => { s += T(TX, y + (lines.length > 1 ? 82 : 100) + j * (size + 2), l, { size, weight: 900 }); });
+        s += T(TX, y + 172, UI.gih(pt(c.gih)), { size: 34, fill: BLUE, weight: 700 });
       });
-      const CH = three ? 176 : 210;
-      const card = (y, title, p, col, note) =>
-        `<rect x="80" y="${y}" width="${W - 160}" height="${CH}" rx="28" fill="${DEEP}" fill-opacity="${HAS_BG ? 0.72 : 0.25}" stroke="${col}" stroke-width="4"/>` +
-        T(120, y + 56, title, { size: three ? 30 : 34, fill: col, weight: 700 }) +
-        pairSymbols(p.pair, 120, y + (three ? 112 : 128), three ? 84 : 96) +
-        T(three ? 330 : 350, y + (three ? 140 : 160), pairName(p.pair), { size: JA ? (three ? 52 : 60) : (three ? 42 : 48), weight: 900 }) +
-        T(W - 120, y + (three ? 128 : 148), pt(p.wr) + "%", { size: three ? 70 : 80, weight: 900, anchor: "end", fill: col }) +
-        T(W - 120, y + (three ? 164 : 190), note || UI.vsAvg(p.gap > 0 ? "+" : "−", Math.abs(p.gap * 100).toFixed(1)), { size: 28, anchor: "end", fill: MUTED });
-      // 最強 → 狙い目（あれば）→ 最弱
-      const gap = three ? 190 : 250;
-      let y = three ? 486 : 560;
-      s += card(y, UI.bestPair, sc.best, UP); y += gap;
-      if(sc.target){ s += card(y, UI.targetPair, sc.target, GOLD, UI.share(Math.round(sc.target.share * 100), Math.round(sc.target.avgShare * 100), sc.target.rank)); y += gap; }
-      if(sc.worst) s += card(y, UI.worsePair, sc.worst, DOWN);
       return frame(s, sc.say);
     }
     case "top": {
@@ -753,7 +761,7 @@ async function main(){
   }
 
   // カード画像（取れなければ名前の札のまま）。英語は Scryfall から英語版を引く
-  for(const sc of scenes) if(sc.kind === "top"){
+  for(const sc of scenes) if(sc.kind === "top" || sc.kind === "bombs"){
     for(const [i, c] of sc.cards.entries()){
       if(!JA && !c.img){
         try{
