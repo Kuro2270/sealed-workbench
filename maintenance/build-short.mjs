@@ -310,11 +310,10 @@ function wrapName(name, n){
 function wrap(s, n = 18){
   if(!JA){
     // 英語は単語で折り返す（1行 38 文字ほど）
-    const words = s.split(/\s+/).filter(Boolean), out = []; let cur = "";
-    for(const w of words){
-      if(cur && (cur + " " + w).length > 32){ out.push(cur); cur = w; } else cur = cur ? cur + " " + w : w;
-    }
-    if(cur) out.push(cur);
+    const words = s.split(/\s+/).filter(Boolean);
+    const fit = n => { const out = []; let cur = ""; for(const w of words){ if(cur && (cur + " " + w).length > n){ out.push(cur); cur = w; } else cur = cur ? cur + " " + w : w; } if(cur) out.push(cur); return out; };
+    let out = fit(32);
+    if(out.length > 5) out = fit(38);        // 5 行に入らないときは 1 行を長くする（5 行のときは字も小さくなる）
     return out.slice(0, 5);
   }
   // 「61.4%」「sealed-workbench.com」のような並びは1つの塊として扱う
@@ -333,15 +332,16 @@ function wrap(s, n = 18){
 const SAFE_BOTTOM = 270;
 function caption(say){
   const lines = wrap(say.replace(/パーセント/g, "%").replace(/ percent/g, "%"));
-  const lh = 70, boxH = lines.length * lh + 64, y0 = H - SAFE_BOTTOM - 40 - boxH, x0 = 56, bw = W - 112;
+  const fs = lines.length >= 5 ? 44 : 50, lh = lines.length >= 5 ? 60 : 70;   // 5 行のときは少し詰めて、上のキャラクターに枠がかからないようにする
+  const boxH = lines.length * lh + 64, y0 = H - SAFE_BOTTOM - 40 - boxH, x0 = 56, bw = W - 112;
   /* 1990年代のRPG風の青いメッセージウィンドウ（青のグラデーション＋白い二重の枠＋右下の送りカーソル）。ロゴや既存ゲームの素材は使わない */
   return `<defs><linearGradient id="ffw" x1="0" y1="0" x2="0" y2="1">` +
       `<stop offset="0" stop-color="#2A4FC4"/><stop offset="1" stop-color="#0B1763"/></linearGradient></defs>` +
     `<rect x="${x0 + 6}" y="${y0 + 8}" width="${bw}" height="${boxH}" rx="18" fill="#000" opacity="0.45"/>` +
     `<rect x="${x0}" y="${y0}" width="${bw}" height="${boxH}" rx="18" fill="url(#ffw)" stroke="#F4F7FF" stroke-width="6"/>` +
     `<rect x="${x0 + 12}" y="${y0 + 12}" width="${bw - 24}" height="${boxH - 24}" rx="10" fill="none" stroke="#8FA8F0" stroke-width="2" opacity="0.8"/>` +
-    lines.map((l, i) => `<text x="${W / 2 + 3}" y="${y0 + 66 + i * lh + 3}" font-size="50" fill="#050B33" font-weight="700" text-anchor="middle">${esc(l)}</text>` +
-                        T(W / 2, y0 + 66 + i * lh, l, { size: 50, anchor: "middle", weight: 700 })).join("") +
+    lines.map((l, i) => `<text x="${W / 2 + 3}" y="${y0 + 66 + i * lh + 3}" font-size="${fs}" fill="#050B33" font-weight="700" text-anchor="middle">${esc(l)}</text>` +
+                        T(W / 2, y0 + 66 + i * lh, l, { size: fs, anchor: "middle", weight: 700 })).join("") +
     `<polygon points="${x0 + bw - 52},${y0 + boxH - 38} ${x0 + bw - 28},${y0 + boxH - 38} ${x0 + bw - 40},${y0 + boxH - 22}" fill="#F4F7FF"/>`;
 }
 
@@ -351,7 +351,7 @@ function caption(say){
 const ZDIR = JA
   ? ((process.env.SHORT_ZUNDA_STYLE !== "normal" && existsSync("short/zunda-hoodie/open_open.png")) ? "short/zunda-hoodie" : "short/zunda")
   : "short/metan";
-const ZW = 220, ZH = 225;
+const ZW = 240, ZH = 246;
 const MASCOT_NAME = JA ? "ずんだもん" : "四国めたん";
 async function zundaReady(){
   if(process.env.SHORT_ZUNDA === "0") return false;
@@ -361,7 +361,7 @@ async function zundaReady(){
 }
 /* 位置は全場面で同じ（右はしの、字幕の枠のすぐ上）。場面ごとに動くと落ち着かないため。
    この高さは、どの場面でも情報（色の一覧・カードの並び）より下で、いちばん行数の多い字幕の枠の上にほぼ収まる */
-function zundaPos(){ return { x: W - 24 - ZW, y: 1050 }; }
+function zundaPos(){ return { x: W - 24 - ZW, y: 990 }; }   // 足もとが字幕の枠（最大 5 行）の上端にほぼ付く高さ
 // 音声の大きさから、1/15 秒ごとの口の形を決める
 function mouthStates(wavPath, len){
   const FPS = 15, n = Math.max(1, Math.ceil(len * FPS));
@@ -454,9 +454,9 @@ function thumbSvg(hook){
     for(const l of lines){ inner += TS(W / 2, y + sz, l, { size: sz, fill: "#FFD23F" }); y += Math.round(sz * 1.12); }
     y += 20;
   }
-  // 速報バッジ（ロゴ／名前の右上に重ねる）
-  if(hook.early) inner += `<g transform="rotate(-8 ${W - 190} ${TOP + 150})"><rect x="${W - 330}" y="${TOP + 110}" width="280" height="84" rx="42" fill="#E53935" stroke="#FFFFFF" stroke-width="6"/>` +
-    T(W - 190, TOP + 170, UI.earlyBadge, { size: JA ? 54 : 36, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>`;
+  // 速報バッジ（ロゴ／名前の左上に重ねる）
+  if(hook.early) inner += `<g transform="rotate(-8 190 ${TOP + 150})"><rect x="50" y="${TOP + 110}" width="280" height="84" rx="42" fill="#E53935" stroke="#FFFFFF" stroke-width="6"/>` +
+    T(190, TOP + 170, UI.earlyBadge, { size: JA ? 54 : 36, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>`;
   // 種類のピル
   const pill = hook.early ? UI.earlyHookC : UI.hookC(hook.isSealed);
   inner += `<rect x="${W / 2 - 300}" y="${y}" width="600" height="104" rx="52" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
@@ -498,8 +498,8 @@ function sceneSvg(sc){
         titleSvg +
         `<rect x="${W / 2 - 280}" y="${modeY - 62}" width="560" height="100" rx="50" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
         T(W / 2, modeY + 8, sc.early ? UI.earlyHookC : UI.hookC(sc.isSealed), { size: sc.early && !JA ? 56 : 66, weight: 900, anchor: "middle", fill: "#06101C" }) +
-        (sc.early ? `<g transform="rotate(-8 ${W - 150} 120)"><rect x="${W - 270}" y="84" width="240" height="74" rx="37" fill="#E53935" stroke="#FFFFFF" stroke-width="5"/>` +
-                    T(W - 150, 136, UI.earlyBadge, { size: JA ? 48 : 32, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>` : "") +
+        (sc.early ? `<g transform="rotate(-8 140 120)"><rect x="20" y="84" width="240" height="74" rx="37" fill="#E53935" stroke="#FFFFFF" stroke-width="5"/>` +
+                    T(140, 136, UI.earlyBadge, { size: JA ? 48 : 32, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>` : "") +
         (() => {
           const g = UI.hookD1(sc.games), n1 = String(sc.games), l1 = [...g].length, l2 = [...UI.hookD2].length;
           const s1 = JA ? Math.min(150, Math.floor(1000 / l1)) : Math.min(116, Math.floor(1000 / (l1 * 0.58)));
@@ -827,7 +827,7 @@ async function main(){
   await writeFile(`${OUT}/${TAG}/script.json`, JSON.stringify(scenes.map(s => ({ kind: s.kind, say: s.say, kana: s.kana, dur: s.dur })), null, 2), "utf8");
 
   const ZUNDA = !process.env.SHORT_STILLS && await zundaReady();
-  console.error(ZUNDA ? `${MASCOT_NAME}: 字幕の右上に出す（${ZDIR}/）` : `${MASCOT_NAME}: 出さない（${process.env.SHORT_STILLS ? "画像だけの確認のため" : process.env.SHORT_ZUNDA === "0" ? "SHORT_ZUNDA=0" : ZDIR + "/ に6枚がそろっていない"}）`);
+  console.error(ZUNDA ? `${MASCOT_NAME}: 字幕の枠の上（右はし）に出す（${ZDIR}/）` : `${MASCOT_NAME}: 出さない（${process.env.SHORT_STILLS ? "画像だけの確認のため" : process.env.SHORT_ZUNDA === "0" ? "SHORT_ZUNDA=0" : ZDIR + "/ に6枚がそろっていない"}）`);
 
   // 2) 場面ごとに画像を描いて動画にする
   const segs = [];
