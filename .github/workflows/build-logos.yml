@@ -1,7 +1,7 @@
 name: サイト｜ロゴを軽くする（push時）
 
 # short/logo/ に置いた公式ロゴ（MTGアリーナ・各セット）を、サイトの表示用に軽くして assets/logo/ に書き出す。
-#   ・ロゴを足したり差し替えたりして short/logo/ が変わると、自動で動く
+#   ・ロゴを足したり差し替えたりして short/logo/ が変わると、自動で動く。jpg / webp で置いた場合は、白い背景を透明にした png を作って一緒に commit する
 #   ・すぐ反映したいときは、このページの「Run workflow」を押す（入力は不要）
 # 動画づくりには元の画像（short/logo/）をそのまま使う。サイトのヘッダーとトップページには、軽くしたものを使う。
 
@@ -37,7 +37,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A -- assets/logo
+          git add -A -- assets/logo short/logo      # jpg から作った png（short/logo/<SET>.png）も一緒に残す
           if git diff --staged --quiet; then
             echo "変更はありません。"; exit 0
           fi
