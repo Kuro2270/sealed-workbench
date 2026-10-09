@@ -117,6 +117,14 @@ function pairRows(d){
     .sort((a, b) => b.wr - a.wr);
 }
 
+/* 3色以上の組み合わせ（ティア表にだけ載せる。順位や狙い目は 2 色だけで決める） */
+function multiRows(d){
+  return (d.archetypes || [])
+    .filter(a => a.colors && a.colors.length === 3 && a.wr != null)   // 4 色以上は試合数が少なく勝率がぶれるので載せない
+    .map(a => ({ pair: norm(a.colors), wr: a.wr, games: a.games || 0, multi: true }))
+    .sort((a, b) => b.wr - a.wr);
+}
+
 /* 2色の組み合わせを S/A/B/C に分ける。環境全体の平均勝率（avg）を基準にする：
      S … 最強から 0.5pt 以内、または 平均 +2.0pt 以上
      A … 平均 +0.5pt 以上
@@ -191,12 +199,18 @@ function buildScript(ctx){
   const solid = pairsD.filter(p => p.games >= Math.max(2000, totalPG * 0.04));
   const worstD = (solid.length ? solid : pairsD).slice().sort((a, b) => a.wr - b.wr)[0];
   const rankS = Object.fromEntries(pairsS.map((p, i) => [p.pair, i + 1]));
-  const rankD = Object.fromEntries(pairsD.map((p, i) => [p.pair, i + 1]));
+  /* 三色が主流の環境（アラーラなど）：3色デッキの試合数が、2色＋3色の合計の 30% 以上なら、3色も 2色と同じ扱いで順位・狙い目に入れる。
+     ふつうの環境では、3色は「2色＋タッチ」なので、ティア表に参考として載せるだけ */
+  const multiD = multiRows(dd).filter(p => p.games >= 1500);
+  const multiGames = multiRows(dd).reduce((n, p) => n + p.games, 0);
+  const THREE = process.env.LONG_THREE === "1" || multiGames / (multiGames + totalPG) >= 0.3;   // LONG_THREE=1 で強制（確認用）
+  const rankedD = THREE ? [...pairsD, ...multiD].sort((a, b) => b.wr - a.wr) : pairsD;   // 順位・狙い目の母集団
+  const rankD = Object.fromEntries(rankedD.map((p, i) => [p.pair, i + 1]));
   const monoD = (dd.colors || []).slice().sort((a, b) => b.wr - a.wr);
   const monoS = Object.fromEntries((ds.colors || []).map(c => [c.color, c.wr]));
   /* 狙い目の色：勝率がそこそこ高く（全体の平均付近以上）、使っている人が少なめ（平均の85%以下）。最大2つ */
   const avgShareP = 1 / pairsD.length;
-  const sleepers = pairsD.filter(p => p !== bestD && p !== worstD && p.wr >= avgD - 0.005 && p.games / totalPG <= avgShareP * 0.85 && p.games >= 1500)
+  const sleepers = rankedD.filter(p => p !== bestD && p !== worstD && p.wr >= avgD - 0.005 && p.games / totalPG <= avgShareP * 0.85 && p.games >= 1500)
     .sort((a, b) => b.wr - a.wr).slice(0, 2);
   const sleepersTop = pairsD.slice(0, 3).filter(p => sleepers.includes(p));
 
@@ -256,17 +270,29 @@ function buildScript(ctx){
   /* --- ティア表（ドラフトとシールドを並べる） --- */
   if(pairsD.length){
     // ティア表は、棒グラフより広く拾う（全体の 1% 以上・500 試合以上なら載せる）。使用率も一緒に出す
-    const widen = (d, rows) => { const all = pairRows(d), tot = all.reduce((n, p) => n + p.games, 0) || 1; const w = all.filter(p => p.games >= 500 && p.games / tot >= 0.01); return (w.length >= rows.length ? w : rows).map(p => ({ ...p, share: p.games / tot })); };
+    // 3色も載せる（2 色は全体の 1% 以上・500 試合以上、3 色は 2% 以上・1000 試合以上）。使用率の分母は 2 色の合計（狙い目の説明と同じ基準）
+    const widen = (d, rows) => {
+      const two = pairRows(d), tot = two.reduce((n, p) => n + p.games, 0) || 1;
+      const w2 = two.filter(p => p.games >= 500 && p.games / tot >= 0.01);
+      const w3 = multiRows(d).filter(p => p.games >= 1000 && p.games / tot >= 0.02);
+      return [...(w2.length >= rows.length ? w2 : rows), ...w3].map(p => ({ ...p, share: p.games / tot })).sort((a, b) => b.wr - a.wr);
+    };
     const tierRowsD = widen(dd, pairsD), tierRowsS = widen(ds, pairsS);
     const tD = tierOf(tierRowsD, avgD), tS = tierOf(tierRowsS, avgS);
+    const multiShare = multiRows(dd).reduce((n, p) => n + p.games, 0) / (pairRows(dd).reduce((n, p) => n + p.games, 0) || 1);   // 3色デッキの多さ（2色の合計に対する割合）
+    const multiNote = THREE
+      ? L(`この環境は三色のデッキが主流なので、三色も二色と同じ扱いで見ていきます。`, `Three-colour decks are the norm in this format, so I'll treat them the same as pairs. `)
+      : EN
+        ? (multiShare >= 0.2 ? `Three-colour decks are common in this format, but they're still a two-colour base with a splash, so the picks below are about pairs. ` : `Three-colour entries are a two-colour base with a splash, so read the picks below as pairs. `)
+        : (multiShare >= 0.2 ? `この環境は三色のデッキも多めですが、基本は二色にもう一色をタッチした形なので、狙い目は二色で考えます。` : `三色は、二色にもう一色をタッチした形なので、狙い目は二色で考えます。`);
     const sD = tD.S.map(p => pairName(p.pair)), sS = tS.S.map(p => pairName(p.pair));
     const sameS = sD.length === sS.length && sD.every(n => sS.includes(n));
-    const tierBase = { kind: "tier", chapter: null, tiersD: tD, tiersS: tS, bestD, worstD, avgD, avgS };
+    const tierBase = { kind: "tier", chapter: null, tiersD: tD, tiersS: tS, bestD, worstD, avgD, avgS, three: THREE };
     scenes.push({ ...tierBase, chapter: L("色の組み合わせ", "Colour pairs"),
-      say: EN ? `Now, colour pairs, as a tier list: Draft on the left, Sealed on the right. The strongest in Draft is ${pairName(bestD.pair)}, at ${pt(bestD.wr)} percent. S tier in Draft: ${andList(sD.slice(0, 3))}. ` +
-                (pairsS.length ? (sameS ? `Sealed has the same S tier.` : `In Sealed, S tier is ${andList(sS.slice(0, 3))}.`) : "")
-              : `色の組み合わせです。ティア表にしました。左がドラフト、右がシールドです。ドラフトで一番強いのは${pairName(bestD.pair)}、勝率${pt(bestD.wr)}パーセント。Sティアは${sD.slice(0, 3).join("、")}です。` +
-                (pairsS.length ? (sameS ? `シールドもSティアは同じです。` : `シールドでは${sS.slice(0, 3).join("、")}がSティアです。`) : ""),
+      say: EN ? `Now, colour pairs, as a tier list: Draft on the left, Sealed on the right, with three-colour decks included. The strongest in Draft is ${pairName(bestD.pair)}, at ${pt(bestD.wr)} percent. S tier in Draft: ${andList(sD.slice(0, 3))}. ` +
+                (pairsS.length ? (sameS ? `Sealed has the same S tier. ` : `In Sealed, S tier is ${andList(sS.slice(0, 3))}. `) : "") + (tierRowsD.some(p => p.multi) ? multiNote : "")
+              : `色の組み合わせです。ティア表にしました。左がドラフト、右がシールドで、三色の組み合わせも載せています。ドラフトで一番強いのは${pairName(bestD.pair)}、勝率${pt(bestD.wr)}パーセント。Sティアは${sD.slice(0, 3).join("、")}です。` +
+                (pairsS.length ? (sameS ? `シールドもSティアは同じです。` : `シールドでは${sS.slice(0, 3).join("、")}がSティアです。`) : "") + (tierRowsD.some(p => p.multi) ? multiNote : ""),
       tail: 0.6 });
     // 狙い目：同じティア表の上で、その組み合わせだけを光らせて言う（画面は切り替えない）。詳しくは「狙い目の色」の章で
     if(sleepers.length){
@@ -300,9 +326,12 @@ function buildScript(ctx){
   const keyCards = (pair, n = 4) => {
     const [A, B] = [...pair];
     const inPair = c => !!c.color && [...c.color].every(ch => pair.includes(ch));   // 無色は入れない。相手の2色に入っていない色のカード（タッチで入る他の色）も除く
-    const list = rd.cards.filter(c => !c.land && inPair(c) && (c.rarity === "common" || c.rarity === "uncommon") && c.by_pair && c.by_pair[pair] && c.by_pair[pair][1] >= 250)
-      .map(c => ({ ...c, pg: c.by_pair[pair][0], pgames: c.by_pair[pair][1] })).sort((x, y) => y.pg - x.pg);
-    const isGold = c => c.color.length === 2;
+    // 3色（三色環境のとき）は、組み合わせ別の勝率データ（by_pair）が無いので、カード全体の勝率（GIH）で代用する
+    const stat = c => c.by_pair && c.by_pair[pair] ? (c.by_pair[pair][1] >= 250 ? { pg: c.by_pair[pair][0], pgames: c.by_pair[pair][1] } : null)
+                    : (pair.length >= 3 && c.games >= 500 ? { pg: c.gih, pgames: c.games, overall: true } : null);
+    const list = rd.cards.filter(c => !c.land && inPair(c) && (c.rarity === "common" || c.rarity === "uncommon") && stat(c))
+      .map(c => ({ ...c, ...stat(c) })).sort((x, y) => y.pg - x.pg);
+    const isGold = c => c.color.length >= 2;
     // まず、この2色のマルチカラー（コモン・アンコモン）を最大2枚。次に、各色の単色カードの最上位を1枚ずつ。残りは勝率の高い順
     const picked = list.filter(isGold).slice(0, 2);
     for(const col of [A, B]){ const c = list.find(x => x.color === col && !picked.includes(x)); if(c) picked.push(c); }
@@ -471,7 +500,7 @@ function buildScript(ctx){
     const contested = kind === "top" && share >= avgShare * 1.3;   // 使用率が平均の 1.3 倍以上：人気で取り合いになる色
     const weak = kind === "worst" ? weakColorOf(p.pair) : null;
     const ks = kind === "worst" ? keyCardsWeak(p.pair, weak) : keyCards(p.pair);
-    const sealedWr = (pairsS.find(x => x.pair === p.pair) || {}).wr;
+    const sealedWr = ([...pairsS, ...multiRows(ds)].find(x => x.pair === p.pair) || {}).wr;
     const ordinal = ["一番", "二番目に", "三番目に"][i];
     const ordinalE = ["The strongest pair is", "Second is", "Third is"][i];
     const sleeperSayE = () => {
@@ -826,19 +855,28 @@ function sceneSvg(sc){
           s += `<rect x="${x0}" y="${y}" width="${PW}" height="136" rx="18" fill="${DEEP}" fill-opacity="0.55" stroke="${TCOL[t]}" stroke-width="3"/>` +
                `<rect x="${x0}" y="${y}" width="120" height="136" rx="18" fill="${TCOL[t]}"/>` +
                T(x0 + 60, y + 96, t, { size: 80, weight: 900, anchor: "middle", fill: "#06101C" });
-          const cw = Math.min(150, Math.floor((PW - 150) / Math.max(list.length, 1)));
+          // 幅は、2色なら 150、3色以上は少し広く。全部で入りきらないときは詰める
+          const want = list.reduce((n, p) => n + (p.pair.length >= 3 ? 150 + (p.pair.length - 2) * 34 : 150), 0);
+          const k = Math.min(1, (PW - 150) / Math.max(want, 1));
+          let xcur = x0 + 145;
           list.forEach((p, j) => {
-            const x = x0 + 145 + j * cw, sz = Math.min(54, cw - 60);
+            const cwp = Math.floor((p.pair.length >= 3 ? 150 + (p.pair.length - 2) * 34 : 150) * k);
+            const x = xcur; xcur += cwp;
+            const sz = Math.min(54, Math.floor((cwp - 40) / p.pair.length) - 8), ccx = x + (p.pair.length * sz + (p.pair.length - 1) * 10) / 2;   // シンボルの並びの中心
             const hot = p === sc.bestD, cold = p === sc.worstD;
             const picked = withPicks && picks.some(k => k.pair === p.pair);
-            let chip = pairSymbols(p.pair, x, y + 36, sz) +
-                       T(x + sz + 5, y + 82, pairShort(p.pair), { size: 24, anchor: "middle", fill: PAPER, weight: 700 }) +
-                       (p.share != null ? T(x + sz + 5, y + 128, L(`使用率 ${Math.round(p.share * 100)}%`, `${Math.round(p.share * 100)}% drafted`), { size: 18, anchor: "middle", fill: MUTED }) : "") +
-                       T(x + sz + 5, y + 108, pt(p.wr) + "%", { size: 26, anchor: "middle", weight: hot || cold || picked ? 900 : 400, fill: picked ? GOLD : hot ? GOLD : cold ? DOWN : MUTED });
+            let chip = (p.multi && !sc.three ? `<rect x="${x - 10}" y="${y + 8}" width="${cwp - 10}" height="120" rx="14" fill="none" stroke="${MUTED}" stroke-opacity="0.5" stroke-dasharray="6 5" stroke-width="2"/>` +
+                                  `<rect x="${x - 10 + (cwp - 10) / 2 - 44}" y="${y - 4}" width="88" height="22" rx="11" fill="${DEEP}" stroke="${MUTED}" stroke-opacity="0.6" stroke-width="1.5"/>` +
+                                  T(x - 10 + (cwp - 10) / 2, y + 12, L("3色・タッチ", "3c · splash"), { size: 14, anchor: "middle", fill: MUTED, weight: 700 }) : "") +
+                       pairSymbols(p.pair, x, y + 36, sz) +
+                       T(ccx, y + 82, pairShort(p.pair), { size: 24, anchor: "middle", fill: PAPER, weight: 700 }) +
+                       (p.share != null ? T(ccx, y + 128, L(`使用率 ${Math.round(p.share * 100)}%`, `${Math.round(p.share * 100)}% drafted`), { size: 18, anchor: "middle", fill: MUTED }) : "") +
+                       T(ccx, y + 108, pt(p.wr) + "%", { size: 26, anchor: "middle", weight: hot || cold || picked ? 900 : 400, fill: picked ? GOLD : hot ? GOLD : cold ? DOWN : MUTED });
             // 狙い目を言うときは、その組み合わせだけ残して、ほかは薄くする
             if(withPicks && picks.length && !picked) chip = `<g opacity="0.3">${chip}</g>`;
+            else if(p.multi && !sc.three) chip = `<g opacity="0.8">${chip}</g>`;
             s += chip;
-            if(picked) marks.push({ x: x - 12, y: y + 6, w: cw - 6, h: 124 });
+            if(picked) marks.push({ x: x - 12, y: y + 6, w: cwp - 6, h: 124 });
           });
         });
         for(const m of marks){
@@ -881,7 +919,7 @@ function sceneSvg(sc){
           s += cardImg(c, x, 215, CW, CH);
           const lines = wrapName(c.label, 8);
           lines.forEach((l, j) => { s += T(x + CW / 2, 215 + CH + 44 + j * 34, l, { size: 28, weight: 900, anchor: "middle" }); });
-          s += T(x + CW / 2, 215 + CH + 44 + (lines.length - 1) * 34 + 46, `${c.side === "2" ? L("この2色で", "This pair") : L("この色で", "This colour")} ${pt(c.pg)}%`, { size: L(30, 25), weight: 700, anchor: "middle", fill: col });
+          s += T(x + CW / 2, 215 + CH + 44 + (lines.length - 1) * 34 + 46, `${c.overall ? L("全体で", "Overall") : c.side === "2" ? L("この2色で", "This pair") : L("この色で", "This colour")} ${pt(c.pg)}%`, { size: L(30, 25), weight: 700, anchor: "middle", fill: col });
         });
       }
       return frame(s, sc);
