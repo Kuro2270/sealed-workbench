@@ -27,7 +27,7 @@
  *     縦に切り出して暗くぼかし、その上に文字や図を重ねる。音は使わない
  *
  * 投稿は手動。音声の読みは script.json の "kana" で確認できる。
- * SHORT_STILLS=1 を付けると場面の画像だけ作って終わる（レイアウト確認用）。
+ * SHORT_STILLS=1 を付けると場面の画像だけ作って終わる（レイアウト確認用）。SHORT_FAKE_AUDIO=1 は VOICEVOX 無しで仮の音で動画まで組み立てる（動画の組み立ての確認用）。
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
@@ -210,7 +210,7 @@ function buildScript(d, nameJa, names){
   const scenes = [];
   const gamesEn = d.total_games >= 10000 ? Math.round(d.total_games / 1000) + " thousand" : manSay(d.total_games);
   scenes.push({ kind: "hook", art: true,
-    say: EARLY ? (JA ? `MTGアリーナ、${nameJa}のリミテッド速報。1分でまとめました。`
+    say: EARLY ? (JA ? `MTGアリーナ、${nameJa}のリミテッド速報です。1分でまとめました。`
                      : `MTG Arena Limited: ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} format. The early look, in one minute.`)
        : JA ? `MTGアリーナ、リミテッドの${nameJa}環境。${games}試合のデータが、1分でわかります。`
             : `MTG Arena Limited: ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} format. ${gamesEn} games of data, in one minute.`,
@@ -241,7 +241,7 @@ function buildScript(d, nameJa, names){
   if(colors.length && best){
     const top2 = colors.slice(0, 2).map(c => CN[c.color]).join(JA ? "と" : " and ");
     const sNames = tiers.S.slice(0, 3).map(p => pairName(p.pair));   // 読むのは 3 つまで
-    let say = JA ? `色の組み合わせのティア表です。Sティアは${sNames.join("と")}。`
+    let say = JA ? `色の組み合わせのティア表です。Sティアは${sNames.join("と")}です。`
                  : `The colour-pair tier list. S tier: ${sNames.join(" and ")}.`;
     if(worst && worst !== best) say += JA ? `一番下は${pairName(worst.pair)}です。` : ` At the bottom: ${pairName(worst.pair)}.`;
     const worstShown = worst && worst !== best ? worst : null;
@@ -252,9 +252,9 @@ function buildScript(d, nameJa, names){
       scenes.push({ kind: "tier", colors, tiers, best, worst: worstShown, nofade: true, tail: 0.8,
         pick: { pair: target.pair, note: UI.share(sh, av, target.rank) },
         say: target.isBest
-          ? (JA ? `狙い目は、最強の${pairName(target.pair)}そのもの。勝率1位なのに使う人は少なめで、カードが流れてきやすい。`
+          ? (JA ? `狙い目は、最強の${pairName(target.pair)}そのものです。勝率1位なのに使う人は少なめで、カードが流れてきやすい色です。`
                 : `The pick to aim for is the best pair itself, ${pairName(target.pair)}. Number one, yet under-drafted. Its cards come to you.`)
-          : (JA ? `狙い目は${pairName(target.pair)}。勝率${target.rank}位なのに使う人は少なめで、カードが流れてきやすい。`
+          : (JA ? `狙い目は${pairName(target.pair)}です。勝率${target.rank}位なのに使う人は少なめで、カードが流れてきやすい色です。`
                 : `The pick to aim for: ${pairName(target.pair)}. Number ${target.rank} by win rate, yet under-drafted. Its cards come to you.`) });
     }
   }
@@ -266,7 +266,7 @@ function buildScript(d, nameJa, names){
       const three = pg.slice(0, 3);
       scenes.push({ kind: "bombs", page: i, from, to, cards: pg, label: `bombs${i + 1}`, tail: 0.8, minDur: 6,   // 5 枚を見る時間として、短くても 6 秒は置く
         // 1〜5 位は順位と数字を読む。6〜10 位は数字を読み上げず、「これも中心に据えていい」と言う（棒読みにしない）
-        say: i === 0 ? (JA ? `レアと神話レアのボム、トップ10。1位は${three[0].label}、${pt(three[0].gih)}パーセント。${three.slice(1).map(c => c.label).join("、")}も、迷わずピックです。`
+        say: i === 0 ? (JA ? `レアと神話レアのボム、トップ10です。1位は${three[0].label}、${pt(three[0].gih)}パーセントです。${three.slice(1).map(c => c.label).join("、")}も、迷わずピックです。`
                            : `Top ten rare and mythic bombs. Number one: ${three[0].name}, at ${pt(three[0].gih)} percent. ${three.slice(1).map(c => c.name).join(" and ")} are first-picks too.`)
                      : (JA ? `${from}位から${to}位も十分なボムです。引いたら、これを中心にデッキを組みましょう。`
                            : `Numbers ${from} to ${to} are still bombs. Open one, and build your deck around it.`) });
@@ -292,7 +292,7 @@ function buildScript(d, nameJa, names){
     }
     prevTop = { col };
     const brief = label === UI.uncommon;   // 2 枠目（アンコモン）は「トップ3はこちら」だけ（動画の長さを抑える）
-    scenes.push({ kind: "top", label, say: JA ? `${label}のトップ3はこちら。${brief ? "" : lead}` : `Top three ${label}s. ${brief ? "" : lead}`, cards, tail: 1.0 });
+    scenes.push({ kind: "top", label, say: JA ? `${label}のトップ3はこちらです。${brief ? "" : lead}` : `Top three ${label}s. ${brief ? "" : lead}`, cards, tail: 1.0 });
   };
   topScene(commons, UI.common);
   topScene(uncommons, UI.uncommon);
@@ -734,10 +734,19 @@ function sceneSvg(sc){
 /* ------------------------------------------------------------ 音声 */
 
 /* カード名の読み違いを直す辞書。short/yomi.json に { "蛮刀": "バントウ" } の形で足していく */
+/* 読み上げに渡す直前に、辞書の語を読みに置き換える。VOICEVOX の利用者辞書は「黒緑」のような色の並びに当たらないことがある
+   （形態素解析が「黒」「緑」に分けて「りょく」と読む）ので、辞書登録に頼らず文面そのものを読みにしておく。字幕には使わない */
+let YOMI = [];
+function toSpeech(text){
+  let t = String(text);
+  for(const [surface, yomi] of YOMI) t = t.split(surface).join(yomi);
+  return t;
+}
 async function loadYomi(){
   try{ await fetch(`${VV}/version`); }
   catch(e){ throw new Error(`VOICEVOX ENGINE に接続できません（${VV}）。起動してから実行してください`); }
   const dict = await readJson("short/yomi.json", {});
+  YOMI = Object.entries(dict).sort((a, b) => [...b[0]].length - [...a[0]].length);   // 長い語から置き換える（「白青黒」が「白青」に先に当たらないように）
   let n = 0;
   for(const [surface, yomi] of Object.entries(dict)){
     const r = await fetch(`${VV}/user_dict_word?surface=${encodeURIComponent(surface)}&pronunciation=${encodeURIComponent(yomi)}&accent_type=0&priority=8`, { method: "POST" });
@@ -766,8 +775,13 @@ sf.write(job["out"], samples, sr)
 }
 
 async function speak(text, wavPath){
+  if(process.env.SHORT_FAKE_AUDIO){   // 動画の組み立てだけを確かめるとき：VOICEVOX を使わず、文字数ぶんの長さの仮の音を入れる
+    const dur = Math.max(1.5, [...text].length / (JA ? 6 : 14));
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "lavfi", "-i", `aevalsrc=0.3*sin(2*PI*220*t)*gt(sin(2*PI*2.7*t)\\,-0.2):s=24000`, "-t", dur.toFixed(2), wavPath]);
+    return { kana: text, dur };
+  }
   if(!JA) return speakEn(text, wavPath);
-  const q = await fetch(`${VV}/audio_query?speaker=${SPEAKER}&text=${encodeURIComponent(text)}`, { method: "POST" });
+  const q = await fetch(`${VV}/audio_query?speaker=${SPEAKER}&text=${encodeURIComponent(toSpeech(text))}`, { method: "POST" });
   if(!q.ok) throw new Error(`audio_query ${q.status}`);
   const query = await q.json();
   query.speedScale = SPEED;
@@ -933,7 +947,7 @@ async function main(){
       sc.kana = old.kana; sc.dur = old.dur; continue;
     }
     if(process.env.SHORT_STILLS){ sc.kana = sc.say; sc.dur = 3; continue; }   // 画像だけなら音声は要らない（VOICEVOX 無しでも確認できる）
-    if(JA && !yomiLoaded){ await loadYomi(); yomiLoaded = true; }
+    if(JA && !yomiLoaded && !process.env.SHORT_FAKE_AUDIO){ await loadYomi(); yomiLoaded = true; }
     const { kana, dur } = await speak(sc.say, base + ".wav");
     sc.kana = kana; sc.dur = dur;
   }
@@ -1003,11 +1017,11 @@ async function main(){
     const pop = popLayer(sc);
     if(pop){   // 動く層（登録ボタンなど）：いちばん最後の入力として足し、下から浮き上がって、ゆっくり跳ねる
       await sharp(Buffer.from(pop.svg), { density: 72 }).png().toFile(base + ".pop.png");
-      const fi = args.indexOf("-filter_complex");
       const idx = args.filter(a => a === "-i").length;
-      args.splice(fi, 0, "-loop", "1", "-framerate", "30", "-i", base + ".pop.png");
-      const bounce = `${pop.y}+60*max(0\,1-t*4)-12*abs(sin(2.6*t))*min(1\,t*4)`;   // 0.25 秒で浮き上がり、その後は上下に小さく跳ねる
-      args[fi + 1] = args[fi + 1].replace(/,?format=yuv420p\[v\];/, `null[v0];[${idx}:v]scale=${pop.w}:${pop.h},format=rgba,fade=t=in:d=0.25:alpha=1[pp];[v0][pp]overlay=x=${pop.x}:y='${bounce}':shortest=1,format=yuv420p[v];`);
+      args.splice(args.indexOf("-filter_complex"), 0, "-loop", "1", "-framerate", "30", "-i", base + ".pop.png");
+      const fi = args.indexOf("-filter_complex");   // 入力を足したあとの位置
+      const bounce = `${pop.y}+60*max(0\\,1-t*4)-12*abs(sin(2.6*t))*min(1\\,t*4)`;   // 0.25 秒で浮き上がり、その後は上下に小さく跳ねる（式の中のカンマは \, と書く）
+      args[fi + 1] = args[fi + 1].replace(/format=yuv420p\[v\];/, `null[v0];[${idx}:v]scale=${pop.w}:${pop.h},format=rgba,fade=t=in:d=0.25:alpha=1[pp];[v0][pp]overlay=x=${pop.x}:y='${bounce}':shortest=1,format=yuv420p[v];`);
     }
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...args,
       "-map", "[v]", "-map", "[a]", "-t", String(len), "-c:v", "libx264", "-preset", "fast", "-crf", "20", "-c:a", "aac", "-b:a", "160k",

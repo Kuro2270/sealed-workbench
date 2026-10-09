@@ -1109,10 +1109,19 @@ function capSvg(page){
 
 /* ------------------------------------------------------------ 音声 */
 
+/* 読み上げに渡す直前に、辞書の語を読みに置き換える。VOICEVOX の利用者辞書は「黒緑」のような色の並びに当たらないことがある
+   （形態素解析が「黒」「緑」に分けて「りょく」と読む）ので、辞書登録に頼らず文面そのものを読みにしておく。字幕には使わない */
+let YOMI = [];
+function toSpeech(text){
+  let t = String(text);
+  for(const [surface, yomi] of YOMI) t = t.split(surface).join(yomi);
+  return t;
+}
 async function loadYomi(){
   try{ await fetch(`${VV}/version`); }
   catch(e){ throw new Error(`VOICEVOX ENGINE に接続できません（${VV}）。起動してから実行してください`); }
   const dict = await readJson("short/yomi.json", {});
+  YOMI = Object.entries(dict).sort((a, b) => [...b[0]].length - [...a[0]].length);   // 長い語から置き換える（「白青黒」が「白青」に先に当たらないように）
   let n = 0;
   for(const [surface, yomi] of Object.entries(dict)){
     const r = await fetch(`${VV}/user_dict_word?surface=${encodeURIComponent(surface)}&pronunciation=${encodeURIComponent(yomi)}&accent_type=0&priority=8`, { method: "POST" });
@@ -1205,7 +1214,7 @@ async function speak(text, wavPath){
     return { kana: text, dur };
   }
   if(EN) return speakEn(text, wavPath);
-  const q = await fetch(`${VV}/audio_query?speaker=${SPEAKER}&text=${encodeURIComponent(text)}`, { method: "POST" });
+  const q = await fetch(`${VV}/audio_query?speaker=${SPEAKER}&text=${encodeURIComponent(toSpeech(text))}`, { method: "POST" });
   if(!q.ok) throw new Error(`audio_query ${q.status}`);
   const query = await q.json();
   query.speedScale = SPEED; query.postPhonemeLength = 0.25;
