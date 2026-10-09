@@ -296,14 +296,15 @@ function buildScript(ctx){
       tail: 0.6 });
     // 狙い目：同じティア表の上で、その組み合わせだけを光らせて言う（画面は切り替えない）。詳しくは「狙い目の色」の章で
     if(sleepers.length){
-      const picks = sleepers.map(p => ({ pair: p.pair, rank: rankD[p.pair], share: Math.round(p.games / totalPG * 100), wr: p.wr }));
+      const tierLetter = pair => ["S", "A", "B", "C"].find(t => tD[t].some(q => q.pair === pair)) || "";
+      const picks = sleepers.map(p => ({ pair: p.pair, tier: tierLetter(p.pair), share: Math.round(p.games / totalPG * 100), wr: p.wr }));
       const avgSh = Math.round(avgShareP * 100);
       scenes.push({ ...tierBase, nofade: true, picks, avgShare: avgSh, tail: 0.6,
         say: EN ? `And the sleeper pick${picks.length > 1 ? "s" : ""}: ${andList(picks.map(p => pairName(p.pair)))}. ` +
-                  picks.map(p => `${pairName(p.pair)} wins ${pt(p.wr)} percent, number ${p.rank}, but only ${p.share} percent of drafters take it, against an average of ${avgSh}.`).join(" ") +
+                  picks.map(p => `${pairName(p.pair)} wins ${pt(p.wr)} percent${p.tier ? `, ${p.tier} tier` : ""}, but only ${p.share} percent of drafters take it, against an average of ${avgSh}.`).join(" ") +
                   ` ${picks.length > 1 ? "Their" : "Its"} cards come to you. More on ${picks.length > 1 ? "these" : "this"} later.`
                 : `ここで狙い目です。${picks.map(p => pairName(p.pair)).join("と")}。` +
-                  picks.map(p => `${pairName(p.pair)}は勝率${pt(p.wr)}パーセントで${p.rank}位ですが、使っている人は${p.share}パーセントと、平均の${avgSh}パーセントより少なめ。`).join("") +
+                  picks.map(p => `${pairName(p.pair)}は勝率${pt(p.wr)}パーセント${p.tier ? `で${p.tier}ティア` : ""}ですが、使っている人は${p.share}パーセントと、平均の${avgSh}パーセントより少なめ。`).join("") +
                   `カードが流れてきやすい色です。あとで詳しく見ます。` });
     }
   }
@@ -505,13 +506,12 @@ function buildScript(ctx){
     const ordinalE = ["The strongest pair is", "Second is", "Third is"][i];
     const sleeperSayE = () => {
       const rel = p.wr >= avgD ? `That's above the format average of ${pt(avgD)} percent.` : `That's about the same as the format average of ${pt(avgD)} percent.`;
-      return `${pairName(p.pair)} wins ${pt(p.wr)} percent in Draft${rankD[p.pair] <= 3 ? `, ranking number ${rankD[p.pair]}` : ""}. ${rel} Yet only ${Math.round(share * 100)} percent of decks play it, below the average of ${Math.round(avgShare * 100)} percent. ` +
+      return `${pairName(p.pair)} wins ${pt(p.wr)} percent in Draft. ${rel} Yet only ${Math.round(share * 100)} percent of decks play it, below the average of ${Math.round(avgShare * 100)} percent. ` +
         `Fewer players compete for its cards, so it's a great target when the strong colours aren't flowing. ` + keySay(ks, p.pair) + (sealedWr != null ? `The Sealed win rate is ${pt(sealedWr)} percent.` : "");
     };
     const sleeperSay = () => {
-      const rk = rankD[p.pair] <= 3 ? `ドラフト${rankD[p.pair]}位で、` : "";
       const rel = p.wr >= avgD ? `これは全体の平均${pt(avgD)}パーセントを上回っています。` : `これは全体の平均${pt(avgD)}パーセントと、ほぼ同じです。`;
-      return `${pairName(p.pair)}は、${rk || "ドラフトの"}勝率は${pt(p.wr)}パーセント。${rel}それなのに、使っている人は全体の${Math.round(share * 100)}パーセントで、平均の${Math.round(avgShare * 100)}パーセントより少なめです。` +
+      return `${pairName(p.pair)}は、ドラフトの勝率は${pt(p.wr)}パーセント。${rel}それなのに、使っている人は全体の${Math.round(share * 100)}パーセントで、平均の${Math.round(avgShare * 100)}パーセントより少なめです。` +
         `カードの取り合いになりにくいので、強い色が流れてこないときの、狙い目です。` + keySay(ks, p.pair) + (sealedWr != null ? `シールドの勝率は${pt(sealedWr)}パーセントです。` : "");
     };
     const sayE = kind === "sleeper" ? sleeperSayE() : kind === "worst"
@@ -897,7 +897,7 @@ function sceneSvg(sc){
         // 説明（表の下、字幕の上）
         const y = 858;
         out += `<rect x="60" y="${y - 40}" width="1800" height="58" rx="16" fill="${DEEP}" fill-opacity="0.85" stroke="${GOLD}" stroke-width="3"/>` +
-               T(84, y, L("狙い目（強いのに空いている）：", "Aim for (strong, under-drafted): ") + picks.map(p => `${pairName(p.pair)} ${L(`${p.rank}位・使用率${p.share}%`, `#${p.rank}, drafted ${p.share}%`)}`).join(L("　", "   ")) + L(`（平均 ${sc.avgShare}%）`, ` (avg ${sc.avgShare}%)`), { size: 26, fill: GOLD, weight: 700 });
+               T(84, y, L("狙い目（強いのに空いている）：", "Aim for (strong, under-drafted): ") + picks.map(p => `${pairName(p.pair)} ${L(`${p.tier ? p.tier + "ティア・" : ""}使用率${p.share}%`, `${p.tier ? p.tier + " tier, " : ""}drafted ${p.share}%`)}`).join(L("　", "   ")) + L(`（平均 ${sc.avgShare}%）`, ` (avg ${sc.avgShare}%)`), { size: 26, fill: GOLD, weight: 700 });
       }
       return frame(out, sc);
     }
