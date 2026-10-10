@@ -8,7 +8,7 @@
  * 出力: long/<SET>/ja.mp4 、 long/<SET>/chapters.txt（YouTube の概要欄に貼る目次）、 long/<SET>/description.txt、
  *       途中生成物（台本 script.json、場面ごとの png / wav）
  *
- * 中身: 環境の速さ → 色の強さ → 2色の組み合わせ（上位3つを深堀り＋最弱）→ ドラフトとシールドの違い
+ * 中身: 環境の速さ → 色の強さ → 2色の組み合わせ（上位3つを深堀り＋最弱）→（ドラフトとシールドの違い：WITH_DVS のときだけ）
  *       → 神話レア・レアのボム上位10枚 → 罠カード → コモン・アンコモンの除去（平均より強いものだけ） → まとめ
  *       （色の組み合わせの深堀りでは、コモン・アンコモンだけで鍵カードを選ぶ。勝率がそこそこ高く使用率が低い色は「狙い目」として特設）
  *       ドラフトとシールドの両方のデータ（data/articles と data/ratings）を使う。
@@ -48,6 +48,7 @@ const W = 1920, H = 1080, SCALE = 1.5;
 const PINE = "#10304F", DEEP = "#0A2038", BLUE = "#2F7DF6", PAPER = "#F5F8FC", MUTED = "#A9C2DE";
 const UP = "#5B9BFF", DOWN = "#F08A3E", GOLD = "#F2C94C", GREEN = "#4CC38A";
 const COLOR = { W: "#F3EAC6", U: "#4A90E2", B: "#6B5E7A", R: "#E1553E", G: "#3E9B5B" };
+const WITH_DVS = false;       // 「ドラフトとシールドの違い」の章。2026年10月に割愛（戻すときは true）
 const WITH_REMOVAL = false;   // コモン・アンコモンの除去一覧の章。いったん割愛中（戻すときは true）
 const CJ = EN ? { W: "White", U: "Blue", B: "Black", R: "Red", G: "Green" } : { W: "白", U: "青", B: "黒", R: "赤", G: "緑" };
 const ZONES = EN ? ["2 mana or less", "3 mana", "4 mana", "5+ mana"] : ["2マナ以下", "3マナ", "4マナ", "5マナ以上"];     // マナカーブの区切り（組み合わせ別のマナ域）
@@ -219,7 +220,7 @@ function buildScript(ctx){
     say: EN ? `Here's the complete ${nameJa} Limited format for MTG Arena, based on ${man(gamesD + gamesS)} games of data. The strongest colour pairs, ten bomb rares you can pick without hesitation, trap rares that look great but win less than you'd expect, and the best commons and uncommons for every colour. We'll look at both Draft and Sealed data.` : `MTGアリーナ、リミテッドの${nameJa}環境を、${man(gamesD + gamesS)}試合のデータでまるごと解説します。最強の色の組み合わせ、迷わず取っていいボムのレア十枚、見た目に反して勝てない罠なレアカード、そして、色別のおすすめのコモンとアンコモンまで。ドラフトとシールドの両方のデータで見ていきます。`,
     title: nameJa, gamesD, gamesS, tail: 0.6 });
   scenes.push({ kind: "agenda", say: EN ? `Here's the plan: format speed, colour pairs and deck speed, sleeper pairs, bombs, trap rares, and the best cards for each colour.` : `順番に、環境の速さ、色の組み合わせとデッキの速さ、ボム、罠なレアカード、色別のおすすめ${WITH_REMOVAL ? "、除去" : ""}まで見ていきます。`,
-    items: (EN ? ["Format speed", "Colour strength", "Pair speed & mana curve", "Sleeper pairs", "Draft vs Sealed", "Top 10 bomb rares", "Trap rares", "Top commons & uncommons"] : ["環境の速さ", "色の強さ", "色の組み合わせと速さ", "狙い目の色", "ドラフトとシールドの違い", "ボムのレア10枚", "罠なレアカード", "色別のコモン・アンコモン"]).concat(WITH_REMOVAL ? ["除去（コモン・アンコモン）"] : []), tail: 0.4 });
+    items: (EN ? ["Format speed", "Colour strength", "Pair speed & mana curve", "Sleeper pairs", ...(WITH_DVS ? ["Draft vs Sealed"] : []), "Top 10 bomb rares", "Trap rares", "Top commons & uncommons"] : ["環境の速さ", "色の強さ", "色の組み合わせと速さ", "狙い目の色", ...(WITH_DVS ? ["ドラフトとシールドの違い"] : []), "ボムのレア10枚", "罠なレアカード", "色別のコモン・アンコモン"]).concat(WITH_REMOVAL ? ["除去（コモン・アンコモン）"] : []), tail: 0.4 });
 
   /* --- 速さ --- */
   const paceRows = d => (d.speed || []).filter(s => s.wr != null && s.games).map((s, i, a) => ({
@@ -545,8 +546,8 @@ function buildScript(ctx){
     pushSpeed(p);
   });
 
-  /* --- ドラフトとシールドの違い --- */
-  {
+  /* --- ドラフトとシールドの違い（WITH_DVS のときだけ） --- */
+  if(WITH_DVS){
     const both = pairsD.filter(p => rankS[p.pair] && p.games >= 1500).map(p => ({ ...p, rd: rankD[p.pair], rs: rankS[p.pair], diff: rankD[p.pair] - rankS[p.pair] }));
     const upC = both.slice().sort((a, b) => b.diff - a.diff)[0], downC = both.slice().sort((a, b) => a.diff - b.diff)[0];
     const up = upC && upC.diff > 0 ? upC : null, down = downC && downC.diff < 0 ? downC : null;
@@ -573,10 +574,10 @@ function buildScript(ctx){
     return { ...c, label: J(c.name), rank: i + 1, sGih: s && s.games >= 300 ? s.gih : null, sGames: s ? s.games : 0 };
   });
   if(bombs.length >= 10){
-    scenes.push({ kind: "bombs", chapter: L("ボムのレア10枚", "Top 10 bomb rares"), cards: bombs.slice(0, 5), avgD, part: 1,
+    scenes.push({ kind: "bombs", chapter: L("ボムのレア10枚", "Top 10 bomb rares"), cards: bombs.slice(0, 5), avgD, part: 1, highlight: rowBoxes(bombs.slice(0, 5)),
       say: EN ? `Now the bombs: the top ten. They're ranked by win rate in games where you drew the card, among mythics and rares, counting only cards with at least 1,500 games. ` + bombs.slice(0, 5).map(c => `Number ${c.rank}, ${c.label}, ${pt(c.gih)} percent. `).join("") : `ここからがボム、十枚です。引けた試合での勝率が高い順で、神話レアとレアから選びました。試合数が少ないカードは数字がぶれるので、千五百試合以上のカードに限っています。` +
            bombs.slice(0, 5).map(c => `${c.rank}位、${c.label}、${pt(c.gih)}パーセント。`).join(""), tail: 0.6 });
-    scenes.push({ kind: "bombs", chapter: null, cards: bombs.slice(5, 10), avgD, part: 2,
+    scenes.push({ kind: "bombs", chapter: null, cards: bombs.slice(5, 10), avgD, part: 2, highlight: rowBoxes(bombs.slice(5, 10)),
       say: EN ? bombs.slice(5, 10).map(c => `Number ${c.rank}, ${c.label}, ${pt(c.gih)} percent. `).join("") + `If you open any of these, they're worth moving your colours to fit. The format average is ${pt(avgD)} percent, and every one of these is well above it.`
          : bombs.slice(5, 10).map(c => `${c.rank}位、${c.label}、${pt(c.gih)}パーセント。`).join("")
          + `これらは、引けたら、色を合わせに行く価値が十分にあるカードです。全体の平均勝率は${pt(avgD)}パーセントなので、どれも大きく上回っています。`, tail: 0.6 });
@@ -593,7 +594,7 @@ function buildScript(ctx){
       return { ...c, label: J(c.name), sGih: s && s.games >= 300 ? s.gih : null };
     });
   if(traps.length >= 3){
-    scenes.push({ kind: "traps", chapter: L("罠なレアカード", "Trap rares"), cards: traps, avgD, rareAvg,
+    scenes.push({ kind: "traps", chapter: L("罠なレアカード", "Trap rares"), cards: traps, avgD, rareAvg, highlight: rowBoxes(traps),
       say: EN ? `Next, trap rares. These are rares that win less than the average rare when drawn. The rare average is ${pt(rareAvg)} percent. ` + traps.map(c => `${c.label} wins ${pt(c.gih)} percent. `).join("") +
            `That doesn't mean they're weak cards, just that they often don't work well in decks. If you have better options, don't force them in.` : `次は、罠なレアカード。レアなのに、引いた試合の勝率がレア全体の平均より低いものです。レアの平均は${pt(rareAvg)}パーセント。` +
            traps.map((c, i) => `${c.label}は${pt(c.gih)}パーセント。`).join("") +
@@ -619,7 +620,7 @@ function buildScript(ctx){
       const rep3 = (jp, arr) => arr.length
         ? `${jp}の代表は、${arr[0].label}、${pt(arr[0].gih)}パーセント。${arr.length > 1 ? "ほかに、" + arr.slice(1, 3).map(c => c.label).join("、") + "。" : ""}`
         : `${jp}の${KJ[e.col]}は、この環境にありません。`;
-      scenes.push({ kind: "colortop", chapter: i === 0 ? L("色別のコモン・アンコモン", "Top commons & uncommons") : null, color: e.col, com: e.com, unc: e.unc, comAvg, uncAvg, cards: [...e.com.slice(0, 3), ...e.unc.slice(0, 3)],
+      scenes.push({ kind: "colortop", chapter: i === 0 ? L("色別のコモン・アンコモン", "Top commons & uncommons") : null, color: e.col, com: e.com, unc: e.unc, comAvg, uncAvg, cards: [...e.com.slice(0, 3), ...e.unc.slice(0, 3)], highlight: colortopBoxes(e.com, e.unc),
         say: EN ? (i === 0 ? `Next, the best cards by colour. Besides the five colours, I'll also cover multicolour and colourless cards. Commons and uncommons are ranked by win rate when drawn, five each. ` : "") +
                   `${KJ[e.col]}. ` + (e.col === "M" ? `One note: this follows 17Lands' grouping, so it also includes cards that look mono-coloured but use a second colour in their abilities, such as hybrid or activation costs. ` : "") +
                   rep3E("common", e.com) + rep3E("uncommon", e.unc) + `The rest are shown here.`
@@ -691,6 +692,7 @@ function buildScript(ctx){
       (r3.length >= 2 ? `${remSc.jp}の除去では、${r3[0].label}と${r3[1].label}が頼れます。` : "") +
       `カードごとの勝率の一覧は、サイトで見られます。`;
     sum.tail = 0.8;
+    sum.highlight = summaryBoxes(sum);
     scenes.push(sum);
   }
 
@@ -738,6 +740,31 @@ function cardImg(c, x, y, w, h){
 }
 
 /* カードを横に並べる場面（ボム・罠・除去）。stats は各カードの下に出す行 */
+/* 読み上げに合わせて光らせる枠の位置（画面の並びと同じ計算）。label はセリフの中で探すカード名 */
+function rowBoxes(cards, y0 = 250){
+  const n = cards.length, CW = 270, CH = 376, gap = 54, total = n * CW + (n - 1) * gap, x0 = (W - total) / 2;
+  return cards.map((c, i) => ({ label: c.label, x: x0 + i * (CW + gap) - 14, y: y0 - 64, w: CW + 28, h: 690 }));
+}
+function colortopBoxes(com, unc){
+  const one = (x, list) => { const top = list.slice(0, 3), CW = 172, gap = 36, x0 = x + (860 - (top.length * CW + (top.length - 1) * gap)) / 2;
+    return top.map((c, i) => ({ label: c.label, x: x0 + i * (CW + gap) - 12, y: 310, w: CW + 24, h: 400 })); };
+  return [...one(60, com), ...one(980, unc)];
+}
+/* まとめの画面：上段の枠（速さ・最強の色・最強の組み合わせ・狙い目・避ける）と、下段のカード（ボム・罠）。renderer の配置と同じ計算。
+   label はセリフの中で探す言葉（前から順に探すので、同じ言葉が何度出ても並び順どおりに当たる） */
+function summaryBoxes(sc){
+  const top = [];
+  if(sc.pace) top.push(EN ? sc.pace.word : sc.pace.word);
+  if(sc.mono) top.push(pairName(sc.mono.color));
+  if(sc.best) top.push(pairName(sc.best.pair));
+  (sc.sleepers || []).slice(0, 2).forEach(p => top.push(pairName(p.pair)));
+  if(sc.worst) top.push(pairName(sc.worst.pair));
+  const n = Math.max(top.length, 1), PG = 20, PW = Math.floor((1820 - PG * (n - 1)) / n);
+  const out = top.map((label, i) => ({ label, x: 50 + i * (PW + PG) - 6, y: 119, w: PW + 12, h: 247 }));
+  const cols = [sc.b3, sc.t3, sc.r3].filter(c => c && c.length), CG = 25, CWd = Math.floor((1820 - CG * (cols.length - 1)) / cols.length);
+  cols.forEach((cards, i) => cards.forEach((c, j) => out.push({ label: c.label, x: 50 + i * (CWd + CG) + 12, y: 375 + 56 + j * 150, w: CWd - 24, h: 142 })));
+  return out;
+}
 function cardRow(cards, stats, accent, y0 = 140){
   // 番号の丸は、カードの上の余白に置く（カードに重ねると、カード自身の名前の欄を隠してしまう）。y0 はカード上端
   const n = cards.length, CW = 270, CH = 376, gap = 54, total = n * CW + (n - 1) * gap, x0 = (W - total) / 2;
@@ -1557,12 +1584,19 @@ async function main(){
     // 読み上げに合わせて光らせる枠（deep の鍵カード）：カード名がセリフのどこに出るかで時間を割る
     const hl = (!STILLS && sc.highlight && sc.highlight.length) ? (() => {
       const say = sc.say, total = [...say].length || 1;
-      const starts = sc.highlight.map(h => { const i = say.indexOf(h.label); return i < 0 ? null : [...say.slice(0, i)].length / total * sc.dur; });
+      // セリフの前から順に探す（同じ名前が 2 回出ても、並び順どおりに当てる）。セリフに出てこないカードは光らせない
+      let from = 0;
+      const ends = [];
+      const starts = sc.highlight.map((h, k) => { const i = say.indexOf(h.label, from); if(i < 0) return null; from = i + h.label.length;
+        // その文の終わり（次の「。」や「.」）まで。次のカードの話に移ったら、そこで消す
+        const stop = (() => { const j = say.slice(from).search(EN ? /[.!?](\s|$)/ : /。/); return j < 0 ? say.length : from + j + 1; })();
+        ends[k] = [...say.slice(0, stop)].length / total * sc.dur + 0.3;
+        return [...say.slice(0, i)].length / total * sc.dur; });
       const out = [];
       sc.highlight.forEach((h, k) => {
         if(starts[k] == null) return;
         const next = starts.slice(k + 1).find(v => v != null);
-        out.push({ ...h, a: Math.max(0, starts[k] - 0.15), b: next != null ? next - 0.15 : starts[k] + 2.2 });
+        out.push({ ...h, a: Math.max(0, starts[k] - 0.15), b: Math.min(next != null ? next - 0.15 : Infinity, ends[k]) });
       });
       return out;
     })() : [];
