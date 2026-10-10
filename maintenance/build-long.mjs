@@ -1379,7 +1379,9 @@ async function main(){
     const { readdir } = await import("node:fs/promises");
     const isAudio = f => /\.(mp3|m4a|wav|ogg)$/i.test(f);
     // 長尺は long/bgm/ の曲（フィールド曲）を優先。無ければ short/bgm/ を使う
-    let dir = "long/bgm", files = []; try{ files = (await readdir(dir)).filter(isAudio).sort(); }catch(e){}
+    // 英語版は long/bgm-en/ を先に見る（無ければ long/bgm/ → short/bgm/）
+    let dir = EN ? "long/bgm-en" : "long/bgm", files = []; try{ files = (await readdir(dir)).filter(isAudio).sort(); }catch(e){}
+    if(!files.length && EN){ dir = "long/bgm"; try{ files = (await readdir(dir)).filter(isAudio).sort(); }catch(e){} }
     if(!files.length){ dir = "short/bgm"; files = (await readdir(dir)).filter(isAudio).sort(); }
     if(files.length){ const pick = files[[...SET].reduce((n, ch) => n + ch.charCodeAt(0), 0) % files.length]; bgm = `${dir}/${pick}`; bgmCredit = (await readJson(`${dir}/credits.json`, {}))[pick] || ""; console.error(`BGM: ${pick}`); }
   }catch(e){}

@@ -4,8 +4,12 @@ short/symbols/
 short/*/
 !short/logo/
 !short/bgm/
+!short/bgm-en/
 # 英語版のキャラクター（四国めたん）の口パク素材
 !short/metan/
 node_modules/
-long/
+# 長尺の生成物は無視。BGM（日本語・英語）だけは残す
+long/*
+!long/bgm/
+!long/bgm-en/
 social-manual/
