@@ -391,13 +391,13 @@ function buildScript(ctx){
     const a = ofCol(A), b = ofCol(B), gold = ks.filter(c => c.side === "2"), rest = ks.filter(c => c !== a && c !== b && c.side !== "2");
     const q = c => EN ? `“${c.label}”` : `「${c.label}」`;
     // 画面に並ぶ順（左から）に読む。読んでいるカードを画面で光らせるため、順番を入れ替えない
-    const tag = c => c.side === "2" ? L("二色の", "the two-colour ") : (CJ[c.side] ? L(`${CJ[c.side]}の`, `${CJ[c.side]}'s `) : "");
+    // 色の説明（「赤の」「二色の」）は付けない。画面のカードを見ればわかり、セリフが長くなるだけなので
     if(EN){
-      const items = ks.map(c => tag(c) + q(c));
+      const items = ks.map(q);
       let te = KEY_LEAD[n % KEY_LEAD.length] + "from the left, " + andList(items) + ". ";
       return te + KEY_TAIL[n % KEY_TAIL.length];
     }
-    const items = ks.map(c => tag(c) + q(c));
+    const items = ks.map(q);
     let t = KEY_LEAD[n % KEY_LEAD.length] + "左から、" + items.join("、") + "。";
     return t + KEY_TAIL[n % KEY_TAIL.length];
   };
@@ -1337,7 +1337,37 @@ for job in json.load(sys.stdin):
   }
   return durs;
 }
-async function speak(text, wavPath){
+/* 光らせる場面のセリフを、カード（項目）ごとの区切りで分ける。区切りごとに別々に読み上げて長さを測り、
+   「どのカードの話が、何秒から何秒か」を実際の音声の長さで決めるため（文字数の割合で見積もると、数字の読み上げなどでずれる）。
+   返り値：chunks（読み上げる文の並び）と、spans（光らせる枠 k が、chunks の何番目から何番目までか） */
+function splitForHighlight(sc){
+  const say = sc.say, cuts = new Set([0, say.length]), marks = [];
+  const punct = EN ? /[,.!?;:]\s/g : /[、。]/g;
+  let from = 0;
+  for(const h of sc.highlight){
+    const i = say.indexOf(h.label, from);
+    if(i < 0){ marks.push(null); continue; }
+    // 区切りの始まり：名前の直前にある句読点の後ろ（「左から、」「1位、」なども一緒に読む）
+    let b = from; const seg = say.slice(from, i); let m; punct.lastIndex = 0;
+    while((m = punct.exec(seg))) b = from + m.index + m[0].length;
+    from = i + h.label.length;
+    // 区切りの終わり：その文の終わり（「。」／ピリオド）
+    const j = say.slice(from).search(EN ? /[.!?](\s|$)/ : /。/), e = j < 0 ? say.length : from + j + 1 + (EN ? 1 : 0);
+    cuts.add(b); cuts.add(Math.min(e, say.length)); marks.push([b, Math.min(e, say.length)]);
+  }
+  // 同じ文の中に次のカードが続くとき（「左から、A、B、C。」）は、次のカードの区切りの手前で終える
+  marks.forEach((mk, k) => { if(!mk) return; const nx = marks.slice(k + 1).find(Boolean); if(nx && nx[0] < mk[1]) mk[1] = nx[0]; });
+  const pos = [...cuts].sort((a, b) => a - b);
+  const chunks = [];
+  for(let k = 0; k + 1 < pos.length; k++){ const t = say.slice(pos[k], pos[k + 1]); if(t.trim()) chunks.push({ text: t.trim(), at: pos[k], end: pos[k + 1] }); }
+  const spans = marks.map(mk => {
+    if(!mk) return null;
+    const a = chunks.findIndex(c => c.at >= mk[0]), z = chunks.reduce((n, c, idx) => c.end <= mk[1] ? idx : n, a);
+    return a < 0 ? null : [a, Math.max(a, z)];
+  });
+  return { chunks, spans };
+}
+async function speak(text, wavPath, opt = {}){
   // 動作確認用（LONG_FAKE_AUDIO=1）：無音の音声を、文字数に応じた長さで作る。VOICEVOX が無い環境で、動画の組み立てだけ試すときに使う
   if(process.env.LONG_FAKE_AUDIO){
     const dur = Math.max(2, [...text].length / L(7.5, 14));
@@ -1348,7 +1378,8 @@ async function speak(text, wavPath){
   const q = await fetch(`${VV}/audio_query?speaker=${SPEAKER}&text=${encodeURIComponent(toSpeech(text))}`, { method: "POST" });
   if(!q.ok) throw new Error(`audio_query ${q.status}`);
   const query = await q.json();
-  query.speedScale = SPEED; query.postPhonemeLength = 0.25;
+  query.speedScale = SPEED; query.postPhonemeLength = opt.post ?? 0.25;
+  if(opt.pre != null) query.prePhonemeLength = opt.pre;   // 区切って読むときは、つなぎ目の無音を短くする
   const r = await fetch(`${VV}/synthesis?speaker=${SPEAKER}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(query) });
   if(!r.ok) throw new Error(`synthesis ${r.status}`);
   await writeFile(wavPath, Buffer.from(await r.arrayBuffer()));
@@ -1522,21 +1553,38 @@ async function main(){
     const todo = [];
     for(const [i, sc] of scenes.entries()){
       const base = `${OUT}/scene-${i}`, old = prev[i];
-      if(old && old.say === sc.say && old.dur && await readFile(base + ".wav").then(() => true, () => false)) continue;
-      todo.push({ text: sc.say, out: base + ".wav" });
+      if(old && old.say === sc.say && old.dur && (!sc.highlight || old.chunkDurs) && await readFile(base + ".wav").then(() => true, () => false)) continue;
+      if(sc.highlight && sc.highlight.length){ splitForHighlight(sc).chunks.forEach((c, k) => todo.push({ text: c.text, out: `${base}-c${k}.wav` })); }
+      else todo.push({ text: sc.say, out: base + ".wav" });
     }
     if(todo.length){ console.error(`英語の読み上げ: ${todo.length} 場面をまとめて作る`); enDurs = await speakEnBatch(todo); }
   }
   for(const [i, sc] of scenes.entries()){
     const base = `${OUT}/scene-${i}`, old = prev[i];
-    if(enDurs.has(base + ".wav")){ sc.kana = sc.say; sc.dur = enDurs.get(base + ".wav"); continue; }
-    if(old && old.say === sc.say && old.dur && await readFile(base + ".wav").then(() => true, () => false)){ sc.kana = old.kana; sc.dur = old.dur; continue; }
+    const split = sc.highlight && sc.highlight.length ? splitForHighlight(sc) : null;
+    if(split) sc.spans = split.spans;
+    if(old && old.say === sc.say && old.dur && (!split || old.chunkDurs) && await readFile(base + ".wav").then(() => true, () => false)){ sc.kana = old.kana; sc.dur = old.dur; if(split) sc.chunkDurs = old.chunkDurs; continue; }
     if(STILLS){ sc.kana = sc.say; sc.dur = Math.max(4, [...sc.say].length / L(7, 14)); continue; }
     if(!EN && !yomiLoaded && !process.env.LONG_FAKE_AUDIO){ await loadYomi(); yomiLoaded = true; }
+    if(split){
+      // 区切りごとに読み上げて、つなげる。区切りの長さ（chunkDurs）で、光らせる時間を決める
+      const durs = [], kanas = [];
+      for(const [k, c] of split.chunks.entries()){
+        const f = `${base}-c${k}.wav`, last = k === split.chunks.length - 1;
+        if(EN && enDurs.has(f)){ durs.push(enDurs.get(f)); kanas.push(c.text); continue; }
+        const r = await speak(c.text, f, { post: last ? 0.25 : 0.06, pre: k === 0 ? undefined : 0.04 });
+        durs.push(r.dur); kanas.push(r.kana);
+      }
+      const ins = split.chunks.flatMap((c, k) => ["-i", `${base}-c${k}.wav`]);
+      execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...ins, "-filter_complex", `${split.chunks.map((c, k) => `[${k}:a]aformat=sample_rates=24000:channel_layouts=mono[a${k}]`).join(";")};${split.chunks.map((c, k) => `[a${k}]`).join("")}concat=n=${split.chunks.length}:v=0:a=1[o]`, "-map", "[o]", base + ".wav"]);
+      sc.chunkDurs = durs; sc.kana = kanas.join(""); sc.dur = durs.reduce((n, d) => n + d, 0);
+      continue;
+    }
+    if(enDurs.has(base + ".wav")){ sc.kana = sc.say; sc.dur = enDurs.get(base + ".wav"); continue; }
     const { kana, dur } = await speak(sc.say, base + ".wav");
     sc.kana = kana; sc.dur = dur;
   }
-  await writeFile(`${OUT}/script.json`, JSON.stringify(scenes.map(s => ({ kind: s.kind, chapter: s.chapter, say: s.say, kana: s.kana, dur: s.dur })), null, 2), "utf8");
+  await writeFile(`${OUT}/script.json`, JSON.stringify(scenes.map(s => ({ kind: s.kind, chapter: s.chapter, say: s.say, kana: s.kana, dur: s.dur, ...(s.chunkDurs ? { chunkDurs: s.chunkDurs } : {}) })), null, 2), "utf8");
 
   const ZUNDA = !STILLS && await zundaReady();
   if(ZUNDA) CAPBOX = { x0: 50, bw: W - 50 - ZW - 70, size: 40 };      // 字幕の箱は左に寄せて、右下はずんだもんの場所
@@ -1562,8 +1610,19 @@ async function main(){
     // 字幕ページ（読み上げの文字数の割合で時間を割り振る）
     const pages = sc.cap ? capPages(sc.cap) : capPages(sc.say), nChars = pages.reduce((n, p) => n + [...p].length, 0) || 1;
     let t = 0; const caps = [], capJobs = [];
+    // 区切って読み上げた場面は、区切りの実際の長さで字幕の時間を割り振る（文字数の割合だけだと、光る枠とずれるため）
+    const timeAt = (sc.chunkDurs && sc.spans) ? (() => {
+      const { chunks } = splitForHighlight(sc), total = sc.say.length || 1, t0 = [0]; sc.chunkDurs.forEach(d => t0.push(t0[t0.length - 1] + d));
+      return frac => { const pos = frac * total; const k = chunks.findIndex(c => pos < c.end); if(k < 0) return sc.dur;
+        const c = chunks[k]; return t0[k] + Math.min(1, Math.max(0, (pos - c.at) / Math.max(1, c.end - c.at))) * (t0[k + 1] - t0[k]); };
+    })() : null;
+    let charsDone = 0;
     for(const [k, pg] of pages.entries()){
-      const d = sc.dur * [...pg].length / nChars, f = `${base}-cap${k}.png`;
+      const n0 = charsDone; charsDone += [...pg].length;
+      // 字幕ページが読み上げのどこから始まるかを、文字数の割合ではなく本文の位置で探す（ずれ防止）
+      const posOf = j => { if(j >= pages.length) return 1; const key = pages[j].replace(/\s/g, "").slice(0, 6); const at = key ? sc.say.indexOf(key) : -1; return at < 0 ? null : at / (sc.say.length || 1); };
+      const fa = k === 0 ? 0 : posOf(k), fb = posOf(k + 1);
+      const d = timeAt ? (fa != null && fb != null ? timeAt(fb) - timeAt(fa) : timeAt(charsDone / nChars) - timeAt(n0 / nChars)) : sc.dur * [...pg].length / nChars, f = `${base}-cap${k}.png`;
       capJobs.push(sharp(Buffer.from(capSvg(pg)), { density: 72 }).resize(W, H - CAP_Y).png().toFile(f));
       caps.push({ f, a: t, b: k === pages.length - 1 ? len : t + d }); t += d;
     }
@@ -1582,23 +1641,10 @@ async function main(){
     const zIn = ZUNDA ? ["-f", "concat", "-safe", "0", "-i", await zundaList(i, base + ".wav", len, OUT)] : [];
     // 静止画は「-loop 1」で読むと、毎コマ PNG を読み込み直して遅い。1コマだけ読んで、loop フィルタで繰り返す（出来上がる絵は同じ）
     // 読み上げに合わせて光らせる枠（deep の鍵カード）：カード名がセリフのどこに出るかで時間を割る
-    const hl = (!STILLS && sc.highlight && sc.highlight.length) ? (() => {
-      const say = sc.say, total = [...say].length || 1;
-      // セリフの前から順に探す（同じ名前が 2 回出ても、並び順どおりに当てる）。セリフに出てこないカードは光らせない
-      let from = 0;
-      const ends = [];
-      const starts = sc.highlight.map((h, k) => { const i = say.indexOf(h.label, from); if(i < 0) return null; from = i + h.label.length;
-        // その文の終わり（次の「。」や「.」）まで。次のカードの話に移ったら、そこで消す
-        const stop = (() => { const j = say.slice(from).search(EN ? /[.!?](\s|$)/ : /。/); return j < 0 ? say.length : from + j + 1; })();
-        ends[k] = [...say.slice(0, stop)].length / total * sc.dur + 0.3;
-        return [...say.slice(0, i)].length / total * sc.dur; });
-      const out = [];
-      sc.highlight.forEach((h, k) => {
-        if(starts[k] == null) return;
-        const next = starts.slice(k + 1).find(v => v != null);
-        out.push({ ...h, a: Math.max(0, starts[k] - 0.15), b: Math.min(next != null ? next - 0.15 : Infinity, ends[k]) });
-      });
-      return out;
+    // 光らせる時間：区切りごとの実際の音声の長さから決める（splitForHighlight と chunkDurs）
+    const hl = (!STILLS && sc.highlight && sc.spans && sc.chunkDurs) ? (() => {
+      const t0 = [0]; sc.chunkDurs.forEach(d => t0.push(t0[t0.length - 1] + d));
+      return sc.highlight.map((h, k) => { const sp = sc.spans[k]; return sp ? { ...h, a: Math.max(0, t0[sp[0]] - 0.05), b: t0[sp[1] + 1] } : null; }).filter(Boolean);
     })() : [];
     const pop = STILLS ? null : popLayer(sc);
     if(pop) await sharp(Buffer.from(pop.svg), { density: 72 }).png().toFile(base + ".pop.png");
