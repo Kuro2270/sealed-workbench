@@ -389,15 +389,15 @@ function buildScript(ctx){
     const ofCol = col => ks.find(c => c.side === col);
     const a = ofCol(A), b = ofCol(B), gold = ks.filter(c => c.side === "2"), rest = ks.filter(c => c !== a && c !== b && c.side !== "2");
     const q = c => EN ? `“${c.label}”` : `「${c.label}」`;
+    // 画面に並ぶ順（左から）に読む。読んでいるカードを画面で光らせるため、順番を入れ替えない
+    const tag = c => c.side === "2" ? L("二色の", "the two-colour ") : (CJ[c.side] ? L(`${CJ[c.side]}の`, `${CJ[c.side]}'s `) : "");
     if(EN){
-      const partsE = [a && `${CJ[A]}'s ${q(a)}`, b && `${CJ[B]}'s ${q(b)}`, gold.length && `the two-colour ${andList(gold.slice(0, 2).map(q))}`].filter(Boolean);
-      let te = KEY_LEAD[n % KEY_LEAD.length] + (partsE.length ? andList(partsE) : andList(ks.slice(0, 2).map(q))) + ". ";
-      if(partsE.length && rest.length) te += `${KEY_MORE[n % KEY_MORE.length]}${andList(rest.slice(0, 2).map(q))} ${rest.slice(0, 2).length > 1 ? "are" : "is"} worth picking up too. `;
+      const items = ks.map(c => tag(c) + q(c));
+      let te = KEY_LEAD[n % KEY_LEAD.length] + "from the left, " + andList(items) + ". ";
       return te + KEY_TAIL[n % KEY_TAIL.length];
     }
-    const parts = [a && `${CJ[A]}は${q(a)}`, b && `${CJ[B]}は${q(b)}`, gold.length && `二色のカードは${gold.slice(0, 2).map(q).join("、")}`].filter(Boolean);
-    let t = KEY_LEAD[n % KEY_LEAD.length] + (parts.length ? parts.join("、") : ks.slice(0, 2).map(q).join("、")) + "。";
-    if(parts.length && rest.length) t += `${KEY_MORE[n % KEY_MORE.length]}${rest.slice(0, 2).map(q).join("、")}もおすすめです。`;
+    const items = ks.map(c => tag(c) + q(c));
+    let t = KEY_LEAD[n % KEY_LEAD.length] + "左から、" + items.join("、") + "。";
     return t + KEY_TAIL[n % KEY_TAIL.length];
   };
   /* --- 組み合わせごとの「速いデッキを組むか、遅めのデッキを組むか」。勝率データ（pair_speed）があるときだけ --- */
@@ -405,6 +405,7 @@ function buildScript(ctx){
   const DIR_WORD = EN ? { light: "light decks", mid: "medium-weight decks", heavy: "heavy decks" } : { light: "軽いデッキ", mid: "中くらいの重さのデッキ", heavy: "重いデッキ" };
   const dirIn = (rows, b) => { const i = rows.indexOf(b); return i === 0 ? "light" : i === rows.length - 1 ? "heavy" : "mid"; };
   const envDir = rowsD.length >= 3 ? dirIn(rowsD, bestBand(rowsD)) : null;
+  let diffSaid = 0;   // 「環境全体とは傾向が違う」を何回言ったか（2 回目からは短く）
   /* 組み合わせごとの「マナ域」の傾向。
      ・カード単位（いつでも出せる）：コモン・アンコモンの、2マナ以下／3／4／5以上ごとの勝率（その2色のデッキでの GIH 勝率の試合数つき平均）
      ・デッキ単位（pair_curve があるとき）：そのマナ域のカードを何枚入れたデッキが勝っているか。「N枚以上入れると勝率が上がる」目安を出す */
@@ -483,7 +484,7 @@ function buildScript(ctx){
         else{
           const core = `Decks with an average mana value of ${best.label} win the most, at ${pt(best.wr)} percent. The lowest, ${low.label}, wins ${pt(low.wr)} percent, a gap of ${pt(spread)} points.`;
           const adv = dir === "light" ? `Build a light, fast deck with this pair.` : dir === "heavy" ? `With this pair, a slower, heavier deck is fine.` : `Too fast or too heavy loses win rate, so build a balanced, medium-weight deck.`;
-          const diff = envDir && envDir !== dir ? ` Across the whole format, ${DIR_WORD[envDir]} do better, so this pair is a little different.` : "";
+          const diff = envDir && envDir !== dir ? (diffSaid++ === 0 ? ` Across the whole format, ${DIR_WORD[envDir]} do better, so this pair is a little different.` : ` This pair, too, goes against the format's grain.`) : "";
           say = `${nm}: deck speed. ` + core + " " + adv + diff;
         }
       }else if(dir === "even"){
@@ -491,7 +492,7 @@ function buildScript(ctx){
       }else{
         const core = `平均マナ総量が${best.label}のデッキが、勝率${pt(best.wr)}パーセントで一番勝っています。一番低い${low.label}のデッキは${pt(low.wr)}パーセントで、${pt(spread)}ポイントの差です。`;
         const adv = dir === "light" ? `この組み合わせは、軽くて速いデッキを組みましょう。` : dir === "heavy" ? `この組み合わせは、遅めでゆったりした、重いデッキを組んで大丈夫です。` : `速すぎても重すぎても勝率が下がるので、中くらいの重さで、バランスよく組みましょう。`;
-        const diff = envDir && envDir !== dir ? `環境全体では${DIR_WORD[envDir]}が有利なので、この組み合わせは少し傾向が違います。` : "";
+        const diff = envDir && envDir !== dir ? (diffSaid++ === 0 ? `環境全体では${DIR_WORD[envDir]}が有利なので、この組み合わせは少し傾向が違います。` : `こちらも、環境全体とは少し傾向が違う組み合わせです。`) : "";
         say = `${nm}の、デッキの速さです。` + core + adv + diff;
       }
     }else say = L(`${nm}の、マナカーブです。`, `${nm}: mana curve.`);
@@ -528,7 +529,8 @@ function buildScript(ctx){
       : `${ordinal}強い${pairName(p.pair)}。ドラフトの勝率は${pt(p.wr)}パーセントで、使われているのは全体の${Math.round(share * 100)}パーセントです。` +
         (contested ? `平均の${Math.round(avgShare * 100)}パーセントよりかなり多く、卓で取り合いになりやすい色です。同じ卓で何人も被ると、一人ひとりのデッキはこの数字より弱くなりがちなので、カードが流れてくるときだけ入るのが無難です。` : "") +
         keySay(ks, p.pair) + (sealedWr != null ? `シールドの勝率は${pt(sealedWr)}パーセントです。` : "");
-    return { kind: "deep", chapter: null, variant: kind, weak, pair: p.pair, wr: p.wr, sealedWr, share, avgShare, contested, rank: rankD[p.pair], cards: ks, say, tail: 0.5 };
+    return { kind: "deep", chapter: null, variant: kind, weak, pair: p.pair, wr: p.wr, sealedWr, share, avgShare, contested, rank: rankD[p.pair], cards: ks, say, tail: 0.5,
+             highlight: ks.map((c, i) => ({ label: c.label, x: 740 + i * (245 + 28) - 10, y: 205, w: 265, h: 362 })) };   // 読み上げに合わせて光らせる枠（画面の位置は renderer と合わせる）
   };
   // 上位3つの深堀り（狙い目に回るものは、そちらで紹介するので、ここでは飛ばす）。順位の言い方は、実際の順位から決める
   pairsD.slice(0, 3).forEach((p, i) => { if(!sleepers.includes(p)){ scenes.push(deep(p, i, "top")); pushSpeed(p); } });
@@ -663,16 +665,17 @@ function buildScript(ctx){
       kind: "summary", chapter: L("まとめ", "Summary"),
       pace: paceSc ? { word: paceSc.word, sub: paceSc.sub } : null,
       mono: bestMono ? { color: bestMono.color, wr: bestMono.wr } : null,
-      best: bestD ? { pair: bestD.pair, wr: bestD.wr, sWr: sealedBest } : null,
+      best: bestD ? { pair: bestD.pair, wr: bestD.wr, sWr: sealedBest, share: Math.round(bestD.games / totalPG * 100), contested: bestD.games / totalPG >= avgShareP * 1.3 } : null,
       worst: worstD && worstD !== bestD ? { pair: worstD.pair, wr: worstD.wr } : null,
-      sleeper: sleepers.length ? { pair: sleepers[0].pair, wr: sleepers[0].wr, share: Math.round(sleepers[0].games / totalPG * 100), rank: rankD[sleepers[0].pair] } : null,
+      sleeper: sleepers.length ? { pair: sleepers[0].pair, wr: sleepers[0].wr, share: Math.round(sleepers[0].games / totalPG * 100) } : null,
+      sleepers: sleepers.map(p => ({ pair: p.pair, wr: p.wr, share: Math.round(p.games / totalPG * 100) })),
       b3, t3, r3, cards: [...b3, ...t3, ...r3]
     };
     sum.say = EN ? `To sum up. ` +
       (sum.pace ? `This is a ${sum.pace.word} format. ` : "") +
       (sum.mono ? `${pairName(sum.mono.color)} is the strongest colour. ` : "") +
-      (sum.best ? `The best pair is ${pairName(sum.best.pair)}, winning ${pt(sum.best.wr)} percent in Draft. ` : "") +
-      (sum.sleeper ? `The sleeper pick is ${pairName(sum.sleeper.pair)}: ${pt(sum.sleeper.wr)} percent, yet only ${sum.sleeper.share} percent of drafters take it. ` : "") +
+      (sum.best ? `The strongest pair is ${pairName(sum.best.pair)}, winning ${pt(sum.best.wr)} percent in Draft` + (sum.best.contested ? `, but ${sum.best.share} percent of drafters take it, so it's the pick only when its cards are actually flowing to you. ` : `. `) : "") +
+      (sum.sleepers.length ? `The sleeper pick${sum.sleepers.length > 1 ? "s are" : " is"} ${andList(sum.sleepers.map(p => pairName(p.pair)))}: ` + sum.sleepers.map(p => `${pairName(p.pair)} wins ${pt(p.wr)} percent with only ${p.share} percent taking it`).join("; ") + `. ` : "") +
       (sum.worst ? `On the other hand, ${pairName(sum.worst.pair)} wins only ${pt(sum.worst.wr)} percent, so don't force it. ` : "") +
       (b3.length ? `The bombs to take without hesitation are ${andList(b3.map(c => c.label))}. ` : "") +
       (t3.length ? `Watch out for the traps: ${andList(t3.slice(0, 2).map(c => c.label))}. ` : "") +
@@ -680,8 +683,8 @@ function buildScript(ctx){
     : `まとめです。` +
       (sum.pace ? `この環境は、${sum.pace.word}環境です。` : "") +
       (sum.mono ? `色では${pairName(sum.mono.color)}が最も強く、` : "") +
-      (sum.best ? `組み合わせなら${pairName(sum.best.pair)}。ドラフトの勝率は${pt(sum.best.wr)}パーセントです。` : "") +
-      (sum.sleeper ? `狙い目は${pairName(sum.sleeper.pair)}。勝率${pt(sum.sleeper.wr)}パーセントなのに、使う人は${sum.sleeper.share}パーセントと少なめです。` : "") +
+      (sum.best ? `組み合わせの最強は${pairName(sum.best.pair)}、ドラフトの勝率${pt(sum.best.wr)}パーセント` + (sum.best.contested ? `。ただし使う人も${sum.best.share}パーセントと多く、取り合いになるので、しっかりカードが流れてきたときの選択肢です。` : `です。`) : "") +
+      (sum.sleepers.length ? `狙い目は${sum.sleepers.map(p => pairName(p.pair)).join("と")}。` + sum.sleepers.map(p => `${pairName(p.pair)}は勝率${pt(p.wr)}パーセントで、使う人は${p.share}パーセント`).join("、") + `と少なめです。` : "") +
       (sum.worst ? `反対に${pairName(sum.worst.pair)}は${pt(sum.worst.wr)}パーセントで、無理に目指さなくて大丈夫です。` : "") +
       (b3.length ? `迷わず取るボムは、${b3.map(c => c.label).join("、")}。` : "") +
       (t3.length ? `罠になりやすいのは、${t3.slice(0, 2).map(c => c.label).join("、")}です。` : "") +
@@ -694,6 +697,9 @@ function buildScript(ctx){
   // 締めは 2 段：お礼 → 「登録をお願いします」のセリフに入った瞬間に、登録ボタンが浮き上がる（ショートと同じ仕組み。画面は切り替えない）
   scenes.push({ kind: "outro", art: true, chapter: null,
     say: EN ? `Thanks for watching to the end.` : `最後まで、ご視聴ありがとうございました。`, tail: 0.3 });
+  scenes.push({ kind: "outro", art: true, chapter: null, nofade: true, site: true, tail: 0.5,
+    say: EN ? `We also run a free site, Limited Workbench, where you can practise Sealed and Draft with virtual packs, and check the win-rate data for every card in this video. The link is in the description.`
+            : `リミテッド・ワークベンチというサイトも用意しています。無料で、仮想パックを使ったシールドとドラフトの構築練習ができて、この動画のカードのデータもすべて確認できます。URLは概要欄にあります。` });
   scenes.push({ kind: "outro", art: true, chapter: null, nofade: true, subscribe: true,
     say: EN ? `We'll have the next set soon, so if you're an MTG Limited player, please subscribe.` : `次のセットも出すので、MTGのリミテッドプレイヤーは、チャンネル登録をお願いします。`, tail: 9 });
   return scenes;
@@ -1084,20 +1090,21 @@ function sceneSvg(sc){
       let s = "";
       // 上段の枠は、あるものだけを横に並べる（速さ・最強の色・組むなら・狙い目・避けるなら。最大 5 つ）。数に応じて幅と字を縮める
       const items = [];
-      if(sc.pace) items.push(["pace"]); if(sc.mono) items.push(["mono"]); if(sc.best) items.push(["best"]); if(sc.sleeper) items.push(["sleeper"]); if(sc.worst) items.push(["worst"]);
+      if(sc.pace) items.push(["pace"]); if(sc.mono) items.push(["mono"]); if(sc.best) items.push(["best"]); (sc.sleepers || (sc.sleeper ? [sc.sleeper] : [])).slice(0, 2).forEach((sl, j) => items.push(["sleeper", sl, j])); if(sc.worst) items.push(["worst"]);
       const n = Math.max(items.length, 1), PX = 50, PG = 20, PW = Math.floor((1820 - PG * (n - 1)) / n), PY = 125, PH = 235, f = Math.min(1, PW / 440);
       const box = (i, label, inner) => { const x = PX + i * (PW + PG); return panel(x, PY, PW, PH, BLUE) + T(x + PW / 2, PY + 46, label, { size: 30 * f + 4, fill: MUTED, anchor: "middle" }) + inner(x + PW / 2); };
       // 2 色の枠：シンボル 2 つ＋略称を中央に寄せて置く
       const pairBox = (cx, pair, nameFill) => { const sz = Math.round(70 * f), fs = Math.round(64 * f), w = sz * 2 + 10 + (EN ? fs * 1.3 : fs * 2) + 12, x0 = cx - w / 2; return pairSymbols(pair, x0, PY + 108, sz) + T(x0 + sz * 2 + 22, PY + 108 + fs * 0.36, pairShort(pair), { size: fs, weight: 900, fill: nameFill }); };
-      items.forEach(([k], i) => {
+      items.forEach(([k, sl, j], i) => {
         if(k === "pace") s += box(i, L("環境の速さ", "Format speed"), cx => T(cx, PY + 140, EN ? sc.pace.word.charAt(0).toUpperCase() + sc.pace.word.slice(1) : sc.pace.word, { size: fitSize(sc.pace.word, PW - 40, 84 * f), weight: 900, anchor: "middle", fill: GOLD }) + T(cx, PY + 198, sc.pace.sub || "", { size: Math.min(L(28, 22), Math.floor((PW - 30) / Math.max([...(sc.pace.sub || "")].length, 1) * L(1, 1.7))), anchor: "middle", fill: PAPER }));
         if(k === "mono") s += box(i, L("一番強い色", "Strongest colour"), cx => symbol(sc.mono.color, cx - 70 * f, PY + 125, 84 * f) + T(cx - 10 * f, PY + 150, pairName(sc.mono.color), { size: L(76, 64) * f, weight: 900, fill: GOLD }) + T(cx, PY + 205, L(`勝率 ${pt(sc.mono.wr)}%`, `${pt(sc.mono.wr)}% win rate`), { size: 32 * f, anchor: "middle", fill: UP, weight: 700 }));
-        if(k === "best") s += box(i, L("組むなら", "Best pair"), cx => pairBox(cx, sc.best.pair, GOLD) +
+        if(k === "best") s += box(i, sc.best.contested ? L("最強（取り合い注意）", "Strongest (contested)") : L("最強の組み合わせ", "Strongest pair"), cx => pairBox(cx, sc.best.pair, GOLD) +
           T(cx, PY + 182, `${L("ドラフト", "Draft")} ${pt(sc.best.wr)}%`, { size: 28 * f, anchor: "middle", fill: UP, weight: 700 }) +
-          (sc.best.sWr != null ? T(cx, PY + 218, `${L("シールド", "Sealed")} ${pt(sc.best.sWr)}%`, { size: 28 * f, anchor: "middle", fill: GOLD, weight: 700 }) : ""));
-        if(k === "sleeper") s += box(i, L("狙い目（空いている）", "Sleeper pick"), cx => pairBox(cx, sc.sleeper.pair, GREEN) +
-          T(cx, PY + 182, `${L("ドラフト", "Draft")} ${pt(sc.sleeper.wr)}%`, { size: 28 * f, anchor: "middle", fill: UP, weight: 700 }) +
-          T(cx, PY + 218, L(`使用率 ${sc.sleeper.share}%`, `Drafted by ${sc.sleeper.share}%`), { size: 28 * f, anchor: "middle", fill: GREEN, weight: 700 }));
+          (sc.best.contested ? T(cx, PY + 218, L(`使用率 ${sc.best.share}%・流れてきたら`, `${sc.best.share}% drafted · if it flows`), { size: 24 * f, anchor: "middle", fill: DOWN, weight: 700 })
+                             : sc.best.sWr != null ? T(cx, PY + 218, `${L("シールド", "Sealed")} ${pt(sc.best.sWr)}%`, { size: 28 * f, anchor: "middle", fill: GOLD, weight: 700 }) : ""));
+        if(k === "sleeper") s += box(i, j === 0 ? L("狙い目（空いている）", "Sleeper pick") : L("狙い目 2", "Sleeper pick 2"), cx => pairBox(cx, sl.pair, GREEN) +
+          T(cx, PY + 182, `${L("ドラフト", "Draft")} ${pt(sl.wr)}%`, { size: 28 * f, anchor: "middle", fill: UP, weight: 700 }) +
+          T(cx, PY + 218, L(`使用率 ${sl.share}%`, `Drafted by ${sl.share}%`), { size: 28 * f, anchor: "middle", fill: GREEN, weight: 700 }));
         if(k === "worst") s += box(i, L("無理に目指さない", "Don't force it"), cx => pairBox(cx, sc.worst.pair, PAPER) +
           T(cx, PY + 205, `${L("ドラフト", "Draft")} ${pt(sc.worst.wr)}%`, { size: 30 * f, anchor: "middle", fill: DOWN, weight: 700 }));
       });
@@ -1122,6 +1129,11 @@ function sceneSvg(sc){
       // 締めは「チャンネル登録をお願いします」だけ。画面の下半分は、YouTube Studio の「終了画面」で
       // 登録ボタンと次の動画を重ねるために、あえて空けてある（動画の絵としての登録ボタンは描かない）
       // 登録ボタンは動く層（popLayer）で重ねる。画像だけの確認（LONG_STILLS）では静止画に描く
+      if(sc.site) return frame(
+        TS(W / 2, 200, L("リミテッド・ワークベンチ", "Limited Workbench"), { size: 96, anchor: "middle" }) +
+        TS(W / 2, 300, "sealed-workbench.com", { size: 60, anchor: "middle", fill: GOLD }) +
+        T(W / 2, 400, L("無料・登録不要　仮想パックでシールド／ドラフトの構築練習　全カードの勝率データ", "Free · no sign-up · Sealed & Draft practice with virtual packs · win-rate data for every card"), { size: 34, anchor: "middle", weight: 700 }) +
+        T(W / 2, 460, L("▼ URL は概要欄に", "▼ Link in the description"), { size: 34, anchor: "middle", fill: MUTED }), sc, { header: false });
       return frame(TS(W / 2, 230, L("MTGのリミテッドプレイヤーは", "MTG Limited players,"), { size: 84, anchor: "middle" }) + TS(W / 2, 370, L("チャンネル登録をお願いします", "please subscribe!"), { size: 100, anchor: "middle" }) +
         (STILLS && sc.subscribe ? `<g transform="translate(${W / 2 - 320} 430)"><rect x="3" y="3" width="634" height="124" rx="62" fill="#E53935" stroke="#FFFFFF" stroke-width="6"/>` + T(320, 86, L("▶ チャンネル登録", "▶ Subscribe"), { size: 56, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>` : ""), sc, { header: false });
     }
@@ -1540,9 +1552,25 @@ async function main(){
         : `[0:v]null[bg]`;
     const zIn = ZUNDA ? ["-f", "concat", "-safe", "0", "-i", await zundaList(i, base + ".wav", len, OUT)] : [];
     // 静止画は「-loop 1」で読むと、毎コマ PNG を読み込み直して遅い。1コマだけ読んで、loop フィルタで繰り返す（出来上がる絵は同じ）
+    // 読み上げに合わせて光らせる枠（deep の鍵カード）：カード名がセリフのどこに出るかで時間を割る
+    const hl = (!STILLS && sc.highlight && sc.highlight.length) ? (() => {
+      const say = sc.say, total = [...say].length || 1;
+      const starts = sc.highlight.map(h => { const i = say.indexOf(h.label); return i < 0 ? null : [...say.slice(0, i)].length / total * sc.dur; });
+      const out = [];
+      sc.highlight.forEach((h, k) => {
+        if(starts[k] == null) return;
+        const next = starts.slice(k + 1).find(v => v != null);
+        out.push({ ...h, a: Math.max(0, starts[k] - 0.15), b: next != null ? next - 0.15 : starts[k] + 2.2 });
+      });
+      return out;
+    })() : [];
     const pop = STILLS ? null : popLayer(sc);
     if(pop) await sharp(Buffer.from(pop.svg), { density: 72 }).png().toFile(base + ".pop.png");
-    const inputs = [...first, "-framerate", "30", "-i", base + ".png", "-i", base + ".wav", ...caps.flatMap(c => ["-framerate", "30", "-i", c.f]), ...zIn, ...(pop ? ["-framerate", "30", "-i", base + ".pop.png"] : [])];
+    for(const [k, h] of hl.entries()){
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect x="${h.x - 6}" y="${h.y - 6}" width="${h.w + 12}" height="${h.h + 12}" rx="22" fill="none" stroke="${GOLD}" stroke-width="18" stroke-opacity="0.35"/><rect x="${h.x}" y="${h.y}" width="${h.w}" height="${h.h}" rx="18" fill="${GOLD}" fill-opacity="0.12" stroke="${GOLD}" stroke-width="7"/></svg>`;
+      await sharp(Buffer.from(svg), { density: 72 }).png().toFile(`${base}-hl${k}.png`);
+    }
+    const inputs = [...first, "-framerate", "30", "-i", base + ".png", "-i", base + ".wav", ...caps.flatMap(c => ["-framerate", "30", "-i", c.f]), ...zIn, ...(pop ? ["-framerate", "30", "-i", base + ".pop.png"] : []), ...hl.flatMap((h, k) => ["-framerate", "30", "-i", `${base}-hl${k}.png`])];
     const still = "format=yuva420p,loop=loop=-1:size=1:start=0,setpts=N/(30*TB)";
     // ずんだもんは、画面の右下のすみ（字幕の右どなり）に置く。図や字幕と重ならないよう、小さめにして、上下には揺らさない
     const zx = W - 24 - ZW, zy = H - ZH;      // 画面の右下のすみ。上下には揺らさない
@@ -1550,10 +1578,15 @@ async function main(){
       (ZUNDA ? `;[${3 + caps.length}:v]fps=30,scale=${ZW}:${ZH},format=rgba[zz];[vz][zz]overlay=x=${zx}:y=${zy}:shortest=1[v0]` : "");
     caps.forEach((c, k) => { fc += `;[${3 + k}:v]${still}[c${k}];[v${k}][c${k}]overlay=0:${CAP_Y}:enable='between(t,${c.a.toFixed(2)},${c.b.toFixed(2)})':shortest=1[v${k + 1}]`; });
     if(pop){   // 動く層：いちばん最後の入力。0.25 秒で浮き上がり、そのあと上下に小さく跳ねる（式の中のカンマは \, と書く）
-      const pi = inputs.filter(a => a === "-i").length - 1;
+      const pi = inputs.filter(a => a === "-i").length - 1 - hl.length;   // 光らせる枠の入力はこの後ろに並ぶ
       fc += `;[${pi}:v]${still},scale=${pop.w}:${pop.h},format=rgba,fade=t=in:d=0.25:alpha=1[pp];[v${caps.length}][pp]overlay=x=${pop.x}:y='${pop.y}+60*max(0\\,1-t*4)-12*abs(sin(2.6*t))*min(1\\,t*4)':shortest=1[v${caps.length + 1}]`;
     }
-    fc += `;[v${pop ? caps.length + 1 : caps.length}]format=yuv420p[v];[2:a]apad=pad_dur=${pad.toFixed(2)},afade=t=in:d=0.012,afade=t=out:st=${(len - 0.03).toFixed(3)}:d=0.03,aformat=sample_rates=48000:channel_layouts=stereo[a]`;
+    let vlast = pop ? caps.length + 1 : caps.length;
+    if(hl.length){
+      const nIn = inputs.filter(a => a === "-i").length, base0 = nIn - hl.length;
+      hl.forEach((h, k) => { fc += `;[${base0 + k}:v]${still}[h${k}];[v${vlast}][h${k}]overlay=0:0:enable='between(t,${h.a.toFixed(2)},${h.b.toFixed(2)})':shortest=1[v${vlast + 1}]`; vlast++; });
+    }
+    fc += `;[v${vlast}]format=yuv420p[v];[2:a]apad=pad_dur=${pad.toFixed(2)},afade=t=in:d=0.012,afade=t=out:st=${(len - 0.03).toFixed(3)}:d=0.03,aformat=sample_rates=48000:channel_layouts=stereo[a]`;
     await launch(["-y", "-loglevel", "error", ...inputs, "-filter_complex", fc, "-map", "[v]", "-map", "[a]", "-t", String(len),
       "-c:v", "libx264", "-preset", process.env.LONG_PRESET || "veryfast", "-crf", "22", "-threads", "0", "-c:a", "aac", "-b:a", "160k", base + ".mp4"], `${i} ${sc.kind.padEnd(8)} ${sc.dur.toFixed(1)}s → ${len.toFixed(1)}s`);
     segs.push(`file 'scene-${i}.mp4'`); total += len;
