@@ -219,8 +219,8 @@ function buildScript(ctx){
   scenes.push({ kind: "hook", art: true, chapter: L("はじめに", "Intro"),
     say: EN ? `Here's the complete ${nameJa} Limited format for MTG Arena, based on ${man(gamesD + gamesS)} games of data. The strongest colour pairs, ten bomb rares you can pick without hesitation, trap rares that look great but win less than you'd expect, and the best commons and uncommons for every colour. We'll look at both Draft and Sealed data.` : `MTGアリーナ、リミテッドの${nameJa}環境を、${man(gamesD + gamesS)}試合のデータでまるごと解説します。最強の色の組み合わせ、迷わず取っていいボムのレア十枚、見た目に反して勝てない罠なレアカード、そして、色別のおすすめのコモンとアンコモンまで。ドラフトとシールドの両方のデータで見ていきます。`,
     title: nameJa, gamesD, gamesS, tail: 0.6 });
-  scenes.push({ kind: "agenda", say: EN ? `Here's the plan: format speed, colour pairs and deck speed, sleeper pairs, bombs, trap rares, and the best cards for each colour.` : `順番に、環境の速さ、色の組み合わせとデッキの速さ、ボム、罠なレアカード、色別のおすすめ${WITH_REMOVAL ? "、除去" : ""}まで見ていきます。`,
-    items: (EN ? ["Format speed", "Colour strength", "Pair speed & mana curve", "Sleeper pairs", ...(WITH_DVS ? ["Draft vs Sealed"] : []), "Top 10 bomb rares", "Trap rares", "Top commons & uncommons"] : ["環境の速さ", "色の強さ", "色の組み合わせと速さ", "狙い目の色", ...(WITH_DVS ? ["ドラフトとシールドの違い"] : []), "ボムのレア10枚", "罠なレアカード", "色別のコモン・アンコモン"]).concat(WITH_REMOVAL ? ["除去（コモン・アンコモン）"] : []), tail: 0.4 });
+  scenes.push({ kind: "agenda", say: EN ? `Here's the plan: format speed, colour pairs and deck speed, sleeper pairs, bombs, trap rares, the best cards for each colour, and finally a summary.` : `順番に、環境の速さ、色の組み合わせとデッキの速さ、ボム、罠なレアカード、色別のおすすめを見て、最後にまとめます。${WITH_REMOVAL ? "除去も紹介します。" : ""}`,
+    items: (EN ? ["Format speed", "Colour strength", "Pair speed & mana curve", "Sleeper pairs", ...(WITH_DVS ? ["Draft vs Sealed"] : []), "Top 10 bomb rares", "Trap rares", "Top commons & uncommons", ...(WITH_REMOVAL ? ["Removal"] : []), "Summary"] : ["環境の速さ", "色の強さ", "色の組み合わせと速さ", "狙い目の色", ...(WITH_DVS ? ["ドラフトとシールドの違い"] : []), "ボムのレア10枚", "罠なレアカード", "色別のコモン・アンコモン", ...(WITH_REMOVAL ? ["除去（コモン・アンコモン）"] : []), "まとめ"]), tail: 0.4 });
 
   /* --- 速さ --- */
   const paceRows = d => (d.speed || []).filter(s => s.wr != null && s.games).map((s, i, a) => ({
