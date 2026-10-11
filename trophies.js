@@ -101,7 +101,7 @@
     const { data, tabs, tab, idx, box, report } = state;
     const cur = tabs[tab], e = cur && cur.entry, samples = e ? e.samples : [];
     const s = samples[Math.min(idx, samples.length - 1)];   // samples はレアの少ない順（sortSamples）
-    const tabBtn = (x, i) => `<button type="button" class="ttab${i === tab ? " on" : ""}" data-tab="${i}">${[...x.colors].map(manaI).join("")}${esc(pairName(x.colors))}${x.kind === "top" ? `<small>${esc(t("reports.trophy.top", { i: x.i }))}</small>` : ""}${x.sleeper ? `<span class="slp">${esc(t("reports.tier.sleeper"))}</span>` : ""}</button>`;
+    const tabBtn = (x, i) => `<button type="button" class="ttab${i === tab ? " on" : ""}" data-tab="${i}">${[...x.colors].map(manaI).join("")}${esc(pairName(x.colors))}${x.sleeper ? `<span class="slp">${esc(t("reports.tier.sleeper"))}</span>` : ""}</button>`;
     box.innerHTML = `<h2>${esc(t("reports.trophy.h"))}</h2>
       <p class="lead">${esc(t(report.mode === "sealed" ? "reports.trophy.leadS" : "reports.trophy.lead"))}</p>
       <div class="ttabs">${tabs.map(tabBtn).join("")}</div>
