@@ -14,7 +14,7 @@
 <script src="./i18n.js"></script>
 <script src="./analytics.js"></script>
 <script src="./tip.js" defer></script>
-<script src="./trophies.js?v=6"></script>
+<script src="./trophies.js?v=7"></script>
 <script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
@@ -217,9 +217,16 @@
   .trophy .ttab.on{background:var(--pine);color:#fff;border-color:var(--pine)}
   .trophy .ttab .slp{font-size:10.5px;color:#fff;background:var(--gold);border-radius:4px;padding:0 5px}
   .trophy .tstat{font-size:13px;color:var(--muted);margin:0 0 8px}
-  .trophy .tnav{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:13.5px}
-  .trophy .tnav button{font:inherit;border:1px solid var(--line);background:#fff;border-radius:8px;padding:3px 12px;cursor:pointer}
-  .trophy .tnav button:disabled{opacity:.4;cursor:default}
+  .trophy .tnav{display:flex;align-items:center;gap:12px;margin:0 0 10px;font-size:14px;font-weight:600}
+  /* サンプルの切り替え：青い丸ボタン。カーソルを当てると矢印の向きに少し動く */
+  .trophy .tnav button{width:40px;height:40px;border:0;border-radius:50%;background:var(--gold);color:#fff;font-size:24px;font-weight:700;line-height:1;padding:0 0 3px;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(47,125,246,.35);transition:transform .15s ease,box-shadow .15s ease,background .15s ease}
+  .trophy .tnav button:hover:not(:disabled){background:#1F68D8;box-shadow:0 4px 12px rgba(47,125,246,.5)}
+  .trophy .tnav button[data-nav="1"]:hover:not(:disabled){transform:translateX(3px) scale(1.08)}
+  .trophy .tnav button[data-nav="-1"]:hover:not(:disabled){transform:translateX(-3px) scale(1.08)}
+  .trophy .tnav button:active:not(:disabled){transform:scale(.95)}
+  .trophy .tnav button:focus-visible{outline:3px solid rgba(47,125,246,.45);outline-offset:3px}
+  .trophy .tnav button:disabled{background:#B8C6D6;box-shadow:none;cursor:default}
   .trophy .tdeck{overflow-x:auto;padding-bottom:4px}
   .trophy .tsect{margin:10px 0 0;min-width:460px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:8px 12px 12px}
   .trophy .tsect h3{font-size:14px;margin:0 0 4px;color:var(--ink)}
@@ -853,7 +860,7 @@ function render(){
     out.push(`<section>
       <h2>${t("reports.colors.h")}</h2>
       <p class="lead">${t("reports.tier.colors.lead")}</p>
-      ${tierBoard(d.colors, avg, c => `<span class="tchip">${manaI(c.color)}${esc(t("color." + c.color))}<b>${pct(c.wr)}</b><small>${esc(t("reports.tier.games", {n: (c.games || 0).toLocaleString()}))}</small></span>`)}
+      ${tierBoard(d.colors, avg, c => `<span class="tchip" title="${esc(t("reports.tier.games", {n: (c.games || 0).toLocaleString()}))}">${manaI(c.color)}${esc(t("color." + c.color))}<b>${pct(c.wr)}</b></span>`)}
     </section>`);
   }
 
@@ -865,7 +872,7 @@ function render(){
     out.push(`<section>
       <h2>${t("reports.arche.h")}</h2>
       <p class="lead">${t("reports.tier.arche.lead")}</p>
-      ${tierBoard(pairs, avg, a => `<span class="tchip${sl.includes(a.colors) ? " sleeper" : ""}">${[...a.colors].map(manaI).join("")}${esc(pairName(a.colors))}<b>${pct(a.wr)}</b><small>${esc(t("reports.tier.games", {n: (a.games || 0).toLocaleString()}))}</small>${sl.includes(a.colors) ? `<span class="slp">${esc(t("reports.tier.sleeper"))}</span>` : ""}</span>`)}
+      ${tierBoard(pairs, avg, a => `<span class="tchip${sl.includes(a.colors) ? " sleeper" : ""}" title="${esc(t("reports.tier.games", {n: (a.games || 0).toLocaleString()}))}">${[...a.colors].map(manaI).join("")}${esc(pairName(a.colors))}<b>${pct(a.wr)}</b>${sl.includes(a.colors) ? `<span class="slp">${esc(t("reports.tier.sleeper"))}</span>` : ""}</span>`)}
       ${others.length ? `<details class="others"><summary>${esc(t("reports.tier.others"))}</summary><div class="bars">${others.map(a =>
         barRow(pairName(a.colors), a.wr, a.games, wrClass(a.wr, avg), [...a.colors].map(manaI).join(""))).join("")}</div></details>` : ""}
       ${d.notes?.archetypes ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.archetypes[I18N.lang] || "")}</p></div>` : ""}

@@ -107,9 +107,7 @@
       <div class="ttabs">${tabs.map(tabBtn).join("")}</div>
       ${e ? `<p class="tstat">${esc(t("reports.trophy.stat", { n: e.trophies.toLocaleString(), s: pctTxt(e.share), r: pctTxt(e.trophy_rate) }))}</p>` : ""}
       ${s ? `<div class="tnav"><button type="button" data-nav="-1" aria-label="${esc(t("reports.trophy.prev"))}" ${idx <= 0 ? "disabled" : ""}>‹</button>
-        <span>${esc(t("reports.trophy.sample", { i: idx + 1, n: samples.length }))}　${esc(t("reports.trophy.info", {
-          w: s.wins, l: s.losses, rank: t("rank." + (s.rank || "")), ev: t("ev." + s.event), r: raresOf(s),
-          splash: s.splash ? t("reports.trophy.splash", { c: [...s.splash].map(k => t("color." + k)).join("") }) : "" }))}</span>
+        <span>${esc(t("reports.trophy.sample", { i: idx + 1, n: samples.length }))}</span>
         <button type="button" data-nav="1" aria-label="${esc(t("reports.trophy.next"))}" ${idx >= samples.length - 1 ? "disabled" : ""}>›</button></div>
         ${deckHtml(s)}` : `<p class="tnote">${esc(t("reports.trophy.none"))}</p>`}
       <p class="tnote">${esc(t("reports.trophy.src"))}</p>`;
