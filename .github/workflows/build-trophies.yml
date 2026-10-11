@@ -2,21 +2,30 @@ name: データ｜2b 全勝デッキ集計（手動）
 
 # 17Lands の game data から全勝（トロフィー）デッキを集め、環境レポートの「全勝デッキのサンプル」に使う。
 # 役割はこれだけ。勝率の集計は「データ｜2」。いまは手動でのみ動かす（自動実行は付けていない）。
+# 1セットずつ集計してはコミットするので、途中で時間切れになっても、終わったセットの分は残る。
 
 on:
   workflow_dispatch:
     inputs:
-      set:
-        description: "セットコード（例: EOE）。空なら環境レポートがある一番新しいセット"
+      sets:
+        description: "セットコード（空白区切り。例: EOE TDM）。空なら「一番新しいセット＋まだ無いセット」、all なら全セットを作り直す"
         required: false
+      max:
+        description: "空のとき、まだ無いセットを何個まで作るか（1セット 10〜30 分ほど）"
+        required: false
+        default: "4"
 
 permissions:
   contents: write
 
+concurrency:
+  group: build-trophies
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 330
     steps:
       - uses: actions/checkout@v4
 
@@ -24,23 +33,45 @@ jobs:
         with:
           node-version: "20"
 
-      - name: 全勝デッキを集計
-        run: node --max-old-space-size=4096 maintenance/build-trophies.mjs ${{ inputs.set }}
+      - name: 対象のセットを決める
+        id: list
+        env:
+          SETS: ${{ inputs.sets }}
+          MAX: ${{ inputs.max }}
+        run: |
+          T="$(node maintenance/build-trophies.mjs $SETS --max "${MAX:-4}" --list)"
+          echo "対象: $T"
+          echo "sets=$T" >> "$GITHUB_OUTPUT"
 
-      - name: 変更をコミット
+      - name: セットごとに集計してコミット
+        env:
+          TARGETS: ${{ steps.list.outputs.sets }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/trophies
-          if git diff --staged --quiet; then
-            echo "変更はありませんでした。"
-            exit 0
-          fi
-          git commit -m "全勝デッキのデータを更新"
-          for i in 1 2 3; do
-            git pull --rebase --autostash origin main && git push origin main && exit 0
-            echo "再試行 $i"
-            sleep 5
+          ok=""; ng=""
+          for s in $TARGETS; do
+            echo "::group::$s"
+            if node --max-old-space-size=4096 maintenance/build-trophies.mjs "$s"; then
+              git add data/trophies
+              if ! git diff --staged --quiet; then
+                git commit -m "全勝デッキのデータを更新（$s）"
+                pushed=""
+                for i in 1 2 3; do
+                  if git pull --rebase --autostash origin main && git push origin main; then pushed=1; break; fi
+                  echo "再試行 $i"; sleep 5
+                done
+                [ -n "$pushed" ] || { echo "プッシュに失敗しました。"; exit 1; }
+              fi
+              ok="$ok $s"
+            else
+              ng="$ng $s"
+            fi
+            echo "::endgroup::"
           done
-          echo "プッシュに失敗しました。"
-          exit 1
+          {
+            echo "## 全勝デッキ集計"
+            echo "- 作れたセット:${ok:- なし}"
+            echo "- 見送り（17Lands にデータが無い／失敗）:${ng:- なし}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          [ -n "$ok" ] || { echo "作れたセットがありませんでした。"; exit 1; }

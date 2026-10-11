@@ -28,13 +28,52 @@
     return [...top, ...sl].map(x => ({ ...x, entry: data.colors.find(c => c.colors === x.colors) || null }));
   }
 
+  /* マナ総量 → 列（0〜1、2、3、4、5以上） */
+  const COLS = [1, 2, 3, 4, 5];
+  const colOf = cmc => Math.min(5, Math.max(1, cmc ?? 1));
+  const colLabel = c => c === 1 ? t("reports.trophy.cost1") : c === 5 ? t("reports.trophy.cost5") : t("reports.trophy.cost", { c });
+
+  /* セットのカード一覧に無い土地（基本土地など）は Scryfall の名前検索の画像を使う */
+  const imgOf = (name, land) => imageUrls(name)[0] || (land ? `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}&format=image&version=normal` : "");
+
+  function cardHtml(name, n, land){
+    const u = imgOf(name, land), dn = displayName(name);
+    return `<div class="tcard" data-img="${esc(name)}" title="${esc(dn)}">${u ? `<img src="${esc(u)}" alt="${esc(dn)}">` : `<span class="nm">${esc(dn)}</span>`}${n ? `<span class="cnt">×${n}</span>` : ""}</div>`;
+  }
+
+  /* 土地：1種類1枚の画像に「×9」のように枚数を重ねる */
+  function landsHtml(s){
+    const list = Array.isArray(s.land_cards) ? s.land_cards : [];
+    if(!list.length) return `<p class="tnote">${esc(t("reports.trophy.lands", { n: s.lands }))}</p>`;   // 古い形式のデータ
+    return `<div class="tsect"><h3>${esc(t("reports.trophy.landsH", { n: s.lands }))}</h3>
+      <div class="tlands">${list.map(([name, n]) => cardHtml(name, n, true)).join("")}</div></div>`;
+  }
+
+  /* 1段（クリーチャー or スペル）：マナ総量の列に分け、同じカードは枚数ぶん重ねる */
+  function curveHtml(key, cards){
+    const total = cards.reduce((n, c) => n + c.n, 0);
+    if(!total) return "";
+    const cols = COLS.map(c => {
+      const list = cards.filter(x => colOf(x.cmc) === c)
+        .sort((a, b) => (a.cmc ?? 0) - (b.cmc ?? 0) || displayName(a.name).localeCompare(displayName(b.name)));
+      const n = list.reduce((m, x) => m + x.n, 0);
+      const body = list.flatMap(x => Array.from({ length: x.n }, () => cardHtml(x.name))).join("");
+      return `<div class="tcol${n ? "" : " empty"}"><p class="ch">${esc(colLabel(c))} <b>${n}</b></p>${body}</div>`;
+    }).join("");
+    return `<div class="tsect"><h3>${esc(t(key, { n: total }))}</h3><div class="tcurve">${cols}</div></div>`;
+  }
+
   function deckHtml(s){
-    const cards = s.cards.slice().sort((a, b) => (a[2] ?? 99) - (b[2] ?? 99) || displayName(a[0]).localeCompare(displayName(b[0])));
-    return `<div class="tgrid">${cards.map(([name, n]) => {
-      const u = imageUrls(name)[0];
-      return `<div class="tcard" data-img="${esc(name)}" title="${esc(displayName(name))}">${u ? `<img src="${esc(u)}" alt="${esc(displayName(name))}" loading="lazy">` : `<span class="nm">${esc(displayName(name))}</span>`}${n > 1 ? `<span class="cnt">×${n}</span>` : ""}</div>`;
-    }).join("")}</div>
-    <p class="tnote">${esc(t("reports.trophy.lands", { n: s.lands }))}</p>`;
+    /* 種類とマナ総量はページで読んだ Scryfall の情報を優先（データ側は名前・枚数・マナ総量） */
+    const cards = s.cards.map(([name, n, cmc]) => {
+      const m = (typeof nameMap === "object" && nameMap[name]) || {};
+      return { name, n, cmc: m.cmc ?? cmc, creature: typeof isCreature === "function" ? isCreature(name) : null };
+    });
+    return `<div class="tdeck">
+      ${curveHtml("reports.trophy.creatures", cards.filter(c => c.creature !== false))}
+      ${curveHtml("reports.trophy.spells", cards.filter(c => c.creature === false))}
+      ${landsHtml(s)}
+    </div>`;
   }
 
   function paint(){

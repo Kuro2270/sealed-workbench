@@ -2,9 +2,11 @@
 /*
  * 17Lands 公開データセット（CC BY 4.0）の game data から、全勝（トロフィー）デッキを集める。
  *
- *   node maintenance/build-trophies.mjs            環境レポートがある一番新しいセット
- *   node maintenance/build-trophies.mjs EOE        セットを指定
- *   node maintenance/build-trophies.mjs EOE ECL    複数も可
+ *   node maintenance/build-trophies.mjs            一番新しいセット＋まだ全勝データが無いセット（新しい順に4つまで）
+ *   node maintenance/build-trophies.mjs --max 8    まだ無いセットを8つまで
+ *   node maintenance/build-trophies.mjs all        環境レポートがある全セットを作り直す
+ *   node maintenance/build-trophies.mjs EOE ECL    セットを指定
+ *   … --list                                       対象のセットを並べるだけ（集計しない）
  *
  * 出力: data/trophies/<SET>_draft.json（プレミア／クイック／トラディショナル・ドラフト）
  *       data/trophies/<SET>_sealed.json（シールド）
@@ -112,12 +114,12 @@ async function readEvents(set, fmt, meta){
     /* 一番最後に記録された試合のデッキを残す（時刻が同じなら build_index の大きいほう） */
     const gt = f[ix.game_time] || "", bi = +f[ix.build_index] || 0;
     if(gt > ev.t || (gt === ev.t && bi >= ev.b)){
-      const parts = []; let lands = 0;
+      const parts = [], landParts = []; let lands = 0;
       for(let k = 0; k < cardIdx.length; k++){
         const n = +f[cardIdx[k]] || 0; if(!n) continue;
-        if(cardLand[k]) lands += n; else parts.push(k + ":" + n);
+        if(cardLand[k]){ lands += n; landParts.push(k + ":" + n); } else parts.push(k + ":" + n);
       }
-      ev.t = gt; ev.b = bi; ev.deck = parts.join(","); ev.lands = lands;
+      ev.t = gt; ev.b = bi; ev.deck = parts.join(","); ev.lands = lands; ev.landDeck = landParts.join(",");
       ev.colors = pairKey(f[ix.main_colors]); ev.splash = pairKey(f[ix.splash_colors]); ev.rank = (f[ix.rank] || "").toLowerCase();
     }
     if(rows % 500000 === 0) process.stderr.write(`  ${rows.toLocaleString()} 行\n`);
@@ -155,7 +157,8 @@ async function buildMode(set, mode, meta){
       trophies++; g.trophies++;
       g.samples.push({
         event: fmt.event, wins: rec.wins, losses: rec.losses, rank: ev.rank, splash: ev.splash, time: ev.time, lands: ev.lands,
-        cards: ev.deck.split(",").filter(Boolean).map(p => { const [k, n] = p.split(":"); const name = r.cardName[+k]; return [name, +n, (meta.get(name) || {}).cmc ?? null]; })
+        cards: ev.deck.split(",").filter(Boolean).map(p => { const [k, n] = p.split(":"); const name = r.cardName[+k]; return [name, +n, (meta.get(name) || {}).cmc ?? null]; }),
+        land_cards: (ev.landDeck || "").split(",").filter(Boolean).map(p => { const [k, n] = p.split(":"); return [r.cardName[+k], +n]; }).sort((a, b) => b[1] - a[1])
       });
     }
   }
@@ -178,21 +181,37 @@ async function buildMode(set, mode, meta){
   };
 }
 
-/* 引数が無ければ、環境レポート（data/articles）がある一番新しいセット */
-async function defaultSets(){
+/* 環境レポート（data/articles）があるセットを、発売日の新しい順に */
+async function reportSets(){
   const files = await readdir("data/articles").catch(() => []);
-  const sets = [...new Set(files.map(f => f.split("_")[0]))];
+  const sets = [...new Set(files.filter(f => /^[A-Z0-9]+_(draft|sealed)\.json$/i.test(f)).map(f => f.split("_")[0].toUpperCase()))];
   if(!sets.length) return [];
-  /* 発売日の新しい順に並べるため、Scryfall のセット一覧を使う */
-  const res = await fetch(SCRY + "/sets", { headers: { "User-Agent": UA } });
-  const d = res.ok ? await res.json() : { data: [] };
+  const res = await fetch(SCRY + "/sets", { headers: { "User-Agent": UA } }).catch(() => null);
+  const d = res && res.ok ? await res.json() : { data: [] };
   const rel = new Map(d.data.map(s => [s.code.toUpperCase(), s.released_at || ""]));
-  return sets.sort((a, b) => (rel.get(b) || "").localeCompare(rel.get(a) || "")).slice(0, 1);
+  return sets.sort((a, b) => (rel.get(b) || "").localeCompare(rel.get(a) || "") || a.localeCompare(b));
+}
+
+/* 対象のセット
+   引数なし   … 一番新しいセット（作り直し）＋まだ全勝データが無いセット（新しい順に --max 件まで）
+   all        … 環境レポートがある全セット
+   EOE ECL …  … 指定したセット */
+async function targetSets(args, max){
+  const codes = args.filter(a => !a.startsWith("--")).map(s => s.toUpperCase());
+  if(codes.length && codes[0] !== "ALL") return codes;
+  const all = await reportSets();
+  if(codes[0] === "ALL") return all;
+  const have = new Set((await readdir(OUT_DIR).catch(() => [])).map(f => f.split("_")[0].toUpperCase()));
+  const missing = all.slice(1).filter(s => !have.has(s)).slice(0, max);
+  return [...all.slice(0, 1), ...missing];
 }
 
 async function main(){
-  const sets = process.argv.slice(2).map(s => s.toUpperCase());
-  const targets = sets.length ? sets : await defaultSets();
+  const args = process.argv.slice(2);
+  const mi = args.indexOf("--max");
+  const max = mi >= 0 ? Math.max(0, +args.splice(mi, 2)[1] || 0) : 4;
+  const targets = await targetSets(args, max);
+  if(args.includes("--list")){ process.stdout.write(targets.join(" ") + "\n"); return; }   // ワークフローがセットごとに回すため
   if(!targets.length){ process.stderr.write("対象のセットがありません。\n"); process.exit(1); }
   await mkdir(OUT_DIR, { recursive: true });
   let made = 0;
