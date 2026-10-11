@@ -110,28 +110,34 @@
         <span>${esc(t("reports.trophy.sample", { i: idx + 1, n: samples.length }))}</span>
         <button type="button" data-nav="1" aria-label="${esc(t("reports.trophy.next"))}" ${idx >= samples.length - 1 ? "disabled" : ""}>›</button></div>
         ${deckHtml(s)}` : `<p class="tnote">${esc(t("reports.trophy.none"))}</p>`}
-      ${s && typeof TOUCH !== "undefined" && TOUCH ? `<p class="tnote">${esc(t("reports.trophy.tap"))}</p>` : ""}
+      ${s && !(typeof TOUCH !== "undefined" && TOUCH) ? `<p class="tnote">${esc(t("reports.trophy.tap"))}</p>` : ""}
       <p class="tnote">${esc(t("reports.trophy.src"))}</p>`;
     box.hidden = false;
     bindPreview(box);
   }
 
-  /* カード画像の拡大：パソコンはカーソルを当てると横に大きく、スマホ・タブレットはタップで画面中央に大きく出す
+  /* カード画像の拡大（パソコンだけ）：カーソルを当てると横に大きく、クリックすると画面中央に大きく出す。
+     スマホ・タブレットは重なった一覧のほうが見やすいので、拡大は付けない。
      （ページ側の showPreview・movePreview・hidePreview・tapPreview を使う） */
   function bindPreview(box){
-    const touch = typeof TOUCH !== "undefined" && TOUCH;
+    if(typeof TOUCH !== "undefined" && TOUCH) return;
+    if(typeof showPreview !== "function") return;
+    const big = () => document.getElementById("preview").classList.contains("tap");
     box.querySelectorAll(".tcard[data-img]").forEach(el => {
       const name = el.dataset.img;
-      if(touch){
-        el.onclick = ev => { ev.stopPropagation(); const u = imgOf(name, el.closest(".tlands") !== null); if(u && typeof tapPreview === "function") tapPreview([u], displayName(name)); };
-        return;
-      }
-      if(typeof showPreview !== "function") return;
-      el.onmouseenter = ev => showPreview(name, ev.clientX, ev.clientY);
-      el.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
-      el.onmouseleave = hidePreview;
+      el.onmouseenter = ev => { if(!big()) showPreview(name, ev.clientX, ev.clientY); };
+      el.onmousemove  = ev => { if(!big()) movePreview(ev.clientX, ev.clientY); };
+      el.onmouseleave = () => { if(!big()) hidePreview(); };
+      el.onclick = ev => {
+        ev.stopPropagation();
+        const u = imgOf(name, el.closest(".tlands") !== null);
+        if(!u || typeof tapPreview !== "function") return;
+        hidePreview();
+        tapPreview([u], displayName(name));
+      };
     });
   }
+
 
   async function show(set, mode, box){
     if(!box) return;

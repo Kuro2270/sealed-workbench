@@ -14,7 +14,7 @@
 <script src="./i18n.js"></script>
 <script src="./analytics.js"></script>
 <script src="./tip.js" defer></script>
-<script src="./trophies.js?v=9"></script>
+<script src="./trophies.js?v=10"></script>
 <script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
@@ -303,6 +303,8 @@
   /* スマホのタップ表示：画面中央に出し、後ろに膜を敷く */
   #preview.tap{display:block;left:50% !important;top:50% !important;transform:translate(-50%,-50%);pointer-events:auto}
   #preview.tap img{width:min(300px, 78vw)}
+  /* パソコンで全勝デッキのカードをクリックしたときは、さらに大きく出す */
+  @media (hover: hover){ #preview.tap img{width:min(460px, 42vw, calc((100vh - 40px) * 488 / 680))} #preview.tap{cursor:zoom-out} }
   #tapdim{display:none;position:fixed;inset:0;z-index:49;background:rgba(15,28,23,.55)}
   #tapdim.on{display:block}
   /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
