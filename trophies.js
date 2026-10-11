@@ -38,7 +38,8 @@
 
   function cardHtml(name, n, land){
     const u = imgOf(name, land), dn = displayName(name);
-    return `<div class="tcard" data-img="${esc(name)}" title="${esc(dn)}">${u ? `<img src="${esc(u)}" alt="${esc(dn)}">` : `<span class="nm">${esc(dn)}</span>`}${n ? `<span class="cnt">×${n}</span>` : ""}</div>`;
+    const r = (typeof nameMap === "object" && nameMap[name] && nameMap[name].rarity) || "";
+    return `<div class="tcard${/^(common|uncommon|rare|mythic)$/.test(r) ? " r-" + r : ""}" data-img="${esc(name)}" title="${esc(dn)}">${u ? `<img src="${esc(u)}" alt="${esc(dn)}">` : `<span class="nm">${esc(dn)}</span>`}${n ? `<span class="cnt">×${n}</span>` : ""}</div>`;
   }
 
   /* 土地：1種類1枚の画像に「×9」のように枚数を重ねる */

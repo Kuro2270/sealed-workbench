@@ -14,7 +14,7 @@
 <script src="./i18n.js"></script>
 <script src="./analytics.js"></script>
 <script src="./tip.js" defer></script>
-<script src="./trophies.js?v=3"></script>
+<script src="./trophies.js?v=4"></script>
 <script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
@@ -221,9 +221,9 @@
   .trophy .tnav button{font:inherit;border:1px solid var(--line);background:#fff;border-radius:8px;padding:3px 12px;cursor:pointer}
   .trophy .tnav button:disabled{opacity:.4;cursor:default}
   .trophy .tdeck{overflow-x:auto;padding-bottom:4px}
-  .trophy .tsect{margin:10px 0 0;min-width:460px}
+  .trophy .tsect{margin:12px 0 0;min-width:460px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px 14px}
   .trophy .tsect h3{font-size:14px;margin:0 0 6px;color:var(--ink)}
-  .trophy .tcurve{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;align-items:start}
+  .trophy .tcurve{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:start}
   .trophy .tcol{min-width:0}
   .trophy .tcol .ch{font-size:12px;color:var(--muted);text-align:center;margin:0 0 4px;font-weight:600}
   .trophy .tcol .ch b{color:var(--ink)}
@@ -232,8 +232,13 @@
   .trophy .tcard{position:relative;border-radius:6px;overflow:hidden;background:var(--paper-2);aspect-ratio:488/680;box-shadow:0 1px 3px rgba(0,0,0,.35)}
   .trophy .tcard + .tcard{margin-top:-118%}
   .trophy .tcard:hover{z-index:2}
-  .trophy .tlands{display:flex;flex-wrap:wrap;gap:8px}
-  .trophy .tlands .tcard{width:calc((100% - 32px) / 5);margin:0}
+  /* レアリティ：カードの外ふち（構築画面と同じ色） */
+  .trophy .tcard.r-common{box-shadow:0 0 0 2px #1E2933}
+  .trophy .tcard.r-uncommon{box-shadow:0 0 0 3px #A3B8CA,0 0 6px 2px rgba(163,184,202,.75)}
+  .trophy .tcard.r-rare{box-shadow:0 0 0 3px #E0AE2E}
+  .trophy .tcard.r-mythic{box-shadow:0 0 0 3px #E8582B}
+  .trophy .tlands{display:flex;flex-wrap:wrap;gap:12px}
+  .trophy .tlands .tcard{width:calc((100% - 48px) / 5);margin:0}
   .trophy .tcard .cnt{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(15,28,40,.85);color:#fff;font-weight:800;font-size:18px;border-radius:8px;padding:3px 12px;white-space:nowrap}
   .trophy .tcard img{width:100%;height:100%;object-fit:cover;display:block}
   .trophy .tcard .nm{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;padding:6px;text-align:center;font-size:12px}
@@ -541,7 +546,7 @@ function namesOf(c){
 /* 名前 → 画像・クリーチャーかどうか・マナ総量（全勝デッキの並べ分けに使う） */
 function cardEntry(c){
   const tl = String(c.type_line || (c.card_faces && c.card_faces[0] && c.card_faces[0].type_line) || "").split("//")[0];
-  return { imgs: imgsOf(c), creature: /Creature/.test(tl), cmc: Math.floor(c.cmc ?? 0) };
+  return { imgs: imgsOf(c), creature: /Creature/.test(tl), cmc: Math.floor(c.cmc ?? 0), rarity: c.rarity || "" };
 }
 
 function imgsOf(c){
@@ -864,9 +869,6 @@ function render(){
     </section>`);
   }
 
-  // 全勝デッキのサンプル（trophies.js が中身を入れる）
-  out.push(`<section class="trophy" id="trophySec" hidden></section>`);
-
   // マナ総量
   if(d.curve && d.curve.length){
     out.push(`<section>
@@ -876,6 +878,9 @@ function render(){
         barRow(c.cmc + (I18N.isJa() ? "マナ" : " MV"), c.wr, c.games, wrClass(c.wr, avg))).join("")}</div>
     </section>`);
   }
+
+  // 全勝デッキのサンプル（trophies.js が中身を入れる）。マナ総量ごとの勝率の次に置く
+  out.push(`<section class="trophy" id="trophySec" hidden></section>`);
 
   // レアリティ別のカード
   const hasCards = RARITIES.some(r => (d.top?.[r] || []).length);
