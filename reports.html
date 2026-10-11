@@ -14,7 +14,7 @@
 <script src="./i18n.js"></script>
 <script src="./analytics.js"></script>
 <script src="./tip.js" defer></script>
-<script src="./trophies.js?v=8"></script>
+<script src="./trophies.js?v=9"></script>
 <script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
@@ -986,7 +986,7 @@ function closeTap(){
   box.classList.remove("tap"); box.style.display = "none"; box.innerHTML = "";
   dim.classList.remove("on");
 }
-document.addEventListener("click", ev => { if($("preview").classList.contains("tap") && !ev.target.closest("tr[data-card], tr[data-img]")) closeTap(); });
+document.addEventListener("click", ev => { if($("preview").classList.contains("tap") && !ev.target.closest("tr[data-card], tr[data-img], .tcard[data-img]")) closeTap(); });
 $("tapdim").addEventListener("click", closeTap);
 
 function showPreview(name, x, y){
