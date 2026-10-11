@@ -86,7 +86,11 @@
       const m = (typeof nameMap === "object" && nameMap[name]) || {};
       return { name, n, cmc: m.cmc ?? cmc, creature: typeof isCreature === "function" ? isCreature(name) : null };
     });
-    return `<div class="tdeck">
+    /* 平均マナ総量（土地を除く。X は0として数える） */
+    const nonland = cards.reduce((m, c) => m + c.n, 0);
+    const avg = nonland ? cards.reduce((m, c) => m + (c.cmc ?? 0) * c.n, 0) / nonland : 0;
+    return `${nonland ? `<p class="tavgmv">${t("reports.trophy.avgmv", { v: avg.toFixed(2), n: nonland })}</p>` : ""}
+    <div class="tdeck">
       ${curveHtml("reports.trophy.creatures", cards.filter(c => c.creature !== false))}
       ${curveHtml("reports.trophy.spells", cards.filter(c => c.creature === false))}
       ${landsHtml(s)}

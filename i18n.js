@@ -880,6 +880,7 @@
     "reports.trophy.cost1":{ ja:"1マナ以下", en:"0–1 mana" },
     "reports.trophy.cost5":{ ja:"5マナ以上", en:"5+ mana" },
     "reports.trophy.landsH":{ ja:"土地 {n}枚", en:"Lands ({n})" },
+    "reports.trophy.avgmv":{ ja:"平均マナ総量 <b>{v}</b>（土地を除く{n}枚）", en:"Average mana value <b>{v}</b> ({n} non-land cards)" },
     "reports.trophy.none":{ ja:"この組み合わせのサンプルはまだありません。", en:"No samples for this pair yet." },
     "reports.trophy.prev":{ ja:"前のサンプル", en:"Previous sample" },
     "reports.trophy.next":{ ja:"次のサンプル", en:"Next sample" },

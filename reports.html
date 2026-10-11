@@ -14,7 +14,7 @@
 <script src="./i18n.js"></script>
 <script src="./analytics.js"></script>
 <script src="./tip.js" defer></script>
-<script src="./trophies.js?v=5"></script>
+<script src="./trophies.js?v=6"></script>
 <script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
@@ -221,9 +221,12 @@
   .trophy .tnav button{font:inherit;border:1px solid var(--line);background:#fff;border-radius:8px;padding:3px 12px;cursor:pointer}
   .trophy .tnav button:disabled{opacity:.4;cursor:default}
   .trophy .tdeck{overflow-x:auto;padding-bottom:4px}
-  .trophy .tsect{margin:12px 0 0;min-width:460px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px 14px}
-  .trophy .tsect h3{font-size:14px;margin:0 0 6px;color:var(--ink)}
-  .trophy .tcurve{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:start}
+  .trophy .tsect{margin:10px 0 0;min-width:460px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:8px 12px 12px}
+  .trophy .tsect h3{font-size:14px;margin:0 0 4px;color:var(--ink)}
+  .trophy .tavgmv{display:inline-block;margin:8px 0 0;font-size:13px;color:var(--muted);background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:3px 12px}
+  .trophy .tavgmv b{color:var(--ink);font-size:15px}
+  /* カードは文字が読める範囲で少し小さめ（1列 最大165px） */
+  .trophy .tcurve{display:grid;grid-template-columns:repeat(5,minmax(0,165px));gap:12px;align-items:start}
   .trophy .tcol{min-width:0}
   .trophy .tcol .ch{font-size:12px;color:var(--muted);text-align:center;margin:0 0 4px;font-weight:600}
   .trophy .tcol .ch b{color:var(--ink)}
@@ -238,7 +241,7 @@
   .trophy .tcard.r-rare{box-shadow:0 0 0 3px #E0AE2E}
   .trophy .tcard.r-mythic{box-shadow:0 0 0 3px #E8582B}
   .trophy .tlands{display:flex;flex-wrap:wrap;gap:12px}
-  .trophy .tlands .tcard{width:calc((100% - 48px) / 5);margin:0}
+  .trophy .tlands .tcard{width:min(165px,calc((100% - 48px) / 5));margin:0}
   .trophy .tcard .cnt{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(15,28,40,.85);color:#fff;font-weight:800;font-size:18px;border-radius:8px;padding:3px 12px;white-space:nowrap}
   .trophy .tcard img{width:100%;height:100%;object-fit:cover;display:block}
   .trophy .tcard .nm{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;padding:6px;text-align:center;font-size:12px}
