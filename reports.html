@@ -14,6 +14,7 @@
 <script src="./i18n.js"></script>
 <script src="./analytics.js"></script>
 <script src="./tip.js" defer></script>
+<script src="./trophies.js?v=1"></script>
 <script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
@@ -196,6 +197,35 @@
   .bar .lbl{display:flex;align-items:center;gap:6px}
   .dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22)}
   @media (max-width:620px){ .bar{grid-template-columns:96px 1fr 54px} .bar .n{display:none} }
+  /* Tier表（色の強さ・色の組み合わせ） */
+  .tiers{display:grid;gap:6px}
+  .trow{display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:stretch}
+  .tlab{display:flex;align-items:center;justify-content:center;border-radius:8px;font:800 24px/1 "Bricolage Grotesque",sans-serif;color:#fff}
+  .tlab.S{background:#C9472E}.tlab.A{background:#D98A1E}.tlab.B{background:#4F8A4A}.tlab.C{background:#6B7A8A}
+  .tcells{display:flex;flex-wrap:wrap;gap:6px;padding:6px;background:var(--paper-2);border-radius:8px;min-height:46px;align-items:center}
+  .tchip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:13.5px}
+  .tchip b{font-variant-numeric:tabular-nums}
+  .tchip small{color:var(--muted);font-size:11.5px}
+  .tchip .slp{font-size:11px;font-weight:700;color:#fff;background:var(--gold);border-radius:4px;padding:0 6px}
+  .tchip.sleeper{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+  .tavg{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+  details.others{margin-top:12px} details.others summary{cursor:pointer;font-size:13px;color:var(--muted)}
+  details.others .bars{margin-top:8px}
+  /* 全勝デッキ */
+  .trophy .ttabs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+  .trophy .ttab{font:inherit;font-size:13.5px;font-weight:700;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+  .trophy .ttab.on{background:var(--pine);color:#fff;border-color:var(--pine)}
+  .trophy .ttab .slp{font-size:10.5px;color:#fff;background:var(--gold);border-radius:4px;padding:0 5px}
+  .trophy .tstat{font-size:13px;color:var(--muted);margin:0 0 8px}
+  .trophy .tnav{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:13.5px}
+  .trophy .tnav button{font:inherit;border:1px solid var(--line);background:#fff;border-radius:8px;padding:3px 12px;cursor:pointer}
+  .trophy .tnav button:disabled{opacity:.4;cursor:default}
+  .trophy .tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+  .trophy .tcard{position:relative;border-radius:6px;overflow:hidden;background:var(--paper-2);aspect-ratio:488/680}
+  .trophy .tcard img{width:100%;height:100%;object-fit:cover;display:block}
+  .trophy .tcard .nm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:6px;text-align:center;font-size:12px}
+  .trophy .tcard .cnt{position:absolute;right:4px;bottom:4px;background:rgba(15,28,40,.85);color:#fff;font-weight:700;font-size:12.5px;border-radius:6px;padding:1px 7px}
+  .trophy .tnote{font-size:12px;color:var(--muted);margin:8px 0 0}
 
 
   /* カード表 */
@@ -599,6 +629,35 @@ function barRow(label, wr, games, cls, iconHtml){
   </div>`;
 }
 
+/* Tier表の分け方（長尺動画と同じ）：最上位と平均+2pt以上がS、平均+0.5pt以上がA、平均-1pt以上がB、それ未満がC */
+function tierOf(rows, avg){
+  const tiers = { S: [], A: [], B: [], C: [] };
+  if(!rows.length) return tiers;
+  const top = Math.max(...rows.map(r => r.wr));
+  for(const p of rows) (p.wr >= top - 0.005 || p.wr >= avg + 0.02 ? tiers.S : p.wr >= avg + 0.005 ? tiers.A : p.wr >= avg - 0.01 ? tiers.B : tiers.C).push(p);
+  return tiers;
+}
+function tierBoard(rows, avg, chipFn){
+  const tiers = tierOf(rows, avg);
+  return `<div class="tiers">${Object.entries(tiers).map(([k, list]) => `<div class="trow"><div class="tlab ${k}">${k}</div><div class="tcells">${list.sort((a, b) => b.wr - a.wr).map(chipFn).join("")}</div></div>`).join("")}</div>
+    <p class="tavg">${esc(t("reports.tier.avg", {p: pct(avg)}))}</p>`;
+}
+/* 2色の組み合わせ（試合数の少ないものは除く）と、ねらい目（長尺動画と同じ決め方）。全勝デッキの欄でも使う */
+function pairRows(d){
+  const rows = (d.archetypes || []).filter(a => /^[WUBRG]{2}$/.test(a.colors));
+  const tot = rows.reduce((n, p) => n + p.games, 0) || 1;
+  const f = rows.filter(p => p.games >= Math.max(1500, tot * 0.03));
+  return (f.length >= 3 ? f : rows).slice().sort((a, b) => b.wr - a.wr);
+}
+function sleeperPairs(d){
+  const pairs = pairRows(d), avg = d.overall_win_rate;
+  if(pairs.length < 4) return [];
+  const tot = pairs.reduce((n, p) => n + p.games, 0) || 1;
+  const solid = pairs.filter(p => p.games >= Math.max(2000, tot * 0.04));
+  const best = pairs[0], worst = (solid.length ? solid : pairs).slice().sort((a, b) => a.wr - b.wr)[0];
+  const avgShare = 1 / pairs.length;
+  return pairs.filter(p => p !== best && p !== worst && p.wr >= avg - 0.005 && p.games / tot <= avgShare * 0.85 && p.games >= 1500).slice(0, 2).map(p => p.colors);
+}
 function wrClass(wr, avg){
   if(wr == null || avg == null) return "";
   if(wr >= avg + 0.015) return "hot";
@@ -729,6 +788,7 @@ async function renderVideo(code, mode){
   box.hidden = false;
 }
 
+window.__report = () => report;     // trophies.js から今のレポートを見るため
 function render(){
   const d = report, avg = d.overall_win_rate;
   renderVideo(d.set, d.mode);
@@ -759,28 +819,32 @@ function render(){
     }
   }
 
-  // 色の強さ
+  // 色の強さ（Tier表）
   if(d.colors && d.colors.length){
     out.push(`<section>
       <h2>${t("reports.colors.h")}</h2>
-      <p class="lead">${t("reports.colors.lead")}</p>
-      <div class="bars">${d.colors.map(c => {
-        const def = COLORS.find(x => x.key === c.color);
-        return barRow(t("color." + c.color), c.wr, c.games, wrClass(c.wr, avg), manaI(c.color));
-      }).join("")}</div>
+      <p class="lead">${t("reports.tier.colors.lead")}</p>
+      ${tierBoard(d.colors, avg, c => `<span class="tchip">${manaI(c.color)}${esc(t("color." + c.color))}<b>${pct(c.wr)}</b><small>${esc(t("reports.tier.games", {n: (c.games || 0).toLocaleString()}))}</small></span>`)}
     </section>`);
   }
 
-  // 色の組み合わせ
+  // 色の組み合わせ（2色はTier表。単色・3色以上は参考として折りたたみ）
   if(d.archetypes && d.archetypes.length){
+    const pairs = pairRows(d), sl = sleeperPairs(d);
+    const others = d.archetypes.filter(a => !/^[WUBRG]{2}$/.test(a.colors));
+    const pairName = c => [...c].map(k => t("color." + k)).join(I18N.isJa() ? "／" : " / ");
     out.push(`<section>
       <h2>${t("reports.arche.h")}</h2>
-      <p class="lead">${t("reports.arche.lead")}</p>
-      <div class="bars">${d.archetypes.map(a =>
-        barRow([...a.colors].map(k => t("color." + k)).join(I18N.isJa() ? "／" : " / "), a.wr, a.games, wrClass(a.wr, avg), [...a.colors].map(manaI).join(""))).join("")}</div>
+      <p class="lead">${t("reports.tier.arche.lead")}</p>
+      ${tierBoard(pairs, avg, a => `<span class="tchip${sl.includes(a.colors) ? " sleeper" : ""}">${[...a.colors].map(manaI).join("")}${esc(pairName(a.colors))}<b>${pct(a.wr)}</b><small>${esc(t("reports.tier.games", {n: (a.games || 0).toLocaleString()}))}</small>${sl.includes(a.colors) ? `<span class="slp">${esc(t("reports.tier.sleeper"))}</span>` : ""}</span>`)}
+      ${others.length ? `<details class="others"><summary>${esc(t("reports.tier.others"))}</summary><div class="bars">${others.map(a =>
+        barRow(pairName(a.colors), a.wr, a.games, wrClass(a.wr, avg), [...a.colors].map(manaI).join(""))).join("")}</div></details>` : ""}
       ${d.notes?.archetypes ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.archetypes[I18N.lang] || "")}</p></div>` : ""}
     </section>`);
   }
+
+  // 全勝デッキのサンプル（trophies.js が中身を入れる）
+  out.push(`<section class="trophy" id="trophySec" hidden></section>`);
 
   // マナ総量
   if(d.curve && d.curve.length){
@@ -842,6 +906,7 @@ function render(){
 
   $("body").innerHTML = out.join("");
   $("body").hidden = false;
+  if(window.Trophies) Trophies.show(d.set, d.mode, $("trophySec"));
 
   // 表示件数の切り替え
   $("body").querySelectorAll(".chips [data-n]").forEach(b => {

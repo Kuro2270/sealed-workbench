@@ -1,0 +1,46 @@
+name: データ｜2b 全勝デッキ集計（手動）
+
+# 17Lands の game data から全勝（トロフィー）デッキを集め、環境レポートの「全勝デッキのサンプル」に使う。
+# 役割はこれだけ。勝率の集計は「データ｜2」。いまは手動でのみ動かす（自動実行は付けていない）。
+
+on:
+  workflow_dispatch:
+    inputs:
+      set:
+        description: "セットコード（例: EOE）。空なら環境レポートがある一番新しいセット"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 全勝デッキを集計
+        run: node --max-old-space-size=4096 maintenance/build-trophies.mjs ${{ inputs.set }}
+
+      - name: 変更をコミット
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/trophies
+          if git diff --staged --quiet; then
+            echo "変更はありませんでした。"
+            exit 0
+          fi
+          git commit -m "全勝デッキのデータを更新"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push origin main && exit 0
+            echo "再試行 $i"
+            sleep 5
+          done
+          echo "プッシュに失敗しました。"
+          exit 1
