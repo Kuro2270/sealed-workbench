@@ -15,7 +15,7 @@
 <script src="./cardzoom.js"></script>
 <script src="./analytics.js"></script>
 <script src="/navmenu.js" defer></script>
-<script src="/poolsave.js"></script>
+<script src="/poolsave.js?v=2"></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
@@ -456,6 +456,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function setStatus(msg, isErr, busy){
   const el = $("status");
+  el.removeAttribute("data-i18n");     // 画面の翻訳処理が、あとから初期の案内文に戻さないように
   el.textContent = msg;
   el.className = "status" + (isErr ? " err" : "") + (busy ? " busy" : "");
 }
@@ -475,9 +476,9 @@ async function loadSets(){
     availableSets = sets;
     renderSetOptions();
     $("openBtn").disabled = !$("setSelect").value;
-    setStatus(t("index.ready"));
+    setStatus(pool.length ? t("save.restored", {n: pool.length}) : PoolSave.retired ? t("save.retired") : t("index.ready"));
   }catch(e){
-    setStatus((pool.length ? t("save.restored", {n: pool.length}) + " " : "") + t("err.sets", {e: e.message}), !pool.length);
+    setStatus((pool.length ? t("save.restored", {n: pool.length}) + " " : (PoolSave.retired ? t("save.retired") + " " : "")) + t("err.sets", {e: e.message}), !pool.length);
   }
 }
 
@@ -662,6 +663,7 @@ function applySnap(s, msgKey){
   }
 }
 function restoreCurrent(){
+  if(PoolSave.retireStale("sealed")){ setStatus(t("save.retired")); return false; }   // 1日以上前のプールは履歴へ
   const s = PoolSave.load("sealed");
   if(s && s.n){ applySnap(s, "save.restored"); return true; }
   return false;

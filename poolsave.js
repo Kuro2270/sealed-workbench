@@ -2,6 +2,7 @@
  * プールの自動保存（シールド／ドラフト共通）。
  *  - 状態が変わるたびに端末の localStorage へ保存。リロードしても続きから再開できる。
  *  - 新しくパックを開ける／ドラフトを始める直前に、いまのプールを「過去のプール」へ退避（最大5件）。
+ *  - 最後の保存から1日たったプールは、次に開いたときに「過去のプール」へ移し、続きからは出さない。
  *  - カードは同じものを1つにまとめ、重いデータ（価格・リンク類）を捨てて小さくしてから保存する。
  */
 (function(){
@@ -10,6 +11,7 @@
     "mtgo_id","arena_id","tcgplayer_id","cardmarket_id","edhrec_rank","penny_rank","artist_ids","illustration_id",
     "card_back_id","games","finishes","promo_types","frame_effects","security_stamp","flavor_text","artist"]);
   const MAX_HIST = 5;
+  const STALE_MS = 24 * 60 * 60 * 1000;   // 続きから出すのは最後の保存から1日以内
   const strip = c => { const o = {}; for(const k in c) if(!DROP.has(k)) o[k] = c[k]; return o; };
 
   /* {cards:{id:card}, arrays:{name:[id,...]}} にまとめる／元に戻す */
@@ -46,6 +48,17 @@
         h.pop();
       }
       while(h.length && !set("sw.hist." + key, h)) h.pop();   // 入りきらないときは古いものから捨てる
+    },
+    /* 最後の保存から1日（STALE_MS）たったプールは、開いたときに続きから出さず「過去のプール履歴」へ移す。
+       リロードで困るのは構築中の数十分〜数時間だけなので、翌日以降はまっさらな画面から始める。移したら true */
+    retireStale(key){
+      const s = get("sw.cur." + key);
+      if(!s || !s.n || !s.ts || Date.now() - s.ts < STALE_MS) return false;
+      this.archive(key, s);
+      this.clear(key);
+      this.retired = true;                  // 画面の案内文で「履歴に移した」と添えるため
+      if(this.redraw) this.redraw();
+      return true;
     },
     history(key){ return get("sw.hist." + key) || []; },
     remove(key, i){ const h = get("sw.hist." + key) || []; h.splice(i, 1); set("sw.hist." + key, h); },
