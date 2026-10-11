@@ -19,12 +19,28 @@
   const pairName = c => [...c].map(k => t("color." + k)).join(I18N.isJa() ? "／" : " / ");
   const pctTxt = v => (v * 100).toFixed(v < 0.1 ? 1 : 0) + "%";
 
+  /* レア・神話レアの枚数。データに無ければ（古いデータ）ページの Scryfall 情報から数える */
+  function raresOf(s){
+    if(typeof s.rares === "number") return s.rares;
+    const map = typeof nameMap === "object" ? nameMap : {};
+    return [...s.cards, ...(s.land_cards || [])].reduce((m, [name, n]) => m + (/^(rare|mythic)$/.test((map[name] || {}).rarity || "") ? n : 0), 0);
+  }
+  /* レアの少ないデッキを先に（0枚 → 1枚 → 2枚 → それ以上）。同じなら集計側の順（ランクの高い順） */
+  function sortSamples(data){
+    for(const c of data.colors){
+      if(c._sorted) continue;
+      c.samples = c.samples.map((s, i) => ({ s, i, r: Math.min(raresOf(s), 3) })).sort((a, b) => a.r - b.r || a.i - b.i).map(x => x.s);
+      c._sorted = true;
+    }
+  }
+
   /* タブ：全勝の多い2色の上位3つ＋ねらい目（重複は1つに） */
   function tabsOf(data, report){
     const two = data.colors.filter(c => /^[WUBRG]{2}$/.test(c.colors));
     const top = two.slice(0, 3).map((c, i) => ({ colors: c.colors, kind: "top", i: i + 1 }));
-    const sl = (typeof sleeperPairs === "function" ? sleeperPairs(report) : [])
-      .filter(c => !top.some(x => x.colors === c)).map(c => ({ colors: c, kind: "sleeper" }));
+    const sleepers = typeof sleeperPairs === "function" ? sleeperPairs(report) : [];
+    top.forEach(x => { x.sleeper = sleepers.includes(x.colors); });   // 上位でもねらい目なら印を付ける
+    const sl = sleepers.filter(c => !top.some(x => x.colors === c)).map(c => ({ colors: c, kind: "sleeper", sleeper: true }));
     return [...top, ...sl].map(x => ({ ...x, entry: data.colors.find(c => c.colors === x.colors) || null }));
   }
 
@@ -80,15 +96,15 @@
   function paint(){
     const { data, tabs, tab, idx, box, report } = state;
     const cur = tabs[tab], e = cur && cur.entry, samples = e ? e.samples : [];
-    const s = samples[Math.min(idx, samples.length - 1)];
-    const tabBtn = (x, i) => `<button type="button" class="ttab${i === tab ? " on" : ""}" data-tab="${i}">${[...x.colors].map(manaI).join("")}${esc(pairName(x.colors))}${x.kind === "sleeper" ? `<span class="slp">${esc(t("reports.tier.sleeper"))}</span>` : `<small>${esc(t("reports.trophy.top", { i: x.i }))}</small>`}</button>`;
+    const s = samples[Math.min(idx, samples.length - 1)];   // samples はレアの少ない順（sortSamples）
+    const tabBtn = (x, i) => `<button type="button" class="ttab${i === tab ? " on" : ""}" data-tab="${i}">${[...x.colors].map(manaI).join("")}${esc(pairName(x.colors))}${x.kind === "top" ? `<small>${esc(t("reports.trophy.top", { i: x.i }))}</small>` : ""}${x.sleeper ? `<span class="slp">${esc(t("reports.tier.sleeper"))}</span>` : ""}</button>`;
     box.innerHTML = `<h2>${esc(t("reports.trophy.h"))}</h2>
       <p class="lead">${esc(t(report.mode === "sealed" ? "reports.trophy.leadS" : "reports.trophy.lead"))}</p>
       <div class="ttabs">${tabs.map(tabBtn).join("")}</div>
       ${e ? `<p class="tstat">${esc(t("reports.trophy.stat", { n: e.trophies.toLocaleString(), s: pctTxt(e.share), r: pctTxt(e.trophy_rate) }))}</p>` : ""}
       ${s ? `<div class="tnav"><button type="button" data-nav="-1" aria-label="${esc(t("reports.trophy.prev"))}" ${idx <= 0 ? "disabled" : ""}>‹</button>
         <span>${esc(t("reports.trophy.sample", { i: idx + 1, n: samples.length }))}　${esc(t("reports.trophy.info", {
-          w: s.wins, l: s.losses, rank: t("rank." + (s.rank || "")), ev: t("ev." + s.event),
+          w: s.wins, l: s.losses, rank: t("rank." + (s.rank || "")), ev: t("ev." + s.event), r: raresOf(s),
           splash: s.splash ? t("reports.trophy.splash", { c: [...s.splash].map(k => t("color." + k)).join("") }) : "" }))}</span>
         <button type="button" data-nav="1" aria-label="${esc(t("reports.trophy.next"))}" ${idx >= samples.length - 1 ? "disabled" : ""}>›</button></div>
         ${deckHtml(s)}` : `<p class="tnote">${esc(t("reports.trophy.none"))}</p>`}
@@ -104,6 +120,7 @@
     if(!data || !data.colors || !data.colors.length || !box.isConnected) return;
     const keep = state && state.data === data ? state : null;
     state = { data, report: report || { set, mode, archetypes: [], overall_win_rate: 0.5 }, box, tabs: [], tab: keep ? keep.tab : 0, idx: keep ? keep.idx : 0 };
+    sortSamples(data);
     state.tabs = tabsOf(data, state.report);
     if(state.tab >= state.tabs.length) state.tab = 0;
     paint();

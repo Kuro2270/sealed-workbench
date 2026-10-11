@@ -38,6 +38,8 @@ const FORMATS = {
   sealed: [{ event: "Sealed", need: 7, bo3: false }],
 };
 const SAMPLES = 8;                       // 色の組み合わせごとに残すサンプルの数
+/* レア・神話レアが少ないデッキを優先する（レアだらけのデッキは参考にしにくいため）。0枚 → 1枚 → 2枚 → それ以上の順 */
+const RARE_CAP = 3;
 const RANK_ORDER = ["mythic", "diamond", "platinum", "gold", "silver", "bronze"];   // サンプルは上のランクを優先
 
 /* ---------- Scryfall：土地かどうかとマナ総量 ---------- */
@@ -49,7 +51,7 @@ async function cardMeta(setCode){
     if(!res.ok) break;
     const d = await res.json();
     for(const c of d.data){
-      const e = { cmc: Math.floor(c.cmc ?? 0), land: (c.type_line || "").split("//")[0].includes("Land") };
+      const e = { cmc: Math.floor(c.cmc ?? 0), land: (c.type_line || "").split("//")[0].includes("Land"), rare: c.rarity === "rare" || c.rarity === "mythic" };
       const names = [c.name];
       if(c.name.includes(" // ")) names.push(c.name.split(" // ")[0].trim());
       for(const n of names) if(!meta.has(n)) meta.set(n, e);
@@ -155,22 +157,25 @@ async function buildMode(set, mode, meta){
       g.drafts++;
       if(!rec.trophy) continue;
       trophies++; g.trophies++;
+      const cards = ev.deck.split(",").filter(Boolean).map(p => { const [k, n] = p.split(":"); const name = r.cardName[+k]; return [name, +n, (meta.get(name) || {}).cmc ?? null]; });
+      const landCards = (ev.landDeck || "").split(",").filter(Boolean).map(p => { const [k, n] = p.split(":"); return [r.cardName[+k], +n]; }).sort((a, b) => b[1] - a[1]);
+      const rares = [...cards, ...landCards].reduce((m, [name, n]) => m + ((meta.get(name) || {}).rare ? n : 0), 0);
       g.samples.push({
+        rares,
         event: fmt.event, wins: rec.wins, losses: rec.losses, rank: ev.rank, splash: ev.splash, time: ev.time, lands: ev.lands,
-        cards: ev.deck.split(",").filter(Boolean).map(p => { const [k, n] = p.split(":"); const name = r.cardName[+k]; return [name, +n, (meta.get(name) || {}).cmc ?? null]; }),
-        land_cards: (ev.landDeck || "").split(",").filter(Boolean).map(p => { const [k, n] = p.split(":"); return [r.cardName[+k], +n]; }).sort((a, b) => b[1] - a[1])
+        cards, land_cards: landCards
       });
     }
   }
   if(!read) return null;
-  /* サンプル：ランクの高い順 → 新しい順に SAMPLES 件。デッキが40枚に満たない（記録が欠けた）ものは除く */
+  /* サンプル：レア・神話レアの少ない順 → ランクの高い順 → 新しい順に SAMPLES 件。デッキが40枚に満たない（記録が欠けた）ものは除く */
   const rankOf = r => { const i = RANK_ORDER.indexOf(r); return i < 0 ? 99 : i; };
   const colors = [...by.entries()].map(([c, g]) => ({
     colors: c, drafts: g.drafts, trophies: g.trophies,
     trophy_rate: g.drafts ? g.trophies / g.drafts : 0,
     share: trophies ? g.trophies / trophies : 0,
     samples: g.samples.filter(s => s.lands + s.cards.reduce((n, x) => n + x[1], 0) >= 40)
-      .sort((a, b) => rankOf(a.rank) - rankOf(b.rank) || b.time.localeCompare(a.time)).slice(0, SAMPLES)
+      .sort((a, b) => Math.min(a.rares, RARE_CAP) - Math.min(b.rares, RARE_CAP) || rankOf(a.rank) - rankOf(b.rank) || b.time.localeCompare(a.time)).slice(0, SAMPLES)
   })).filter(c => c.trophies > 0).sort((a, b) => b.trophies - a.trophies);
   return {
     set, mode, events: FORMATS[mode].map(f => f.event), generated_at: new Date().toISOString(),
