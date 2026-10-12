@@ -10,6 +10,7 @@
  *   rotating … 週替わりの枠（キャラスリ・デッキケース・プレイマット）。検索して候補を集め、直近 N 週に出したものを除いて選ぶ
  *   seed     … 最初に手で選んだ商品。まだ出していなければ優先して入れる
  * リンクの形は data/affiliate.json（Buyee のトラッキングリンク、Amazon のタグ）。
+ * Buyee で注文できないショップ（config の buyeeNgShops と、buyee-check.mjs が見つけたもの）の商品は選ばない。
  *
  * 必要な環境変数（Secrets）: RAKUTEN_APP_ID, RAKUTEN_ACCESS_KEY, RAKUTEN_AFFILIATE_ID
  * 楽天の画像は、楽天アフィリエイトのリンクと一緒に表示する（楽天の規約）。
@@ -17,6 +18,7 @@
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { shell, L, esc, readJson, SITE, pretty } from "./build-set-pages.mjs";
+import { createBuyeeChecker } from "./buyee-check.mjs";
 
 const PAGES_ONLY = process.argv.includes("--pages");
 const APP = process.env.RAKUTEN_APP_ID, KEY = process.env.RAKUTEN_ACCESS_KEY, AFF = process.env.RAKUTEN_AFFILIATE_ID;
@@ -64,6 +66,10 @@ function normalize(it){
 const hasMaker = n => cfg.makers.some(m => n.toLowerCase().includes(m.toLowerCase()));
 const excluded = n => cfg.exclude.some(w => n.includes(w));
 const ok = it => it.availability === 1 && hasMaker(it.name) && !excluded(it.name) && it.image;
+/* Buyee で注文できるショップか（英語ページは Buyee で買う前提なので、できないショップの商品は選ばない） */
+const buyeeItemUrl = it => (aff.buyee.itemTemplate || "https://buyee.jp/rakuten/detail/{itemCodeEnc}?lang=en").replace("{itemCodeEnc}", encodeURIComponent(it.code));
+let buyee = null;
+const orderable = async it => !buyee || await buyee.orderable(it);
 
 /* ---------- 選定 ---------- */
 function isoWeek(d = new Date()){
@@ -79,13 +85,15 @@ async function select(){
   const history = await readJson("data/products/history.json", {});
   const recent = new Set(Object.entries(history).sort((a, b) => b[0].localeCompare(a[0])).slice(0, cfg.historyWeeks || 4).flatMap(([, codes]) => codes));
   const out = { generatedAt: new Date().toISOString(), week, fixed: [], rotating: {} };
+  buyee = await createBuyeeChecker(cfg.buyeeNgShops || [], buyeeItemUrl);
 
   // 定番：検索語で1つ引き当てる（レビューの多い出品を優先）
   for(const f of cfg.fixed){
     try{
       const must = f.keyword.split(/\s+/)[0].toLowerCase();   // 検索語の先頭（メーカー名）が商品名に入っているものだけ
       const items = (await rakutenSearch(f.keyword, { sort: "-reviewCount" })).filter(ok).filter(it => it.name.toLowerCase().includes(must));
-      const it = items[0];
+      let it = null;
+      for(const c of items){ if(await orderable(c)){ it = c; break; } }
       if(it) out.fixed.push({ ...it, id: f.id, group: f.group, label: f.name, note: f.note, amazon: f.amazon || "" });
       else console.error(`定番: 見つからず ${f.keyword}`);
       
@@ -109,7 +117,8 @@ async function select(){
     for(const s of seeds){
       if(picked.length >= g.pick) break;
       try{
-        const it = (await rakutenSearch(s.keyword, { sort: "-reviewCount" })).filter(ok)[0];
+        let it = null;
+        for(const c of (await rakutenSearch(s.keyword, { sort: "-reviewCount" })).filter(ok)){ if(await orderable(c)){ it = c; break; } }
         
         if(it && !recent.has(it.code) && !picked.some(p => p.code === it.code)){ picked.push({ ...it, amazon: s.amazon || "" }); cand.delete(it.code); }
       }catch(e){}
@@ -117,11 +126,13 @@ async function select(){
     const rest = [...cand.values()].filter(it => !recent.has(it.code))
       .map(it => ({ it, score: Math.log1p(it.reviewCount) * 2 + it.reviewAverage + rnd() * 3 }))
       .sort((a, b) => b.score - a.score);
-    for(const { it } of rest){ if(picked.length >= g.pick) break; if(!picked.some(p => p.name === it.name)) picked.push(it); }
+    for(const { it } of rest){ if(picked.length >= g.pick) break; if(!picked.some(p => p.name === it.name) && await orderable(it)) picked.push(it); }
     out.rotating[g.group] = picked.map(it => ({ ...it, group: g.group }));
     console.error(`${g.group}: 候補 ${cand.size + picked.length} → ${picked.length} 件`);
   }
 
+  const ngFound = await buyee.save();
+  if(ngFound.length) console.error(`Buyee で注文できないショップ（次回からも除外）: ${ngFound.join("、")}`);
   out.usdRate = await usdRate();
   decorate(out);
   history[week] = [...Object.values(out.rotating).flat().map(it => it.code)];
