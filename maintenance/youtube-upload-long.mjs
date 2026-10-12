@@ -11,6 +11,7 @@
  * 依存ライブラリなし（Node 18 以上）。
  */
 import { readFile, writeFile, stat } from "node:fs/promises";
+import { setName } from "./set-name.mjs";
 
 const SET = (process.argv[2] || "").toUpperCase();
 const LANG = (process.argv[3] || "ja").toLowerCase(), EN = LANG === "en";
@@ -36,9 +37,13 @@ async function accessToken(){
   return j.access_token;
 }
 let token = await accessToken();
+/* タグ：共通のものに、セット名（日本語・英語の両方）とセットコードを足す。重複と空は除く */
+const name = await setName(SET);
+const baseTags = EN ? ["MTG Arena", "MTGA", "Magic: The Gathering", "Limited", "Draft", "Sealed", "Limited review", "17Lands"] : ["MTGアリーナ", "MTGA", "マジック：ザ・ギャザリング", "リミテッド", "ドラフト", "シールド", "環境", "17Lands"];
+const tags = [...new Set([...baseTags, EN ? name.en : name.ja, EN ? name.ja : name.en, SET].filter(t => t && t.trim()))];
 const body = {
   snippet: { title: title.slice(0, 100), description: description.slice(0, 5000),
-             tags: EN ? ["MTG Arena", "MTGA", "Magic: The Gathering", "Limited", "Draft", "Sealed", "Limited review", "17Lands"] : ["MTGアリーナ", "MTGA", "マジック：ザ・ギャザリング", "リミテッド", "ドラフト", "シールド", "環境", "17Lands"],
+             tags,
              categoryId: "20", defaultLanguage: LANG, defaultAudioLanguage: LANG },
   status: { privacyStatus: "private", selfDeclaredMadeForKids: false, license: "youtube" }
 };

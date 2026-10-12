@@ -18,6 +18,7 @@
  */
 
 import { readFile, writeFile, stat, mkdir } from "node:fs/promises";
+import { setName } from "./set-name.mjs";
 
 const SET = (process.argv[2] || "").toUpperCase();
 const LANG = (process.argv[3] || "ja").toLowerCase();
@@ -38,21 +39,7 @@ const FILE = `short/${SET}/${TAG}.mp4`;
 const size = (await stat(FILE).catch(() => null))?.size;
 if(!size){ console.error(`${FILE} がありません。先に動画を作ってください。`); process.exit(1); }
 
-/* セット名（日本語は i18n.js の SET_JA、英語は記事データのセット名） */
-async function setName(){
-  let ja = null;
-  try{
-    const src = await readFile("i18n.js", "utf8");
-    const m = src.match(/const SET_JA = (\{[\s\S]*?\});/);
-    if(m) ja = new Function("return " + m[1])()[SET.toLowerCase()];
-  }catch(e){}
-  let en = null;
-  try{ const n = JSON.parse(await readFile(`data/names/${SET}.json`, "utf8")); en = n.set || n.setName || null; }catch(e){}
-  return { ja: ja || en || SET, en: en || ja || SET };
-}
-const shortName = n => { const m = String(n).replace(/^Magic:\s*The Gathering\s*[:|｜-]?\s*/i, "").split(/\s*[｜|]\s*/); return (m[m.length - 1] || "").trim() || String(n); };
-const name0 = await setName();
-const name = { ja: shortName(name0.ja), en: shortName(name0.en) };   // 長いセット名は後半だけ（タイトルが一覧で切れないように）
+const name = await setName(SET);   // maintenance/set-name.mjs（長いセット名は後半だけ）
 let games = 0, mode = MODE;
 try{ const d = JSON.parse(await readFile(`data/articles/${SET}_${MODE}.json`, "utf8")); games = d.total_games || 0; }catch(e){}
 const bgmCredit = (await readFile(`short/${SET}/${TAG}/bgm.txt`, "utf8").catch(() => "")).trim();
