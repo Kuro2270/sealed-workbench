@@ -243,7 +243,7 @@ function buildScript(d, nameJa, names){
     const sNames = tiers.S.slice(0, 3).map(p => pairName(p.pair));   // 読むのは 3 つまで
     let say = JA ? `色の組み合わせのティア表です。Sティアは${sNames.join("と")}です。`
                  : `The colour-pair tier list. S tier: ${sNames.join(" and ")}.`;
-    if(worst && worst !== best) say += JA ? `一番下は${pairName(worst.pair)}です。` : ` At the bottom: ${pairName(worst.pair)}.`;
+    if(worst && worst !== best) say += JA ? `現状の最弱は${pairName(worst.pair)}になります。` : ` The weakest right now: ${pairName(worst.pair)}.`;
     const worstShown = worst && worst !== best ? worst : null;
     scenes.push({ kind: "tier", say, colors, tiers, best, worst: worstShown, tail: 0.8 });
     // 狙い目（ドラフトだけ）：同じティア表の上で、その組み合わせを光らせて言う（場面は続きなので、画面は切り替えない）
@@ -274,9 +274,10 @@ function buildScript(d, nameJa, names){
   }
 
   // カード名は読まず画面に任せる。読むと忙しいので、どの色が強いかだけ言う
-  let prevTop = null;   // 前の枠（コモン）の結果。アンコモンのセリフを「〜も」とつなげるために使う
+  let prevTop = null;   // 前の枠の結果（1 枠目かどうかの判定に使う）
   const topScene = (cards, label) => {
     if(!cards.length) return;
+    const brief = !!prevTop;   // 2 枠目は「トップ3はこちら」だけ（動画の長さを抑える）
     const same = cards[0].color && cards.filter(c => c.color === cards[0].color).length >= 2;
     const col = same ? cards[0].color : null;
     let lead;
@@ -291,11 +292,11 @@ function buildScript(d, nameJa, names){
            : (prevTop.col === col ? `${CN[col]} is strong here too.` : `${CN[col]} leads here.`);
     }
     prevTop = { col };
-    const brief = label === UI.uncommon;   // 2 枠目（アンコモン）は「トップ3はこちら」だけ（動画の長さを抑える）
     scenes.push({ kind: "top", label, say: JA ? `${label}のトップ3はこちらです。${brief ? "" : lead}` : `Top three ${label}s. ${brief ? "" : lead}`, cards, tail: 1.0 });
   };
-  topScene(commons, UI.common);
+  // ボム（レア・神話レア）→ アンコモン → コモンの順（レアリティの高い順。2026年10月に入れ替え）
   topScene(uncommons, UI.uncommon);
+  topScene(commons, UI.common);
 
   // 速報の断り書き＋登録のお願い：2 段構え。1 段目で「序盤のデータ」、2 段目（同じ画面）で登録ボタンを出して「確定版を出すので登録を」
   //   コモン・アンコモン・速さのあと、最後に置く（カードの紹介を先に見せてから、締めとしてお願いする）
@@ -395,7 +396,7 @@ function wrap(s, n = 18){
   return out.slice(0, 5);
 }
 /* YouTube Shorts は下 20% 弱にタイトルやボタンが重なるので、字幕はその上に置く */
-const SAFE_BOTTOM = 270;
+const SAFE_BOTTOM = 230;   // 2026年10月：270 → 230 に下げて、上の情報を大きくした（下 12% ほどは題名の帯に重なりうる）
 const BOMB_CAP_BOTTOM = 170;   // ボムの場面だけ、字幕の枠をここまで下げる（カードを大きく見せるため。YouTube の題名の帯に少しかかる）
 /* 登録ボタン（動きを付けて重ねる層）。幅 640・高さ 130。右はしのキャラクターにかからない位置（x=100）に置く */
 function subscribeButton(){
@@ -448,7 +449,13 @@ async function zundaReady(){
 }
 /* 位置は全場面で同じ（右はしの、字幕の枠のすぐ上）。場面ごとに動くと落ち着かないため。
    この高さは、どの場面でも情報（色の一覧・カードの並び）より下で、いちばん行数の多い字幕の枠の上にほぼ収まる */
-function zundaPos(){ return { x: W - 24 - ZW, y: 990 }; }   // 足もとが字幕の枠（最大 5 行）の上端にほぼ付く高さ
+/* 文字を幅 w に収める大きさ（日本語は1字＝1、英数字は約0.58として数える）。最大 max */
+const ZX = W - 24 - ZW;   // 右はしのキャラクターの左端。情報の文字はこれより左に収める
+function fitSize(str, w, max){
+  const units = [...String(str)].reduce((n, ch) => n + (/[\x00-\x7F]/.test(ch) ? 0.58 : 1), 0);
+  return Math.max(24, Math.min(max, Math.floor(w / Math.max(units, 1))));
+}
+function zundaPos(){ return { x: W - 24 - ZW, y: 1030 }; }   // 足もとが字幕の枠（最大 5 行）の上端にほぼ付く高さ
 // 音声の大きさから、1/15 秒ごとの口の形を決める
 function mouthStates(wavPath, len){
   const FPS = 15, n = Math.max(1, Math.ceil(len * FPS));
@@ -669,13 +676,16 @@ function sceneSvg(sc){
         let size = lines.length > 1 ? sz(JA ? 42 : 36) : sz(JA ? 50 : 44);
         size = Math.min(size, Math.floor((1040 - 240 - TX) / Math.max(...lines.map(l => JA ? [...l].length : l.length * 0.58), 1)));   // 右はしのキャラクターにかからない幅
         lines.forEach((l, j) => { s += T(TX, y + (lines.length > 1 ? sz(104) : sz(124)) + j * (size + 4), l, { size, weight: 900 }); });
-        s += T(TX, y + CH - 12, UI.gih(pt(c.gih)), { size: sz(36), fill: BLUE, weight: 700 });
+        s += T(TX, y + CH - 12, UI.gih(pt(c.gih)), { size: fitSize(UI.gih(pt(c.gih)), ZX - 20 - TX, sz(36)), fill: BLUE, weight: 700 });
       });
       return frame(s, sc.say, { capBottom: BOMB_CAP_BOTTOM });
     }
     case "top": {
       // 3枚を縦に並べ、左にカード、右に順位・名前・勝率。字幕の枠（下から 300+40+箱）にかからない範囲でカードをできるだけ大きく
-      const CW = 250, CH = 349, ROW = 358, Y0 = 236, TX = 372;
+      // 字幕の枠の上端までを3行で使い切る（字幕が短いほどカードが大きくなる）。文字は右はしのキャラクターの手前（ZX）までに収める
+      const capTop = captionTop(sc.say), Y0 = 236;
+      const ROW = Math.min(420, Math.floor((capTop - 16 - Y0) / 3)), k = ROW / 358;
+      const CH = ROW - 9, CW = Math.round(CH * 250 / 349), TX = 80 + CW + 42, TW = ZX - 20 - TX;
       let s = T(80, 216, UI.topH(sc.label), { size: 36, fill: MUTED });
       sc.cards.forEach((c, i) => {
         const y = Y0 + i * ROW, col = COLOR[c.color] || MUTED;
@@ -686,13 +696,13 @@ function sceneSvg(sc){
           s += `<rect x="80" y="${y}" width="${CW}" height="${CH}" rx="16" fill="${col}" opacity="0.85"/>`;
           s += `<rect x="96" y="${y + 16}" width="${CW - 32}" height="176" rx="10" fill="${DEEP}" opacity="0.5"/>`;
         }
-        s += T(TX, y + 92, UI.rank(i + 1), { size: 36, fill: i === 0 ? GOLD : MUTED, weight: i === 0 ? 900 : 400 });
-        // 名前は長ければ2行。右側の幅（約 600px）に収める
+        s += T(TX, y + Math.round(92 * k), UI.rank(i + 1), { size: 36, fill: i === 0 ? GOLD : MUTED, weight: i === 0 ? 900 : 400 });
+        // 名前は長ければ2行。右はしのキャラクターにかからない幅（TW）に収める
         const lines = wrapName(c.label, JA ? 10 : 20).slice(0, 2);
         let size = lines.length > 1 ? (JA ? 46 : 40) : (JA ? ([...c.label].length <= 8 ? 60 : 50) : (c.label.length <= 14 ? 50 : 42));
-        if(JA) size = Math.min(size, Math.floor(450 / Math.max(...lines.map(l => [...l].length), 1)));   // 右はしに立つずんだもんに名前がかからないよう、文字の幅を 450 までに収める
-        lines.forEach((l, j) => { s += T(TX, y + (lines.length > 1 ? 168 : 196) + j * (size + 8), l, { size, weight: 900 }); });
-        s += T(TX, y + 300, UI.gih(pt(c.gih)), { size: 46, fill: BLUE, weight: 700 });
+        size = Math.min(size, Math.floor(TW / Math.max(...lines.map(l => JA ? [...l].length : l.length * 0.58), 1)));
+        lines.forEach((l, j) => { s += T(TX, y + Math.round((lines.length > 1 ? 168 : 196) * k) + j * (size + 8), l, { size, weight: 900 }); });
+        s += T(TX, y + Math.round(300 * k), UI.gih(pt(c.gih)), { size: fitSize(UI.gih(pt(c.gih)), TW, 46), fill: BLUE, weight: 700 });
       });
       return frame(s, sc.say);
     }
