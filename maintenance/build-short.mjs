@@ -63,7 +63,7 @@ const CN = JA ? COLOR_JA : COLOR_EN;                 // この言語での色の
 /* 画面とナレーションの決まり文句。言語ごとにここだけ変える */
 const UI = JA ? {
   analysis: "リミテッド環境分析", arena: "MTGアリーナ", report: "リミテッド環境レポート", games: g => `${g}試合`, inOneMinute: "のデータが1分でわかる", hookA: "1分でわかる", hookC: m => m ? "シールド環境" : "ドラフト環境", hookD1: g => `${g}試合を分析`, hookD2: "強い色とカードを紹介",
-  tierH: "色の組み合わせ ティア表", targetTag: "狙い目", bombsH: (a, b) => `レア・神話レアのボム トップ10（${a}〜${b}位）`, bombsTag: { mythic: "神話レア", rare: "レア" },
+  tierH: "色の組み合わせ ティア表", targetTag: "狙い目", bombsH: (a, b) => `レア・神話レアのボム トップ6（${a}〜${b}位）`, bombsTag: { mythic: "神話レア", rare: "レア" },
   speedH: "環境の速さ", speedSub: "平均マナ総量ごとの勝率", under: m => `${m}未満`, between: (a, b) => `${a}〜${b}`, over: m => `${m}以上`,
   pace: { fast: "速い", "lean-fast": "やや速い", mid: "普通", even: "普通", "lean-slow": "やや遅い", slow: "遅い", slower: "かなり遅い" },
   noCurve: "カーブで差がつかない", light: n => `軽いデッキが${n}pt有利`, heavy: n => `重いデッキが${n}pt有利`, lighter: "軽いほど勝つ", heavier: "重いほど勝つ",
@@ -77,7 +77,7 @@ const UI = JA ? {
   earlyBadge: "速報", earlyHookC: "リミテッド速報", earlyH: "まだ序盤のデータです", early1: "順位はこれから動きます", early2: "確定版は約2週間後に", earlyAsOf: d => `${d} 時点`
 } : {
   analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute", hookA: "Limited in 1 minute", hookC: m => m ? "SEALED" : "DRAFT", hookD1: g => `${g} games analyzed`, hookD2: "Best colors & cards",
-  tierH: "Colour-pair tier list", targetTag: "AIM FOR", bombsH: (a, b) => `Top 10 rare & mythic bombs (#${a}–${b})`, bombsTag: { mythic: "Mythic", rare: "Rare" },
+  tierH: "Colour-pair tier list", targetTag: "AIM FOR", bombsH: (a, b) => `Top 6 rare & mythic bombs (#${a}–${b})`, bombsTag: { mythic: "Mythic", rare: "Rare" },
   speedH: "Format speed", speedSub: "Win rate by average mana value", under: m => `under ${m}`, between: (a, b) => `${a}–${b}`, over: m => `${m}+`,
   pace: { fast: "Fast", "lean-fast": "Leans fast", mid: "Average", even: "Average", "lean-slow": "Leans slow", slow: "Slow", slower: "Very slow" },
   noCurve: "Curve barely matters", light: n => `Light decks +${n}pt`, heavy: n => `Heavy decks +${n}pt`, lighter: "Lighter wins", heavier: "Heavier wins",
@@ -199,10 +199,10 @@ function buildScript(d, nameJa, names){
     const topWr = tierPairs[0].wr, range = Math.max(0.02, topWr - tierPairs[tierPairs.length - 1].wr);
     for(const p of tierPairs){ const f = (topWr - p.wr) / range; (f <= 0.15 ? tiers.S : f <= 0.45 ? tiers.A : f <= 0.75 ? tiers.B : tiers.C).push(p); }
   }
-  // ボム：レアと神話レアを合わせて勝率順に 10 枚（5 枚ずつ 2 画面）
+  // ボム：レアと神話レアを合わせて勝率順に 6 枚（3 枚ずつ 2 画面。5 枚ずつだと画像が小さくて見にくいため、2026年10月に変更）
   const bombs = [...(d.top && d.top.rare || []), ...(d.top && d.top.mythic || [])]
     .map(c => ({ ...c, rarity: c.rarity || ((d.top.mythic || []).some(m => m.name === c.name) ? "mythic" : "rare") }))
-    .sort((a, b) => b.gih - a.gih).slice(0, 10)
+    .sort((a, b) => b.gih - a.gih).slice(0, 6)
     .map(c => ({ ...c, label: JA ? ((names.names || {})[c.name] || c.name) : c.name, img: JA ? (names.images || {})[c.name] : (c.imgEn || null) }));
   // 「意外な事実」（surprise）は 2026年10月から使っていない
   const games = man(d.total_games);
@@ -259,15 +259,15 @@ function buildScript(d, nameJa, names){
     }
   }
   if(bombs.length){
-    const pages = [bombs.slice(0, 5), bombs.slice(5, 10)].filter(pg => pg.length);
+    const pages = [bombs.slice(0, 3), bombs.slice(3, 6)].filter(pg => pg.length);
     pages.forEach((pg, i) => {
-      const from = i * 5 + 1, to = i * 5 + pg.length;
+      const from = i * 3 + 1, to = i * 3 + pg.length;
       // 各画面、上から 3 枚は名前と勝率を読む（残りは画面に任せる）
       const three = pg.slice(0, 3);
-      scenes.push({ kind: "bombs", page: i, from, to, cards: pg, label: `bombs${i + 1}`, tail: 0.8, minDur: 6,   // 5 枚を見る時間として、短くても 6 秒は置く
+      scenes.push({ kind: "bombs", page: i, from, to, cards: pg, label: `bombs${i + 1}`, tail: 0.8, minDur: 6,   // 3 枚を見る時間として、短くても 6 秒は置く
         // 1〜5 位は順位と数字を読む。6〜10 位は数字を読み上げず、「これも中心に据えていい」と言う（棒読みにしない）
-        say: i === 0 ? (JA ? `レアと神話レアのボム、トップ10です。1位は${three[0].label}、${pt(three[0].gih)}パーセントです。${three.slice(1).map(c => c.label).join("、")}も、迷わずピックです。`
-                           : `Top ten rare and mythic bombs. Number one: ${three[0].name}, at ${pt(three[0].gih)} percent. ${three.slice(1).map(c => c.name).join(" and ")} are first-picks too.`)
+        say: i === 0 ? (JA ? `レアと神話レアのボム、トップ6です。1位は${three[0].label}、${pt(three[0].gih)}パーセントです。${three.slice(1).map(c => c.label).join("、")}も、迷わずピックです。`
+                           : `Top six rare and mythic bombs. Number one: ${three[0].name}, at ${pt(three[0].gih)} percent. ${three.slice(1).map(c => c.name).join(" and ")} are first-picks too.`)
                      : (JA ? `${from}位から${to}位も十分なボムです。引いたら、これを中心にデッキを組みましょう。`
                            : `Numbers ${from} to ${to} are still bombs. Open one, and build your deck around it.`) });
     });
@@ -651,13 +651,13 @@ function sceneSvg(sc){
       return frame(s, sc.say);
     }
     case "bombs": {
-      // 5 枚を縦に並べる（カード画像＋順位・レアリティ・名前・勝率）。2 画面で 10 枚。
+      // 3 枚を縦に並べる（カード画像＋順位・レアリティ・名前・勝率）。2 画面で 6 枚。
       // カードを大きく見せるため、この場面だけ字幕の枠を下げる（BOMB_CAP_BOTTOM）。右はしのキャラクターには名前がかからない幅（520px）にする
-      // 字幕の枠の高さは読み上げの長さで変わるので、枠の上端より上に 5 枚が収まるように、行の高さをその場で決める
+      // 字幕の枠の高さは読み上げの長さで変わるので、枠の上端より上に 3 枚が収まるように、行の高さをその場で決める
       const capTop = captionTop(sc.say, BOMB_CAP_BOTTOM), Y0 = 244;
-      const ROW = Math.min(236, Math.floor((capTop - 16 - Y0) / 5)), f = ROW / 236;
+      const ROW = Math.min(372, Math.floor((capTop - 16 - Y0) / 3)), f = ROW / 236;
       const CH = Math.round(224 * f), CW = Math.round(160 * f), TX = 120 + CW;
-      const sz = v => Math.round(v * Math.max(0.8, f));                                       // 文字は縮めすぎない
+      const sz = v => Math.round(v * Math.min(1.25, Math.max(0.8, f)));                       // 文字は縮めすぎず、大きくしすぎない
       let s = T(80, 222, UI.bombsH(sc.from, sc.to), { size: 36, fill: MUTED });
       sc.cards.forEach((c, i) => {
         const y = Y0 + i * ROW, col = COLOR[c.color] || MUTED, rank = sc.from + i;
