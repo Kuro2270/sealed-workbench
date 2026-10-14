@@ -181,6 +181,18 @@
   .feat li a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--line)}
   .feat li a:hover{color:var(--gold);border-bottom:1px solid var(--gold)}
   @media (max-width:860px){ .big{grid-template-columns:1fr} .latest{grid-template-columns:1fr 1fr} .feat{grid-template-columns:1fr} }
+  /* ページ下の読み物（文言は i18n.js の read.*） */
+  .readmore{max-width:900px;margin:0 auto;padding:10px 24px 48px;border-top:1px solid var(--line)}
+  .readmore h2{font-size:21px;margin:30px 0 12px}
+  .readmore h3{font-size:16.5px;margin:24px 0 6px}
+  .readmore p,.readmore li{font-size:14.5px;line-height:1.9}
+  .readmore p{margin:0 0 10px}
+  .readmore ol,.readmore ul{margin:0 0 12px;padding-left:1.5em}
+  .readmore ol{list-style:decimal}
+  .readmore ul{list-style:disc}
+  .readmore li{margin:0 0 6px}
+  .readmore a{color:var(--gold)}
+  @media (max-width:640px){ .readmore{padding:6px 16px 36px} }
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
 </head>
@@ -261,6 +273,8 @@
     <p class="more" data-i18n-html="top.moreFaq"></p>
   </section>
 </main>
+
+<section class="readmore" data-i18n-html="read.top"></section>
 
 <div id="goodsStrip"></div>
 
