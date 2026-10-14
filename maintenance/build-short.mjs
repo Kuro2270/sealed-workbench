@@ -744,8 +744,9 @@ function sceneSvg(sc){
 }
 
 /* 説明しているところを光らせる枠（ピックアップ）。長尺と同じ見た目で、読み上げに合わせて出す。
-   位置は sceneSvg の描き方と合わせる。返り値は [{ label, boxes }]（label はセリフの中で光らせ始める言葉）か、
-   [{ seq: true, boxes }]（セリフとは関係なく、場面の長さを等分して順に光らせる） */
+   光らせるのは、セリフが特定の項目（1位のカード、最弱の組み合わせ、強い色のカードなど）を指しているときだけ。
+   「4位から6位も」「トップ3はこちら」のように全体を指すときは光らせない。
+   位置は sceneSvg の描き方と合わせる。返り値は [{ label, boxes }]（label はセリフの中で光らせ始める言葉） */
 function highlightsOf(sc){
   const rowW = ZX - 10 - 66;   // 行の枠は、右はしのキャラクターの手前まで
   if(sc.kind === "tier" && !sc.pick){
@@ -765,17 +766,14 @@ function highlightsOf(sc){
     const capTop = captionTop(sc.say, BOMB_CAP_BOTTOM), Y0 = 244;
     const ROW = Math.min(372, Math.floor((capTop - 16 - Y0) / 3)), CH = Math.round(224 * ROW / 236);
     const row = i => ({ x: 66, y: Y0 + i * ROW - 10, w: rowW, h: CH + 20 });
-    if(sc.page === 0) return sc.cards.slice(0, 3).map((c, i) => ({ label: JA ? c.label : c.name, boxes: [row(i)] }));
-    const n = sc.cards.length;
-    return [{ label: JA ? `${sc.from}位から${sc.to}位` : `Numbers ${sc.from} to ${sc.to}`, boxes: [{ x: 66, y: Y0 - 10, w: rowW, h: (n - 1) * ROW + CH + 20 }] }];
+    return sc.page === 0 ? sc.cards.slice(0, 3).map((c, i) => ({ label: JA ? c.label : c.name, boxes: [row(i)] })) : [];
   }
   if(sc.kind === "top"){
     const capTop = captionTop(sc.say), Y0 = 236;
     const ROW = Math.min(420, Math.floor((capTop - 16 - Y0) / 3)), CH = ROW - 9;
     const row = i => ({ x: 66, y: Y0 + i * ROW - 10, w: rowW, h: CH + 20 });
-    // 「〇が強いです」と言う場面は、その色のカードをまとめて光らせる。言わない場面は、1位から順に光らせる
-    if(sc.strong) return [{ label: CN[sc.strong], boxes: sc.cards.map((c, i) => c.color === sc.strong ? row(i) : null).filter(Boolean) }];
-    return sc.cards.map((c, i) => ({ seq: true, boxes: [row(i)] }));
+    // 「〇が強いです」と言う場面だけ、その色のカードをまとめて光らせる
+    return sc.strong ? [{ label: CN[sc.strong], boxes: sc.cards.map((c, i) => c.color === sc.strong ? row(i) : null).filter(Boolean) }] : [];
   }
   return [];
 }
@@ -784,11 +782,10 @@ function highlightSvg(boxes){
     `<rect x="${h.x - 6}" y="${h.y - 6}" width="${h.w + 12}" height="${h.h + 12}" rx="22" fill="none" stroke="${GOLD}" stroke-width="18" stroke-opacity="0.35"/>` +
     `<rect x="${h.x}" y="${h.y}" width="${h.w}" height="${h.h}" rx="18" fill="${GOLD}" fill-opacity="0.12" stroke="${GOLD}" stroke-width="7"/>`).join("") + `</svg>`;
 }
-/* 光らせる時間（場面の頭からの秒）。読み上げに合わせるものは、区切りごとの実際の音声の長さ（chunkDurs）から決める。
+/* 光らせる時間（場面の頭からの秒）。区切りごとの実際の音声の長さ（chunkDurs）から決める。
    最後に光らせるものは、場面の終わりまで残す */
 function highlightTimes(sc, len){
-  const hs = sc.hl || [], out = [];
-  const voiced = hs.filter(h => h.label);
+  const out = [], voiced = sc.hl || [];
   if(voiced.length && sc.spans && sc.chunkDurs){
     const t0 = [0]; sc.chunkDurs.forEach(d => t0.push(t0[t0.length - 1] + d));
     voiced.forEach((h, k) => {
@@ -796,8 +793,6 @@ function highlightTimes(sc, len){
       out.push({ boxes: h.boxes, a: Math.max(0, t0[sp[0]] - 0.05), b: k === voiced.length - 1 ? len : t0[sp[1] + 1] });
     });
   }
-  const seq = hs.filter(h => h.seq);
-  seq.forEach((h, k) => out.push({ boxes: h.boxes, a: len * k / seq.length, b: len * (k + 1) / seq.length }));
   return out;
 }
 
@@ -1046,6 +1041,10 @@ async function main(){
     sc.kana = kana; sc.dur = dur;
   }
   await writeFile(`${OUT}/${TAG}/script.json`, JSON.stringify(scenes.map(s => ({ kind: s.kind, say: s.say, kana: s.kana, dur: s.dur, ...(s.chunkDurs ? { chunkDurs: s.chunkDurs } : {}) })), null, 2), "utf8");
+
+  // アンコモンとコモンの場面は、同じ長さで見せる（長いほうに合わせる。コモンはセリフが短いので、読み終わりからの間を長めにしてある）
+  const tops = scenes.filter(s => s.kind === "top");
+  if(tops.length > 1){ const L = Math.max(...tops.map(s => s.dur + (s.tail || 0.35))); tops.forEach(s => { s.minDur = Math.max(s.minDur || 0, L); }); }
 
   const ZUNDA = !process.env.SHORT_STILLS && await zundaReady();
   console.error(ZUNDA ? `${MASCOT_NAME}: 字幕の枠の上（右はし）に出す（${ZDIR}/）` : `${MASCOT_NAME}: 出さない（${process.env.SHORT_STILLS ? "画像だけの確認のため" : process.env.SHORT_ZUNDA === "0" ? "SHORT_ZUNDA=0" : ZDIR + "/ に6枚がそろっていない"}）`);
