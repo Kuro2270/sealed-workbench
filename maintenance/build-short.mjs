@@ -34,6 +34,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import { existsSync } from "node:fs";
+import { splitSay } from "./highlight-split.mjs";
 
 const SET = process.argv[2];
 const LANG = (process.argv[3] || "ja").toLowerCase();
@@ -275,7 +276,7 @@ function buildScript(d, nameJa, names){
 
   // カード名は読まず画面に任せる。読むと忙しいので、どの色が強いかだけ言う
   let prevTop = null;   // 前の枠の結果（1 枠目かどうかの判定に使う）
-  const topScene = (cards, label) => {
+  const topScene = (cards, label, opt = {}) => {
     if(!cards.length) return;
     const brief = !!prevTop;   // 2 枠目は「トップ3はこちら」だけ（動画の長さを抑える）
     const same = cards[0].color && cards.filter(c => c.color === cards[0].color).length >= 2;
@@ -292,11 +293,12 @@ function buildScript(d, nameJa, names){
            : (prevTop.col === col ? `${CN[col]} is strong here too.` : `${CN[col]} leads here.`);
     }
     prevTop = { col };
-    scenes.push({ kind: "top", label, say: JA ? `${label}のトップ3はこちらです。${brief ? "" : lead}` : `Top three ${label}s. ${brief ? "" : lead}`, cards, tail: 1.0 });
+    scenes.push({ kind: "top", label, say: JA ? `${label}のトップ3はこちらです。${brief ? "" : lead}` : `Top three ${label}s. ${brief ? "" : lead}`, cards, tail: opt.tail || 1.0,
+      strong: !brief && same ? col : null });   // 「〇が強いです」と言った色（読み上げに合わせて、その色のカードを光らせる）
   };
   // ボム（レア・神話レア）→ アンコモン → コモンの順（レアリティの高い順。2026年10月に入れ替え）
   topScene(uncommons, UI.uncommon);
-  topScene(commons, UI.common);
+  topScene(commons, UI.common, { tail: 3.0 });   // コモンはセリフが短く、カードを見る間が足りないので、読み終わりから 3 秒置く（2026年10月：1 → 3 秒）
 
   // 速報の断り書き＋登録のお願い：2 段構え。1 段目で「序盤のデータ」、2 段目（同じ画面）で登録ボタンを出して「確定版を出すので登録を」
   //   コモン・アンコモン・速さのあと、最後に置く（カードの紹介を先に見せてから、締めとしてお願いする）
@@ -741,6 +743,64 @@ function sceneSvg(sc){
   return frame("", sc.say);
 }
 
+/* 説明しているところを光らせる枠（ピックアップ）。長尺と同じ見た目で、読み上げに合わせて出す。
+   位置は sceneSvg の描き方と合わせる。返り値は [{ label, boxes }]（label はセリフの中で光らせ始める言葉）か、
+   [{ seq: true, boxes }]（セリフとは関係なく、場面の長さを等分して順に光らせる） */
+function highlightsOf(sc){
+  const rowW = ZX - 10 - 66;   // 行の枠は、右はしのキャラクターの手前まで
+  if(sc.kind === "tier" && !sc.pick){
+    const out = [];
+    if((sc.tiers.S || []).length) out.push({ label: JA ? "Sティア" : "S tier", boxes: [{ x: 80, y: 500, w: W - 160, h: 116 }] });
+    if(sc.worst){
+      ["S", "A", "B", "C"].forEach((t, i) => {
+        const list = sc.tiers[t] || [], j = list.indexOf(sc.worst);
+        if(j < 0) return;
+        const y = 500 + i * 128, cw = Math.min(164, Math.floor(810 / Math.max(list.length, 1))), x = 210 + j * cw;
+        out.push({ label: JA ? "最弱" : "weakest", boxes: [{ x: x - 14, y: y + 6, w: cw - 4, h: 104 }] });
+      });
+    }
+    return out;
+  }
+  if(sc.kind === "bombs"){
+    const capTop = captionTop(sc.say, BOMB_CAP_BOTTOM), Y0 = 244;
+    const ROW = Math.min(372, Math.floor((capTop - 16 - Y0) / 3)), CH = Math.round(224 * ROW / 236);
+    const row = i => ({ x: 66, y: Y0 + i * ROW - 10, w: rowW, h: CH + 20 });
+    if(sc.page === 0) return sc.cards.slice(0, 3).map((c, i) => ({ label: JA ? c.label : c.name, boxes: [row(i)] }));
+    const n = sc.cards.length;
+    return [{ label: JA ? `${sc.from}位から${sc.to}位` : `Numbers ${sc.from} to ${sc.to}`, boxes: [{ x: 66, y: Y0 - 10, w: rowW, h: (n - 1) * ROW + CH + 20 }] }];
+  }
+  if(sc.kind === "top"){
+    const capTop = captionTop(sc.say), Y0 = 236;
+    const ROW = Math.min(420, Math.floor((capTop - 16 - Y0) / 3)), CH = ROW - 9;
+    const row = i => ({ x: 66, y: Y0 + i * ROW - 10, w: rowW, h: CH + 20 });
+    // 「〇が強いです」と言う場面は、その色のカードをまとめて光らせる。言わない場面は、1位から順に光らせる
+    if(sc.strong) return [{ label: CN[sc.strong], boxes: sc.cards.map((c, i) => c.color === sc.strong ? row(i) : null).filter(Boolean) }];
+    return sc.cards.map((c, i) => ({ seq: true, boxes: [row(i)] }));
+  }
+  return [];
+}
+function highlightSvg(boxes){
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">` + boxes.map(h =>
+    `<rect x="${h.x - 6}" y="${h.y - 6}" width="${h.w + 12}" height="${h.h + 12}" rx="22" fill="none" stroke="${GOLD}" stroke-width="18" stroke-opacity="0.35"/>` +
+    `<rect x="${h.x}" y="${h.y}" width="${h.w}" height="${h.h}" rx="18" fill="${GOLD}" fill-opacity="0.12" stroke="${GOLD}" stroke-width="7"/>`).join("") + `</svg>`;
+}
+/* 光らせる時間（場面の頭からの秒）。読み上げに合わせるものは、区切りごとの実際の音声の長さ（chunkDurs）から決める。
+   最後に光らせるものは、場面の終わりまで残す */
+function highlightTimes(sc, len){
+  const hs = sc.hl || [], out = [];
+  const voiced = hs.filter(h => h.label);
+  if(voiced.length && sc.spans && sc.chunkDurs){
+    const t0 = [0]; sc.chunkDurs.forEach(d => t0.push(t0[t0.length - 1] + d));
+    voiced.forEach((h, k) => {
+      const sp = sc.spans[k]; if(!sp) return;
+      out.push({ boxes: h.boxes, a: Math.max(0, t0[sp[0]] - 0.05), b: k === voiced.length - 1 ? len : t0[sp[1] + 1] });
+    });
+  }
+  const seq = hs.filter(h => h.seq);
+  seq.forEach((h, k) => out.push({ boxes: h.boxes, a: len * k / seq.length, b: len * (k + 1) / seq.length }));
+  return out;
+}
+
 /* ------------------------------------------------------------ 音声 */
 
 /* カード名の読み違いを直す辞書。short/yomi.json に { "蛮刀": "バントウ" } の形で足していく */
@@ -766,7 +826,7 @@ async function loadYomi(){
 }
 
 /* 英語の読み上げ（Kokoro）。短い Python を呼ぶ。モデルは KOKORO_DIR（kokoro-v1.0.onnx と voices-v1.0.bin） */
-async function speakEn(text, wavPath){
+async function speakEn(text, wavPath, opt = {}){
   const py = `
 import sys, json, os, soundfile as sf
 from kokoro_onnx import Kokoro
@@ -778,24 +838,26 @@ sf.write(job["out"], samples, sr)
 `;
   execFileSync(KOKORO_PY, ["-c", py], { input: JSON.stringify({ text, out: wavPath }), env: { ...process.env, KOKORO_DIR }, stdio: ["pipe", "inherit", "inherit"] });
   // 文末に少し間を置く（0.25秒の無音を足す）
-  execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", wavPath, "-af", "apad=pad_dur=0.25", wavPath + ".tmp.wav"]);
+  execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", wavPath, "-af", `apad=pad_dur=${opt.post ?? 0.25}`, wavPath + ".tmp.wav"]);
   execFileSync("mv", [wavPath + ".tmp.wav", wavPath]);
   const dur = +execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", wavPath]).toString().trim();
   return { kana: text, dur };
 }
 
-async function speak(text, wavPath){
+/* opt.post・opt.pre：文の後ろ・前の無音（秒）。区切って読むときは、つなぎ目を短くする */
+async function speak(text, wavPath, opt = {}){
   if(process.env.SHORT_FAKE_AUDIO){   // 動画の組み立てだけを確かめるとき：VOICEVOX を使わず、文字数ぶんの長さの仮の音を入れる
     const dur = Math.max(1.5, [...text].length / (JA ? 6 : 14));
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "lavfi", "-i", `aevalsrc=0.3*sin(2*PI*220*t)*gt(sin(2*PI*2.7*t)\\,-0.2):s=24000`, "-t", dur.toFixed(2), wavPath]);
     return { kana: text, dur };
   }
-  if(!JA) return speakEn(text, wavPath);
+  if(!JA) return speakEn(text, wavPath, opt);
   const q = await fetch(`${VV}/audio_query?speaker=${SPEAKER}&text=${encodeURIComponent(toSpeech(text))}`, { method: "POST" });
   if(!q.ok) throw new Error(`audio_query ${q.status}`);
   const query = await q.json();
   query.speedScale = SPEED;
-  query.postPhonemeLength = 0.25;                     // 文末に少し間を置く
+  query.postPhonemeLength = opt.post ?? 0.25;         // 文末に少し間を置く
+  if(opt.pre != null) query.prePhonemeLength = opt.pre;
   const r = await fetch(`${VV}/synthesis?speaker=${SPEAKER}`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(query)
   });
@@ -956,15 +1018,34 @@ async function main(){
   for(const [i, sc] of scenes.entries()){
     const base = `${OUT}/${TAG}/scene-${i}`;
     const old = prev[i];
-    if(old && old.say === sc.say && old.dur && await readFile(base + ".wav").then(() => true, () => false)){
-      sc.kana = old.kana; sc.dur = old.dur; continue;
+    // 光らせる枠があり、読み上げに合わせる場面は、光らせる言葉ごとに区切って読み上げ、区切りの長さで時間を決める（長尺と同じ）
+    sc.hl = highlightsOf(sc);
+    const voiced = sc.hl.filter(h => h.label);
+    const split = voiced.length ? splitSay(sc.say, voiced, !JA) : null;
+    if(split) sc.spans = split.spans;
+    if(old && old.say === sc.say && old.dur && (!split || old.chunkDurs) && await readFile(base + ".wav").then(() => true, () => false)){
+      sc.kana = old.kana; sc.dur = old.dur; if(split) sc.chunkDurs = old.chunkDurs; continue;
     }
     if(process.env.SHORT_STILLS){ sc.kana = sc.say; sc.dur = 3; continue; }   // 画像だけなら音声は要らない（VOICEVOX 無しでも確認できる）
     if(JA && !yomiLoaded && !process.env.SHORT_FAKE_AUDIO){ await loadYomi(); yomiLoaded = true; }
+    if(split){
+      const durs = [], kanas = [];
+      for(const [k, c] of split.chunks.entries()){
+        const last = k === split.chunks.length - 1;
+        const r = await speak(c.text, `${base}-c${k}.wav`, { post: last ? 0.25 : 0.06, pre: k === 0 ? undefined : 0.04 });
+        durs.push(r.dur); kanas.push(r.kana);
+      }
+      const ins = split.chunks.flatMap((c, k) => ["-i", `${base}-c${k}.wav`]);
+      execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...ins, "-filter_complex",
+        `${split.chunks.map((c, k) => `[${k}:a]aformat=sample_rates=24000:channel_layouts=mono[a${k}]`).join(";")};${split.chunks.map((c, k) => `[a${k}]`).join("")}concat=n=${split.chunks.length}:v=0:a=1[o]`,
+        "-map", "[o]", base + ".wav"]);
+      sc.chunkDurs = durs; sc.kana = kanas.join(""); sc.dur = durs.reduce((n, d) => n + d, 0);
+      continue;
+    }
     const { kana, dur } = await speak(sc.say, base + ".wav");
     sc.kana = kana; sc.dur = dur;
   }
-  await writeFile(`${OUT}/${TAG}/script.json`, JSON.stringify(scenes.map(s => ({ kind: s.kind, say: s.say, kana: s.kana, dur: s.dur })), null, 2), "utf8");
+  await writeFile(`${OUT}/${TAG}/script.json`, JSON.stringify(scenes.map(s => ({ kind: s.kind, say: s.say, kana: s.kana, dur: s.dur, ...(s.chunkDurs ? { chunkDurs: s.chunkDurs } : {}) })), null, 2), "utf8");
 
   const ZUNDA = !process.env.SHORT_STILLS && await zundaReady();
   console.error(ZUNDA ? `${MASCOT_NAME}: 字幕の枠の上（右はし）に出す（${ZDIR}/）` : `${MASCOT_NAME}: 出さない（${process.env.SHORT_STILLS ? "画像だけの確認のため" : process.env.SHORT_ZUNDA === "0" ? "SHORT_ZUNDA=0" : ZDIR + "/ に6枚がそろっていない"}）`);
@@ -1026,6 +1107,18 @@ async function main(){
     if(ZUNDA){   // 口パクの動画を、最後の入力として足す
       const zi = args.indexOf("-filter_complex");
       args.splice(zi, 0, "-f", "concat", "-safe", "0", "-i", await zundaList(i, wavIn, len, `${OUT}/${TAG}`));
+    }
+    // 説明しているところを光らせる枠：1枚ずつ別の入力にして、その時間だけ重ねる
+    const hl = highlightTimes(sc, len);
+    if(hl.length){
+      let idx = args.filter(a => a === "-i").length, chain = "";
+      for(const [k, h] of hl.entries()){
+        await sharp(Buffer.from(highlightSvg(h.boxes)), { density: 72 }).png().toFile(`${base}-hl${k}.png`);
+        args.splice(args.indexOf("-filter_complex"), 0, "-loop", "1", "-framerate", "30", "-i", `${base}-hl${k}.png`);
+        chain += `[${idx + k}:v]format=rgba[hh${k}];[hv${k}][hh${k}]overlay=0:0:enable='between(t,${h.a.toFixed(2)},${h.b.toFixed(2)})':shortest=1[hv${k + 1}];`;
+      }
+      const fi = args.indexOf("-filter_complex");
+      args[fi + 1] = args[fi + 1].replace(/format=yuv420p\[v\];/, `null[hv0];${chain}[hv${hl.length}]format=yuv420p[v];`);
     }
     const pop = popLayer(sc);
     if(pop){   // 動く層（登録ボタンなど）：いちばん最後の入力として足し、下から浮き上がって、ゆっくり跳ねる
