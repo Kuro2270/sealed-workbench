@@ -240,10 +240,42 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 
+      # サムネイルが YouTube に付かなかったときだけ、画像を Releases（タグ videos）に置き、
+      # 実行ページのまとめ・注意の表示・公開のリマインドの Issue から、1 回で開いて保存できるようにする
+      - name: 付かなかったサムネイルを受け渡す
+        id: thumb
+        if: inputs.upload == true && env.SKIP != '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          J="short/$SET_CODE/$VTAG.youtube.json"; T="short/$SET_CODE/$VTAG.thumbnail.jpg"
+          [ -f "$J" ] && [ -f "$T" ] || exit 0
+          [ "$(node -e 'console.log(require(require("path").resolve(process.argv[1])).thumbnailSet === true)' "$J")" = "true" ] && exit 0
+          F="$SET_CODE-$VTAG.thumbnail.jpg"; cp "$T" "$F"
+          if gh release upload videos "$F" --repo "$GITHUB_REPOSITORY" --clobber; then
+            URL="https://github.com/$GITHUB_REPOSITORY/releases/download/videos/$F"
+            echo "url=$URL" >> "$GITHUB_OUTPUT"
+            echo "::warning::YouTube にサムネイルが付きませんでした。この画像を Studio で付けてください: $URL"
+            {
+              echo
+              echo "### サムネイルが付きませんでした"
+              echo
+              echo "画像を開いて保存し、YouTube Studio でこの動画に付けてください。"
+              echo
+              echo "[サムネイルの画像を開く]($URL)"
+              echo
+              echo "<img src=\"$URL\" width=\"270\">"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::YouTube にサムネイルが付きませんでした。Artifacts（short-$SET_CODE-$VTAG）の $VTAG.thumbnail.jpg を Studio で付けてください。"
+          fi
+
       # 公開と「動画を配信」を忘れないように、担当者に割り当てた Issue を立てる（GitHub がメールとアプリで知らせる）
       - name: 公開のリマインドを Issue にする
         if: inputs.upload == true && env.SKIP != '1'
         uses: actions/github-script@v7
+        env:
+          THUMB_URL: ${{ steps.thumb.outputs.url }}
         with:
           script: |
             const fs = require('fs');
@@ -264,8 +296,9 @@ jobs:
                 ``,
                 `## やること`,
                 `1. 動画を開いて内容を確認する`,
-                `2. YouTube Studio → コンテンツ → この動画の公開設定を「公開」にする`,
-                `3. Actions「動画を配信」を入力なしで実行する（ページに載り、X・Bluesky に案内が出る）`,
+                ...(process.env.THUMB_URL ? [`2. サムネイルが自動で付かなかったので、[この画像](${process.env.THUMB_URL})を保存して、YouTube Studio でこの動画に付ける`] : []),
+                `${process.env.THUMB_URL ? 3 : 2}. YouTube Studio → コンテンツ → この動画の公開設定を「公開」にする`,
+                `${process.env.THUMB_URL ? 4 : 3}. Actions「動画を配信」を入力なしで実行する（ページに載り、X・Bluesky に案内が出る）`,
                 ``,
                 `配信が済むとこの Issue は自動で閉じます。`
               ].join('\n')

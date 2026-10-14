@@ -158,30 +158,59 @@ if(!put.ok || !res.id){ console.error(`アップロードに失敗しました�
 // サムネイル（冒頭のタイトル場面）。YouTube 側にも付ける。
 //   短い動画（ショート）でも API では付けられる。チャンネルの電話番号確認が済んでいないと 403 で断られるので、その時はサイト側だけ。
 //   使う画像は、1080×1920 の short/<SET>/<TAG>.thumbnail.jpg（workflow が冒頭の場面から作る）。無ければサイト用の assets/video/<SET>-<TAG>.jpg（540×960）
+//   上げた直後（YouTube が動画を処理している最中）に付けると、成功と返ってきても、処理が終わったときに自動の画像へ戻ることがある
+//  （2026年10月、FRA の速報で確認）。そのため、すぐに1回付けたうえで、処理が終わるのを待ってもう1回付け直す。
 const posterPath = `assets/video/${SET}-${TAG}.jpg`;
 const poster = (await stat(posterPath).catch(() => null)) ? posterPath : null;
 const thumbPath = `short/${SET}/${TAG}.thumbnail.jpg`;
 const thumb = (await stat(thumbPath).catch(() => null)) ? thumbPath : poster;
+let thumbnailSet = false;   // 最後まで付けられたか（youtube.json に残し、付かなかったときは workflow が画像を受け渡す）
 if(thumb){
-  try{
-    const img = await readFile(thumb);
-    let r = null, tok = token;
+  const img = await readFile(thumb).catch(() => null);
+  let tok = token;
+  /* サムネイルを付ける。返り値は成功したかどうか（失敗の理由はログに出す） */
+  async function setThumbnail(){
+    let r = null;
     for(let n = 1; n <= 3; n++){
       r = await fetch(`https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId=${encodeURIComponent(res.id)}`, {
         method: "POST", headers: { Authorization: `Bearer ${tok}`, "Content-Type": "image/jpeg", "Content-Length": String(img.length) }, body: img });
       if(r.ok || !(r.status === 401 || r.status >= 500) || n === 3) break;
       // 発行したばかりのトークンを YouTube が一時的に断ることがある（英語チャンネルで確認）。待って取り直す
       console.log(`サムネイル: HTTP ${r.status} なので ${10 * n} 秒待ってトークンを取り直します（${n}回目）`);
-      await new Promise(res => setTimeout(res, 10000 * n));
+      await new Promise(ok => setTimeout(ok, 10000 * n));
       tok = await accessToken().catch(() => tok);
     }
-    if(r.ok) console.log(`YouTube のサムネイルを冒頭の場面にしました（${thumb}）。`);
-    else console.log(`YouTube のサムネイルは変えられませんでした（HTTP ${r.status}: ${(await r.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 200)}）。${r.status === 403 ? "チャンネルの電話番号確認が済むと使えます。" : ""}Artifacts の thumbnail.jpg を Studio で手で付けてください。`);
-  }catch(e){ console.log("YouTube のサムネイル設定に失敗: " + e.message); }
+    if(!r.ok) console.log(`YouTube のサムネイルは変えられませんでした（HTTP ${r.status}: ${(await r.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 200)}）。${r.status === 403 ? "チャンネルの電話番号確認が済むと使えます。" : ""}Artifacts の thumbnail.jpg を Studio で手で付けてください。`);
+    return r.ok;
+  }
+  /* YouTube の処理（processingDetails.processingStatus）が終わるのを待つ。最大 maxSec 秒。終わったら true */
+  async function waitProcessed(maxSec){
+    for(let t = 0; t <= maxSec; t += 20){
+      const r = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=processingDetails,status&id=${encodeURIComponent(res.id)}`, { headers: { Authorization: `Bearer ${tok}` } }).catch(() => null);
+      const v = r && r.ok ? ((await r.json().catch(() => ({}))).items || [])[0] : null;
+      const st = v && v.processingDetails && v.processingDetails.processingStatus;
+      if(st === "succeeded" || (v && v.status && v.status.uploadStatus === "processed")) return true;
+      if(st === "failed" || st === "terminated"){ console.log(`YouTube の処理が「${st}」になりました。`); return false; }
+      if(r && r.status === 401) tok = await accessToken().catch(() => tok);
+      await new Promise(ok => setTimeout(ok, 20000));
+    }
+    return false;
+  }
+  if(img){
+    try{
+      const first = await setThumbnail();
+      if(first){
+        console.log("サムネイル: 1回付けました。YouTube の処理が終わるのを待って、付け直します（最大 10 分）");
+        const done = await waitProcessed(600);
+        if(!done) console.log("サムネイル: 10 分たっても処理が終わらなかったので、このまま付け直します");
+        if(await setThumbnail()){ thumbnailSet = true; console.log(`YouTube のサムネイルを冒頭の場面にしました（${thumb}）。`); }
+      }
+    }catch(e){ console.log("YouTube のサムネイル設定に失敗: " + e.message); }
+  }
 }
 
 const out = { set: SET, lang: LANG, mode, videoId: res.id, poster, url: `https://youtu.be/${res.id}`, shortsUrl: `https://www.youtube.com/shorts/${res.id}`,
-              title: meta.title, privacy: "private", uploadedAt: new Date().toISOString() };
+              title: meta.title, privacy: "private", uploadedAt: new Date().toISOString(), thumbnailSet };
 await writeFile(`short/${SET}/${TAG}.youtube.json`, JSON.stringify(out, null, 2), "utf8");
 // サイト用の記録は 1本ごとの小さなファイルに置く（同時に動画を作っても衝突しない）。「動画を配信」がまとめて取り込む
 {
