@@ -62,13 +62,15 @@ if(!setInfo){ console.error(`${SET}: Scryfall にセットがありません。`
 console.error(`${SET}: ${setInfo.name}（発売 ${setInfo.released_at}）`);
 
 const en = await scryAll(`set:${SET.toLowerCase()} unique:prints`);
-const cmcOf = {}, rarityOf = {}, imgEnOf = {};
+const cmcOf = {}, rarityOf = {}, imgEnOf = {}, landOf = {};
 const imgOfCard = c => (c.image_uris && c.image_uris.normal) || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris && c.card_faces[0].image_uris.normal) || "";
 for(const c of en){
   for(const k of [c.name, front(c.name)]){
     if(cmcOf[k] == null) cmcOf[k] = c.cmc != null ? c.cmc : (c.card_faces && c.card_faces[0] && c.card_faces[0].cmc) || 0;
     if(!rarityOf[k]) rarityOf[k] = c.rarity;
     if(!imgEnOf[k]) imgEnOf[k] = imgOfCard(c);
+    // 土地かどうか（表面の種類で見る。両面カードの裏が土地のものは、土地として扱わない）
+    if(landOf[k] == null) landOf[k] = /\bLand\b/.test(String((c.card_faces && c.card_faces[0] && c.card_faces[0].type_line) || c.type_line || "").split("//")[0]);
   }
 }
 
@@ -160,10 +162,11 @@ if(!total){ console.error(`${SET}: 17Lands にまだ試合がありません。`
 const colors = Object.entries(contains).filter(([, v]) => v[0] > 0).map(([color, [games, wins]]) => ({ color, games, wr: wins / games })).sort((a, b) => b.wr - a.wr);
 const archetypes = Object.values(pairs).filter(p => p.games > 0).map(p => ({ colors: p.colors, games: p.games, wr: p.wins / p.games })).sort((a, b) => b.games - a.games);
 
-/* カード：GIH 勝率（手札に来た試合の勝率）で並べる。試合数が少ないものは外す */
+/* カード：GIH 勝率（手札に来た試合の勝率）で並べる。試合数が少ないものと、土地は外す
+   （土地は勝率が高く出やすいが、ボムやおすすめのカードではないため。記事データ build-articles.mjs と同じ決まり） */
 const byRarity = { common: [], uncommon: [], rare: [], mythic: [] };
 for(const [name, c] of Object.entries(cards)){
-  if(!byRarity[c.rarity] || c.games < MIN_GAMES) continue;
+  if(!byRarity[c.rarity] || c.games < MIN_GAMES || landOf[name]) continue;
   byRarity[c.rarity].push({ name, cmc: cmcOf[name] != null ? cmcOf[name] : null, color: c.color, gih: c.wins / c.games, iwd: c.iwdG ? c.iwdW / c.iwdG : null, games: c.games, imgEn: imgEnOf[name] || "" });
 }
 const top = {};

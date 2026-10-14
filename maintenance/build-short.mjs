@@ -70,7 +70,7 @@ const UI = JA ? {
   noCurve: "カーブで差がつかない", light: n => `軽いデッキが${n}pt有利`, heavy: n => `重いデッキが${n}pt有利`, lighter: "軽いほど勝つ", heavier: "重いほど勝つ",
   colorsH: "色の強さ", bestPair: "一番強い組み合わせ", targetPair: "狙い目（強いのに空いている）", worsePair: "一番弱い組み合わせ", vsAvg: (sign, n) => `2色の平均より ${sign}${n}pt`,
   share: (s, a, r) => `勝率${r}位・使用率 ${s}%（平均 ${a}%）`, targetH: "ドラフトの狙い目", targetT: "強いのに空いている", shareNote: (s, a) => `使っている人は ${s}%（平均 ${a}%）`,
-  topH: label => `${label} 勝率トップ3`, common: "コモン", uncommon: "アンコモン", rank: i => `${i}位`, gih: v => `引けた試合の勝率 ${v}%`,
+  topH: label => `${label} 勝率トップ3`, common: "コモン", uncommon: "アンコモン", rank: i => `${i}位`, gih: v => `引けた試合の勝率 ${v}%`, gihL: "引けた試合の勝率",
   subscribe: "▶ チャンネル登録",
   surpriseH: "意外な事実", nobody: "誰も組んでいない", strongerTogether: "組むと強くなる", weakerTogether: "組むと弱くなる",
   wrRank: (v, r) => `勝率 ${v}%（${r}位）`, wr: v => `勝率 ${v}%`, usedOnly: (g, p) => `使われた試合は ${g}。全体の${p}%だけ`, vsAvg2: (sign, n) => `2色それぞれの平均より ${sign}${n}pt`,
@@ -84,7 +84,7 @@ const UI = JA ? {
   noCurve: "Curve barely matters", light: n => `Light decks +${n}pt`, heavy: n => `Heavy decks +${n}pt`, lighter: "Lighter wins", heavier: "Heavier wins",
   colorsH: "Colour strength", bestPair: "Best pair", targetPair: "Aim for this (strong, under-drafted)", worsePair: "Weakest pair", vsAvg: (sign, n) => `vs 2-colour avg ${sign}${n}pt`,
   share: (s, a, r) => `#${r} · drafted ${s}% (avg ${a}%)`, targetH: "Draft pick to aim for", targetT: "Strong, but under-drafted", shareNote: (s, a) => `Drafted by ${s}% (average ${a}%)`,
-  topH: label => `Top 3 ${label}s by win rate`, common: "common", uncommon: "uncommon", rank: i => `#${i}`, gih: v => `Win rate when drawn ${v}%`,
+  topH: label => `Top 3 ${label}s by win rate`, common: "common", uncommon: "uncommon", rank: i => `#${i}`, gih: v => `Win rate when drawn ${v}%`, gihL: "Win rate when drawn",
   subscribe: "▶ Subscribe",
   surpriseH: "One surprise", nobody: "Nobody plays it", strongerTogether: "Better together", weakerTogether: "Worse together",
   wrRank: (v, r) => `${v}% win rate (#${r})`, wr: v => `${v}% win rate`, usedOnly: (g, p) => `Only ${g} games — ${p}% of all decks`, vsAvg2: (sign, n) => `${sign}${n}pt vs each colour's average`,
@@ -267,8 +267,8 @@ function buildScript(d, nameJa, names){
       const three = pg.slice(0, 3);
       scenes.push({ kind: "bombs", page: i, from, to, cards: pg, label: `bombs${i + 1}`, tail: 0.8, minDur: 6,   // 3 枚を見る時間として、短くても 6 秒は置く
         // 1〜5 位は順位と数字を読む。6〜10 位は数字を読み上げず、「これも中心に据えていい」と言う（棒読みにしない）
-        say: i === 0 ? (JA ? `レアと神話レアのボム、トップ6です。1位は${three[0].label}、${pt(three[0].gih)}パーセントです。${three.slice(1).map(c => c.label).join("、")}も、迷わずピックです。`
-                           : `Top six rare and mythic bombs. Number one: ${three[0].name}, at ${pt(three[0].gih)} percent. ${three.slice(1).map(c => c.name).join(" and ")} are first-picks too.`)
+        say: i === 0 ? (JA ? `レアと神話レアのボム、トップ6です。1位は${three[0].label}、引けた試合の勝率${pt(three[0].gih)}パーセントです。${three.slice(1).map(c => c.label).join("、")}も、迷わずピックです。`
+                           : `Top six rare and mythic bombs. Number one: ${three[0].name}, winning ${pt(three[0].gih)} percent of games when drawn. ${three.slice(1).map(c => c.name).join(" and ")} are first-picks too.`)
                      : (JA ? `${from}位から${to}位も十分なボムです。引いたら、これを中心にデッキを組みましょう。`
                            : `Numbers ${from} to ${to} are still bombs. Open one, and build your deck around it.`) });
     });
@@ -453,6 +453,20 @@ async function zundaReady(){
    この高さは、どの場面でも情報（色の一覧・カードの並び）より下で、いちばん行数の多い字幕の枠の上にほぼ収まる */
 /* 文字を幅 w に収める大きさ（日本語は1字＝1、英数字は約0.58として数える）。最大 max */
 const ZX = W - 24 - ZW;   // 右はしのキャラクターの左端。情報の文字はこれより左に収める
+/* 文字の幅のめやす（全角 1、半角 0.58。フォントの大きさを掛けると px） */
+function units(str){ return [...String(str)].reduce((n, ch) => n + (/[\x00-\x7F]/.test(ch) ? 0.58 : 1), 0); }
+/* カードの勝率の札：紺の地に青い縁、「引けた試合の勝率」は小さく、数字は大きく金色で。背景の絵に埋もれないようにする。
+   top は札の上端、maxW は使ってよい幅。返り値は SVG */
+function gihBadge(x, top, v, maxW, size){
+  const label = UI.gihL, num = `${v}%`, pad = 18, gap = 14;
+  let ns = size, ls = Math.round(size * 0.6);
+  const w0 = units(label) * ls + gap + units(num) * ns + pad * 2;
+  if(w0 > maxW){ const f = maxW / w0; ns = Math.floor(ns * f); ls = Math.floor(ls * f); }
+  const w = Math.round(units(label) * ls + gap + units(num) * ns + pad * 2), h = Math.round(ns * 1.4), base = top + Math.round(h * 0.72);
+  return `<rect x="${x}" y="${top}" width="${w}" height="${h}" rx="${Math.round(h / 2)}" fill="${DEEP}" fill-opacity="0.9" stroke="${BLUE}" stroke-width="4"/>` +
+         T(x + pad, base, label, { size: ls, fill: "#CFE0F5", weight: 700 }) +
+         T(x + pad + Math.round(units(label) * ls) + gap, base, num, { size: ns, fill: GOLD, weight: 900 });
+}
 function fitSize(str, w, max){
   const units = [...String(str)].reduce((n, ch) => n + (/[\x00-\x7F]/.test(ch) ? 0.58 : 1), 0);
   return Math.max(24, Math.min(max, Math.floor(w / Math.max(units, 1))));
@@ -678,7 +692,9 @@ function sceneSvg(sc){
         let size = lines.length > 1 ? sz(JA ? 42 : 36) : sz(JA ? 50 : 44);
         size = Math.min(size, Math.floor((1040 - 240 - TX) / Math.max(...lines.map(l => JA ? [...l].length : l.length * 0.58), 1)));   // 右はしのキャラクターにかからない幅
         lines.forEach((l, j) => { s += T(TX, y + (lines.length > 1 ? sz(104) : sz(124)) + j * (size + 4), l, { size, weight: 900 }); });
-        s += T(TX, y + CH - 12, UI.gih(pt(c.gih)), { size: fitSize(UI.gih(pt(c.gih)), ZX - 20 - TX, sz(36)), fill: BLUE, weight: 700 });
+        // 勝率の札は、名前のすぐ下に置く（カードの下端まで離さない）
+        const nameBottom = y + (lines.length > 1 ? sz(104) : sz(124)) + (lines.length - 1) * (size + 4), bs = sz(40);
+        s += gihBadge(TX, Math.min(nameBottom + sz(24), y + CH - Math.round(bs * 1.4)), pt(c.gih), ZX - 20 - TX, bs);
       });
       return frame(s, sc.say, { capBottom: BOMB_CAP_BOTTOM });
     }
@@ -704,7 +720,9 @@ function sceneSvg(sc){
         let size = lines.length > 1 ? (JA ? 46 : 40) : (JA ? ([...c.label].length <= 8 ? 60 : 50) : (c.label.length <= 14 ? 50 : 42));
         size = Math.min(size, Math.floor(TW / Math.max(...lines.map(l => JA ? [...l].length : l.length * 0.58), 1)));
         lines.forEach((l, j) => { s += T(TX, y + Math.round((lines.length > 1 ? 168 : 196) * k) + j * (size + 8), l, { size, weight: 900 }); });
-        s += T(TX, y + Math.round(300 * k), UI.gih(pt(c.gih)), { size: fitSize(UI.gih(pt(c.gih)), TW, 46), fill: BLUE, weight: 700 });
+        // 勝率の札は、名前のすぐ下に置く
+        const nameBottom = y + Math.round((lines.length > 1 ? 168 : 196) * k) + (lines.length - 1) * (size + 8), bs = Math.round(46 * Math.min(1, Math.max(0.8, k)));
+        s += gihBadge(TX, Math.min(nameBottom + Math.round(26 * k), y + CH - Math.round(bs * 1.4)), pt(c.gih), TW, bs);
       });
       return frame(s, sc.say);
     }
