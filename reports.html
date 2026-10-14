@@ -321,18 +321,27 @@
     .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
     .ngl,.ngs{flex:0 0 100%}
   }
-  /* ページ下の読み物（文言は i18n.js の read.*） */
-  .readmore{max-width:900px;margin:0 auto;padding:10px 24px 48px;border-top:1px solid var(--line)}
-  .readmore h2{font-size:21px;margin:30px 0 12px}
-  .readmore h3{font-size:16.5px;margin:24px 0 6px}
-  .readmore p,.readmore li{font-size:14.5px;line-height:1.9}
-  .readmore p{margin:0 0 10px}
-  .readmore ol,.readmore ul{margin:0 0 12px;padding-left:1.5em}
-  .readmore ol{list-style:decimal}
-  .readmore ul{list-style:disc}
-  .readmore li{margin:0 0 6px}
-  .readmore a{color:var(--gold)}
-  @media (max-width:640px){ .readmore{padding:6px 16px 36px} }
+  /* ページ下の読み物（文言は i18n.js の read.*）。見出しはトップページの h2、箱はサイト共通の白いカードに合わせる */
+  .readmore{max-width:900px;margin:0 auto;padding:6px 24px 36px}
+  .readmore section{margin:0 0 30px}
+  .readmore h2{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;font-size:19px;line-height:1.3;letter-spacing:-.01em;color:var(--ink);margin:0 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  .readmore p{margin:0 0 12px;font-size:14px;line-height:1.85}
+  .readmore a{color:var(--gold);font-weight:700;text-decoration:none}
+  .readmore a:hover{text-decoration:underline}
+  .rm-steps{list-style:none;counter-reset:rmst;margin:0 0 14px;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+  .rm-steps li{counter-increment:rmst;background:#fff;border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:var(--radius);padding:14px 16px;font-size:13px;line-height:1.75;margin:0}
+  .rm-steps li::before{content:counter(rmst);display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--pine);color:#fff;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:12.5px;margin:0 0 8px}
+  .rm-steps b{display:block;font-size:14.5px;line-height:1.45;color:var(--pine);margin:0 0 4px}
+  .rm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin:0 0 14px}
+  .rm-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+  .rm-card h3,.rm-note h3{margin:0 0 6px;font-size:15px;font-weight:700;line-height:1.45;color:var(--pine)}
+  .rm-card p,.rm-note p{font-size:13px;line-height:1.8;margin:0 0 8px}
+  .rm-card p:last-child,.rm-note p:last-child{margin:0}
+  .rm-note{background:var(--paper-2);border-left:4px solid var(--gold);border-radius:4px;padding:12px 16px;margin:0 0 14px}
+  /* 環境レポートは本文の幅が狭いので2列にし、数が奇数のときは最後の1枚を横いっぱいにする */
+  .readmore .rm-grid{grid-template-columns:1fr 1fr}
+  .readmore .rm-card:last-child:nth-child(odd){grid-column:1/-1}
+  @media (max-width:720px){ .readmore{padding:4px 14px 28px} .rm-steps,.readmore .rm-grid{grid-template-columns:1fr} .readmore .rm-card:last-child:nth-child(odd){grid-column:auto} }
 </style>
 <link rel="stylesheet" href="/assets/mana/mana.min.css">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
@@ -391,7 +400,7 @@
   <div id="body" hidden></div>
 </main>
 
-<section class="readmore" data-i18n-html="read.reports"></section>
+<div class="readmore" data-i18n-html="read.reports"></div>
 
 <div id="tapdim" aria-hidden="true"></div>
 <div id="preview" aria-hidden="true"></div>
