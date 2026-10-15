@@ -157,6 +157,10 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 
+      # X に手で投稿するときのおすすめの文面（タグ付き）を、まとめ（Summary）に出す。X への自動投稿は止めているため
+      - name: X のおすすめ投稿文を出す
+        run: node maintenance/x-post-draft.mjs long "$SET_CODE" ja >> "$GITHUB_STEP_SUMMARY"
+
       - name: 動画を保存する
         if: always()
         uses: actions/upload-artifact@v4
@@ -274,6 +278,10 @@ jobs:
               echo "内容を確認して、YouTube Studio で「公開」にしてください。サムネイルが付かなかった場合は、Artifacts の thumbnail.jpg を Studio で付けてください。"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      # X に手で投稿するときのおすすめの文面（タグ付き）を、まとめ（Summary）に出す。X への自動投稿は止めているため
+      - name: X のおすすめ投稿文を出す
+        run: node maintenance/x-post-draft.mjs long "$SET_CODE" en >> "$GITHUB_STEP_SUMMARY"
 
       - name: 動画を保存する
         if: always()

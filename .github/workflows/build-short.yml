@@ -270,6 +270,11 @@ jobs:
             echo "::warning::YouTube にサムネイルが付きませんでした。Artifacts（short-$SET_CODE-$VTAG）の $VTAG.thumbnail.jpg を Studio で付けてください。"
           fi
 
+      # X に手で投稿するときのおすすめの文面（タグ付き）を、まとめ（Summary）に出す。X への自動投稿は止めているため
+      - name: X のおすすめ投稿文を出す
+        if: env.SKIP != '1'
+        run: node maintenance/x-post-draft.mjs short "$SET_CODE" "$VLANG" "$VMODE" >> "$GITHUB_STEP_SUMMARY"
+
       # 公開と「動画を配信」を忘れないように、担当者に割り当てた Issue を立てる（GitHub がメールとアプリで知らせる）
       - name: 公開のリマインドを Issue にする
         if: inputs.upload == true && env.SKIP != '1'
