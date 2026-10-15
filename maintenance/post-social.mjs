@@ -12,6 +12,9 @@
  *   BSKY_HANDLE, BSKY_APP_PASSWORD                              … Bluesky に投稿する（無ければ飛ばす）
  *   DRY_RUN=1                                                   … 投稿せず文面だけ表示する
  *   VIDEO_ID=...  ANNOUNCE_SETS=HOB  node maintenance/post-social.mjs video … 動画の公開を案内する（「動画を配信」から）
+ *   node maintenance/post-social.mjs long   … サイトに載った長尺（data/long.json）のうち、まだ案内していないものを案内する（英語・Bluesky）。
+ *                                             案内した動画は data/social/long-posted.json に記録し、2回目は出さない
+ *   SKIP_X=1                                                    … X には出さない（手で貼る文面も作らない）
  *   LANGS=ja,en                                                 … 投稿する言語（既定は両方）
  *   BSKY_LANGS=en                                               … Bluesky に出す言語（既定は英語だけ。日本語の利用者が少ないため）
  *
@@ -300,6 +303,29 @@ function videoPost(ctx, lang, track, withVideo = !!VIDEO_FILE){
   const reply = withVideo ? (L ? `YouTube でも見られます → https://www.youtube.com/shorts/${id}` : `Also on YouTube → https://www.youtube.com/shorts/${id}`) : null;
   return { text: fit(lines, track), cards: [], reply };
 }
+/* 長尺（環境まとめ）が公開になったときの案内。v は data/long.json の <SET>.<lang> */
+function longPost(ctx, lang, v, track){
+  const nm = ctx.name[lang], L = lang === "ja", d = ctx.draft;
+  const url = ctx.url(lang) + `?from=${track}`;
+  const pairs = d ? (d.archetypes || []).filter(a => a.colors && a.colors.length === 2) : [];
+  const total = pairs.reduce((n, a) => n + a.games, 0);
+  const best = pairs.filter(a => a.games >= Math.max(1000, total * 0.01)).sort((a, b) => b.wr - a.wr)[0];
+  const bomb = d ? topBy(d, "rare", 10).concat(topBy(d, "mythic", 10)).sort((a, b) => b.gih - a.gih)[0] : null;
+  const CN = { W: "White", U: "Blue", B: "Black", R: "Red", G: "Green" };
+  const lines = [
+    L ? `【${nm}】リミテッド環境まとめ動画を公開しました` : `${nm} Limited review is out`,
+    "",
+    L ? "~強い色・狙い目の色・ボム10枚・罠なレアまで、17Landsの実戦データで解説しました。" : "~Best colours, sleeper pairs, the top 10 bombs and trap rares, all from 17Lands data.",
+    best ? (L ? `最強の組み合わせ：${best.colors.split("").map(k => COLOR.ja[k]).join("")}（${pct(best.wr)}）` : `Best pair: ${best.colors.split("").map(k => CN[k]).join("-")} (${pct(best.wr)})`) : null,
+    bomb ? (L ? `ボム1位：${cardLabel(ctx, lang, bomb.name)}（${pct(bomb.gih)}）` : `Top bomb: ${cardLabel(ctx, lang, bomb.name)} (${pct(bomb.gih)})`) : null,
+    "",
+    `https://youtu.be/${v.id}`,
+    L ? `全カードの勝率 ${url}` : `Every card's win rate: ${url}`,
+    TAGS[lang]
+  ].filter(x => x !== null);
+  return { text: fit(lines, track), cards: [] };
+}
+
 /* 動画ファイル（VIDEO_FILE）。あれば X・Bluesky に動画そのものを添付する */
 const VIDEO_FILE = process.env.VIDEO_FILE && existsSync(process.env.VIDEO_FILE) ? process.env.VIDEO_FILE : null;
 
@@ -528,22 +554,25 @@ async function postBsky(text, image, opts = {}){
 
 /* ---------- 本体 ---------- */
 async function send(label, textX, textBsky, image, lang, extra = {}){
+  let ok = true;   // 投稿した先がすべて成功したか（長尺の案内の記録に使う）
   console.log(`\n--- ${label} ---`);
   console.log(textX);
   console.log(`（X換算 ${xLength(textX)} 文字／画像 ${image ? Math.round(image.length / 1024) + "KB" : "なし"}／動画 ${extra.video ? extra.video : "なし"}）`);
   if(extra.reply) console.log(`返信: ${extra.reply}`);
   if(DRY){
     if(image){ await writeFile(`social-preview-${label.replace(/\s+/g, "-")}.jpg`, image); console.log("画像を social-preview-*.jpg に保存しました"); }
-    console.log("DRY_RUN のため投稿しません"); return;
+    console.log("DRY_RUN のため投稿しません"); return false;
   }
   for(const [name, fn, text] of [["X", postX, textX], ["Bluesky", postBsky, textBsky]]){
     // Bluesky は BSKY_LANGS にある言語だけ（test は両方に出す）
     if(name === "Bluesky" && lang && !BSKY_LANGS.includes(lang)){ console.log(`Bluesky: ${lang} は出さない設定（BSKY_LANGS=${BSKY_LANGS.join(",")}）`); continue; }
+    if(name === "X" && process.env.SKIP_X === "1") continue;
     if(name === "X" && !X_ENABLED){ console.log(await saveManual(label, text, image, extra)); continue; }
     const o = { video: extra.video || null, reply: extra.reply || null, fallbackText: name === "X" ? extra.fallbackX : extra.fallbackBsky };
-    try{ console.log(await fn(text, image, o)); }
-    catch(e){ console.error(`${name}: 失敗 — ${e.message}`); process.exitCode = 1; }
+    try{ const msg = await fn(text, image, o); console.log(msg); if(/飛ばしました/.test(String(msg))) ok = false; }   // 鍵が無くて飛ばしたときは「投稿した」と数えない
+    catch(e){ console.error(`${name}: 失敗 — ${e.message}`); process.exitCode = 1; ok = false; }
   }
+  return ok;
 }
 
 async function main(){
@@ -552,6 +581,7 @@ async function main(){
     await send("test", text, text);
     return;
   }
+  if(mode === "long") return announceLongs();
   const sets = (mode === "announce" || mode === "video") ? (process.env.ANNOUNCE_SETS || "").split(/\s+/).filter(Boolean) : [await latestSet()].filter(Boolean);
   if(!sets.length){ console.log("対象のセットがありません。"); return; }
   // 週次の話題：THEME で指定があればそれ、無ければ週ごとに順番に回す
@@ -579,6 +609,36 @@ async function main(){
       await send(`${mode} ${code} ${lang}`, px.text, pb.text, image, lang, extra);
     }
   }
+}
+
+/* 長尺の案内：data/long.json に載った（＝YouTube で公開になった）長尺のうち、まだ案内していないものを出す。
+   はじめて動かしたとき（記録 data/social/long-posted.json が無いとき）は、過去の動画をまとめて流さないよう、
+   いま載っているものを「案内済み」として記録するだけで、投稿はしない */
+async function announceLongs(){
+  const longs = await readJson("data/long.json", {});
+  const logPath = "data/social/long-posted.json";
+  const first = !existsSync(logPath);
+  const posted = await readJson(logPath, {});
+  let n = 0, seeded = 0;
+  for(const [code, byLang] of Object.entries(longs)){
+    for(const lang of LANGS){
+      const v = byLang && byLang[lang];
+      if(!v || !v.id || posted[v.id]) continue;
+      if(first){ posted[v.id] = { set: code, lang, at: new Date().toISOString(), seeded: true }; seeded++; continue; }
+      const ctx = await setContext(code);
+      const px = longPost(ctx, lang, v, "x"), pb = longPost(ctx, lang, v, "bsky");
+      if(await send(`long ${code} ${lang}`, px.text, pb.text, null, lang)){
+        posted[v.id] = { set: code, lang, at: new Date().toISOString() }; n++;
+      }
+    }
+  }
+  if((n || seeded) && !DRY){
+    const { mkdir } = await import("node:fs/promises");
+    await mkdir("data/social", { recursive: true });
+    await writeFile(logPath, JSON.stringify(posted, null, 2) + "\n", "utf8");
+  }
+  if(first) console.log(`長尺の案内: はじめての実行なので、いま載っている ${seeded} 本を「案内済み」として記録しました（投稿はしていません）`);
+  else console.log(n ? `長尺の案内: ${n} 件` : "長尺の案内: 新しく案内する動画はありません");
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

@@ -2,6 +2,8 @@
 /*
  * 動画を作ったときに、X に手で投稿するための「おすすめの投稿文」（タグ付き）を作り、Markdown で書き出す。
  * X への自動投稿は止めている（従量課金のため）ので、ショート｜1・長尺｜1 の実行ページのまとめ（Summary）に出して、手で貼る。
+ * X は日本語だけに投稿する（英語圏への案内は Bluesky に自動で出す。日英が混ざると、どちらのフォロワーにも邪魔になるため）。
+ * 英語を渡したときは、投稿文は作らず、その旨を1行だけ書く。
  *
  *   node maintenance/x-post-draft.mjs short FRA ja early   … ショート（形式は draft | sealed | early）
  *   node maintenance/x-post-draft.mjs long  FRA en         … 長尺
@@ -27,6 +29,10 @@ const tagOf = s => "#" + String(s).replace(/[\s・:：'’!！?？,，.。&＆\-
 
 async function main(){
   if(!SET){ console.error("使い方: node maintenance/x-post-draft.mjs short|long SET ja|en [draft|sealed|early]"); process.exit(1); }
+  if(!JA){
+    process.stdout.write(`\n### X の投稿文\n\n英語の動画は X には投稿しません。Bluesky に自動で案内が出ます（${kind === "long" ? "長尺はサイトに載った日に「SNS｜長尺の案内」が投稿" : "ショートは公開後に「ショート｜2 動画を配信」を押したとき"}）。\n\n`);
+    return;
+  }
   const TAG = MODE === "draft" ? LANG : `${LANG}-${MODE}`;
   const yt = kind === "long" ? await readJson(`long/${SET}/${JA ? "" : "en/"}youtube.json`, null) : await readJson(`short/${SET}/${TAG}.youtube.json`, null);
   const d = await readJson(`data/articles/${SET}_${MODE}.json`, null);

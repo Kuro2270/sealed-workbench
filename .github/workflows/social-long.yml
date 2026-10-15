@@ -1,0 +1,69 @@
+name: SNS｜長尺の案内（自動・長尺｜2 のあと）
+
+# 長尺（環境まとめ）がサイトに載ったら、英語版を Bluesky で案内する。役割はこれだけ。
+#   ・「長尺｜2 長尺動画をサイトに載せる」が終わったあとに自動で動く。data/long.json に載っている長尺のうち、まだ案内していないものだけを投稿する
+#   ・案内した動画は data/social/long-posted.json に記録し、2回目は出さない
+#   ・はじめて動いたときは、いま載っている長尺を「案内済み」として記録するだけで、投稿はしない（過去の動画をまとめて流さないため）
+#   ・X には出さない（X は日本語だけを手で投稿する。日本語の文面は「長尺｜1」のまとめに出る）
+# 手で押すときは、文面の確認だけ（投稿しない）もできる。
+
+on:
+  workflow_run:
+    workflows: ["長尺｜2 長尺動画をサイトに載せる（自動・毎日）"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "文面の確認だけ（投稿しない）"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: social-long
+  cancel-in-progress: false
+
+jobs:
+  post:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 新しく載った長尺を Bluesky で案内する
+        env:
+          SITE_URL: https://sealed-workbench.com
+          LANGS: en
+          BSKY_LANGS: en
+          SKIP_X: "1"
+          DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
+          BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+        run: node maintenance/post-social.mjs long
+
+      - name: 案内の記録をコミットする
+        if: inputs.dry_run != true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/social data/names 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "記録の変更はありませんでした。"
+            exit 0
+          fi
+          git commit -m "長尺の案内の記録を更新"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push origin main && exit 0
+            sleep 5
+          done
+          echo "::warning::記録を押し戻せませんでした（投稿は済んでいます）。次の実行で同じ動画をもう一度案内しないか確認してください。"
+          exit 1
