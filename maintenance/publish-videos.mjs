@@ -105,8 +105,8 @@ async function commentText(lang, S, mode){
   const modeName = lang === "ja" ? (mode === "sealed" ? "シールド" : "ドラフト") : (mode === "sealed" ? "Sealed" : "Draft");
   // 先行版：サイトにはまだ載っていない（17Lands の決まりで、サイト掲載は発売12日目から）ので、確定版の案内にする
   if(mode === "early") return lang === "ja"
-    ? `見てくれてありがとうございます。\n\nこれは発売直後の速報です。データは 17Lands のカード勝率・色別勝率で、順位はこれから動きます。\n確定版（ドラフト／シールド）の動画と、全カードの勝率ページは、データが揃う約2週間後に出します。\n\nシールド／ドラフトの構築練習はこちら（無料・登録不要）→ ${SITE}\n\n「この色が強いのは意外だった」「自分の体感と違う」などあれば、コメントで教えてください。`
-    : `Thanks for watching.\n\nThis is an early look from the first days of the format. Data: 17Lands card and colour win rates — rankings will move.\nThe full review (Draft and Sealed) and the all-cards win rate page follow in about two weeks.\n\nFree Sealed / Draft practice → ${SITE}\n\nIf a colour surprised you, or the data doesn't match your experience, tell me in the comments.`;
+    ? `見てくれてありがとうございます。\n\nこれは発売直後の速報です。データは 17Lands のカード勝率・色別勝率で、順位はこれから動きます。\n確定版（ドラフト／シールド）の動画と、全カードの勝率ページは、データが固まり次第出します。\n\nシールド／ドラフトの構築練習はこちら（無料・登録不要）→ ${SITE}\n\n「この色が強いのは意外だった」「自分の体感と違う」などあれば、コメントで教えてください。`
+    : `Thanks for watching.\n\nThis is an early look from the first days of the format. Data: 17Lands card and colour win rates — rankings will move.\nThe full review (Draft and Sealed) and the all-cards win rate page follow once the data is final.\n\nFree Sealed / Draft practice → ${SITE}\n\nIf a colour surprised you, or the data doesn't match your experience, tell me in the comments.`;
   const text = lang === "ja"
     ? `見てくれてありがとうございます。\n\n動画で触れた色の勝率・2色の組み合わせ・コモンやレアの評価は、こちらで${name}の${modeName}の全カード分を見られます（無料・登録不要）\n${page}\n\nシールド／ドラフトの構築練習もできます → ${SITE}\n\n「この色が強いのは意外だった」「自分の体感と違う」などあれば、コメントで教えてください。次のセットの動画の参考にします。`
     : `Thanks for watching.\n\nEvery card's win rate for ${name} ${modeName} — colours, two-colour pairs, the best commons and rares — is here (free, no sign-up):\n${page}\n\nFree Sealed / Draft practice too → ${SITE}\n\nIf a colour surprised you, or the data doesn't match your experience, tell me in the comments. It helps shape the next set's video.`;

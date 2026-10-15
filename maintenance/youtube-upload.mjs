@@ -50,7 +50,7 @@ const meta = EARLY ? (LANG === "ja" ? {
   title: `【${name.ja}】速報！発売直後のリミテッド環境を1分で｜MTGアリーナ #Shorts`,
   description: [
     `MTGアリーナ『${name.ja}』のリミテッド環境を、発売直後${gamesTxt ? "・" + gamesTxt + "試合時点" : ""}のデータ（ドラフトとシールドを合算）から速報でまとめました。`,
-    `まだ序盤のデータなので、順位はこれから動きます。確定版（ドラフト／シールド）は、データが揃う約2週間後に出します。`,
+    `まだ序盤のデータなので、順位はこれから動きます。確定版（ドラフト／シールド）は、データが固まり次第出します。`,
     ``,
     `▼ 環境レポート・シールド／ドラフトの構築練習（無料・登録なし）`,
     SITE,
@@ -69,7 +69,7 @@ const meta = EARLY ? (LANG === "ja" ? {
   title: `${name.en} Limited: Early Look in 60 seconds | MTG Arena #Shorts`,
   description: [
     `An early look at the ${name.en} Limited format on MTG Arena, from the first days of data${gamesTxt ? " (" + gamesTxt + " games so far, Draft and Sealed combined)" : " (Draft and Sealed combined)"}.`,
-    `Rankings will move as more games come in. The full review (Draft and Sealed) follows in about two weeks.`,
+    `Rankings will move as more games come in. The full review (Draft and Sealed) follows once the data is final.`,
     ``,
     `▼ Format reports, Sealed / Draft practice and the play table (free, no sign-up)`,
     SITE,

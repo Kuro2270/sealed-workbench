@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * 新セットの「下見」ページを作る（勝率データが出る前の2週間用）。
+ * 新セットの「下見」ページを作る（勝率データが固まるまでの間に使う）。
  *
  *   node maintenance/build-set-profile.mjs FRA
  *
@@ -162,14 +162,14 @@ const P = {
     title: s => `${s} リミテッド下見｜勝率データが出る前に、セットの形を数字で見る`,
     desc: s => `マジック：ザ・ギャザリング アリーナ「${s}」のリミテッドを、勝率データが出る前にカードの枚数から読む。色ごとの除去・飛行・クリーチャーの数、マナ総量の分布。`,
     h1: s => `${s}｜リミテッド下見（データ前）`,
-    lead: "勝率データは発売から2週間ほどで揃います。それまでは、セットの全カードを数えて「環境の形」を見ます。",
-    when: d => `勝率データは ${d} ごろから。揃い次第、このセットの環境レポートが出ます。`,
+    lead: "勝率は、データが固まってから載せます。それまでは、セットの全カードを数えて「環境の形」を見ます。",
+    when: "データが固まり次第、このセットの環境レポートが出ます。",
     earlyH: d => `速報（${d} 時点・17Lands のデータより）`, earlyTop: { common: "コモンのトップ3", uncommon: "アンコモンのトップ3" },
     earlyTitle: s => `${s} リミテッド速報版｜発売直後の傾向と、セットの形`,
     earlyDesc: s => `マジック：ザ・ギャザリング アリーナ「${s}」のリミテッド速報。発売直後の勝っている色・組み合わせと、カードの枚数から見たセットの形。確定版は勝率データが揃い次第。`,
     earlyH1: s => `${s}｜リミテッド速報版`,
     earlyLead: "発売直後の速報です。順位はこの後のデータで動きます。あわせて、セットの全カードを数えた「環境の形」も載せています。",
-    earlyWhen: d => `確定版（全カードの勝率と環境レポート）は ${d} ごろ。揃い次第、このページから自動で切り替わります。`,
+    earlyWhen: "確定版（全カードの勝率と環境レポート）は、データが固まり次第、このページから自動で切り替わります。",
     sumH: "ひと目でわかる",
     sum: p => `コモン・アンコモンの除去は ${p.counts.removal} 枚、飛行持ちは ${p.counts.flyers} 枚。コモン・アンコモンの平均マナ総量は ${p.avgCmcAll.toFixed(2)}。`,
     colorsH: "色ごとの中身（コモン・アンコモン）", colorsLead: "単色のコモン・アンコモンだけを数えています。除去と飛行が多い色は、序盤から主導権を取りやすい色です。",
@@ -194,14 +194,14 @@ const P = {
     title: s => `${s} Limited preview — the shape of the set before win-rate data arrives`,
     desc: s => `A card-count look at Magic: The Gathering Arena Limited for ${s}, before win-rate data: removal, flyers and creatures by colour, and the mana-value curve.`,
     h1: s => `${s} — Limited preview (pre-data)`,
-    lead: "Win-rate data lands about two weeks after release. Until then, we count every card in the set to see the shape of the format.",
-    when: d => `Win-rate data from about ${d}. The full format report for this set appears as soon as it lands.`,
+    lead: "Win rates are added once the data is final. Until then, we count every card in the set to see the shape of the format.",
+    when: "The full format report for this set appears once the data is final.",
     earlyH: d => `Early look (as of ${d}, from 17Lands data)`, earlyTop: { common: "Top 3 commons", uncommon: "Top 3 uncommons" },
     earlyTitle: s => `${s} Limited early look — first-week trends and the shape of the set`,
     earlyDesc: s => `An early look at Magic: The Gathering Arena Limited for ${s}: the colours and pairs winning in the first days, plus the shape of the set by card counts. Full review once win-rate data lands.`,
     earlyH1: s => `${s} — Limited early look`,
     earlyLead: "An early look from the first days of the format. Rankings will move. The card-count shape of the set is below as well.",
-    earlyWhen: d => `The full review (every card's win rate) lands around ${d}. This page switches over automatically.`,
+    earlyWhen: "The full review (every card's win rate) arrives once the data is final. This page switches over automatically.",
     sumH: "At a glance",
     sum: p => `${p.counts.removal} removal spells and ${p.counts.flyers} flyers at common and uncommon. Average mana value of commons and uncommons: ${p.avgCmcAll.toFixed(2)}.`,
     colorsH: "What each colour has (commons & uncommons)", colorsLead: "Mono-coloured commons and uncommons only. Colours with more removal and flyers tend to take the initiative early.",
@@ -322,9 +322,9 @@ function page(lang, p, nameJa, dataDate){
   const earlyNote = isEarly
     ? `<section class="early-note"><h3>${esc(T.earlyH((EARLY.as_of_label || {})[lang] || EARLY.as_of || ""))}</h3><p>${esc(EARLY[lang])}</p>` +
       topRow("common") + topRow("uncommon") +
-      `<p class="when">${esc(T.earlyWhen(dataDate))}</p></section>` : "";
+      `<p class="when">${esc(T.earlyWhen)}</p></section>` : "";
   const main = `<article class="mode">
-  ${isEarly ? "" : `<p class="verdict">${esc(T.when(dataDate))}</p>`}${earlyNote ? "\n" + earlyNote : ""}${earlyVideo ? "\n" + earlyVideo : ""}
+  ${isEarly ? "" : `<p class="verdict">${esc(T.when)}</p>`}${earlyNote ? "\n" + earlyNote : ""}${earlyVideo ? "\n" + earlyVideo : ""}
   <section><h3>${esc(T.colorsH)}</h3><p class="lead">${esc(T.colorsLead)}</p>
   <div style="overflow-x:auto"><table><thead><tr><th>${esc(T.th.color)}</th><th class="num">${esc(T.th.cards)}</th><th class="num">${esc(T.th.creatures)}</th><th class="num">${esc(T.th.removal)}</th><th class="num">${esc(T.th.flyers)}</th><th class="num">${esc(T.th.tricks)}</th><th class="num">${esc(T.th.draw)}</th><th class="num">${esc(T.th.size)}</th><th class="num">${esc(T.th.cmc)}</th></tr></thead>
   <tbody>${COLORS.map(row).join("\n")}</tbody></table></div></section>
@@ -432,12 +432,7 @@ try{
 // 先行版のショート（「動画を配信」が public にしたものだけ載る）
 const VIDEOS = await readJson("data/videos.json", {});
 const EARLY = await readJson(`data/early/${SET}.json`, null);
-// 勝率データが出る日の目安：紙の発売日 + 12日
-let dataDate = { ja: "発売2週間後", en: "two weeks after release" };
-if(p.released_at){
-  const d = new Date(p.released_at + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + 12);
-  dataDate = { ja: `${d.getUTCMonth() + 1}月${d.getUTCDate()}日`, en: d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }) };
-}
+// 勝率データが出る日は書かない（元データの公開日は決まっておらず、発売から12日を過ぎても出ないことがある。2026年10月 FRA で確認）。表現は「データが固まり次第」
 await mkdir("data/profiles", { recursive: true });
 await mkdir("sets", { recursive: true });
 await writeFile(`data/profiles/${SET}.json`, JSON.stringify({ ...p, nameJa, generated_at: new Date().toISOString() }, null, 1), "utf8");

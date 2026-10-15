@@ -276,7 +276,7 @@ function videoPost(ctx, lang, track, withVideo = !!VIDEO_FILE){
     const lines = [
       L ? `【${nm}】速報！発売直後のリミテッド環境を1分で${withVideo ? "" : "（動画）"}` : `${nm} Limited: early look in 60 seconds${withVideo ? "" : " (video)"}`,
       "",
-      L ? `17Lands の発売直後のデータ（ドラフト＋シールド）から、強い色・2色の組み合わせ・コモン／アンコモンのトップを速報でまとめました。確定版は約2週間後に。` : `Strongest colours, best pairs and top commons/uncommons from the first days of 17Lands data. Full review in about two weeks.`,
+      L ? `17Lands の発売直後のデータ（ドラフト＋シールド）から、強い色・2色の組み合わせ・コモン／アンコモンのトップを速報でまとめました。確定版はデータが固まり次第。` : `Strongest colours, best pairs and top commons/uncommons from the first days of 17Lands data. Full review once the data is final.`,
       "",
       withVideo ? null : `https://www.youtube.com/shorts/${id}`,
       L ? `シールド／ドラフトの構築練習 ${SITE}/?from=${track}` : `Sealed / Draft practice: ${SITE}/?from=${track}`,

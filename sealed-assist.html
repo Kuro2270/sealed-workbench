@@ -412,36 +412,23 @@ let setEnName = "";         // セットの英語名（カード情報から拾�
 /* 発売直後でカード情報が揃っていないときの案内。専門用語を使わず、セット名と目安の日付で伝える。
    勝率は 17Lands の規約で紙の発売日から12日後（アリーナ発売から15日ほど）に加わるので、その日付も添える。 */
 /* 勝率が加わる日の目安（アリーナの発売日＝イベント名の日付 + 15日）。分からなければ空 */
-function winrateDate(){
-  const m = String(D.event || "").match(/_(\d{4})(\d{2})(\d{2})$/);
-  if(!m) return "";
-  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3] + 15));
-  return I18N.lang === "ja" ? `${d.getUTCMonth() + 1}月${d.getUTCDate()}日` : d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
-}
 /* 「まだデータが無い」ことと「いつ以降か」を、パネル（小窓にも写る）の上に出す */
 function renderReadyNote(){
   const el = $("readyNote");
   const noWr = !!D.set && wrChecked && loadedSet === D.set && Object.keys(wr).length === 0;
   if(!D.set || !(noArena || cardsMissing || noWr || noPoolMsg)){ el.hidden = true; el.innerHTML = ""; syncPip(); return; }
   const name = I18N.setName(String(D.set).toLowerCase(), setEnName || D.set);
-  const when = winrateDate();
   const lines = [];
   if(noPoolMsg) lines.push(t("sassist.pendNoPool"));
   if(noArena || cardsMissing) lines.push(t("sassist.pendCards"));
-  if(noWr) lines.push(t(when ? "sassist.pendWrWhen" : "sassist.pendWr", { when }));
+  if(noWr) lines.push(t("sassist.pendWr"));   // 勝率が出る日は書かない（元データの公開日は決まっていないため）
   el.innerHTML = `<b>${esc(t("sassist.pendTitle", { set: name }))}</b>` + lines.map(l => `<p>${esc(l)}</p>`).join("");
   el.hidden = false;
   syncPip();      // 小窓にも同じ案内を写す（後からカード情報が引けなかったと分かったときのため）
 }
 function notReadyMsg(code){
   const name = I18N.setName(String(code).toLowerCase(), setEnName || code);
-  const m = String(D.event || "").match(/_(\d{4})(\d{2})(\d{2})$/);
-  let when = "";
-  if(m){
-    const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3] + 15));
-    when = I18N.lang === "ja" ? `${d.getUTCMonth() + 1}月${d.getUTCDate()}日` : d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
-  }
-  return t(when ? "sassist.notReadyWhen" : "sassist.notReady", {set: name, when});
+  return t("sassist.notReady", {set: name});
 }
 let cards = {};             // arena_id → {name, ja, colors, rarity, cmc, type}
 let wr = {};                // 英語名 → {gih, games}
