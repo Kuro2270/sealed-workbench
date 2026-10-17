@@ -1,5 +1,5 @@
 /* ドラフトの進行（draft-logic.mjs）だけを確かめる。通信は使わない */
-import { newRoom, join, leave, setConfig, start, pick, handOver, viewFor, SEATS, ROUNDS, PACK_SIZE } from "../src/draft-logic.mjs";
+import { newRoom, join, leave, setConfig, start, pick, undo, handOver, viewFor, SEATS, ROUNDS, PACK_SIZE } from "../src/draft-logic.mjs";
 let fail = 0; const ok = (c, m) => { console.log((c ? "  ok " : "  NG ") + m); if (!c) fail++; };
 const COLS = ["W","U","B","R","G"];
 let n = 0;
@@ -86,5 +86,22 @@ console.log("二度押し");
   ok(pick(q, "aaaaaaaa", first[0], Math.random, 0) === true && me.picks.length === 1, "1回目は取れる");
   ok(pick(q, "aaaaaaaa", first[1], Math.random, 0) === false && me.picks.length === 1, "同じパックへの2回目（行き違い）は捨てる");
   ok(q.pick === 1 && me.hand.length === PACK_SIZE - 1, "1人なら、CPU と一緒にすぐ次へ進む");
+}
+console.log("選び直し");
+{
+  const q = newRoom(); join(q, "aaaaaaaa", "主催", true); join(q, "bbbbbbbb", "B", false); setConfig(q, "aaaaaaaa", { set: "fra" }); start(q, "aaaaaaaa", packs());
+  const before = viewFor(q, "aaaaaaaa", on).pack.slice();
+  pick(q, "aaaaaaaa", before[0]);
+  const v1 = viewFor(q, "aaaaaaaa", on);
+  ok(!v1.pack && v1.chosen && v1.chosen.id === before[0] && v1.chosen.rest.length === PACK_SIZE - 1, "Bさんを待っている間は、選んだ1枚と残りが見える");
+  ok(undo(q, "aaaaaaaa", 1) === true, "選び直せる");
+  const v2 = viewFor(q, "aaaaaaaa", on);
+  ok(v2.pack && v2.pack.length === PACK_SIZE && v2.picks.length === 0 && !v2.chosen && before.every(id => v2.pack.includes(id)), "選んだ1枚はパックに戻る");
+  ok(Object.values(q.seats.find(s => s.memberId === "aaaaaaaa").colorScore).every(x => x === 0), "色の傾きも元に戻る");
+  ok(undo(q, "aaaaaaaa", 1) === false, "二度押しの2回目は何もしない");
+  pick(q, "aaaaaaaa", before[1]); pick(q, "bbbbbbbb", viewFor(q, "bbbbbbbb", on).pack[0]);
+  threw = ""; try { undo(q, "aaaaaaaa"); } catch (e) { threw = e.message; }
+  ok(/選び直せません/.test(threw) && q.pick === 1, "全員そろってパックが回ったあとは戻せない");
+  ok(viewFor(q, "aaaaaaaa", on).picks[0] === before[1], "選び直した1枚が取ったカードになる");
 }
 console.log(fail ? `\n${fail} 件失敗` : "\nすべて通過"); process.exit(fail ? 1 : 0);

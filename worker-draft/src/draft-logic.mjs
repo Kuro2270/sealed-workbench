@@ -123,6 +123,24 @@ export function pick(room, by, cardId, rnd = Math.random, expect = null) {
   return true;
 }
 
+/* 選び直し。ほかの人がまだ選んでいて、パックが回る前なら、いま取った1枚をパックに戻せる。
+   expect は「送った時点で取っていた枚数」（二度押しで2枚戻らないように） */
+export function undo(room, by, expect = null) {
+  if (room.phase !== "drafting") throw err("いまは選び直せません");
+  const si = seatOf(room, by);
+  if (si < 0) throw err("席がありません");
+  const s = room.seats[si];
+  if (expect != null && s.picks.length !== Number(expect)) return false;
+  if (s.hand || !s.passing || s.cpu || s.auto) throw err("ほかの人も選び終えたので、選び直せませんでした");
+  const card = s.picks.pop();
+  const w = Math.max(0, card.r - 50);
+  card.c.forEach(k => { s.colorScore[k] -= w; });
+  s.passing.push(card);
+  s.hand = s.passing;
+  s.passing = null;
+  return true;
+}
+
 /* 主催者が、通信が切れた人の席を CPU に任せる（本人が戻れば本人に戻る） */
 export function handOver(room, by, si, online, rnd = Math.random) {
   if (room.hostId !== by) throw err("主催者だけが操作できます");
@@ -185,6 +203,9 @@ export function viewFor(room, me, online) {
       online: s.cpu || online.has(s.memberId), picks: s.picks.length, waiting: !!s.hand
     })) : null,
     pack: mine && mine.hand ? mine.hand.map(c => c.id) : null,
+    /* 取ったあと、パックが回るまでの間：選んだ1枚と残りのパック（選び直せる） */
+    chosen: mine && !mine.hand && mine.passing && room.phase === "drafting"
+      ? { id: mine.picks[mine.picks.length - 1].id, rest: mine.passing.map(c => c.id) } : null,
     picks: mine ? mine.picks.map(c => c.id) : [],
     pickNo: room.pick || 0,
     log: room.log.slice(-8).map(l => l.text)

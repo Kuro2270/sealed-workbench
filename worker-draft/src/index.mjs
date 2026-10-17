@@ -13,10 +13,11 @@
  *   {type:"config", set, setName}   主催者がセットを決める
  *   {type:"start", packs}           主催者が開始（パックは主催者のブラウザが作る）
  *   {type:"pick", id, n}            ピック（n は送った時点で取っていた枚数。行き違いの二度押しを捨てるため）
+ *   {type:"undo", n}                選び直し（ほかの人を待っている間だけ。いま取った1枚をパックに戻す）
  *   {type:"handover", seat}         主催者が、切れた人の席を CPU に任せる
  *   {type:"leave"}                  始まる前に抜ける
  */
-import { newRoom, join, leave, setConfig, start, pick, handOver, viewFor, VERSION } from "./draft-logic.mjs";
+import { newRoom, join, leave, setConfig, start, pick, undo, handOver, viewFor, VERSION } from "./draft-logic.mjs";
 
 const KEEP_MS = 3 * 24 * 3600 * 1000;      // 最後の操作から3日たった部屋は消す
 
@@ -89,6 +90,7 @@ export class DraftRoom {
       if (m.type === "config") setConfig(r, me, m);
       else if (m.type === "start") start(r, me, m.packs);
       else if (m.type === "pick") { if (!pick(r, me, m.id, Math.random, m.n)) return; }
+      else if (m.type === "undo") { if (!undo(r, me, m.n)) return; }
       else if (m.type === "handover") handOver(r, me, Number(m.seat), this.online());
       else if (m.type === "leave") leave(r, me);
       else return;

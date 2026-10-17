@@ -216,12 +216,12 @@ function tile(c, onClick){
   li.onkeydown = ev => { if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); onClick(); } };
   return li;
 }
-function row(c){
+function row(c, latest){
   const li = document.createElement("li");
-  li.className = "card-row r-" + c.rarity;
+  li.className = "card-row r-" + c.rarity + (latest ? " latest" : "");
   li._card = c;
   const w = $("wrToggle").checked ? wrEntry(c) : null;
-  li.innerHTML = `<span class="rar ${c.rarity}"></span><span class="name">${esc(displayName(c))}</span>` +
+  li.innerHTML = `<span class="rar ${c.rarity}"></span><span class="name">${esc(displayName(c))}</span>${latest ? `<b class="now">${esc(t("room.justPicked"))}</b>` : ""}` +
     `<span class="wr${isBomb(w) ? " bomb" : ""}">${w ? (w.gih * 100).toFixed(1) + "%" : ""}</span>` +
     `<span style="font-size:12px;color:var(--muted)">${esc(c.mana_cost || "")}</span>`;
   li.onmouseenter = ev => showPreview(c, ev.clientX, ev.clientY);
@@ -273,6 +273,20 @@ function renderDraft(){
   }else{
     $("phaseTitle").textContent = t("draft.phase", {p: view.round + 1, i: view.pickNo + 1});
     $("phaseSub").textContent = "";
+    /* 取ったあと、ほかの人を待っている間：選んだ1枚と残りを見せ、選び直せるようにする */
+    if(view.chosen && byId[view.chosen.id]){
+      const bar = document.createElement("div"); bar.className = "redo";
+      const btn = document.createElement("button"); btn.type = "button"; btn.textContent = t("room.redo");
+      btn.onclick = () => { btn.disabled = true; sentAt = -1; send({type: "undo", n: view.picks.length}); };
+      bar.appendChild(btn); board.appendChild(bar);
+      const ul = document.createElement("ul"); ul.className = "grid chosen-pack";
+      const mineTile = tile(byId[view.chosen.id], () => {});
+      mineTile.classList.add("chosen");
+      const tag = document.createElement("span"); tag.className = "chosen-tag"; tag.textContent = t("room.chosen"); mineTile.appendChild(tag);
+      ul.appendChild(mineTile);
+      sortCards(cards(view.chosen.rest)).forEach(c => ul.appendChild(tile(c, () => {})));
+      board.appendChild(ul);
+    }
     const slow = view.seats.filter(s => !s.cpu && !s.me && s.waiting).map(s => s.name);
     setStatus(slow.length ? t("room.waitFor", {names: slow.join("・")}) : t("room.waitPass"), false, true);
   }
@@ -283,7 +297,12 @@ function renderDraft(){
   if(!mine.length){ sb.innerHTML = `<div class="empty">${esc(t("draft.pickedEmpty"))}</div>`; return; }
   sb.innerHTML = "";
   const ul = document.createElement("ul");
-  mine.slice().sort((a, b) => (a.cmc ?? 0) - (b.cmc ?? 0) || displayName(a).localeCompare(displayName(b), "ja")).forEach(c => ul.appendChild(row(c)));
+  /* いま取った1枚に印を付ける（同じカードが複数あっても印は1つ） */
+  let latestId = view.picks[view.picks.length - 1];
+  mine.slice().sort((a, b) => (a.cmc ?? 0) - (b.cmc ?? 0) || displayName(a).localeCompare(displayName(b), "ja")).forEach(c => {
+    const latest = c.id === latestId; if(latest) latestId = null;
+    ul.appendChild(row(c, latest));
+  });
   sb.appendChild(ul);
 }
 
