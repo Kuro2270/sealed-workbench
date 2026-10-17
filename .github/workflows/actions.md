@@ -60,6 +60,7 @@ Actions の一覧は名前順に並ぶので、頭の「データ｜」「ショ
 | サイト｜セット別ページを作り直す | `data/long.json`・`data/videos.json`・`maintenance/build-set-pages.mjs` を上げたとき |
 | サイト｜ロゴを軽くする | `short/logo/` の画像か `maintenance/build-logos.mjs` を上げたとき |
 | サイト｜対戦卓サーバーを配置 | `worker/` を上げたとき |
+| サイト｜ドラフト部屋サーバーを配置 | `worker-draft/` を上げたとき |
 
 いずれも手で押すこともできる（入力なし）。
 

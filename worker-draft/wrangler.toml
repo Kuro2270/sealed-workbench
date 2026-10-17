@@ -1,0 +1,17 @@
+name = "sealed-workbench-draft"
+main = "src/index.mjs"
+compatibility_date = "2026-09-01"
+
+# 友達とドラフトの部屋ごとに1つできる入れ物。ドラフトの正本をここが持つ。
+# 対戦卓のサーバー（worker/）とは別もの。
+[[durable_objects.bindings]]
+name = "DRAFT"
+class_name = "DraftRoom"
+
+# 無料プランで使えるのは SQLite 方式だけなので、必ず new_sqlite_classes で登録する
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["DraftRoom"]
+
+[observability]
+enabled = true

@@ -13,3 +13,6 @@ long/*
 !long/bgm/
 !long/bgm-en/
 social-manual/
+
+# wrangler dev の作業用フォルダ
+.wrangler/

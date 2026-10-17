@@ -1,0 +1,37 @@
+name: サイト｜ドラフト部屋サーバーを配置（push時）
+
+# 友達とドラフトの同期サーバー（Cloudflare Workers）を配置する。対戦卓のサーバーとは別もの。
+# worker-draft/ の中身を変えて main に上げたときと、手動実行したときに動く。
+#
+# 事前に GitHub Secrets へ次の2つを登録しておくこと
+#   CLOUDFLARE_API_TOKEN   … Workers を配置できる権限のトークン（対戦卓と同じもの）
+#   CLOUDFLARE_ACCOUNT_ID  … Cloudflare のアカウントID
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "worker-draft/**"
+      - ".github/workflows/deploy-draft.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 配置
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker-draft
