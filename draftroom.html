@@ -16,7 +16,6 @@
 <script src="./analytics.js"></script>
 <script src="/navmenu.js" defer></script>
 <script src="/poolsave.js?v=2"></script>
-<script src="./draft-core.js?v=1"></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
@@ -435,6 +434,13 @@ sel.value = I18N.lang;
 sel.onchange = e => I18N.set(e.target.value);
 I18N.onChange(() => { sel.value = I18N.lang; });
 </script>
-<script src="./draftroom.js?v=2"></script>
+<script>
+/* この画面のプログラムは、ブラウザに残った古いものを使わず、開くたびに新しいものを読み込む（順番どおりに実行） */
+["./draft-core.js", "./draftroom.js"].forEach(function(src){
+  var s = document.createElement("script");
+  s.src = src + "?t=" + Date.now(); s.async = false;
+  document.body.appendChild(s);
+});
+</script>
 </body>
 </html>
