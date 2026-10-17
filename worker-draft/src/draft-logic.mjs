@@ -4,16 +4,18 @@
  * ・8人卓。参加した人が席に座り、空いた席は CPU が埋める。
  * ・パックは主催者のブラウザが作って送る（カードの情報は ID・強さ・色だけ）。
  *   ここでは「誰の前にどのパックがあるか」と「誰が何を取ったか」を管理する。
- * ・ピックは全員同時。取ったら残りを隣へ回す（1・3パック目は左、2パック目は右）。
- *   回ってきたパックは席ごとの待ち行列に積まれ、先頭から順に取る。
+ * ・ピックは全員そろって1手ずつ進む。全員（CPU を含む）が1枚取り終えたら、
+ *   残りを一斉に隣へ回す（1・3パック目は左、2パック目は右）。先に取った人は、ほかの人を待つ。
  * ・時間制限は無い。通信が切れた人がいたら全員で待つ。主催者はその席を CPU に任せられる。
  *   本人が戻ってきたら、その席は本人に戻る。
  */
 
 export const SEATS = 8, ROUNDS = 3, PACK_SIZE = 14, MAX_LOG = 50;
 
+export const VERSION = 2;      // 1 は「回ってきたパックを積んでおき、先に進める」方式だった
+
 export function newRoom() {
-  return { phase: "lobby", set: "", setName: "", hostId: null, members: [], seats: null, round: 0, log: [], updated: Date.now() };
+  return { v: VERSION, phase: "lobby", set: "", setName: "", hostId: null, members: [], seats: null, round: 0, log: [], updated: Date.now() };
 }
 
 const err = msg => { const e = new Error(msg); e.userError = true; return e; };
@@ -66,8 +68,8 @@ export function start(room, by, packs, rnd = Math.random) {
   if (room.hostId !== by) throw err("主催者だけが開始できます");
   if (room.phase !== "lobby") throw err("もう始まっています");
   if (!room.set) throw err("セットを選んでください");
-  if (!Array.isArray(packs) || packs.length !== ROUNDS || packs.some(r => !Array.isArray(r) || r.length !== SEATS || r.some(p => !Array.isArray(p) || !p.length || p.length > 20)))
-    throw err("パックの形が正しくありません");
+  if (!Array.isArray(packs) || packs.length !== ROUNDS || packs.some(r => !Array.isArray(r) || r.length !== SEATS || r.some(p => !Array.isArray(p) || !p.length || p.length > 20 || p.length !== r[0].length)))
+    throw err("パックの形が正しくありません");      // 一斉に回すので、同じ周のパックは同じ枚数
   const clean = c => ({ id: String(c.id).slice(0, 64), r: Number(c.r) || 50, c: (Array.isArray(c.c) ? c.c : []).filter(x => "WUBRG".includes(x)).slice(0, 5) });
   room.packs = packs.map(r => r.map(p => p.map(clean)));
   /* 席順はくじ。人とCPUが混ざって座る */
@@ -76,35 +78,36 @@ export function start(room, by, packs, rnd = Math.random) {
   let cpuNo = 0;
   room.seats = order.map(id => ({
     memberId: id, name: id ? memberOf(room, id).name : `CPU ${++cpuNo}`,
-    cpu: !id, auto: false, queue: [], picks: [], colorScore: { W: 0, U: 0, B: 0, R: 0, G: 0 }, pickInRound: 0
+    cpu: !id, auto: false, hand: null, passing: null, picks: [], colorScore: { W: 0, U: 0, B: 0, R: 0, G: 0 }
   }));
   room.phase = "drafting";
   room.round = 0;
+  room.pick = 0;
   log(room, "ドラフトを始めました");
   deal(room);
-  runCpus(room, rnd);
+  advance(room, rnd);
 }
 
+/* その周のパックを配る。hand＝いま前にあるパック（取り終えたら null）、passing＝取った残り（全員そろったら隣へ） */
 function deal(room) {
-  room.seats.forEach((s, i) => { s.queue = [room.packs[room.round][i]]; s.pickInRound = 0; });
+  room.seats.forEach((s, i) => { s.hand = room.packs[room.round][i]; s.passing = null; });
   room.packs[room.round] = null;      // 配り終えたものは持たない
+  room.pick = 0;
 }
 
 const direction = round => (round % 2 === 0 ? 1 : -1);
 
-/* 席 si が、いま前にあるパックから cardId を取る */
+/* 席 si が、いま前にあるパックから cardId を取る（まだ回さない） */
 function take(room, si, cardId) {
   const s = room.seats[si];
-  const pack = s.queue[0];
-  const i = pack ? pack.findIndex(c => c.id === cardId) : -1;
+  const i = s.hand ? s.hand.findIndex(c => c.id === cardId) : -1;
   if (i < 0) throw err("そのカードは、いまのパックにありません");
-  const [card] = pack.splice(i, 1);
+  const [card] = s.hand.splice(i, 1);
   s.picks.push(card);
-  s.pickInRound++;
   const w = Math.max(0, card.r - 50);
   card.c.forEach(k => { s.colorScore[k] += w; });
-  s.queue.shift();
-  if (pack.length) room.seats[(si + direction(room.round) + SEATS) % SEATS].queue.push(pack);
+  s.passing = s.hand;
+  s.hand = null;
 }
 
 /* 人のピック。expect は「送った時点で取っていた枚数」。
@@ -114,9 +117,9 @@ export function pick(room, by, cardId, rnd = Math.random, expect = null) {
   const si = seatOf(room, by);
   if (si < 0) throw err("席がありません");
   if (expect != null && room.seats[si].picks.length !== Number(expect)) return false;
-  if (!room.seats[si].queue.length) throw err("パックが回ってくるのを待っています");
+  if (!room.seats[si].hand) throw err("ほかの人が選び終えるのを待っています");
   take(room, si, String(cardId));
-  runCpus(room, rnd);
+  advance(room, rnd);
   return true;
 }
 
@@ -129,34 +132,36 @@ export function handOver(room, by, si, online, rnd = Math.random) {
   if (online.has(s.memberId)) throw err("つながっている人の席は任せられません");
   s.auto = true;
   log(room, `${s.name} の席を CPU に任せました`);
-  runCpus(room, rnd);
+  advance(room, rnd);
 }
 
-/* CPU（と、CPU に任せた席）は、パックが前にある限りすぐ取る。全部のパックが空になったら次のパックへ */
-function runCpus(room, rnd) {
+/* CPU（と、CPU に任せた席）は前にパックがあればすぐ取る。
+   全員が取り終えたら一斉に隣へ回し、パックが空になったら次の周へ */
+function advance(room, rnd) {
   for (;;) {
-    let moved = false;
     room.seats.forEach((s, si) => {
-      if ((s.cpu || s.auto) && s.queue.length) { take(room, si, botChoice(s, s.queue[0], rnd).id); moved = true; }
+      if ((s.cpu || s.auto) && s.hand) take(room, si, botChoice(s, s.hand, rnd, room.pick).id);
     });
-    if (moved) continue;
-    if (room.seats.every(s => !s.queue.length)) {
+    if (room.seats.some(s => s.hand)) return;          // まだ選んでいる人がいる
+    room.pick++;
+    if (room.seats.every(s => !s.passing || !s.passing.length)) {
       room.round++;
-      if (room.round >= ROUNDS) { room.phase = "done"; log(room, "ドラフトが終わりました"); return; }
+      if (room.round >= ROUNDS) { room.phase = "done"; room.seats.forEach(s => { s.passing = null; }); log(room, "ドラフトが終わりました"); return; }
       deal(room);
       continue;
     }
-    return;
+    const dir = direction(room.round), passed = room.seats.map(s => s.passing);
+    room.seats.forEach((s, si) => { s.hand = passed[(si - dir + SEATS) % SEATS]; s.passing = null; });
   }
 }
 
 /* CPU の選び方（ドラフト練習の CPU と同じ考え方）：強さに、集めている色への寄りを足す。進むほど色を優先する */
-export function botChoice(seat, pack, rnd = Math.random) {
+export function botChoice(seat, pack, rnd = Math.random, pickInRound = 0) {
   const ranked = Object.entries(seat.colorScore).sort((a, b) => b[1] - a[1]);
   const W = [1, 0.9, 0.3, 0, 0];
   const bonus = { W: 0, U: 0, B: 0, R: 0, G: 0 };
   ranked.forEach(([k, v], i) => { bonus[k] = v > 0 ? W[i] : 0; });
-  const commit = Math.min(1, seat.pickInRound / 6);
+  const commit = Math.min(1, pickInRound / 6);
   let best = null, bestScore = -Infinity;
   for (const c of pack) {
     let fit = c.c.length ? c.c.reduce((n, k) => n + bonus[k], 0) / c.c.length : 0.5;
@@ -177,12 +182,11 @@ export function viewFor(room, me, online) {
     members: room.members.map(m => ({ name: m.name, host: m.id === room.hostId, me: m.id === me, online: online.has(m.id) })),
     seats: room.seats ? room.seats.map((s, i) => ({
       name: s.name, cpu: s.cpu, auto: s.auto, me: i === si,
-      online: s.cpu || online.has(s.memberId), picks: s.picks.length, waiting: s.queue.length
+      online: s.cpu || online.has(s.memberId), picks: s.picks.length, waiting: !!s.hand
     })) : null,
-    pack: mine && mine.queue.length ? mine.queue[0].map(c => c.id) : null,
-    queued: mine ? mine.queue.length : 0,
+    pack: mine && mine.hand ? mine.hand.map(c => c.id) : null,
     picks: mine ? mine.picks.map(c => c.id) : [],
-    pickNo: mine ? mine.pickInRound : 0,
+    pickNo: room.pick || 0,
     log: room.log.slice(-8).map(l => l.text)
   };
 }

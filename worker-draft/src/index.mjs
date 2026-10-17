@@ -16,7 +16,7 @@
  *   {type:"handover", seat}         主催者が、切れた人の席を CPU に任せる
  *   {type:"leave"}                  始まる前に抜ける
  */
-import { newRoom, join, leave, setConfig, start, pick, handOver, viewFor } from "./draft-logic.mjs";
+import { newRoom, join, leave, setConfig, start, pick, handOver, viewFor, VERSION } from "./draft-logic.mjs";
 
 const KEEP_MS = 3 * 24 * 3600 * 1000;      // 最後の操作から3日たった部屋は消す
 
@@ -39,7 +39,12 @@ export class DraftRoom {
   constructor(state, env) { this.state = state; this.env = env; }
 
   async room() {
-    if (!this.r) this.r = (await this.state.storage.get("room")) || newRoom();
+    if (!this.r) {
+      const saved = await this.state.storage.get("room");
+      /* 進め方を変える前に始まっていたドラフトは続けられないので、部屋を作り直す */
+      this.r = saved && (saved.v === VERSION || saved.phase === "lobby") ? saved : newRoom();
+      this.r.v = VERSION;
+    }
     return this.r;
   }
   async save() {
