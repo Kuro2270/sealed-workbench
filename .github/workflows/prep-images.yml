@@ -1,0 +1,82 @@
+name: 準備｜新セットの画像の催促（自動・毎日）
+
+# 紙の発売日の28日前から、新セットの「ロゴ」と「キーアート」が置いてあるかを見て、無ければ Issue にしてメールで知らせる。
+#   ロゴ　　　：short/logo/<SET>.png（背景透過の PNG）… サイトの見出し、動画、告知の画像の左上に使う
+#   キーアート：short/bg/<SET>.jpg（横長の公式の絵）… 動画・サムネイル、告知の画像の背景に使う
+# Issue は自分に割り当てるので、GitHub からメールが届く。置き終わると、次の実行で Issue を自動で閉じる。
+# 置くまでは3日ごとにコメントで知らせ直す（4回まで）。手で閉じた Issue は開き直さない。
+# 役割は知らせることだけ。画像を作ったり取ってきたりはしない。
+
+on:
+  schedule:
+    - cron: "37 0 * * *"       # 毎日 09:37（日本時間）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 新セットの画像が置いてあるか見て、無ければ知らせる
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const DAY = 86400000, BEFORE_DAYS = 28, AGAIN_DAYS = 3, MAX_AGAIN = 4;
+            const jst = t => new Date(t + 9 * 3600000).toISOString().slice(0, 10);
+            const today = jst(Date.now()), until = jst(Date.now() + BEFORE_DAYS * DAY), since = jst(Date.now() - DAY);
+            const r = await fetch('https://api.scryfall.com/sets', { headers: { 'User-Agent': 'sealed-workbench/1.0 (https://sealed-workbench.com)', Accept: 'application/json' } });
+            if(!r.ok){ core.warning(`Scryfall のセット一覧を取れませんでした（HTTP ${r.status}）。明日また見ます`); return; }
+            // 紙の発売日の28日前〜発売日の翌日のセット（アリーナで遊べる本流のセット：expansion / core）
+            const sets = (await r.json()).data.filter(s => ['expansion', 'core'].includes(s.set_type) && s.released_at && s.released_at >= since && s.released_at <= until);
+            const has = (dir, exts, SET) => exts.some(e => fs.existsSync(`${dir}/${SET}.${e}`));
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner, repo: context.repo.repo, state: 'all', labels: 'prep', per_page: 100 });
+            for(const s of sets){
+              const SET = s.code.toUpperCase();
+              const missing = [];
+              if(!has('short/logo', ['png', 'jpg', 'webp'], SET)) missing.push(['ロゴ', `short/logo/${SET}.png`, '背景透過の PNG（横長。1800×600 ほど）', 'サイトの見出し・動画・告知の画像の左上']);
+              if(!has('short/bg', ['jpg', 'jpeg', 'png', 'webp'], SET)) missing.push(['キーアート', `short/bg/${SET}.jpg`, '横長の公式の絵（16:9 に近いもの）', '動画・サムネイル・告知の画像の背景']);
+              const title = `【準備】${SET}（${s.name}）の画像を置いてください`;
+              const found = issues.find(i => i.title === title);
+              if(!missing.length){
+                if(found && found.state === 'open'){
+                  await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: found.number, body: '画像が揃ったので閉じます。' });
+                  await github.rest.issues.update({ owner: context.repo.owner, repo: context.repo.repo, issue_number: found.number, state: 'closed' });
+                  core.info(`揃ったので閉じました: ${SET}`);
+                }
+                continue;
+              }
+              const list = missing.map(m => `| ${m[0]} | \`${m[1]}\` | ${m[2]} | ${m[3]} |`).join('\n');
+              if(!found){
+                await github.rest.issues.create({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  title, assignees: [context.repo.owner], labels: ['prep'],
+                  body: [
+                    `${s.name}（${SET}）は ${s.released_at} に発売です（アリーナはその3日前ごろ）。次の画像を置いてください。`,
+                    ``,
+                    `| 画像 | 置く場所（ファイル名） | どんな画像 | 使うところ |`,
+                    `|---|---|---|---|`,
+                    list,
+                    ``,
+                    `置き方：GitHub でそのフォルダを開き、「Add file」→「Upload files」でファイル名を合わせて上げる。`,
+                    `ロゴを上げると「サイト｜ロゴを軽くする」が自動で動き、サイト用の小さいロゴも作られます。`,
+                    ``,
+                    `置き終わると、次の実行（毎朝）でこの Issue は自動で閉じます。それまでは ${AGAIN_DAYS} 日ごとにお知らせします。`
+                  ].join('\n')
+                });
+                core.info(`知らせました: ${SET}（${missing.map(m => m[0]).join('・')}）`);
+                continue;
+              }
+              if(found.state !== 'open' || found.comments >= MAX_AGAIN) continue;
+              if(Date.now() - Date.parse(found.updated_at) < AGAIN_DAYS * DAY) continue;
+              await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: found.number,
+                body: `まだ置かれていない画像があります（発売 ${s.released_at}）。\n\n| 画像 | 置く場所 | どんな画像 | 使うところ |\n|---|---|---|---|\n${list}` });
+              core.info(`知らせ直しました: ${SET}`);
+            }
