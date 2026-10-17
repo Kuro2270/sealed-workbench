@@ -11,7 +11,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
 <meta name="twitter:card" content="summary">
-<script src="./i18n.js?v=2"></script>
+<script src="./i18n.js?v=3"></script>
 <script src="./cardzoom.js"></script>
 <script src="./analytics.js"></script>
 <script src="/navmenu.js" defer></script>
@@ -345,6 +345,7 @@
   /* 勝率のチェック：何の数字かを下に小さく */
   label.toggle.wr > span{display:block;text-align:left}
   label.toggle.wr small{display:block;font-size:11px;line-height:1.35;color:#A9C2DE;margin-top:1px}
+  .gem{height:1.2em;width:auto;vertical-align:-.25em;margin:0 .12em 0 0}
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous" data-overlays="bottom"></script>
 </head>
@@ -378,7 +379,7 @@
     <div class="head-top">
       <div>
         <h1 data-i18n="index.h1">シールド練習</h1>
-        <p data-i18n="index.lead">ジェムを使わずに、6パックを開けてシールドを何度でも練習できます。</p>
+        <p data-i18n-html="index.lead"><img class="gem" src="/assets/icon/gem.png" alt="">ジェムを使わずに、6パックを開けてシールドを何度でも練習できます。</p>
         <ul class="perks" data-i18n-html="perks.arena"></ul>
       </div>
       <div class="controls">

@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
-<script src="./i18n.js?v=2"></script>
+<script src="./i18n.js?v=3"></script>
 <script src="./analytics.js"></script>
 <script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
@@ -211,6 +211,7 @@
   .newbie ul.dolist{list-style:none;margin:0 0 12px;padding:0;font-size:14px;line-height:1.6}
   .newbie ul.dolist li{position:relative;padding-left:18px;margin:2px 0}
   .newbie ul.dolist li::before{content:"✓";position:absolute;left:1px;color:var(--gold);font-weight:700}
+  .gem{height:1.2em;width:auto;vertical-align:-.25em;margin:0 .12em 0 0}
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
 </head>
@@ -255,8 +256,8 @@
 <main>
   <section>
     <div class="big">
-      <a class="bigcard" href="./sealed.html"><span class="k" data-i18n="top.c1.k">PRACTICE</span><b data-i18n="nav.sealed">シールド練習</b><span class="d" data-i18n="index.lead"></span><ul class="perks" data-i18n-html="perks.arena"></ul><span class="go" data-i18n="top.go">開く →</span></a>
-      <a class="bigcard" href="./draft.html"><span class="k" data-i18n="top.c2.k">PRACTICE</span><b data-i18n="nav.draft">ドラフト練習（CPU戦）</b><span class="d" data-i18n="draft.lead"></span><ul class="perks" data-i18n-html="perks.arena"></ul><span class="go" data-i18n="top.go">開く →</span></a>
+      <a class="bigcard" href="./sealed.html"><span class="k" data-i18n="top.c1.k">PRACTICE</span><b data-i18n="nav.sealed">シールド練習</b><span class="d" data-i18n-html="index.lead"><img class="gem" src="/assets/icon/gem.png" alt="">ジェムを使わずに、6パックを開けてシールドを何度でも練習できます。</span><ul class="perks" data-i18n-html="perks.arena"></ul><span class="go" data-i18n="top.go">開く →</span></a>
+      <a class="bigcard" href="./draft.html"><span class="k" data-i18n="top.c2.k">PRACTICE</span><b data-i18n="nav.draft">ドラフト練習（CPU戦）</b><span class="d" data-i18n-html="draft.lead"><img class="gem" src="/assets/icon/gem.png" alt="">ジェムを使わずに、CPU 7人と8人卓のドラフトを何度でも練習できます。</span><ul class="perks" data-i18n-html="perks.arena"></ul><span class="go" data-i18n="top.go">開く →</span></a>
       <a class="bigcard" href="./reports.html"><span class="k" data-i18n="top.c3.k">DATA</span><b data-i18n="nav.reports">環境レポート</b><span class="d" data-i18n="top.c3.d"></span><span class="go" data-i18n="top.go">開く →</span></a>
     </div>
   </section>
