@@ -1,31 +1,36 @@
 #!/usr/bin/env node
 /*
- * 「友達とドラフト」の招待リンクを LINE・X・Discord などに貼ったときに出る画像（1200×630）を、日本語版・英語版で作る。
+ * 「ドラフト練習（対人戦）」の招待リンクを LINE・X・Discord などに貼ったときに出る画像（1200×630）を、日本語版・英語版で作る。
  *
  *   node maintenance/build-ogp-room.mjs
  *
  * 出力: ogp-room-ja.png / ogp-room-en.png
  *
  * サイト全体の画像（build-ogp.mjs）と同じ色・文字の組み方で、右側だけ「8人卓（人とCPU）」の図にしている。
+ * 左上には MTGアリーナのロゴ（short/logo/arena.png）を置く。
  * 文言を変えたときに手で実行する（自動では動かさない）。
  */
 
 import { writeFile, unlink } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { PINE, GOLD, PAPER, MUTED, MANA, FONT_JA, FONT_EN, esc, tableSvg } from "./draw-parts.mjs";
 
 const W = 1200, H = 630;
 
+const ARENA_LOGO = "short/logo/arena.png", LOGO_H = 68;
+const dots = `<g opacity="0.9">${MANA.map((c, i) => `<circle cx="${80 + i * 42}" cy="112" r="15" fill="${c}"/>`).join("")}</g>`;
+
 const TEXT = {
   ja: {
-    title: "友達とドラフト",
-    sub: "MTGアリーナのドラフトを、友達と8人卓で",
+    title: "ドラフト練習（対人戦）",
+    sub: "MTGアリーナのドラフトを8人卓で",
     bullets: ["リンクを開いて、名前を入れるだけ", "空いた席にはCPUが座ります", "組んだデッキはアリーナにインポート"],
     you: "あなた", cpu: "CPU",
     domain: "sealed-workbench.com"
   },
   en: {
-    title: "Draft with friends",
-    sub: "MTG Arena drafts with friends, 8 seats",
+    title: "Draft vs players",
+    sub: "MTG Arena drafts at an 8-seat table",
     bullets: ["Open the link and enter your name", "CPUs take the empty seats", "Import your deck into Arena"],
     you: "YOU", cpu: "CPU",
     domain: "sealed-workbench.com"
@@ -52,9 +57,6 @@ function svgFor(lang){
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <rect width="${W}" height="${H}" fill="${PINE}"/>
   <rect x="0" y="0" width="${W}" height="10" fill="${GOLD}"/>
-  <g opacity="0.9">
-    ${MANA.map((c, i) => `<circle cx="${80 + i * 42}" cy="112" r="15" fill="${c}"/>`).join("")}
-  </g>
   <text x="80" y="232" font-family="${font}" font-size="${titleSize}" font-weight="800"
         fill="${PAPER}" letter-spacing="-1">${esc(t.title)}</text>
   <text x="80" y="296" font-family="${font}" font-size="${subSize}" fill="${MUTED}">${esc(t.sub)}</text>
@@ -76,7 +78,10 @@ async function main(){
     const svgPath = `ogp-room-${lang}.svg`;
     await writeFile(svgPath, svg, "utf8");
     if(sharp){
-      await sharp(Buffer.from(svg), { density: 144 })
+      // 左上に MTGアリーナのロゴ（何のツールか一目で分かるように）。無ければ色の丸
+      const logo = existsSync(ARENA_LOGO) ? await sharp(ARENA_LOGO).resize({ height: LOGO_H * 2 }).png().toBuffer() : null;
+      await sharp(Buffer.from(logo ? svg : svg.replace("</svg>", dots + "</svg>")), { density: 144 })
+        .composite(logo ? [{ input: logo, left: 80 * 2, top: 62 * 2 }] : [])
         .png({ compressionLevel: 9 })
         .toFile(`ogp-room-${lang}.png`);
       await unlink(svgPath).catch(() => {});

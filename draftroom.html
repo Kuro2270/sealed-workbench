@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>友達とドラフト｜リミテッド・ワークベンチ</title>
+<title>ドラフト練習（対人戦）｜リミテッド・ワークベンチ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
-<meta name="description" content="招待リンクを開いて名前を入れるだけで、友達と8人卓のドラフトができます。空いた席にはCPUが座ります。登録不要・無料。組んだデッキはMTGアリーナにインポートできます。">
-<meta property="og:title" content="友達とドラフト｜MTGアリーナのドラフトを友達と">
+<meta name="description" content="招待リンクを開いて名前を入れるだけで、8人卓のドラフトができます。空いた席にはCPUが座ります。登録不要・無料。組んだデッキはMTGアリーナにインポートできます。">
+<meta property="og:title" content="ドラフト練習（対人戦）｜MTGアリーナのドラフトを8人卓で">
 <meta property="og:description" content="招待リンクを開いて名前を入れるだけで参加できます。空いた席にはCPUが座ります。登録不要・無料。">
 <meta property="og:url" content="https://sealed-workbench.com/draftroom">
 <meta property="og:image" content="https://sealed-workbench.com/ogp-room-ja.png">
@@ -354,7 +354,7 @@
       <div class="ng"><span class="ngl" data-i18n="navgrp.build">仮想パックで練習する</span><span class="ngs" data-i18n="navsub.build">6パック開封・8人ドラフト</span>
         <a href="./sealed.html" data-i18n="nav.sealed">シールド練習</a>
         <a href="./draft.html" data-i18n="nav.draft">ドラフト練習（CPU戦）</a>
-        <a href="./draftroom.html" class="on" data-i18n="nav.room">友達とドラフト</a></div>
+        <a href="./draftroom.html" class="on" data-i18n="nav.room">ドラフト練習（対人戦）</a></div>
       <div class="ng"><span class="ngl" data-i18n="navgrp.assist">MTGアリーナで使う</span><span class="ngs" data-i18n="navsub.assist">実戦のログを読んで助ける・PC専用</span>
         <a href="./sealed-assist.html"><span data-i18n="nav.sassist">シールド補助</span><b class="pcb" data-i18n="nav.pc">PC</b></a>
         <a href="./assistant.html"><span data-i18n="nav.assist">ドラフト補助</span><b class="pcb" data-i18n="nav.pc">PC</b></a></div>
@@ -368,8 +368,8 @@
     </nav>
     <div class="head-top">
       <div>
-        <h1 data-i18n="room.h1">友達とドラフト</h1>
-        <p data-i18n="room.lead">招待リンクで友達と8人卓のドラフト。空いた席にはCPUが座ります。</p>
+        <h1 data-i18n="room.h1">ドラフト練習（対人戦）</h1>
+        <p data-i18n="room.lead">招待リンクで集まった人と8人卓のドラフト。空いた席にはCPUが座ります。</p>
       </div>
       <div class="controls">
         <label class="toggle"><input type="checkbox" id="wrToggle" checked><span data-i18n="opt.wr" data-i18n-title="wr.gih.tip">勝率を表示</span></label>
@@ -382,7 +382,10 @@
   <section>
     <div id="status" class="status"></div>
 
+    <div class="note" id="howto" data-i18n-html="room.howto"></div>
+
     <div id="entry" class="room-card" hidden>
+      <h4><label for="nameInput" data-i18n="room.nameLabel">あなたの名前（ほかの参加者に表示されます）</label></h4>
       <div class="room-row">
         <input type="text" id="nameInput" maxlength="20" autocomplete="nickname" data-i18n-ph="room.namePh" placeholder="あなたの名前">
       </div>

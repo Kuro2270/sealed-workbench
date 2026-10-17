@@ -16,9 +16,9 @@ const LOGO_H = 96;
 
 const TEXT = {
   ja: { name: n => `【${n}】`, l1: "ドラフト・シールドを", l2: "無料で練習", size: 54,
-        bullets: ["友達とドラフト（空いた席はCPU）", "CPU 7人とドラフト練習", "組んだデッキはアリーナにインポート"], you: "あなた", font: FONT_JA },
+        bullets: ["ドラフト練習（対人戦・空き席はCPU）", "ドラフト練習（CPU戦）", "組んだデッキはアリーナにインポート"], you: "あなた", font: FONT_JA },
   en: { name: n => n, l1: "Practise Draft & Sealed", l2: "for free", size: 52,
-        bullets: ["Draft with friends (CPUs fill empty seats)", "Draft vs 7 CPUs", "Import your deck into MTG Arena"], you: "YOU", font: FONT_EN }
+        bullets: ["Draft vs players (CPUs fill empty seats)", "Draft vs 7 CPUs", "Import your deck into MTG Arena"], you: "YOU", font: FONT_EN }
 };
 
 function svg(name, lang, hasLogo, hasArt){

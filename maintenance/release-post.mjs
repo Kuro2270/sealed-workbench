@@ -75,7 +75,7 @@ async function main(){
       const res = await postBskyLink(t.bsky, {
         uri: t.bsky.match(/https?:\/\/\S+/)[0],
         title: `${name.en}: practise Draft & Sealed for free`,
-        description: "Draft with friends (CPUs fill the empty seats) or against 7 CPUs. Free, no sign-up. Import your deck into MTG Arena.",
+        description: "Draft against other players (CPUs fill the empty seats) or against 7 CPUs. Free, no sign-up. Import your deck into MTG Arena.",
         image
       });
       console.log(res.message); bsky = res.ok;

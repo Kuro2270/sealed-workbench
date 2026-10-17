@@ -162,6 +162,7 @@ function render(){
   $("side").hidden = false;
   $("lobby").hidden = view.phase !== "lobby";
   $("drafting").hidden = view.phase === "lobby";
+  $("howto").hidden = view.phase !== "lobby";            // 遊び方は、始まる前（入口・待合）だけ
   document.querySelectorAll(".side .side-head, .side .side-body").forEach(e => { e.hidden = view.phase === "lobby"; });   // 始まる前は参加者だけ
   renderMembers();
   if(view.phase === "lobby") renderLobby();

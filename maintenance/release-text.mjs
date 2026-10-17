@@ -1,8 +1,8 @@
 /*
  * 新セットが出たときの告知文を作る（文面だけ。投稿はしない）。
  *   X（日本語・手で投稿）と Bluesky（英語・自動投稿）の2つ。
- *   練習の3つ（CPU とのドラフト・友達とドラフト・シールド）と、アリーナへ持ち込めることを伝える。
- *   リンクは「友達とドラフト」のページ（貼ったときに専用の画像が出る）。どこから来たかが分かるよう ?from= を付ける。
+ *   練習の3つ（ドラフトの CPU 戦・対人戦、シールド）と、アリーナへ持ち込めることを伝える。
+ *   リンクは「ドラフト練習（対人戦）」のページ（貼ったときに専用の画像が出る）。どこから来たかが分かるよう ?from= を付ける。
  * 役割はこれだけ。release-post.mjs から使う。文字数の数え方と上限への収め方は x-text.mjs。
  */
 import { fit } from "./x-text.mjs";
@@ -15,8 +15,8 @@ export function releaseTexts(name){
   const x = fit([
     `【${name.ja}】新セットのドラフト・シールドを無料で練習できます。`,
     "",
-    "・ドラフト練習（CPU 7人と）",
-    "・友達とドラフト（空いた席はCPU）",
+    "・ドラフト練習（CPU戦）",
+    "・ドラフト練習（対人戦・空き席はCPU）",
     "~・シールド練習（6パック開封）",
     "",
     "組んだデッキは、そのままアリーナにインポート。",
@@ -27,7 +27,7 @@ export function releaseTexts(name){
     `${name.en}: practise Draft and Sealed for free, right now.`,
     "",
     "・Draft vs 7 CPUs",
-    "・Draft with friends (invite link, CPUs fill the empty seats)",
+    "・Draft vs other players (invite link, CPUs fill the empty seats)",
     "~・Sealed (open 6 packs)",
     "",
     "~Import your deck straight into MTG Arena.",
