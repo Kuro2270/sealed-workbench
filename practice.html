@@ -152,6 +152,8 @@
   .big.two{grid-template-columns:repeat(2,1fr)}
   .bigcard .pcb{margin-left:8px;vertical-align:4px;font-family:inherit;font-size:10px;font-weight:700;letter-spacing:.06em;padding:2px 6px;border-radius:4px;background:var(--pine);color:#fff}
   @media (max-width:860px){ .big.two{grid-template-columns:1fr} }
+  .why{margin-top:34px}
+  .why .rm-card a{color:var(--gold);font-weight:700}
   .bigcard{display:flex;flex-direction:column;gap:6px;background:#fff;border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:var(--radius);padding:18px 18px 16px;text-decoration:none;color:var(--ink);transition:transform .12s,box-shadow .12s}
   .bigcard:hover{transform:translateY(-2px);box-shadow:0 14px 30px -18px rgba(13,27,42,.5)}
   .bigcard .k{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted)}
@@ -253,6 +255,14 @@
       <a class="bigcard" href="./sealed.html"><span class="k" data-i18n="navgrp.build">仮想パックで練習する</span><b><span data-i18n="nav.sealed">シールド練習</span></b><span class="d" data-i18n="top.c1.d"></span><span class="go" data-i18n="top.go">開く →</span></a>
       <a class="bigcard" href="./draft.html"><span class="k" data-i18n="navgrp.build">仮想パックで練習する</span><b><span data-i18n="nav.draft">ドラフト練習（CPU戦）</span></b><span class="d" data-i18n="top.c2.d"></span><span class="go" data-i18n="top.go">開く →</span></a>
       <a class="bigcard" href="./draftroom.html"><span class="k" data-i18n="navgrp.build">仮想パックで練習する</span><b><span data-i18n="nav.room">友達とドラフト</span></b><span class="d" data-i18n="cat.desc.room"></span><span class="go" data-i18n="top.go">開く →</span></a>
+    </div>
+  </section>
+  <section class="why">
+    <h2 data-i18n="cat.why.h">ここで練習する理由</h2>
+    <div class="rm-grid">
+      <div class="rm-card"><h3 data-i18n="cat.why.1.h"></h3><p data-i18n-html="cat.why.1.p"></p></div>
+      <div class="rm-card"><h3 data-i18n="cat.why.2.h"></h3><p data-i18n-html="cat.why.2.p"></p></div>
+      <div class="rm-card"><h3 data-i18n="cat.why.3.h"></h3><p data-i18n-html="cat.why.3.p"></p></div>
     </div>
   </section>
 </main>
