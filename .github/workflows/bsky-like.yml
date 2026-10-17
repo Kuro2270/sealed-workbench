@@ -1,0 +1,46 @@
+name: SNS｜Bluesky のいいね（自動・毎日・テスト運用）
+
+# Bluesky で、MTGアリーナ・マジック：ザ・ギャザリングについての最近の投稿（英語・日本語）を探して、いいねを付ける。
+# 1日（日本時間）に付けるのは上限まで（既定 10 件。手で付けたいいねも数に入る）。役割はこれだけで、投稿はしない。
+# 付けたいいねは、実行結果の Summary に一覧で出る。
+# 止めるとき：Actions の画面でこのワークフローを開き、右上の「…」→「Disable workflow」。
+# 手で押すときは「候補を見るだけ」にすると、いいねを付けずに候補だけ見られる。
+
+on:
+  schedule:
+    - cron: "43 11 * * *"      # 毎日 20:43（日本時間）。投稿が多い夜に
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "候補を見るだけ（いいねは付けない）"
+        type: boolean
+        default: true
+      limit:
+        description: "1日の上限（件）"
+        default: "10"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bsky-like
+  cancel-in-progress: false
+
+jobs:
+  like:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: いいねを付ける
+        env:
+          DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
+          LIKE_LIMIT: ${{ inputs.limit || '10' }}
+          BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+        run: node maintenance/bsky-like.mjs
