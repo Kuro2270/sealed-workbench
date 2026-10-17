@@ -13,11 +13,18 @@ const store = {
   set(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
 };
 
-/* この端末の合言葉（部屋に入り直したとき、同じ席に戻るため） */
-let myId = store.get("sw.room.id");
-if(!/^[a-z0-9]{8,40}$/.test(myId)){ myId = rid(16); store.set("sw.room.id", myId); }
-
 const params = new URLSearchParams(location.search);
+/* 動作確認ページ（draftroom-test.html）から開いたときは ?as=1,2,… が付く。
+   席ごとに合言葉と名前の置き場所を分け、1つのブラウザで何人分でも入れるようにする */
+const AS = (params.get("as") || "").toLowerCase();
+const TEST = /^[a-z0-9]{1,8}$/.test(AS);
+const KEY = k => "sw.room." + k + (TEST ? "." + AS : "");
+if(TEST && params.get("embed") === "1") document.body.classList.add("embed");
+
+/* この端末の合言葉（部屋に入り直したとき、同じ席に戻るため） */
+let myId = store.get(KEY("id"));
+if(!/^[a-z0-9]{8,40}$/.test(myId)){ myId = rid(16); store.set(KEY("id"), myId); }
+
 let room = (params.get("room") || "").toLowerCase();
 let ws = null, view = null, denied = false, retry = 0, loadedSet = "", loading = null, handedOff = false, iAmCreator = false;
 let byId = {};
@@ -45,7 +52,7 @@ async function loadSetList(){
 function setNameOf(code){ const s = sets.find(x => x.code === code); return s ? (I18N.setLabel ? I18N.setLabel(s.code, s.name) : s.name) : code.toUpperCase(); }
 
 function showEntry(){
-  $("nameInput").value = store.get("sw.room.name");
+  $("nameInput").value = store.get(KEY("name"));
   $("entry").hidden = false;
   $("createBtn").hidden = !!room;
   $("joinBtn").hidden = !room;
@@ -54,7 +61,7 @@ function showEntry(){
 }
 function myName(){
   const n = $("nameInput").value.trim().slice(0, 20);
-  if(n) store.set("sw.room.name", n);
+  if(n) store.set(KEY("name"), n);
   return n;
 }
 $("createBtn").onclick = () => {
@@ -72,7 +79,7 @@ $("joinBtn").onclick = () => {
 function connect(name, host){
   $("entry").hidden = true;
   setStatus(t("room.connecting"), false, true);
-  const u = SERVER + "/ws?room=" + room + "&id=" + myId + "&name=" + encodeURIComponent(name || store.get("sw.room.name") || "") + (host ? "&host=1" : "");
+  const u = SERVER + "/ws?room=" + room + "&id=" + myId + "&name=" + encodeURIComponent(name || store.get(KEY("name")) || "") + (host ? "&host=1" : "");
   ws = new WebSocket(u);
   ws.onopen = () => { retry = 0; sentAt = -1; };     // つなぎ直したら、届かなかったピックは押し直せるように
   ws.onmessage = ev => {
@@ -287,6 +294,7 @@ async function finish(){
   const pool = view.picks.map(id => byId[id]).filter(Boolean);
   if(pool.length !== view.picks.length) return;
   handedOff = true;
+  if(TEST && AS !== "1"){ setStatus(t("room.doneTitle")); return; }   // 動作確認では、構築画面へ進むのは1人目（主催）だけ
   const prev = PoolSave.load("room");
   if(prev && prev.n) PoolSave.archive("room", prev);          // 前回の友達とドラフトのプールは「過去のプール」へ（CPU戦の保存とは別）
   const meta = {v:1, setCode: view.set, phase:"build", packNo:0, pickNo:0, target:"main", landCount:{}, ts:Date.now(), n:pool.length};
@@ -300,7 +308,9 @@ async function finish(){
 /* ---------- はじめ ---------- */
 (async () => {
   await loadSetList();
-  if(room && store.get("sw.room.name")) connect(store.get("sw.room.name"), false);   // 名前が分かっていれば、そのまま入る
+  const asHost = TEST && params.get("host") === "1";      // 動作確認ページの1人目は、主催者として部屋を作る
+  if(asHost) iAmCreator = true;
+  if(room && store.get(KEY("name"))) connect(store.get(KEY("name")), asHost);   // 名前が分かっていれば、そのまま入る
   else showEntry();
 })();
 I18N.onChange(() => { hidePreview(); render(); });

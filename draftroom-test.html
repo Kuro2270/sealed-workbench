@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>友達とドラフト 動作確認 — MTGアリーナ リミテッド・ワークベンチ</title>
+<!-- 動作確認用のページなので、検索には載せない -->
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="./i18n.js"></script>
+<script src="./analytics.js"></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#10304F">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Workbench">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
+<style>
+  :root{
+    --pine:#10304F; --pine-deep:#0A2440; --paper:#F5F8FC; --paper-2:#E8EEF6;
+    --ink:#0D1B2A; --muted:#5C7185; --gold:#2F7DF6; --line:#D3DFEB;
+    --radius:8px; --z:.75;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{background:var(--paper-2);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:14px;
+       display:flex;flex-direction:column;overflow:hidden}
+  button,select,input,textarea{font:inherit;font-family:inherit}
+  button{cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:var(--radius);padding:6px 12px}
+  button:hover{border-color:var(--gold)}
+  button.primary{background:var(--pine);color:var(--paper);border-color:var(--pine);font-weight:700}
+  button.primary:hover{background:#1A4A79}
+  input,select,textarea{border:1px solid var(--line);border-radius:var(--radius);padding:6px 8px;background:#fff;color:var(--ink)}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  header{background:linear-gradient(135deg,var(--pine-deep) 0%,var(--pine) 55%,#17466F 100%);color:var(--paper);padding:10px 16px;border-bottom:3px solid var(--gold);flex:0 0 auto}
+  .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .ttl{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;font-size:15px;color:var(--gold);margin-right:6px}
+  header .lbl{font-size:12px;color:#A9C2DE}
+  header a{color:#C6D9EE;font-size:12px}
+  .sp{flex:1}
+
+  .note{flex:0 0 auto;background:#fff;border-bottom:1px solid var(--line);padding:8px 16px;color:var(--muted);font-size:12.5px}
+  .note code{background:var(--paper-2);padding:1px 4px;border-radius:3px}
+  .pane{display:flex;flex-direction:column;min-width:0;min-height:0;background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .pane h2{margin:0;padding:5px 10px;font-size:12px;font-weight:700;color:var(--muted);background:var(--paper);
+           border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .pane h2 .sp{flex:1}
+  .pane h2 button{padding:2px 8px;font-size:11.5px}
+  /* 倍率を下げると、半分の幅でも卓を広く表示できる */
+  .box{flex:1 1 auto;position:relative;overflow:hidden}
+  .box iframe{position:absolute;left:0;top:0;border:0;
+              width:calc(100% / var(--z));height:calc(100% / var(--z));
+              transform:scale(var(--z));transform-origin:0 0}
+  .empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:13px;text-align:center;padding:20px}
+
+  .grid{flex:1 1 auto;display:grid;gap:8px;padding:8px;min-height:0;grid-auto-rows:1fr}
+  .pane h2 .host{font-size:10.5px;padding:1px 6px;border-radius:4px;background:var(--pine);color:#fff}
+  @media (max-width:900px){ .grid{grid-template-columns:1fr !important;grid-auto-rows:80vh} body{overflow:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <span class="ttl" id="s_ttl">友達とドラフト 動作確認</span>
+    <label class="lbl" id="s_n">人数</label>
+    <select id="n"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select>
+    <button class="primary" id="openBtn">新しい部屋で開く</button>
+    <span class="sp"></span>
+    <label class="lbl" id="s_zoom">倍率</label>
+    <select id="zoom">
+      <option value="1">100%</option>
+      <option value="0.85">85%</option>
+      <option value="0.75">75%</option>
+      <option value="0.65" selected>65%</option>
+      <option value="0.55">55%</option>
+    </select>
+    <select id="langSelect"><option value="ja">日本語</option><option value="en">English</option></select>
+    <a href="./draftroom.html" id="s_back">友達とドラフトへ戻る</a>
+  </div>
+</header>
+
+<div class="note" id="s_note"></div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const QS = new URLSearchParams(location.search);
+const SERVER = QS.get("server") || "";        // 手元のサーバーで試すとき用（ふだんは空）
+
+const L = {
+  ja: {
+    ttl: "友達とドラフト 動作確認", n: "人数", open: "新しい部屋で開く", zoom: "倍率", back: "友達とドラフトへ戻る",
+    note: "1つのブラウザで、主催者と参加者を並べて開きます。1人目が主催者です。「切断」で通信が切れた状態を、「戻る」で入り直しを試せます。ここで作った部屋は、最後の操作から3日で自動的に消えます。",
+    seat: "テスト", host: "主催", cut: "切断", back2: "戻る", empty: "「新しい部屋で開く」を押すと、ここに席が並びます"
+  },
+  en: {
+    ttl: "Draft with friends — test", n: "Players", open: "Open a new room", zoom: "Zoom", back: "Back to Draft with friends",
+    note: "Opens the host and the other players side by side in one browser. Player 1 is the host. Use “Disconnect” to drop a player and “Return” to bring them back. Rooms made here are deleted three days after the last action.",
+    seat: "Test", host: "Host", cut: "Disconnect", back2: "Return", empty: "Press “Open a new room” and the seats appear here"
+  }
+};
+const lang = () => (window.I18N && I18N.lang === "en") ? "en" : "ja";
+const tt = k => L[lang()][k];
+const rid = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => "abcdefghijkmnpqrstuvwxyz23456789"[b % 32]).join("");
+
+function seatUrl(room, k){
+  return "./draftroom.html?room=" + room + "&as=" + k + "&embed=1" + (k === 1 ? "&host=1" : "") +
+         (SERVER ? "&server=" + encodeURIComponent(SERVER) : "");
+}
+
+function openRoom(){
+  const n = Number($("n").value), room = rid(10), grid = $("grid");
+  grid.style.gridTemplateColumns = "repeat(" + (n <= 3 ? n : n === 4 ? 2 : 4) + ",1fr)";
+  grid.innerHTML = "";
+  for(let k = 1; k <= n; k++){
+    /* 席ごとの名前を先に書いておくと、開いた画面がそのまま部屋に入る */
+    try{ localStorage.setItem("sw.room.name." + k, tt("seat") + k); }catch(e){}
+    const url = seatUrl(room, k);
+    const pane = document.createElement("div");
+    pane.className = "pane";
+    pane.innerHTML = `<h2><span>${tt("seat")}${k}</span>${k === 1 ? `<span class="host">${tt("host")}</span>` : ""}<span class="sp"></span><button type="button"></button></h2><div class="box"><iframe title="${tt("seat")}${k}"></iframe></div>`;
+    const f = pane.querySelector("iframe"), b = pane.querySelector("button");
+    f.src = url;
+    b.textContent = tt("cut");
+    b.onclick = () => {
+      const off = b.dataset.off === "1";
+      f.src = off ? url : "about:blank";
+      b.dataset.off = off ? "" : "1";
+      b.textContent = off ? tt("cut") : tt("back2");
+    };
+    grid.appendChild(pane);
+  }
+}
+
+$("openBtn").addEventListener("click", openRoom);
+$("zoom").addEventListener("change", e => document.documentElement.style.setProperty("--z", e.target.value));
+document.documentElement.style.setProperty("--z", $("zoom").value);
+
+function applyLocal(){
+  for(const [id, k] of [["s_ttl","ttl"],["s_n","n"],["s_zoom","zoom"],["s_back","back"],["s_note","note"],["openBtn","open"]]) $(id).textContent = tt(k);
+  if(!$("grid").children.length) $("grid").innerHTML = `<div class="empty" style="position:static">${tt("empty")}</div>`;
+  document.documentElement.lang = lang();
+}
+if(window.I18N){
+  const sel = $("langSelect");
+  sel.value = I18N.lang;
+  sel.onchange = e => I18N.set(e.target.value);
+  I18N.onChange(() => { sel.value = I18N.lang; applyLocal(); });
+}
+applyLocal();
+</script>
+</body>
+</html>

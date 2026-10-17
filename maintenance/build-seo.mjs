@@ -45,7 +45,7 @@ async function lastUpdated(){
 
 async function main(){
   // 404 と動作確認用のページは検索結果に載せないので、サイトマップからも外す
-  const SKIP = new Set(["404.html", "table-test.html", "ratings.html"]);
+  const SKIP = new Set(["404.html", "table-test.html", "draftroom-test.html", "ratings.html"]);
   const files = (await readdir(ROOT))
     .filter(f => f.endsWith(".html") && !SKIP.has(f))
     .sort((a, b) => (PRIORITY[b] || "0.5").localeCompare(PRIORITY[a] || "0.5"));
