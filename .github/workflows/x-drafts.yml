@@ -4,6 +4,7 @@ name: SNS｜X の文案を作る（自動・毎日）
 #   1. 新セットで練習ができるようになったとき（「SNS｜新セット発売の告知」の記録）
 #   2. 速報のショート（日本語）を公開したとき（「ショート｜2 動画を配信」で公開の印が付いたもの）
 #   3. 環境まとめの長尺（日本語）を公開したとき（「長尺｜2 長尺動画をサイトに載せる」で載ったもの）
+# 新セットの告知には、セット名入りの画像を作って添える（data/social/x-img/。サイトから見られる）。動画の告知には、そのサムネイルを添える。
 # 作ったものは data/social/x-drafted.json に記録し、2回は作らない。はじめての実行は、いまある分を記録するだけ。
 # 役割は文案を作ることだけ。知らせるのは「SNS｜X 投稿の催促」、投稿は手で行う。
 
@@ -34,12 +35,26 @@ jobs:
         with:
           node-version: "22"
 
+      - name: 日本語の文字と画像合成ライブラリを入れる（添える画像を作るため）
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk
+          npm install --no-save sharp
+
       - name: 文案を作る
         env:
           SITE_URL: https://sealed-workbench.com
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
           PREVIEW_SET: ${{ inputs.preview_set }}
         run: node maintenance/x-drafts.mjs
+
+      - name: 見るだけのときの画像を保存する
+        if: inputs.preview_set
+        uses: actions/upload-artifact@v4
+        with:
+          name: x-preview
+          path: x-preview/
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: 文案と記録を戻す
         if: inputs.dry_run != true && !inputs.preview_set

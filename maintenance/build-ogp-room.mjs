@@ -11,11 +11,9 @@
  */
 
 import { writeFile, unlink } from "node:fs/promises";
+import { PINE, GOLD, PAPER, MUTED, MANA, FONT_JA, FONT_EN, esc, tableSvg } from "./draw-parts.mjs";
 
 const W = 1200, H = 630;
-
-const PINE = "#10304F", PINE_DEEP = "#0A2038", GOLD = "#2F7DF6", PAPER = "#F5F8FC", MUTED = "#A9C2DE";
-const MANA = ["#E7CF86", "#7FB4D8", "#7A7480", "#DB8068", "#79A87F"];
 
 const TEXT = {
   ja: {
@@ -34,50 +32,16 @@ const TEXT = {
   }
 };
 
-const esc = s => s.replace(/[&<>]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
-
 function svgFor(lang){
   const t = TEXT[lang];
-  const fontJa = "'Noto Sans CJK JP','Noto Sans JP','IPAGothic','Hiragino Sans','Yu Gothic',sans-serif";
-  const fontEn = "'DejaVu Sans','Noto Sans','Helvetica Neue',Arial,sans-serif";
+  const fontJa = FONT_JA, fontEn = FONT_EN;
   const font = lang === "ja" ? fontJa : fontEn;
   const titleSize = lang === "ja" ? 60 : 62;
   const subSize   = lang === "ja" ? 27 : 30;
   const bulletSize= lang === "ja" ? 23 : 25;
 
-  /* 右側：8人卓。人の席（3つ）は明るく、CPU の席は暗く。真ん中にパック、周りに回す向きの矢印 */
-  const cx = 960, cy = 330, R = 160;
-  const humans = new Set([0, 3, 5]);
-  const seats = Array.from({ length: 8 }, (_, i) => {
-    const a = -Math.PI / 2 + i * Math.PI / 4;
-    const x = cx + R * Math.cos(a), y = cy + R * Math.sin(a);
-    if(humans.has(i)){
-      const me = i === 0;
-      return `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})">
-        <circle r="36" fill="${me ? GOLD : MANA[i % 5]}" stroke="${PAPER}" stroke-width="${me ? 4 : 0}"/>
-        <circle cy="-9" r="10" fill="${PINE_DEEP}" opacity="0.85"/>
-        <path d="M -17 18 Q 0 -4 17 18 Z" fill="${PINE_DEEP}" opacity="0.85"/>
-        ${me ? `<text y="-48" text-anchor="middle" font-family="${font}" font-size="20" font-weight="700" fill="${PAPER}">${esc(t.you)}</text>` : ""}
-      </g>`;
-    }
-    return `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})">
-      <circle r="31" fill="${PINE_DEEP}" stroke="${MUTED}" stroke-width="2" opacity="0.95"/>
-      <text y="7" text-anchor="middle" font-family="${fontEn}" font-size="17" font-weight="700" fill="${MUTED}">${t.cpu}</text>
-    </g>`;
-  }).join("\n");
-  const ring = R - 66;
-  const arrow = `<g fill="none" stroke="${GOLD}" stroke-width="5" stroke-linecap="round" opacity="0.9">
-      <path d="M ${cx + ring} ${cy} A ${ring} ${ring} 0 0 1 ${cx} ${cy + ring}"/>
-      <path d="M ${cx - ring} ${cy} A ${ring} ${ring} 0 0 1 ${cx} ${cy - ring}"/>
-    </g>
-    <path d="M ${cx - 2} ${cy + ring - 11} L ${cx - 18} ${cy + ring} L ${cx - 2} ${cy + ring + 11} Z" fill="${GOLD}"/>
-    <path d="M ${cx + 2} ${cy - ring - 11} L ${cx + 18} ${cy - ring} L ${cx + 2} ${cy - ring + 11} Z" fill="${GOLD}"/>`;
-  const pack = `<g transform="translate(${cx} ${cy}) rotate(-8)">
-      <rect x="-30" y="-42" width="60" height="84" rx="7" fill="${PINE_DEEP}" stroke="${GOLD}" stroke-width="3"/>
-      <rect x="-21" y="-33" width="42" height="30" rx="4" fill="${MANA[3]}" opacity="0.55"/>
-      <rect x="-21" y="6" width="42" height="5" rx="2.5" fill="${MUTED}" opacity="0.5"/>
-      <rect x="-21" y="16" width="30" height="5" rx="2.5" fill="${MUTED}" opacity="0.4"/>
-    </g>`;
+  /* 右側：8人卓（人とCPU）。図は draw-parts.mjs と共通 */
+  const table = tableSvg({ cx: 960, cy: 330, R: 160, you: t.you, cpu: t.cpu, font });
 
   const bullets = t.bullets.map((b, i) => `
     <g transform="translate(80 ${396 + i * 46})">
@@ -96,9 +60,7 @@ function svgFor(lang){
   <text x="80" y="296" font-family="${font}" font-size="${subSize}" fill="${MUTED}">${esc(t.sub)}</text>
   <rect x="80" y="330" width="120" height="4" rx="2" fill="${GOLD}"/>
   ${bullets}
-  ${arrow}
-  ${pack}
-  ${seats}
+  ${table}
   <text x="80" y="566" font-family="${fontEn}" font-size="28" font-weight="700"
         fill="${GOLD}">${esc(t.domain)}</text>
 </svg>`;
