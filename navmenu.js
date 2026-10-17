@@ -15,6 +15,7 @@
     "nav.navfold{display:none !important}" +
     "nav.navfold.open{display:flex !important;margin:0 0 16px;padding:14px 14px 10px;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(6,22,40,.55)}" +
     "nav.navfold.open .ng{width:100%;padding-left:0;border-left:none;margin-bottom:6px}" +
+    "nav.navfold.open .ngl.ngcat{cursor:pointer;text-decoration:underline;text-underline-offset:3px}" +
     "}";
 
   var deskCss =
@@ -74,6 +75,22 @@
       lab.setAttribute("role", "button"); lab.setAttribute("tabindex", "0"); lab.setAttribute("aria-haspopup", "true");
       if (panel.querySelector("a.on")) g.classList.add("has-on");
     });
+    /* メニューの見出し（カテゴリ）を押すと、そのカテゴリのページへ。
+       セット別ページなどは見出しの書き方が違うので、グループの中にあるツールのリンクで見分ける */
+    var CAT = [["sealed.html", "/practice.html"], ["sealed-assist.html", "/arena.html"], ["table.html", "/play.html"], ["start/index", "/begin.html"], ["faq.html", "/about.html"]];
+    var herePath = location.pathname.replace(/\/+$/, "").replace(/\.html$/, "");
+    function catOf(g){
+      var hs = Array.prototype.map.call(g.querySelectorAll("a"), function(a){ return a.getAttribute("href") || ""; });
+      for (var i = 0; i < CAT.length; i++) if (hs.some(function(h){ return h.indexOf(CAT[i][0]) >= 0; })) return CAT[i][1];
+      return null;
+    }
+    groups.forEach(function(g){
+      var lab = g.querySelector(".ngl"), href = lab && catOf(g);
+      if (!href) return;
+      g._href = href;
+      lab.classList.add("ngcat");
+      if (herePath === href.replace(/\.html$/, "")) g.classList.add("has-on");
+    });
     var desk = window.matchMedia ? matchMedia("(min-width:1025px)") : { matches: false };
     function closeAll(except){
       groups.forEach(function(g){ if (g !== except) g.classList.remove("open"); });
@@ -83,6 +100,7 @@
       if (!g.classList.contains("dd")) return;
       var lab = g.querySelector(".ngl");
       lab.addEventListener("click", function(){
+        if (g._href) { location.href = g._href; return; }     // カテゴリのページへ（中のツールは、ホバーで開く一覧から）
         if (!desk.matches) return;
         /* ホバーで開いた直後のクリックは、閉じずに開いたままにする */
         if (Date.now() - (g._hov || 0) < 600) { closeAll(g); g.classList.add("open"); return; }
@@ -97,6 +115,13 @@
       g.addEventListener("mouseleave", function(){
         if (!desk.matches) return; clearTimeout(timer); timer = setTimeout(function(){ g.classList.remove("open"); }, 180);
       });
+    });
+    groups.forEach(function(g){
+      if (g.classList.contains("dd") || !g._href) return;
+      var lab = g.querySelector(".ngl");
+      lab.setAttribute("role", "link"); lab.setAttribute("tabindex", "0");
+      lab.addEventListener("click", function(){ location.href = g._href; });
+      lab.addEventListener("keydown", function(e){ if (e.key === "Enter") location.href = g._href; });
     });
     document.addEventListener("click", function(e){ if (!nav.contains(e.target)) closeAll(); });
     document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeAll(); });
