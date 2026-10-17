@@ -1,0 +1,66 @@
+name: SNS｜X 投稿の催促（自動・毎日）
+
+# X に手で投稿する文案（data/social/x-queue/*.json。「SNS｜X の文案を作る」が置く）を、Issue にしてメールで知らせる。
+# Issue は自分に割り当てるので、GitHub からメール（とアプリの通知）が届く。本文の文面をコピーして X に貼る。
+# 投稿したら Issue を閉じる。閉じるまでは2日ごとにコメントで知らせ直す（3回まで）。
+# 作ってから14日たった文案は、もう知らせない（時機を逃した告知を出さないため）。
+# 役割は知らせることだけ。文案を作るのも、投稿するのも、ここではしない。
+
+on:
+  schedule:
+    - cron: "47 3 * * *"       # 毎日 12:47（日本時間）。告知（12:17）のあと
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 文案を Issue にして知らせる（投稿していなければ知らせ直す）
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const DIR = 'data/social/x-queue';
+            const DAY = 86400000, FRESH_DAYS = 14, AGAIN_DAYS = 2, MAX_AGAIN = 3;
+            if(!fs.existsSync(DIR)){ core.info('文案はありません'); return; }
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner, repo: context.repo.repo, state: 'all', labels: 'x-post', per_page: 100 });
+            for(const f of fs.readdirSync(DIR).filter(f => f.endsWith('.json')).sort()){
+              const q = JSON.parse(fs.readFileSync(`${DIR}/${f}`, 'utf8'));
+              const title = `【X に投稿】${q.title}`;
+              const found = issues.find(i => i.title === title);
+              if(!found){
+                if(Date.now() - Date.parse(q.created) > FRESH_DAYS * DAY){ core.info(`古いので知らせません: ${q.title}`); continue; }
+                await github.rest.issues.create({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  title, assignees: [context.repo.owner], labels: ['x-post'],
+                  body: [
+                    `X に投稿する文面です。右上のボタンでコピーして、そのまま X に貼ってください。`,
+                    `リンクを貼ると、画像つきのカードが自動で付きます。`,
+                    ``,
+                    '```',
+                    q.text,
+                    '```',
+                    ``,
+                    `投稿したら、この Issue を閉じてください。閉じるまでは ${AGAIN_DAYS} 日ごとにお知らせします（${MAX_AGAIN} 回まで）。`
+                  ].join('\n')
+                });
+                core.info(`知らせました: ${q.title}`);
+                continue;
+              }
+              if(found.state !== 'open') continue;
+              if(found.comments >= MAX_AGAIN) continue;
+              if(Date.now() - Date.parse(found.updated_at) < AGAIN_DAYS * DAY) continue;
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: found.number,
+                body: `まだ X に投稿されていないようです。投稿したら、この Issue を閉じてください。`
+              });
+              core.info(`知らせ直しました: ${q.title}`);
+            }

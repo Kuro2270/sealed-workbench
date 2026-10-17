@@ -7,6 +7,7 @@
  *
  *   node maintenance/x-post-draft.mjs short FRA ja early   … ショート（形式は draft | sealed | early）
  *   node maintenance/x-post-draft.mjs long  FRA en         … 長尺
+ *   VIDEO_URL=https://… を付けると、動画のリンクにそれを使う
  *
  * 読むもの：YouTube に上げたときの記録（short/<SET>/<TAG>.youtube.json、long/<SET>/[en/]youtube.json）、
  *           記事データ（data/articles/<SET>_<形式>.json）、カードの日本語名（data/names/<SET>.json）
@@ -38,7 +39,8 @@ async function main(){
   const d = await readJson(`data/articles/${SET}_${MODE}.json`, null);
   const names = (await readJson(`data/names/${SET}.json`, {})).names || {};
   const nm = (await setName(SET))[LANG];
-  const link = yt ? (kind === "long" ? yt.url : (yt.shortsUrl || yt.url)) : (JA ? "（YouTube のリンク）" : "(YouTube link)");
+  // VIDEO_URL があればそれを使う（公開後に「SNS｜X の文案を作る」が呼ぶとき。YouTube に上げたときの記録はリポジトリに残らないため）
+  const link = process.env.VIDEO_URL || (yt ? (kind === "long" ? yt.url : (yt.shortsUrl || yt.url)) : (JA ? "（YouTube のリンク）" : "(YouTube link)"));
 
   // 見どころ：いちばん勝っている2色の組み合わせと、ボムの1位（記事データがあるときだけ。数字は動画と同じもの）
   let pairLine = null, bombLine = null;
