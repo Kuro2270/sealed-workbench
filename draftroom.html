@@ -20,7 +20,7 @@
 <meta property="og:locale" content="ja_JP">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://sealed-workbench.com/ogp-room-ja.png">
-<script src="./i18n.js?v=3"></script>
+<script src="./i18n.js?v=4"></script>
 <script src="./cardzoom.js"></script>
 <script src="./analytics.js"></script>
 <script src="/navmenu.js" defer></script>
@@ -356,6 +356,7 @@
   .share .sh-mail:hover,.share .sh-more:hover{background:var(--paper-2,#EEF2F6)}
   .share .sh-line{background:#06C755}.share .sh-line:hover{background:#05A847}
   .share .sh-x{background:#000}.share .sh-x:hover{background:#333}
+  .room-card .opt-row{margin:0}
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous" data-overlays="bottom"></script>
 </head>
@@ -389,7 +390,7 @@
     <div class="head-top">
       <div>
         <h1 data-i18n="room.h1">ドラフト練習（対人戦）</h1>
-        <p data-i18n-html="room.lead"><img class="gem" src="/assets/icon/gem.png" alt="">ジェムを使わずに、友達と同じ卓でドラフトができます。</p>
+        <p data-i18n-html="room.lead">ジェムを使わずに、友達と同じ卓でドラフトができます。</p>
         <ul class="perks" data-i18n-html="perks.room"></ul>
       </div>
     </div>
@@ -436,6 +437,13 @@
         </div>
         <div class="room-row" id="guestSet" hidden><b id="lobbySetName">—</b></div>
       </div>
+      <div class="room-card">
+        <h4 data-i18n="room.optH">オプション</h4>
+        <div class="opt-row" id="hostWr" hidden>
+          <label class="toggle wr" data-i18n-title="wr.gih.tip"><input type="checkbox" id="lobbyWr" checked><span><span data-i18n="room.wrLabel">カードの勝率を表示（参加者全員）</span><small data-i18n="opt.wrHint">そのカードを引いた試合の勝率。高いほど強いカード</small></span></label>
+        </div>
+        <div class="room-row" id="guestWr" hidden><span id="guestWrText"></span></div>
+      </div>
     </div>
 
     <div id="drafting" hidden>
@@ -444,9 +452,6 @@
         <span class="sub" id="phaseSub"></span>
       </div>
       <div class="bar" id="bar"><i style="width:0"></i></div>
-      <div class="opt-row">
-        <label class="toggle wr" data-i18n-title="wr.gih.tip"><input type="checkbox" id="wrToggle" checked><span><span data-i18n="opt.wr">カードの勝率を表示</span><small data-i18n="opt.wrHint">そのカードを引いた試合の勝率。高いほど強いカード</small></span></label>
-      </div>
       <div id="board"></div>
       <p id="buildLink" hidden><a href="./draft.html?from=room" data-i18n="room.toBuildBtn">構築画面へ</a></p>
     </div>

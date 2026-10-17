@@ -15,7 +15,7 @@ export const SEATS = 8, ROUNDS = 3, PACK_SIZE = 14, MAX_LOG = 50;
 export const VERSION = 2;      // 1 は「回ってきたパックを積んでおき、先に進める」方式だった
 
 export function newRoom() {
-  return { v: VERSION, phase: "lobby", set: "", setName: "", hostId: null, members: [], seats: null, round: 0, log: [], updated: Date.now() };
+  return { v: VERSION, phase: "lobby", set: "", setName: "", wr: true, hostId: null, members: [], seats: null, round: 0, log: [], updated: Date.now() };
 }
 
 const err = msg => { const e = new Error(msg); e.userError = true; return e; };
@@ -53,14 +53,18 @@ export function leave(room, id) {
   if (room.hostId === id) room.hostId = room.members[0] ? room.members[0].id : null;
 }
 
-/* 主催者がセットを決める（始まる前だけ） */
+/* 主催者がセットと、カードの勝率を全員に見せるかを決める（始まる前だけ） */
 export function setConfig(room, by, cfg) {
   if (room.hostId !== by) throw err("主催者だけが決められます");
   if (room.phase !== "lobby") throw err("もう始まっています");
-  const set = String(cfg.set || "").toLowerCase();
-  if (!/^[a-z0-9]{2,6}$/.test(set)) throw err("セットが正しくありません");
-  room.set = set;
-  room.setName = String(cfg.setName || set.toUpperCase()).slice(0, 60);
+  if (cfg.set === undefined && typeof cfg.wr !== "boolean") throw err("設定が正しくありません");
+  if (cfg.set !== undefined) {
+    const set = String(cfg.set || "").toLowerCase();
+    if (!/^[a-z0-9]{2,6}$/.test(set)) throw err("セットが正しくありません");
+    room.set = set;
+    room.setName = String(cfg.setName || set.toUpperCase()).slice(0, 60);
+  }
+  if (typeof cfg.wr === "boolean") room.wr = cfg.wr;
 }
 
 /* 開始。packs は [3パック目まで][8席][14枚] で、1枚は {id, r（強さ）, c（色の配列）} */
@@ -196,6 +200,7 @@ export function viewFor(room, me, online) {
   const mine = si >= 0 ? room.seats[si] : null;
   return {
     phase: room.phase, set: room.set, setName: room.setName, round: room.round,
+    wr: room.wr !== false,                       // カードの勝率を見せるか（主催者が決め、全員に効く）
     isHost: room.hostId === me,
     members: room.members.map(m => ({ name: m.name, host: m.id === room.hostId, me: m.id === me, online: online.has(m.id) })),
     seats: room.seats ? room.seats.map((s, i) => ({

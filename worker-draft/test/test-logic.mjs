@@ -104,4 +104,19 @@ console.log("選び直し");
   ok(/選び直せません/.test(threw) && q.pick === 1, "全員そろってパックが回ったあとは戻せない");
   ok(viewFor(q, "aaaaaaaa", on).picks[0] === before[1], "選び直した1枚が取ったカードになる");
 }
+console.log("勝率の表示（主催者が決める）");
+{
+  const q = newRoom(); join(q, "aaaaaaaa", "主催", true); join(q, "bbbbbbbb", "B", false);
+  ok(viewFor(q, "bbbbbbbb", on).wr === true, "はじめは表示する");
+  setConfig(q, "aaaaaaaa", { set: "fra", wr: false });
+  ok(viewFor(q, "bbbbbbbb", on).wr === false && q.set === "fra", "主催者が切ると、参加者にも表示しないが伝わる");
+  setConfig(q, "aaaaaaaa", { wr: true });
+  ok(viewFor(q, "aaaaaaaa", on).wr === true && q.set === "fra", "勝率だけ変えても、セットはそのまま");
+  threw = ""; try { setConfig(q, "bbbbbbbb", { wr: false }); } catch (e) { threw = e.message; }
+  ok(/主催者だけ/.test(threw) && q.wr === true, "参加者は変えられない");
+  delete q.wr; ok(viewFor(q, "aaaaaaaa", on).wr === true, "前からある部屋（記録なし）は表示する");
+  start(q, "aaaaaaaa", packs());
+  threw = ""; try { setConfig(q, "aaaaaaaa", { wr: false }); } catch (e) { threw = e.message; }
+  ok(/もう始まって/.test(threw), "始まったあとは変えられない");
+}
 console.log(fail ? `\n${fail} 件失敗` : "\nすべて通過"); process.exit(fail ? 1 : 0);

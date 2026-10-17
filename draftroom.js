@@ -206,9 +206,13 @@ function renderLobby(){
     $("startBtn").textContent = loading ? t("room.loadingCards") : t("room.start", {n: 8 - view.members.length});
   }
   $("lobbySetName").textContent = view.setName || "—";
+  $("hostWr").hidden = !view.isHost; $("guestWr").hidden = view.isHost;
+  $("lobbyWr").checked = wrOn();
+  $("guestWrText").textContent = t(wrOn() ? "room.wrOn" : "room.wrOff");
   setStatus(view.isHost ? t("room.hostHint") : t("room.guestHint"));
 }
 $("lobbySet").onchange = e => { const code = e.target.value; send({type: "config", set: code, setName: setNameOf(code)}); };
+$("lobbyWr").onchange = e => send({type: "config", set: view.set || undefined, setName: view.setName || undefined, wr: e.target.checked});
 $("copyInvite").onclick = async () => {
   try{ await navigator.clipboard.writeText(inviteUrl()); $("copyInvite").textContent = t("room.copied"); setTimeout(() => $("copyInvite").textContent = t("room.copy"), 1500); }
   catch(e){ $("inviteBox").select(); }
@@ -248,7 +252,7 @@ function tile(c, onClick){
   const urls = imageUrls(c);
   if(urls.length){ const img = document.createElement("img"); img.src = urls[0]; img.alt = name; img.loading = "lazy"; li.appendChild(img); }
   else { const d = document.createElement("div"); d.className = "noimg"; d.textContent = name; li.appendChild(d); }
-  const w = $("wrToggle").checked ? wrEntry(c) : null;
+  const w = wrOn() ? wrEntry(c) : null;
   if(w){ const b = document.createElement("span"); b.className = "wrbadge" + (isBomb(w) ? " bomb" : ""); b.textContent = (w.gih * 100).toFixed(1) + "%"; li.appendChild(b); }
   li._card = c;                                    // 長押しで拡大するときに使う（cardzoom.js）
   li.onmouseenter = ev => showPreview(c, ev.clientX, ev.clientY);
@@ -262,7 +266,7 @@ function row(c, latest){
   const li = document.createElement("li");
   li.className = "card-row r-" + c.rarity + (latest ? " latest" : "");
   li._card = c;
-  const w = $("wrToggle").checked ? wrEntry(c) : null;
+  const w = wrOn() ? wrEntry(c) : null;
   li.innerHTML = `<span class="rar ${c.rarity}"></span><span class="name">${esc(displayName(c))}</span>${latest ? `<b class="now">${esc(t("room.justPicked"))}</b>` : ""}` +
     `<span class="wr${isBomb(w) ? " bomb" : ""}">${w ? (w.gih * 100).toFixed(1) + "%" : ""}</span>` +
     `<span style="font-size:12px;color:var(--muted)">${esc(c.mana_cost || "")}</span>`;
@@ -289,7 +293,8 @@ function movePreview(x, y){
 }
 function hidePreview(){ const box = $("preview"); box.style.display = "none"; box.innerHTML = ""; }
 addEventListener("scroll", hidePreview, {passive: true});
-$("wrToggle").onchange = () => { hidePreview(); render(); };
+/* カードの勝率を見せるか：主催者が部屋を作ったときに決め、参加者全員に効く（記録の無い部屋は見せる） */
+const wrOn = () => !view || view.wr !== false;
 
 function renderDraft(){
   const board = $("board"); board.innerHTML = "";
