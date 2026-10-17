@@ -1,8 +1,10 @@
 name: SNS｜Bluesky のいいね（自動・毎日・テスト運用）
 
 # Bluesky で、MTGアリーナ・マジック：ザ・ギャザリングについての最近の投稿（英語・日本語）を探して、いいねを付ける。
-# 1日（日本時間）に付けるのは上限まで（既定 10 件。手で付けたいいねも数に入る）。役割はこれだけで、投稿はしない。
-# 付けたいいねは、実行結果の Summary に一覧で出る。
+# 1日（日本時間）に付けるのは上限まで（手で付けたいいねも数に入る）。役割はこれだけで、投稿はしない。
+# 上限の変え方：Settings → Secrets and variables → Actions → Variables に「BSKY_LIKE_LIMIT」（例: 10）を登録・編集する。
+#   登録が無ければ 10 件。50 件より大きい数は 50 件として扱う。
+# いいねとの間は「75 秒 ＋ 10 秒〜3 分のランダム」あける（10 件で 25 分ほど）。付けたいいねは、実行結果の Summary に一覧で出る。
 # 止めるとき：Actions の画面でこのワークフローを開き、右上の「…」→「Disable workflow」。
 # 手で押すときは「候補を見るだけ」にすると、いいねを付けずに候補だけ見られる。
 
@@ -16,8 +18,8 @@ on:
         type: boolean
         default: true
       limit:
-        description: "1日の上限（件）"
-        default: "10"
+        description: "1日の上限（件）。空なら設定（BSKY_LIKE_LIMIT）の値"
+        default: ""
 
 permissions:
   contents: read
@@ -29,7 +31,7 @@ concurrency:
 jobs:
   like:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 240    # 間をあけるので、上限 50 件（最長で3時間半ほど）でも収まるように
     steps:
       - uses: actions/checkout@v4
 
@@ -40,7 +42,7 @@ jobs:
       - name: いいねを付ける
         env:
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
-          LIKE_LIMIT: ${{ inputs.limit || '10' }}
+          LIKE_LIMIT: ${{ inputs.limit || vars.BSKY_LIKE_LIMIT || '10' }}
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: node maintenance/bsky-like.mjs

@@ -12,14 +12,17 @@
  *
  * 付けない投稿：自分の投稿、もう付けた投稿、返信、ラベル（成人向け・スパムなど）の付いた投稿や人、
  *               ミュート・ブロックの関係にある人、短すぎる投稿、2日より前の投稿。
- * 1回の実行で、同じ人には1つだけ。いいねとの間は数秒あける（人が付けるくらいの間隔）。
+ * 1回の実行で、同じ人には1つだけ。いいねとの間は「75秒 ＋ 10秒〜3分のランダム」あける（人が付けるくらいの間隔で、毎回ばらつかせる）。
+ *   確認用に LIKE_WAIT_MS（固定の分）・LIKE_JITTER_MIN_MS / LIKE_JITTER_MAX_MS（ランダムの幅）で変えられる。
  */
 import { appendFile } from "node:fs/promises";
 
 const BASE = process.env.BSKY_BASE || "https://bsky.social/xrpc";
 const DRY = process.env.DRY_RUN === "1";
-const LIMIT = Math.max(0, Math.min(30, parseInt(process.env.LIKE_LIMIT || "10", 10) || 10));
-const WAIT_MS = +(process.env.LIKE_WAIT_MS ?? 4000);
+const LIMIT = Math.max(0, Math.min(50, parseInt(process.env.LIKE_LIMIT || "10", 10) || 10));
+const WAIT_MS = +(process.env.LIKE_WAIT_MS ?? 75000);
+const JITTER_MIN = +(process.env.LIKE_JITTER_MIN_MS ?? 10000), JITTER_MAX = +(process.env.LIKE_JITTER_MAX_MS ?? 180000);
+const waitMs = () => WAIT_MS + JITTER_MIN + Math.random() * Math.max(0, JITTER_MAX - JITTER_MIN);
 const MAX_AGE_H = 48, MIN_TEXT = 20;
 
 /* 探す言葉。英語と日本語。上から順に1件ずつ交互に選ぶ */
@@ -106,7 +109,8 @@ async function main(){
   if(!picked.length){ console.log("いいねを付ける投稿は見つかりませんでした。"); await summary("いいねを付ける投稿は見つかりませんでした。"); return; }
 
   const rows = [];
-  for(const p of picked){
+  for(const [i, p] of picked.entries()){
+    if(i && !DRY){ const w = waitMs(); console.log(`（${Math.round(w / 1000)} 秒待ちます）`); await sleep(w); }   // 前のいいねから間をあける
     const line = `@${p.author.handle}：${oneLine(p.record.text)}`;
     if(DRY){ console.log("候補 " + line); rows.push(`| 候補 | [${line.replace(/\|/g, "／")}](${postUrl(p)}) |`); continue; }
     try{
@@ -114,7 +118,6 @@ async function main(){
         body: JSON.stringify({ repo: session.did, collection: "app.bsky.feed.like", record: { $type: "app.bsky.feed.like", subject: { uri: p.uri, cid: p.cid }, createdAt: new Date().toISOString() } }) });
       console.log("いいね " + line); rows.push(`| いいね | [${line.replace(/\|/g, "／")}](${postUrl(p)}) |`);
     }catch(e){ console.log(`いいねに失敗（${line}）: ${e.message}`); rows.push(`| 失敗 | ${line.replace(/\|/g, "／")} |`); process.exitCode = 1; }
-    await sleep(WAIT_MS);
   }
   await summary(`## Bluesky のいいね${DRY ? "（候補を見るだけ）" : ""}\n\n今日のいいね：実行前 ${done} 件 / 上限 ${LIMIT} 件\n\n| | 投稿 |\n|---|---|\n${rows.join("\n")}\n`);
 }
