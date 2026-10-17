@@ -12,6 +12,9 @@ on:
     - cron: "32 3 * * *"       # 毎日 12:32（日本時間）。新セットの告知（12:17）のあと、催促（12:47）の前
   workflow_dispatch:
     inputs:
+      preview_set:
+        description: "文面を見るだけ：セット（例: FRA）。3つの文面をまとめ（Summary）に出す。置かない・記録しない"
+        default: ""
       dry_run:
         description: "文面の確認だけ（置かない・記録しない）"
         type: boolean
@@ -35,10 +38,11 @@ jobs:
         env:
           SITE_URL: https://sealed-workbench.com
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
+          PREVIEW_SET: ${{ inputs.preview_set }}
         run: node maintenance/x-drafts.mjs
 
       - name: 文案と記録を戻す
-        if: inputs.dry_run != true
+        if: inputs.dry_run != true && !inputs.preview_set
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

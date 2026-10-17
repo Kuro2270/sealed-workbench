@@ -11,6 +11,7 @@
  *
  *   node maintenance/x-drafts.mjs
  *   DRY_RUN=1 node maintenance/x-drafts.mjs   … 文面を表示するだけ（置かない・記録しない）
+ *   PREVIEW_SET=FRA node maintenance/x-drafts.mjs … そのセットの3つの文面を、記録に関係なく見るだけ（置かない・記録しない）
  *
  * 文面：1 は release-text.mjs、2・3 は動画を作ったときと同じ x-post-draft.mjs（リンクは公開した動画）。
  */
@@ -21,6 +22,7 @@ import { releaseTexts } from "./release-text.mjs";
 import { setName } from "./set-name.mjs";
 
 const DRY = process.env.DRY_RUN === "1";
+const PREVIEW = (process.env.PREVIEW_SET || "").trim().toUpperCase();
 const LOG = "data/social/x-drafted.json";
 const QUEUE = "data/social/x-queue";
 const FRESH_MS = 14 * 86400000;
@@ -52,7 +54,30 @@ function videoText(e){
   return m[1];
 }
 
+/* 文面を作る（3つ共通） */
+async function draft(e){
+  const nm = await setName(e.set);
+  const ja = nm.ja === e.set && e.fallbackName ? e.fallbackName : nm.ja;
+  const text = e.kind === "release" ? releaseTexts({ ja, en: nm.en }).x : videoText(e);
+  const title = `${ja}（${e.set}）の${{ release: "発売告知", early: "速報動画の告知", long: "環境まとめ動画の告知" }[e.kind]}`;
+  return { title, text };
+}
+
+/* 見るだけ：そのセットの3つの文面を、記録に関係なく出す（動画がまだ無いものは、その旨だけ） */
+async function preview(){
+  const all = await events();
+  for(const kind of ["release", "early", "long"]){
+    const e = all.find(x => x.set === PREVIEW && x.kind === kind) || (kind === "release" ? { id: `${PREVIEW}-release`, kind, set: PREVIEW } : null);
+    const label = { release: "発売告知", early: "速報動画の告知", long: "環境まとめ動画の告知" }[kind];
+    if(!e){ console.log(`\n--- ${PREVIEW} の${label} ---\n（公開した動画がまだ無いので作れません）`); await summary(`## ${PREVIEW} の${label}\n\n公開した動画がまだ無いので作れません。\n`); continue; }
+    const d = await draft(e);
+    console.log(`\n--- ${d.title} ---\n${d.text}`);
+    await summary(`## ${d.title}\n\n\`\`\`\n${d.text}\n\`\`\`\n`);
+  }
+}
+
 async function main(){
+  if(PREVIEW) return preview();
   const first = !existsSync(LOG);
   const done = await readJson(LOG, {});
   let n = 0;
@@ -60,10 +85,7 @@ async function main(){
     if(done[e.id]) continue;
     if(first){ done[e.id] = { at: new Date().toISOString(), seeded: true }; continue; }
     if(e.at && Date.now() - Date.parse(e.at) > FRESH_MS){ console.log(`${e.id}: 古いので作りません（${e.at}）`); done[e.id] = { at: new Date().toISOString(), skipped: "old" }; continue; }
-    const nm = await setName(e.set);
-    const ja = nm.ja === e.set && e.fallbackName ? e.fallbackName : nm.ja;
-    const text = e.kind === "release" ? releaseTexts({ ja, en: nm.en }).x : videoText(e);
-    const title = `${ja}（${e.set}）の${{ release: "発売告知", early: "速報動画の告知", long: "環境まとめ動画の告知" }[e.kind]}`;
+    const { title, text } = await draft(e);
     console.log(`\n--- ${title} ---\n${text}`);
     await summary(`## ${title}\n\n\`\`\`\n${text}\n\`\`\`\n`);
     n++;
@@ -72,7 +94,9 @@ async function main(){
     await writeFile(`${QUEUE}/${e.id}.json`, JSON.stringify({ id: e.id, title, text, created: new Date().toISOString() }, null, 2) + "\n", "utf8");
     done[e.id] = { at: new Date().toISOString() };
   }
-  if(first) console.log(`はじめての実行なので、いまある ${Object.keys(done).length} 件を「作成済み」として記録しました（文案は作りません）`);
+  if(first) console.log(DRY
+    ? `はじめての実行です。本番では、いまある ${Object.keys(done).length} 件を「作成済み」として記録するだけで、文案は作りません（いまは確認だけなので、記録もしていません）。文面を見たいときは「文面を見るだけ：セット」にセットを入れて実行してください`
+    : `はじめての実行なので、いまある ${Object.keys(done).length} 件を「作成済み」として記録しました（文案は作りません）`);
   else if(!n) console.log("新しい告知はありません。");
   if(!DRY) { await mkdir("data/social", { recursive: true }); await writeFile(LOG, JSON.stringify(done, null, 2) + "\n", "utf8"); }
 }
