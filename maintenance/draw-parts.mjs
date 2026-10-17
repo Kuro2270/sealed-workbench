@@ -1,6 +1,6 @@
 /*
  * 共有画像（OGP・X に添える画像）で使う、色・文字と「8人卓」の図。
- *   友達とドラフトの共有画像（build-ogp-room.mjs）と、X の告知に添える画像（x-release-image.mjs）で同じ見た目にするため。
+ *   ドラフト練習（対人戦）の共有画像（build-ogp-room.mjs）と、X の告知に添える画像（x-release-image.mjs）で同じ見た目にするため。
  * 役割はこれだけ（画像のファイルは作らない）。
  */
 export const PINE = "#10304F", PINE_DEEP = "#0A2038", GOLD = "#2F7DF6", PAPER = "#F5F8FC", MUTED = "#A9C2DE";

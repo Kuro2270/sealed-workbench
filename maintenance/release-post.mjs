@@ -63,10 +63,10 @@ async function main(){
     const name = { ja: n.ja === SET ? s.name : n.ja, en: shortName(s.name) };   // 英語名は Scryfall のもの（発売直後はサイト側にまだ英語名の記録が無いため）
     const t = releaseTexts(name);
     console.log(`\n--- ${SET}（紙の発売 ${s.released_at}）---\n${t.bsky}`);
-    // カードの画像：セットの絵を背景にした告知の画像（英語）。作れなかったときは、友達とドラフトの共有画像
+    // カードの画像：セットの絵を背景にした告知の画像（英語）。作れなかったときは、ドラフト練習（対人戦）の共有画像
     let image = "ogp-room-en.png";
     try{ image = (await makeReleaseImage(SET, name.en, `social-tmp/${SET}-release-en.jpg`, "en", { small: true })).out; }
-    catch(e){ console.log("告知の画像を作れませんでした（友達とドラフトの共有画像を使います）: " + e.message); }
+    catch(e){ console.log("告知の画像を作れませんでした（ドラフト練習（対人戦）の共有画像を使います）: " + e.message); }
     await summary(`## ${name.en}（${SET}）の告知（Bluesky・英語）\n\n\`\`\`\n${t.bsky}\n\`\`\`\n\nカードの画像：${image.startsWith("social-tmp/") ? "成果物（Artifacts）の「bsky-preview」" : image}\n`);
     if(DRY){ console.log("DRY_RUN のため、投稿も記録もしません"); continue; }
 
@@ -74,8 +74,8 @@ async function main(){
     try{
       const res = await postBskyLink(t.bsky, {
         uri: t.bsky.match(/https?:\/\/\S+/)[0],
-        title: `${name.en}: practise Draft & Sealed for free`,
-        description: "Draft against other players (CPUs fill the empty seats) or against 7 CPUs. Free, no sign-up. Import your deck into MTG Arena.",
+        title: `${name.en}: practise Draft & Sealed without spending gems`,
+        description: "Draft at the same table as your friends (CPUs fill the empty seats) or against 7 CPUs. Import your deck into MTG Arena and play with Direct Challenge. Free, no sign-up.",
         image
       });
       console.log(res.message); bsky = res.ok;

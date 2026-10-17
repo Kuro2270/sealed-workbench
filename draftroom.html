@@ -10,9 +10,9 @@
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
-<meta name="description" content="招待リンクを開いて名前を入れるだけで、8人卓のドラフトができます。空いた席にはCPUが座ります。登録不要・無料。組んだデッキはMTGアリーナにインポートできます。">
-<meta property="og:title" content="ドラフト練習（対人戦）｜MTGアリーナのドラフトを8人卓で">
-<meta property="og:description" content="招待リンクを開いて名前を入れるだけで参加できます。空いた席にはCPUが座ります。登録不要・無料。">
+<meta name="description" content="ジェムを使わずに、友達と確実に同じ卓でMTGアリーナのドラフトができる無料ツール。8人そろわなくても、空いた席はCPUが埋めます。組んだデッキはアリーナにインポートして、ダイレクトチャレンジで対戦できます。">
+<meta property="og:title" content="ドラフト練習（対人戦）｜ジェムなしで、友達と同じ卓のドラフト">
+<meta property="og:description" content="招待リンクで、確実に同じ卓に。8人そろわなくても空いた席はCPU。組んだデッキはMTGアリーナへ、ダイレクトチャレンジで対戦。登録不要・無料。">
 <meta property="og:url" content="https://sealed-workbench.com/draftroom">
 <meta property="og:image" content="https://sealed-workbench.com/ogp-room-ja.png">
 <meta property="og:image:width" content="1200">
@@ -298,6 +298,12 @@
   .rm-card p:last-child,.rm-note p:last-child{margin:0}
   .rm-note{background:var(--paper-2);border-left:4px solid var(--gold);border-radius:4px;padding:12px 16px;margin:0 0 14px}
   @media (max-width:720px){ .readmore{padding:4px 14px 28px} .rm-steps,.rm-grid{grid-template-columns:1fr} }
+  /* なぜアリーナではなくここで練習するか（見出しの下） */
+  header ul.perks{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 8px;max-width:90ch}
+  header ul.perks li{font-size:12.5px;line-height:1.4;color:#E6EEF7;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:4px 11px 4px 9px}
+  header ul.perks li::before{content:"✓";color:#7FB6FF;font-weight:700;margin-right:6px}
+  header p:has(+ ul.perks){min-height:0}
+  @media (max-width:640px){ header ul.perks li{font-size:12px} }
   /* 友達とドラフト */
   .room-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px}
   .room-card h4{margin:0 0 10px;font-size:13px;color:var(--muted);font-weight:700}
@@ -369,7 +375,8 @@
     <div class="head-top">
       <div>
         <h1 data-i18n="room.h1">ドラフト練習（対人戦）</h1>
-        <p data-i18n="room.lead">招待リンクで集まった人と8人卓のドラフト。空いた席にはCPUが座ります。</p>
+        <p data-i18n="room.lead">ジェムを使わずに、友達と同じ卓でドラフトができます。</p>
+        <ul class="perks" data-i18n-html="perks.room"></ul>
       </div>
       <div class="controls">
         <label class="toggle"><input type="checkbox" id="wrToggle" checked><span data-i18n="opt.wr" data-i18n-title="wr.gih.tip">勝率を表示</span></label>

@@ -210,6 +210,9 @@
   .rm-card p:last-child,.rm-note p:last-child{margin:0}
   .rm-note{background:var(--paper-2);border-left:4px solid var(--gold);border-radius:4px;padding:12px 16px;margin:0 0 14px}
   @media (max-width:720px){ .rm-steps,.rm-grid{grid-template-columns:1fr} }
+  .bigcard ul.perks{list-style:none;margin:2px 0 0;padding:0;font-size:12.5px;line-height:1.6;color:var(--ink)}
+  .bigcard ul.perks li{padding-left:18px;position:relative}
+  .bigcard ul.perks li::before{content:"✓";position:absolute;left:2px;color:var(--gold);font-weight:700}
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
 </head>
@@ -252,9 +255,9 @@
 <main>
   <section>
     <div class="big">
-      <a class="bigcard" href="./sealed.html"><span class="k" data-i18n="navgrp.build">仮想パックで練習する</span><b><span data-i18n="nav.sealed">シールド練習</span></b><span class="d" data-i18n="top.c1.d"></span><span class="go" data-i18n="top.go">開く →</span></a>
-      <a class="bigcard" href="./draft.html"><span class="k" data-i18n="navgrp.build">仮想パックで練習する</span><b><span data-i18n="nav.draft">ドラフト練習（CPU戦）</span></b><span class="d" data-i18n="top.c2.d"></span><span class="go" data-i18n="top.go">開く →</span></a>
-      <a class="bigcard" href="./draftroom.html"><span class="k" data-i18n="navgrp.build">仮想パックで練習する</span><b><span data-i18n="nav.room">ドラフト練習（対人戦）</span></b><span class="d" data-i18n="cat.desc.room"></span><span class="go" data-i18n="top.go">開く →</span></a>
+      <a class="bigcard" href="./sealed.html"><span class="k" data-i18n="navgrp.build">仮想パックで練習する</span><b><span data-i18n="nav.sealed">シールド練習</span></b><span class="d" data-i18n="index.lead"></span><ul class="perks" data-i18n-html="perks.arena"></ul><span class="go" data-i18n="top.go">開く →</span></a>
+      <a class="bigcard" href="./draft.html"><span class="k" data-i18n="navgrp.build">仮想パックで練習する</span><b><span data-i18n="nav.draft">ドラフト練習（CPU戦）</span></b><span class="d" data-i18n="draft.lead"></span><ul class="perks" data-i18n-html="perks.arena"></ul><span class="go" data-i18n="top.go">開く →</span></a>
+      <a class="bigcard" href="./draftroom.html"><span class="k" data-i18n="navgrp.build">仮想パックで練習する</span><b><span data-i18n="nav.room">ドラフト練習（対人戦）</span></b><span class="d" data-i18n="room.lead"></span><ul class="perks" data-i18n-html="perks.room"></ul><span class="go" data-i18n="top.go">開く →</span></a>
     </div>
   </section>
   <section class="why">

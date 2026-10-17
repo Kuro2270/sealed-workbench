@@ -1,7 +1,7 @@
 /*
  * 新セットの告知に添える画像（1200×675。X・Bluesky の横長の表示にそのまま収まる大きさ）を作る。日本語版（X）と英語版（Bluesky）。
  *   背景：セットの絵（set-art.mjs。公式のキーアート、無ければカードの絵を3枚）。左側を暗くして、文字を読みやすくする。
- *         絵が取れなかったときは、いつもの紺の背景に、右側へ8人卓の図（友達とドラフトの共有画像と同じ）。
+ *         絵が取れなかったときは、いつもの紺の背景に、右側へ8人卓の図（ドラフト練習（対人戦）の共有画像と同じ）。
  *   左上にセットのロゴ（assets/logo/<SET>.png があれば）、その下にセット名と、何ができるか。
  * 役割はこれだけ。x-drafts.mjs（X）と release-post.mjs（Bluesky）から使う。sharp が要る。
  */
@@ -15,10 +15,10 @@ const W = 1200, H = 675, S = 2;          // S倍の大きさで書き出す（�
 const LOGO_H = 96;
 
 const TEXT = {
-  ja: { name: n => `【${n}】`, l1: "ドラフト・シールドを", l2: "無料で練習", size: 54,
-        bullets: ["ドラフト練習（対人戦・空き席はCPU）", "ドラフト練習（CPU戦）", "組んだデッキはアリーナにインポート"], you: "あなた", font: FONT_JA },
-  en: { name: n => n, l1: "Practise Draft & Sealed", l2: "for free", size: 52,
-        bullets: ["Draft vs players (CPUs fill empty seats)", "Draft vs 7 CPUs", "Import your deck into MTG Arena"], you: "YOU", font: FONT_EN }
+  ja: { name: n => `【${n}】`, l1: "ドラフト・シールドを", l2: "ジェムなしで練習", size: 54,
+        bullets: ["友達と確実に同じ卓でドラフト（空き席はCPU）", "CPU戦のドラフト、シールドも", "アリーナのダイレクトチャレンジで友達と対戦"], you: "あなた", font: FONT_JA },
+  en: { name: n => n, l1: "Practise Draft & Sealed", l2: "without spending gems", size: 52,
+        bullets: ["Draft at one table with friends (CPUs fill seats)", "Or draft vs 7 CPUs, or play Sealed", "Play friends in Arena with Direct Challenge"], you: "YOU", font: FONT_EN }
 };
 
 function svg(name, lang, hasLogo, hasArt){

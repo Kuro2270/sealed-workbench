@@ -23,15 +23,15 @@ const dots = `<g opacity="0.9">${MANA.map((c, i) => `<circle cx="${80 + i * 42}"
 const TEXT = {
   ja: {
     title: "ドラフト練習（対人戦）",
-    sub: "MTGアリーナのドラフトを8人卓で",
-    bullets: ["リンクを開いて、名前を入れるだけ", "空いた席にはCPUが座ります", "組んだデッキはアリーナにインポート"],
+    sub: "ジェムなしで、友達と同じ卓のドラフト",
+    bullets: ["招待リンクで、確実に同じ卓に", "8人そろわなくても、空いた席はCPU", "アリーナのダイレクトチャレンジで対戦"],
     you: "あなた", cpu: "CPU",
     domain: "sealed-workbench.com"
   },
   en: {
     title: "Draft vs players",
-    sub: "MTG Arena drafts at an 8-seat table",
-    bullets: ["Open the link and enter your name", "CPUs take the empty seats", "Import your deck into Arena"],
+    sub: "Draft with friends at one table, no gems",
+    bullets: ["Your invite link seats everyone together", "CPUs fill any empty seats", "Then play in Arena with Direct Challenge"],
     you: "YOU", cpu: "CPU",
     domain: "sealed-workbench.com"
   }
