@@ -407,7 +407,13 @@ const esc = s => (s || "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":
 /* 友達とドラフトのあとの構築（draft.html?from=room）は、CPU戦とは保存場所を分ける。
    画面は同じ構築画面を使うが、見出し・メニューを「友達とドラフト」にし、CPU戦を始める操作は出さない */
 const FROM_ROOM = new URLSearchParams(location.search).get("from") === "room";
-const SAVE_KEY = FROM_ROOM ? "room" : "draft";
+/* 動作確認ページ（draftroom-test.html）から来たときは ?as=1,2,… が付く。1つのブラウザに何人分も入るので、席ごとに保存場所を分ける */
+const ROOM_AS = (new URLSearchParams(location.search).get("as") || "").toLowerCase();
+const ROOM_TEST = FROM_ROOM && /^[a-z0-9]{1,8}$/.test(ROOM_AS);
+const SAVE_KEY = FROM_ROOM ? "room" + (ROOM_TEST ? "." + ROOM_AS : "") : "draft";
+if(ROOM_TEST && new URLSearchParams(location.search).get("embed") === "1"){
+  ["header", "footer", ".readmore", "#goodsStrip"].forEach(q => { const el = document.querySelector(q); if(el) el.style.display = "none"; });
+}
 if(FROM_ROOM){
   document.documentElement.setAttribute("data-title", "page.room.title");
   document.documentElement.setAttribute("data-desc", "desc.room");
@@ -983,7 +989,7 @@ $("copyBtn").onclick = async () => {
 
 if(!FROM_ROOM) loadSets();
 PoolSave.mountHistory(SAVE_KEY, $("histBox"), snap => { archiveCurrent(); applySnap(snap, "save.switched"); });
-if(!restoreCurrent() && FROM_ROOM && !PoolSave.history("room").length) location.replace("./draftroom.html");   // 組むプールが無ければ部屋の画面へ
+if(!restoreCurrent() && FROM_ROOM && !PoolSave.history(SAVE_KEY).length) location.replace("./draftroom.html");   // 組むプールが無ければ部屋の画面へ
 </script>
 <script src="./goods-widget.js?v=6" defer></script>
 </body>

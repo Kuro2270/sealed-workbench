@@ -313,15 +313,17 @@ async function finish(){
   const pool = view.picks.map(id => byId[id]).filter(Boolean);
   if(pool.length !== view.picks.length) return;
   handedOff = true;
-  if(TEST && AS !== "1"){ setStatus(t("room.doneTitle")); return; }   // 動作確認では、構築画面へ進むのは1人目（主催）だけ
-  const prev = PoolSave.load("room");
-  if(prev && prev.n) PoolSave.archive("room", prev);          // 前回の友達とドラフトのプールは「過去のプール」へ（CPU戦の保存とは別）
+  const key = "room" + (TEST ? "." + AS : "");                 // 動作確認では席ごとに保存場所を分ける（ふだんは端末ごとに1人なので "room"）
+  const prev = PoolSave.load(key);
+  if(prev && prev.n) PoolSave.archive(key, prev);          // 前回の友達とドラフトのプールは「過去のプール」へ（CPU戦の保存とは別）
   const meta = {v:1, setCode: view.set, phase:"build", packNo:0, pickNo:0, target:"main", landCount:{}, ts:Date.now(), n:pool.length};
-  PoolSave.save("room", PoolSave.pack(meta, {pool, deck:[], side:[], basic:Object.values(basicCards)}));
+  PoolSave.save(key, PoolSave.pack(meta, {pool, deck:[], side:[], basic:Object.values(basicCards)}));
   setStatus(t("room.toBuild"), false, true);
+  const url = "./draft.html?from=room" + (TEST ? "&as=" + AS + (params.get("embed") === "1" ? "&embed=1" : "") : "");
+  $("buildLink").querySelector("a").href = url;
   $("buildLink").hidden = false;
   try{ ws.close(); }catch(e){}
-  setTimeout(() => { location.href = "./draft.html?from=room"; }, 1200);
+  setTimeout(() => { location.href = url; }, 1200);
 }
 
 /* ---------- はじめ ---------- */
