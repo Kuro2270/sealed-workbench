@@ -1125,8 +1125,9 @@
     }
     setMeta("property", "og:locale", lang === "ja" ? "ja_JP" : "en_US");
     setMeta("property", "og:url", location.origin + location.pathname);
-    setMeta("property", "og:image", location.origin + "/ogp-" + lang + ".png");
-    setMeta("name", "twitter:image", location.origin + "/ogp-" + lang + ".png");
+    const ogp = document.documentElement.dataset.ogp || "ogp";      // ページ専用の画像があれば（例：友達とドラフト＝ogp-room）
+    setMeta("property", "og:image", location.origin + "/" + ogp + "-" + lang + ".png");
+    setMeta("name", "twitter:image", location.origin + "/" + ogp + "-" + lang + ".png");
     document.documentElement.lang = lang;
     setJsonLd();
   }

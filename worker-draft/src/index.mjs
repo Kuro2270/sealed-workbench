@@ -16,10 +16,18 @@
  *   {type:"undo", n}                選び直し（ほかの人を待っている間だけ。いま取った1枚をパックに戻す）
  *   {type:"handover", seat}         主催者が、切れた人の席を CPU に任せる
  *   {type:"leave"}                  始まる前に抜ける
+ *   "ping"（文字そのまま）           生存確認。"pong" を返す（部屋を起こさずに返事だけする）
+ *
+ * つながっているかの判定
+ *   ブラウザは15秒ごとに "ping" を送る。45秒なにも届かない接続は、電波が切れたまま残っているものとして閉じ、
+ *   その人を「切断中」にする（電車などで回線が黙って切れたとき、サーバーも気づけるように）。
+ *   見回りは、誰かがつながっている間だけ20秒ごとに行う。
  */
 import { newRoom, join, leave, setConfig, start, pick, undo, handOver, viewFor, VERSION } from "./draft-logic.mjs";
 
 const KEEP_MS = 3 * 24 * 3600 * 1000;      // 最後の操作から3日たった部屋は消す
+const STALE_MS = 45 * 1000;                // これだけ何も届かない接続は、切れたものとみなす
+const CHECK_MS = 20 * 1000;                // つながっている人がいる間の見回りの間隔
 
 const cors = () => ({ "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,OPTIONS", "Access-Control-Allow-Headers": "Content-Type" });
 const json = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { "Content-Type": "application/json", ...cors() } });
@@ -37,7 +45,11 @@ export default {
 };
 
 export class DraftRoom {
-  constructor(state, env) { this.state = state; this.env = env; }
+  constructor(state, env) {
+    this.state = state; this.env = env;
+    this.dead = new Set();               // こちらから閉じた接続（閉じ終わるまで一覧に残ることがあるため）
+    try { state.setWebSocketAutoResponse(new WebSocketRequestResponsePair("ping", "pong")); } catch (e) {}
+  }
 
   async room() {
     if (!this.r) {
@@ -51,11 +63,25 @@ export class DraftRoom {
   async save() {
     this.r.updated = Date.now();
     await this.state.storage.put("room", this.r);
-    await this.state.storage.setAlarm(Date.now() + KEEP_MS);
+    await this.schedule();
+  }
+  /* 次の見回り：誰かつながっていれば20秒後、いなければ部屋を消す日時 */
+  async schedule() {
+    const live = this.state.getWebSockets().some(ws => !this.dead.has(ws));
+    await this.state.storage.setAlarm(live ? Date.now() + CHECK_MS : (this.r ? this.r.updated || Date.now() : Date.now()) + KEEP_MS);
   }
   async alarm() {
-    await this.state.storage.deleteAll();
-    this.r = null;
+    const r = await this.room();
+    let closed = false;
+    for (const ws of this.state.getWebSockets()) {
+      if (this.dead.has(ws) || this.alive(ws)) continue;
+      this.dead.add(ws); closed = true;
+      try { ws.close(4000, "timeout"); } catch (e) {}
+    }
+    const live = this.state.getWebSockets().some(ws => !this.dead.has(ws));
+    if (!live && Date.now() - (r.updated || 0) >= KEEP_MS) { await this.state.storage.deleteAll(); this.r = null; return; }
+    if (closed) this.broadcast();
+    await this.schedule();
   }
 
   async fetch(req) {
@@ -67,6 +93,7 @@ export class DraftRoom {
 
     const pair = new WebSocketPair();
     this.state.acceptWebSocket(pair[1], [id]);
+    pair[1].serializeAttachment({ t: Date.now() });     // 最後に何か届いた時刻（つながっているかの判定に使う）
     try {
       join(r, id, url.searchParams.get("name"), url.searchParams.get("host") === "1");
       await this.save();
@@ -79,9 +106,18 @@ export class DraftRoom {
   }
 
   idOf(ws) { return (this.state.getTags(ws) || [])[0]; }
-  online() { const s = new Set(); for (const ws of this.state.getWebSockets()) s.add(this.idOf(ws)); return s; }
+  lastSeen(ws) {
+    let a = 0, t = 0;
+    try { const d = this.state.getWebSocketAutoResponseTimestamp(ws); a = d ? d.getTime() : 0; } catch (e) {}
+    try { t = (ws.deserializeAttachment() || {}).t || 0; } catch (e) {}
+    return Math.max(a, t);
+  }
+  alive(ws) { return !this.dead.has(ws) && Date.now() - this.lastSeen(ws) < STALE_MS; }
+  online() { const s = new Set(); for (const ws of this.state.getWebSockets()) if (this.alive(ws)) s.add(this.idOf(ws)); return s; }
 
   async webSocketMessage(ws, raw) {
+    try { ws.serializeAttachment({ t: Date.now() }); } catch (e) {}
+    if (raw === "ping") { try { ws.send("pong"); } catch (e) {} return; }   // 自動の返事が使えない環境のための予備
     let m; try { m = JSON.parse(raw); } catch (e) { return; }
     const me = this.idOf(ws);
     const r = await this.room();
@@ -101,14 +137,15 @@ export class DraftRoom {
     await this.save();
     this.broadcast();
   }
-  async webSocketClose() { await this.room(); this.broadcastSoon(); }   // 休眠から起きた直後でも部屋を読み直してから知らせる
-  async webSocketError() { await this.room(); this.broadcastSoon(); }
+  async webSocketClose(ws) { this.dead.add(ws); await this.room(); this.broadcastSoon(); await this.schedule(); }   // 休眠から起きた直後でも部屋を読み直してから知らせる
+  async webSocketError(ws) { this.dead.add(ws); await this.room(); this.broadcastSoon(); await this.schedule(); }
 
   broadcastSoon() { setTimeout(() => this.broadcast(), 50); }
   broadcast() {
     const r = this.r; if (!r) return;
     const online = this.online();
     for (const ws of this.state.getWebSockets()) {
+      if (this.dead.has(ws)) continue;
       try { ws.send(JSON.stringify({ type: "state", view: viewFor(r, this.idOf(ws), online) })); } catch (e) {}
     }
   }

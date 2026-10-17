@@ -76,25 +76,56 @@ $("joinBtn").onclick = () => {
 };
 
 /* ---------- 通信 ---------- */
+/* つながっているかの確認：15秒ごとに "ping" を送り、35秒返事がなければ切れたとみなしてすぐつなぎ直す。
+   電車などで回線が黙って切れたとき、画面が固まったままにならないように */
+let lastHeard = 0, retryTimer = null;
 function connect(name, host){
+  clearTimeout(retryTimer);
   $("entry").hidden = true;
   setStatus(t("room.connecting"), false, true);
   const u = SERVER + "/ws?room=" + room + "&id=" + myId + "&name=" + encodeURIComponent(name || store.get(KEY("name")) || "") + (host ? "&host=1" : "");
-  ws = new WebSocket(u);
-  ws.onopen = () => { retry = 0; sentAt = -1; };     // つなぎ直したら、届かなかったピックは押し直せるように
-  ws.onmessage = ev => {
+  const sock = new WebSocket(u);
+  ws = sock;
+  sock.onopen = () => { retry = 0; sentAt = -1; lastHeard = Date.now(); };     // つなぎ直したら、届かなかったピックは押し直せるように
+  sock.onmessage = ev => {
+    if(sock !== ws) return;                          // 置き換えた古い接続からのものは使わない
+    lastHeard = Date.now();
+    if(ev.data === "pong") return;
     let m; try{ m = JSON.parse(ev.data); }catch(e){ return; }
     if(m.type === "denied"){ denied = true; setStatus(m.message, true); return; }
     if(m.type === "error"){ sentAt = -1; render(); setStatus(m.message, true); return; }
     if(m.type === "state"){ view = m.view; onState(host); }
   };
-  ws.onclose = () => {
-    if(denied || handedOff) return;
+  sock.onclose = () => {
+    if(sock !== ws || denied || handedOff) return;
     retry++;
     setStatus(t("room.reconnecting"), true, true);
-    setTimeout(() => connect("", false), Math.min(8000, 1000 * retry));
+    retryTimer = setTimeout(() => connect("", false), Math.min(8000, 1000 * retry));
   };
 }
+/* いまの接続を捨てて、すぐつなぎ直す */
+function reconnectNow(){
+  if(denied || handedOff || !room) return;
+  const old = ws; ws = null;
+  if(old){ old.onclose = null; try{ old.close(); }catch(e){} }
+  connect("", false);
+}
+setInterval(() => {
+  if(!ws || ws.readyState !== 1 || denied || handedOff) return;
+  if(Date.now() - lastHeard > 35000){ reconnectNow(); return; }
+  try{ ws.send("ping"); }catch(e){}
+}, 15000);
+/* スマホで画面を戻したとき・電波が戻ったときは、待たずに確かめる（4秒返事がなければつなぎ直す） */
+function checkNow(){
+  if(denied || handedOff || !room || !ws) return;
+  if(ws.readyState > 1){ reconnectNow(); return; }
+  if(ws.readyState !== 1) return;
+  const at = Date.now();
+  try{ ws.send("ping"); }catch(e){ reconnectNow(); return; }
+  setTimeout(() => { if(ws && lastHeard < at) reconnectNow(); }, 4000);
+}
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible") checkNow(); });
+addEventListener("online", checkNow);
 const send = o => { if(ws && ws.readyState === 1) ws.send(JSON.stringify(o)); };
 
 /* ---------- 部屋の状態を描く ---------- */
@@ -137,6 +168,10 @@ function render(){
   else renderDraft();
 }
 
+/* 「CPUに任せる」は、切断が30秒続いてから出す（電車などの一時的な断線で押されないように） */
+const HAND_AFTER_MS = 30 * 1000;
+const offSince = {};
+let handTimer = null;
 function renderMembers(){
   const box = $("people");
   if(view.phase === "lobby"){
@@ -144,11 +179,17 @@ function renderMembers(){
       `<div class="person${m.online ? "" : " off"}"><span class="dot"></span>${esc(m.name)}${m.host ? `<b class="tag">${esc(t("room.host"))}</b>` : ""}${m.me ? `<b class="tag me">${esc(t("room.you"))}</b>` : ""}</div>`).join("");
     return;
   }
+  let nextIn = Infinity;
   box.innerHTML = `<h4>${esc(t("room.table"))}</h4>` + view.seats.map((s, i) => {
     const state = s.cpu ? t("room.cpu") : s.auto ? t("room.auto") : !s.online ? t("room.offline") : s.waiting ? t("room.thinking") : t("room.waitingPack");
-    const btn = view.isHost && view.phase === "drafting" && !s.cpu && !s.auto && !s.online ? `<button class="mini" data-hand="${i}">${esc(t("room.handover"))}</button>` : "";
+    if(s.cpu || s.online) delete offSince[i]; else if(!offSince[i]) offSince[i] = Date.now();
+    const offFor = offSince[i] ? Date.now() - offSince[i] : 0;
+    if(view.isHost && view.phase === "drafting" && !s.cpu && !s.auto && !s.online && offFor < HAND_AFTER_MS) nextIn = Math.min(nextIn, HAND_AFTER_MS - offFor);
+    const btn = view.isHost && view.phase === "drafting" && !s.cpu && !s.auto && !s.online && offFor >= HAND_AFTER_MS ? `<button class="mini" data-hand="${i}">${esc(t("room.handover"))}</button>` : "";
     return `<div class="person${s.online ? "" : " off"}${s.me ? " mine" : ""}"><span class="dot"></span><span class="nm">${esc(s.name)}</span><span class="st">${esc(state)}</span>${btn}</div>`;
   }).join("");
+  clearTimeout(handTimer);
+  if(nextIn < Infinity) handTimer = setTimeout(renderMembers, nextIn + 100);   // 30秒たったらボタンを出す
   box.querySelectorAll("[data-hand]").forEach(b => b.onclick = () => send({type: "handover", seat: Number(b.dataset.hand)}));
 }
 
