@@ -342,6 +342,9 @@
   header ul.perks li::before{content:"✓";color:#7FB6FF;font-weight:700;margin-right:6px}
   header p:has(+ ul.perks){min-height:0}
   @media (max-width:640px){ header ul.perks li{font-size:12px} }
+  /* 勝率のチェック：何の数字かを下に小さく */
+  label.toggle.wr > span{display:block;text-align:left}
+  label.toggle.wr small{display:block;font-size:11px;line-height:1.35;color:#A9C2DE;margin-top:1px}
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous" data-overlays="bottom"></script>
 </head>
@@ -387,7 +390,7 @@
         </select>
         <label class="toggle"><input type="checkbox" id="imgToggle" checked><span data-i18n="opt.img">カード画像を表示</span></label>
         <label class="toggle"><input type="checkbox" id="textToggle"><span data-i18n="opt.text">テキストで一覧表示</span></label>
-        <label class="toggle"><input type="checkbox" id="wrToggle" checked><span data-i18n="opt.wr" data-i18n-title="wr.gih.tip">勝率を表示</span></label>
+        <label class="toggle wr" data-i18n-title="wr.gih.tip"><input type="checkbox" id="wrToggle" checked><span><span data-i18n="opt.wr">カードの勝率を表示</span><small data-i18n="opt.wrHint">そのカードを引いた試合の勝率。高いほど強いカード</small></span></label>
       </div>
       <div class="hist" id="histBox" hidden></div>
     </div>

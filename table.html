@@ -114,7 +114,7 @@
   /* ---------- 盤面 ---------- */
   /* 対戦中は卓をできるだけ広く使う（見出しの説明文をたたみ、左右の余白を詰める） */
   body.playing header{padding:14px 24px 10px}
-  body.playing header p{display:none}
+  body.playing header p,body.playing header ul.perks{display:none}
   body.playing main{max-width:min(1780px,97vw);padding-top:12px}
 
   /* 2画面テストに埋め込むときは、見出しと脚注を隠して卓だけにする */
@@ -240,6 +240,11 @@
     .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
     .ngl,.ngs{flex:0 0 100%}
   }
+  /* 見出しの下の箇条書き（ほかのツールページと同じ） */
+  header ul.perks{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 8px;max-width:90ch}
+  header ul.perks li{font-size:12.5px;line-height:1.4;color:#E6EEF7;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:4px 11px 4px 9px}
+  header ul.perks li::before{content:"✓";color:#7FB6FF;font-weight:700;margin-right:6px}
+  @media (max-width:640px){ header ul.perks li{font-size:12px} }
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
 </head>
@@ -273,7 +278,8 @@
     <div class="head-top">
       <div>
         <h1 id="h1">対戦卓</h1>
-        <p id="lead">組んだデッキで友人と対戦できます。ルールの判定はしません。カードを動かす・タップする・ライフを増減する、といった卓上の操作をそのまま画面で行う道具です。</p>
+        <p id="lead">組んだデッキで、ブラウザ上で友達と対戦できます。</p>
+        <ul class="perks" id="perks"><li>ワイルドカードが足りなくても遊べます</li><li>カードの移動・タップ・ライフの増減を画面で操作</li><li>ルールの判定はしません</li></ul>
       </div>
           </div>
   </div>
@@ -311,7 +317,7 @@
         <span class="dttl" id="s_deck">デッキ</span>
         <span class="dnum" id="deckCount"></span>
       </summary>
-      <p class="hint" id="s_deckHint">MTGアリーナ形式の並び（「4 Lightning Bolt (M10) 146」など）を貼り付けてください。当サイトのシールド構築・ドラフト構築が書き出す形式がそのまま使えます。サイドボードは読み込みません。</p>
+      <p class="hint" id="s_deckHint">アリーナ形式のデッキリスト（例：4 Lightning Bolt (M10) 146）を貼り付けます。当サイトで書き出したものがそのまま使えます。サイドボードは読み込みません。</p>
       <textarea id="deckText" spellcheck="false" placeholder="Deck&#10;4 Lightning Bolt (M10) 146&#10;24 Mountain (ANB) 115"></textarea>
       <div class="row" style="margin-top:10px">
         <button class="primary" id="loadBtn">デッキを読み込む</button>
@@ -375,13 +381,14 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 /* ---------- このページだけの文言 ---------- */
 const L = {
   ja: {
-    h1: "対戦卓", lead: "組んだデッキで友人と対戦できます。ルールの判定はしません。カードを動かす・タップする・ライフを増減する、といった卓上の操作をそのまま画面で行う道具です。",
+    h1: "対戦卓", lead: "組んだデッキで、ブラウザ上で友達と対戦できます。",
+    perks: ["ワイルドカードが足りなくても遊べます", "カードの移動・タップ・ライフの増減を画面で操作", "ルールの判定はしません"],
     join: "部屋に入る", joinHint: "同じ合言葉を入れた2人が同じ卓に着きます。相手に合言葉を伝えてください。",
     room: "合言葉（英数字）", name: "あなたの名前", sit: "卓に着く", makeRoom: "合言葉を作る",
     roomPh: "例: aoi-tori-2468", namePh: "例: プレイヤー1", tokNamePh: "例: 兵士",
     adv: "うまくつながらないとき", server: "同期サーバー", serverHint: "通常は変更不要です。自分で建てたサーバーを使うときだけ書き換えてください。",
     soloHint: "一人で動きを確かめたいときは、<a href='./table-test.html'>2画面テスト</a>を使うと、同じ卓の2つの席を左右に並べて開けます。手で試すときは、このページを2つのタブで開き、片方のURLの末尾に <code>?as=b</code> を付けてください。",
-    deck: "デッキ", deckHint: "MTGアリーナ形式の並び（「4 Lightning Bolt (M10) 146」など）を貼り付けてください。当サイトのシールド構築・ドラフト構築が書き出す形式がそのまま使えます。サイドボードは読み込みません。",
+    deck: "デッキ", deckHint: "アリーナ形式のデッキリスト（例：4 Lightning Bolt (M10) 146）を貼り付けます。当サイトで書き出したものがそのまま使えます。サイドボードは読み込みません。",
     load: "デッキを読み込む", jaImg: "日本語版の画像を使う", life: "開始ライフ",
     preview: "カード", log: "記録",
     deckNo: "未読込", deckOk: "読込済", deckN: "{n}枚",
@@ -410,7 +417,8 @@ const L = {
     resetAsk: "自分の盤面を片付けます。よろしいですか？", land: "土地"
   },
   en: {
-    h1: "Play table", lead: "Play a friend with the deck you built. There is no rules engine — this is a table you move cards on: play, tap, change life totals, roll dice.",
+    h1: "Play table", lead: "Play a friend in your browser with the deck you built.",
+    perks: ["No wildcards needed", "Move, tap and change life totals on screen", "No rules engine"],
     join: "Join a table", joinHint: "Two people who enter the same passphrase sit at the same table. Share it with your opponent.",
     room: "Passphrase (letters and numbers)", name: "Your name", sit: "Sit down", makeRoom: "Make one up",
     roomPh: "e.g. blue-bird-2468", namePh: "e.g. Player 1", tokNamePh: "e.g. Soldier",
@@ -1067,6 +1075,7 @@ let autoDeck = autoGo && !!$("deckText").value.trim();
 function applyLocal() {
   const set = (id, k) => { const el = $(id); if (el) el.textContent = tt(k); };
   set("h1", "h1"); set("lead", "lead");
+  $("perks").replaceChildren(...tt("perks").map(x => { const li = document.createElement("li"); li.textContent = x; return li; }));
   set("s_join", "join"); set("s_joinHint", "joinHint"); set("s_room", "room"); set("s_name", "name");
   set("s_adv", "adv"); set("s_server", "server"); set("s_serverHint", "serverHint");
   $("s_soloHint").innerHTML = tt("soloHint"); // <code> を含むので innerHTML で入れる（文言は自前の辞書のみ）

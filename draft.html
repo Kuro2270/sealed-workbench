@@ -296,6 +296,14 @@
   header ul.perks li::before{content:"✓";color:#7FB6FF;font-weight:700;margin-right:6px}
   header p:has(+ ul.perks){min-height:0}
   @media (max-width:640px){ header ul.perks li{font-size:12px} }
+  /* 勝率のチェック：何の数字かを下に小さく */
+  label.toggle.wr > span{display:block;text-align:left}
+  label.toggle.wr small{display:block;font-size:11px;line-height:1.35;color:#A9C2DE;margin-top:1px}
+  /* 手順（番号つき） */
+  .note .steps{list-style:none;counter-reset:st;margin:8px 0 0;padding:0;display:grid;gap:6px}
+  .note .steps li{counter-increment:st;position:relative;padding-left:28px;line-height:1.6;color:var(--ink)}
+  .note .steps li::before{content:counter(st);position:absolute;left:0;top:2px;width:19px;height:19px;border-radius:50%;background:var(--pine);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .note .sub{margin:10px 0 0;padding-top:8px;border-top:1px dashed var(--line)}
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous" data-overlays="bottom"></script>
 </head>
@@ -335,7 +343,7 @@
       <div class="controls">
         <select id="setSelect" data-i18n-label="sel.set"><option value="">…</option></select>
         <button id="startBtn" disabled data-i18n="draft.start">ドラフト開始</button>
-        <label class="toggle"><input type="checkbox" id="wrToggle" checked><span data-i18n="opt.wr" data-i18n-title="wr.gih.tip">勝率を表示</span></label>
+        <label class="toggle wr" data-i18n-title="wr.gih.tip"><input type="checkbox" id="wrToggle" checked><span><span data-i18n="opt.wr">カードの勝率を表示</span><small data-i18n="opt.wrHint">そのカードを引いた試合の勝率。高いほど強いカード</small></span></label>
       </div>
       <div class="hist" id="histBox" hidden></div>
     </div>
@@ -346,7 +354,7 @@
   <section>
     <div id="status" class="status" data-i18n="draft.ready">セットを選んで「ドラフト開始」を押してください。</div>
 
-    <div class="note" id="intro" data-i18n-html="draft.howto"><b>進め方</b>：14枚のパックから1枚選ぶと、残りは隣に流れます。同時にCPU 7人もピックします。3パック（42手）を終えると構築画面に切り替わります。　<b>CPU</b>：カードの勝率を基本にしつつ、ピックが進むほど自分の色を優先するようにしてあります。</div>
+    <div class="note" id="intro" data-i18n-html="draft.howto"><b>進め方</b><ol class="steps"><li>セットを選んで「ドラフト開始」を押す</li><li>14枚のパックから1枚選ぶと、残りは隣へ回ります（CPU 7人も同時にピック）</li><li>3パック（42手）を終えると、デッキ構築の画面に切り替わります</li></ol><p class="sub"><b>CPUのピック</b>：カードの勝率を基本に、後半ほど自分の色を優先します。</p></div>
 
     <div id="phase" class="phase" hidden>
       <h2 id="phaseTitle"></h2>

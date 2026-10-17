@@ -273,18 +273,18 @@
 </header>
 
 <main>
-  <div class="status" data-i18n-html="sassist.support"><b>使い方</b>：アリーナでシールドに参加してプールを開いたら、<b>アリーナを閉じる前に</b> Player.log を選びます。ファイルはこのブラウザの中でだけ読み、どこにも送られません。スマホ版アリーナはログを出さないため、PCでのプレイが対象です。</div>
+  <div class="status" data-i18n-html="sassist.support"><b>対応環境</b>：PCのアリーナで遊ぶシールド。<b>スマホ版のアリーナでは使えません。</b></div>
   
 
   <section class="card" id="setup">
     <details id="setupSteps">
       <summary><span data-i18n="assist.setupH">準備（初回だけ）</span></summary>
-    <ol class="steps" data-i18n-html="sassist.steps"><li>マジック：ザ・ギャザリング アリーナを起動し、右上の歯車から設定を開き、「アカウント」→「詳細ログ（プラグインのサポート）」にチェックを入れる</li><li>アリーナを再起動し、シールドに参加してプールを開く（デッキを組む画面まで進めばよい）</li><li>アリーナを閉じずに、下の「Player.log を選ぶ」を押す。ファイル選択の画面で上部のアドレス欄に次を貼り付けてEnterを押し、開いたフォルダの中の <b>Player.log</b> を選ぶ<br>Windows：<code>%USERPROFILE%\AppData\LocalLow\Wizards Of The Coast\MTGA</code><br>Mac：<code>~/Library/Logs/Wizards Of The Coast/MTGA</code></li></ol>
+    <ol class="steps" data-i18n-html="sassist.steps"><li>アリーナの設定（右上の歯車）→「アカウント」→「詳細ログ（プラグインのサポート）」にチェックを入れる</li><li>アリーナを再起動し、シールドに参加してプールを開く（デッキ構築の画面まで進めばOK）</li><li>アリーナを閉じずに、下の「Player.log を選ぶ」を押す</li><li>ファイル選択の画面で、上部のアドレス欄に次を貼り付けて Enter<br>Windows：<code>%USERPROFILE%\AppData\LocalLow\Wizards Of The Coast\MTGA</code><br>Mac：<code>~/Library/Logs/Wizards Of The Coast/MTGA</code></li><li>開いたフォルダの <b>Player.log</b> を選ぶ</li></ol>
     <figure class="shot">
       <img src="./img/arena-detailed-log.jpg" alt="" loading="lazy" width="1165" height="910">
       <figcaption data-i18n="assist.shotCap">設定 →「アカウント」の画面。「詳細ログ（プラグインのサポート）」にチェックを入れます。</figcaption>
     </figure>
-    <p class="hint" data-i18n="sassist.setupHint">アリーナを再起動するとログは作り直され、プールの記録が消えます。その場合は、いちどイベント画面からシールドのデッキ構築を開き直すと、再び記録されます。</p>
+    <p class="hint" data-i18n="sassist.setupHint">ファイルはこのブラウザの中だけで読み、どこにも送りません。アリーナを再起動したときは、シールドのデッキ構築をいちど開き直してください。</p>
     </details>
     <div class="row">
       <button id="pickBtn" data-i18n="assist.pick">Player.log を選ぶ</button>
@@ -302,7 +302,7 @@
           <option value="strong" data-i18n="assist.weightStrong">強め（色を重視）</option>
         </select>
       </label>
-      <span class="hint" style="margin:0" data-i18n="assist.weightHint">ピック済みの上位2色を自分の色とみなし、合うカードを持ち上げ、違うカードを下げます。標準では1パック目で最大±4、2パック目で±6、3パック目で±8ポイントです。</span>
+      <span class="hint" style="margin:0" data-i18n="assist.weightHint">自分の色（ピックの多い2色）に合うカードを上げ、合わないカードを下げます。</span>
     </div>
     <div class="row">
       <label style="font-size:13.5px"><span data-i18n="assist.syn">部族シナジーの効き</span>
@@ -312,7 +312,7 @@
           <option value="strong" data-i18n="assist.synStrong">強め（部族を重視）</option>
         </select>
       </label>
-      <span class="hint" style="margin:0" data-i18n="assist.synHint">ピック済みのクリーチャー・タイプと、それを参照するカード（受け皿）の噛み合いを見て持ち上げます。標準では最大＋6ポイント、強めでは＋10ポイントほどになります。</span>
+      <span class="hint" style="margin:0" data-i18n="assist.synHint">種族をまとめて強化するカード（「エルフは+1/+1」など）を持っているとき、その種族のクリーチャーを上げます。</span>
     </div>
     <div class="row">
       <label style="font-size:13.5px"><span data-i18n="assist.curve">マナカーブの補正</span>
@@ -321,7 +321,7 @@
           <option value="old" data-i18n="assist.curveOld">マナ域で一律（旧方式）</option>
         </select>
       </label>
-      <span class="hint" style="margin:0" data-i18n="assist.curveHint">環境の速さごとに「土地以外23枚のカーブ」の目安を持ち、いま足りていないマナ域を持ち上げます（最大±2ポイント）。旧方式は、デッキの中身に関係なくマナ域だけで一律に上げ下げします。</span>
+      <span class="hint" style="margin:0" data-i18n="assist.curveHint">デッキに足りないマナ域のカードを上げます。旧方式は、マナ域だけで一律に上げ下げします。</span>
     </div>
   </section>
 
