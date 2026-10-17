@@ -1,5 +1,5 @@
 /* 友達とドラフト（draftroom.html）の画面
- * ・部屋を作る／招待リンクで入る → 主催者が開始 → 全員同時にピック → 終わったら構築画面（draft.html）へ
+ * ・部屋を作る／招待リンクで入る → 主催者が開始 → 全員同時にピック → 終わったら構築画面（draft.html?from=room。CPU戦とは保存場所が別）へ
  * ・ドラフトの正本はサーバー（worker-draft/）が持つ。この画面は「見せる」と「選んだカードを送る」だけ。
  * ・カードの読み込み・パック作り・名前と画像は draft-core.js（ドラフト練習と共通）を使う。
  */
@@ -164,6 +164,22 @@ $("copyInvite").onclick = async () => {
   try{ await navigator.clipboard.writeText(inviteUrl()); $("copyInvite").textContent = t("room.copied"); setTimeout(() => $("copyInvite").textContent = t("room.copy"), 1500); }
   catch(e){ $("inviteBox").select(); }
 };
+/* 招待リンクを送る：メール・LINE・X。スマホなどでは、ほかのアプリ（端末の共有）も */
+const enc = encodeURIComponent;
+const shareMsg = () => view && view.setName ? t("room.shareText", {set: view.setName}) : t("room.shareSubject");
+document.querySelectorAll("[data-share]").forEach(b => b.onclick = () => {
+  const u = inviteUrl(), msg = shareMsg(), k = b.dataset.share;
+  if(k === "mail"){
+    const a = document.createElement("a");
+    a.href = "mailto:?subject=" + enc(t("room.shareSubject")) + "&body=" + enc(msg + "\n" + u);
+    a.click();
+  }
+  else if(k === "line") window.open("https://line.me/R/share?text=" + enc(msg + "\n" + u), "_blank", "noopener");
+  else if(k === "x") window.open("https://x.com/intent/post?text=" + enc(msg) + "&url=" + enc(u), "_blank", "noopener");
+  else if(navigator.share) navigator.share({title: t("room.shareSubject"), text: msg, url: u}).catch(() => {});
+});
+if(navigator.share) $("shareMore").hidden = false;
+
 $("startBtn").onclick = async () => {
   if(loading) await loading;
   /* パックは主催者のブラウザで作る（ドラフト練習と同じ作り方）。送るのは ID・強さ・色だけ */
@@ -271,14 +287,14 @@ async function finish(){
   const pool = view.picks.map(id => byId[id]).filter(Boolean);
   if(pool.length !== view.picks.length) return;
   handedOff = true;
-  const prev = PoolSave.load("draft");
-  if(prev && prev.n) PoolSave.archive("draft", prev);          // 作りかけのドラフト練習は「過去のプール」へ
+  const prev = PoolSave.load("room");
+  if(prev && prev.n) PoolSave.archive("room", prev);          // 前回の友達とドラフトのプールは「過去のプール」へ（CPU戦の保存とは別）
   const meta = {v:1, setCode: view.set, phase:"build", packNo:0, pickNo:0, target:"main", landCount:{}, ts:Date.now(), n:pool.length};
-  PoolSave.save("draft", PoolSave.pack(meta, {pool, deck:[], side:[], basic:Object.values(basicCards)}));
+  PoolSave.save("room", PoolSave.pack(meta, {pool, deck:[], side:[], basic:Object.values(basicCards)}));
   setStatus(t("room.toBuild"), false, true);
   $("buildLink").hidden = false;
   try{ ws.close(); }catch(e){}
-  setTimeout(() => { location.href = "./draft.html"; }, 1200);
+  setTimeout(() => { location.href = "./draft.html?from=room"; }, 1200);
 }
 
 /* ---------- はじめ ---------- */

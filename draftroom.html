@@ -310,6 +310,12 @@
   .person .tag.me{background:#E9ECF0;color:var(--ink)}
   .person .mini{padding:3px 8px;font-size:11.5px}
   .side .side-head[hidden],.side .side-body[hidden]{display:none}
+  .share{gap:8px}
+  .share button{padding:8px 13px;font-size:13px}
+  .share .sh-mail,.share .sh-more{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .share .sh-mail:hover,.share .sh-more:hover{background:var(--paper-2,#EEF2F6)}
+  .share .sh-line{background:#06C755}.share .sh-line:hover{background:#05A847}
+  .share .sh-x{background:#000}.share .sh-x:hover{background:#333}
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous" data-overlays="bottom"></script>
 </head>
@@ -374,6 +380,12 @@
           <input type="text" id="inviteBox" readonly>
           <button id="copyInvite" data-i18n="room.copy">コピー</button>
         </div>
+        <div class="room-row share">
+          <button type="button" class="sh-mail" data-share="mail" data-i18n="room.shareMail">メール</button>
+          <button type="button" class="sh-line" data-share="line">LINE</button>
+          <button type="button" class="sh-x" data-share="x">X</button>
+          <button type="button" class="sh-more" data-share="more" id="shareMore" hidden data-i18n="room.shareMore">ほかのアプリ</button>
+        </div>
       </div>
       <div class="room-card">
         <h4 data-i18n="room.set">セット</h4>
@@ -392,7 +404,7 @@
       </div>
       <div class="bar" id="bar"><i style="width:0"></i></div>
       <div id="board"></div>
-      <p id="buildLink" hidden><a href="./draft.html" data-i18n="room.toBuildBtn">構築画面へ</a></p>
+      <p id="buildLink" hidden><a href="./draft.html?from=room" data-i18n="room.toBuildBtn">構築画面へ</a></p>
     </div>
   </section>
 

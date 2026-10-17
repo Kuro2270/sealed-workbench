@@ -404,6 +404,42 @@ const SIDE_MAX = 15;
 const $ = id => document.getElementById(id);
 const esc = s => (s || "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
 
+/* 友達とドラフトのあとの構築（draft.html?from=room）は、CPU戦とは保存場所を分ける。
+   画面は同じ構築画面を使うが、見出し・メニューを「友達とドラフト」にし、CPU戦を始める操作は出さない */
+const FROM_ROOM = new URLSearchParams(location.search).get("from") === "room";
+const SAVE_KEY = FROM_ROOM ? "room" : "draft";
+if(FROM_ROOM){
+  document.documentElement.setAttribute("data-title", "page.room.title");
+  document.documentElement.setAttribute("data-desc", "desc.room");
+  document.querySelector(".head-top h1").setAttribute("data-i18n", "room.h1");
+  document.querySelector(".head-top p").setAttribute("data-i18n", "room.lead");
+  $("setSelect").hidden = true; $("startBtn").hidden = true; $("intro").hidden = true;
+  document.querySelectorAll('nav a[href="./draft.html"]').forEach(a => a.classList.remove("on"));
+  document.querySelectorAll('nav a[href="./draftroom.html"]').forEach(a => a.classList.add("on"));
+}
+/* 友達とドラフトのプールが、以前は CPU 戦の保存場所に入っていた。見分けて移す
+   （友達とドラフトから来たものは「構築中・パック0」。CPU 戦を終えたものはパック3） */
+(function moveRoomPools(){
+  const fromRoom = s => s && s.phase === "build" && !s.packNo;
+  const get = k => { try{ return JSON.parse(localStorage.getItem(k) || "null"); }catch(e){ return null; } };
+  const put = (k, v) => { try{ v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+  const cur = get("sw.cur.draft");
+  if(fromRoom(cur)){
+    const old = get("sw.cur.room");
+    if(old && old.n && old.ts !== cur.ts) PoolSave.archive("room", old);
+    put("sw.cur.room", cur); put("sw.cur.draft", null);
+  }
+  const hist = get("sw.hist.draft") || [];
+  const moving = hist.filter(fromRoom);
+  if(moving.length){
+    moving.slice().reverse().forEach(s => PoolSave.archive("room", s));
+    put("sw.hist.draft", hist.filter(s => !fromRoom(s)));
+  }
+})();
+
+/* 右の見出し（ピック済み／デッキ）。翻訳の処理があとから元に戻さないよう、キーごと差し替える */
+function setSideTitle(key){ const h = $("sideTitle"); h.setAttribute("data-i18n", key); h.textContent = t(key); }
+
 function setStatus(msg, isErr, busy){
   const el = $("status");
   el.removeAttribute("data-i18n");     // 画面の翻訳処理が、あとから初期の案内文に戻さないように
@@ -483,7 +519,7 @@ async function start(){
     $("sbBody").hidden = true;
     target = "main";
     document.querySelectorAll("#targetSeg button").forEach(x => x.classList.toggle("on", x.dataset.target === "main"));
-    $("sideTitle").textContent = t("draft.picked");
+    setSideTitle("draft.picked");
 
     const wrN = Object.keys(wrMap).length;
     setStatus(t("draft.started", {
@@ -548,7 +584,7 @@ function finishDraft(){
   $("targetRow").hidden = false;
   $("sbHead").hidden = false;
   $("sbBody").hidden = false;
-  $("sideTitle").textContent = t("deck.title");
+  setSideTitle("deck.title");
   setStatus(t("draft.done", {n: pool.length}));
   render();
 }
@@ -566,10 +602,10 @@ function snapDraft(){
   }
   return PoolSave.pack(meta, arrs);
 }
-function persistDraft(){ if(pool.length && (phase === "draft" || phase === "build")) PoolSave.save("draft", snapDraft()); }
+function persistDraft(){ if(pool.length && (phase === "draft" || phase === "build")) PoolSave.save(SAVE_KEY, snapDraft()); }
 function archiveCurrent(){
   if(!pool.length || (phase !== "draft" && phase !== "build")) return;
-  PoolSave.archive("draft", snapDraft());
+  PoolSave.archive(SAVE_KEY, snapDraft());
   if(PoolSave.redraw) PoolSave.redraw();
 }
 function applySnap(s, msgKey){
@@ -591,7 +627,7 @@ function applySnap(s, msgKey){
   $("phase").hidden = building; $("bar").hidden = building; $("colors").hidden = false;
   $("lands").hidden = !building; $("exportWrap").hidden = !building;
   $("targetRow").hidden = !building; $("sbHead").hidden = !building; $("sbBody").hidden = !building;
-  $("sideTitle").textContent = building ? t("deck.title") : t("draft.picked");
+  setSideTitle(building ? "deck.title" : "draft.picked");
   target = s.target || "main";
   document.querySelectorAll("#targetSeg button").forEach(x => x.classList.toggle("on", x.dataset.target === target));
   setStatus(t(msgKey, {n: pool.length}));
@@ -603,8 +639,8 @@ function applySnap(s, msgKey){
   }
 }
 function restoreCurrent(){
-  if(PoolSave.retireStale("draft")){ setStatus(t("save.retired")); return false; }   // 1日以上前のプールは履歴へ
-  const s = PoolSave.load("draft");
+  if(PoolSave.retireStale(SAVE_KEY)){ setStatus(t("save.retired")); return false; }   // 1日以上前のプールは履歴へ
+  const s = PoolSave.load(SAVE_KEY);
   if(s && s.n && (s.phase === "draft" || s.phase === "build")){ applySnap(s, "save.restored"); return true; }
   return false;
 }
@@ -945,9 +981,9 @@ $("copyBtn").onclick = async () => {
   setTimeout(() => { $("copyBtn").textContent = t("deck.copy"); }, 2200);
 };
 
-loadSets();
-PoolSave.mountHistory("draft", $("histBox"), snap => { archiveCurrent(); applySnap(snap, "save.switched"); });
-restoreCurrent();
+if(!FROM_ROOM) loadSets();
+PoolSave.mountHistory(SAVE_KEY, $("histBox"), snap => { archiveCurrent(); applySnap(snap, "save.switched"); });
+if(!restoreCurrent() && FROM_ROOM && !PoolSave.history("room").length) location.replace("./draftroom.html");   // 組むプールが無ければ部屋の画面へ
 </script>
 <script src="./goods-widget.js?v=6" defer></script>
 </body>
