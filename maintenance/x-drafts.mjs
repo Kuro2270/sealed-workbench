@@ -14,7 +14,7 @@
  *   PREVIEW_SET=FRA node maintenance/x-drafts.mjs … そのセットの3つの文面を、記録に関係なく見るだけ（置かない・記録しない）
  *
  * 文面：1 は release-text.mjs、2・3 は動画を作ったときと同じ x-post-draft.mjs（リンクは公開した動画）。
- * 添える画像：1 はセット名入りの画像を作る（x-release-image.mjs → data/social/x-img/<SET>-release.png。サイトから見られる）、
+ * 添える画像：1 はセット名入りの画像を作る（x-release-image.mjs → data/social/x-img/<SET>-release.jpg。サイトから見られる）、
  *            2 は速報動画のサムネイル（assets/video/<SET>-ja-early.jpg）、3 は YouTube のサムネイル。
  */
 import { readFile, writeFile, mkdir, appendFile } from "node:fs/promises";
@@ -71,7 +71,7 @@ async function draft(e){
 /* 投稿に添える画像の URL（発売告知は画像を作る。dir は書き出す場所） */
 async function imageFor(e, ja, dir){
   if(e.kind === "release"){
-    const path = `${dir}/${e.set}-release.png`;
+    const path = `${dir}/${e.set}-release.jpg`;
     await makeReleaseImage(e.set, ja, path);
     return { url: `${SITE}/${path}`, path };
   }

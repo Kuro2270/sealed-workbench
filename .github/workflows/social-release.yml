@@ -33,6 +33,11 @@ jobs:
         with:
           node-version: "22"
 
+      - name: 日本語の文字と画像合成ライブラリを入れる（告知の画像を作るため）
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk
+          npm install --no-save sharp
+
       - name: 告知する
         env:
           SITE_URL: https://sealed-workbench.com
@@ -41,6 +46,15 @@ jobs:
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: node maintenance/release-post.mjs
+
+      - name: 文面の確認だけのときの画像を保存する
+        if: inputs.dry_run == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: bsky-preview
+          path: social-tmp/
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: 告知の記録を戻す
         if: always() && inputs.dry_run != true

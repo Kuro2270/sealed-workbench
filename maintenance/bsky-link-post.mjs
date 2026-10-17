@@ -37,7 +37,8 @@ export async function postBskyLink(text, card){
   if(card.image){
     try{
       const buf = await readFile(card.image);
-      const up = await fetch(`${BASE}/com.atproto.repo.uploadBlob`, { method: "POST", headers: { ...auth, "Content-Type": "image/png" }, body: buf });
+      const type = /\.jpe?g$/i.test(card.image) ? "image/jpeg" : "image/png";
+      const up = await fetch(`${BASE}/com.atproto.repo.uploadBlob`, { method: "POST", headers: { ...auth, "Content-Type": type }, body: buf });
       if(up.ok) external.thumb = (await up.json()).blob;
       else console.log(`Bluesky: カードの画像は付けずに投稿します（HTTP ${up.status}）`);
     }catch(e){ console.log("Bluesky: カードの画像は付けずに投稿します（" + e.message + "）"); }
