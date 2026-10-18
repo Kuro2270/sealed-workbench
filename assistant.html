@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <script src="./i18n.js?v=8"></script>
 <script src="./analytics.js"></script>
+<script src="./arena-ids.js?v=1"></script>
 <script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
@@ -646,13 +647,16 @@ async function ensureSet(code){
         .forEach(a => { archetypes[[...a.colors].sort().join("")] = { wr: a.wr, diff: (a.wr - avgWR) * 100 }; });
     }
   }catch(e){}
-  // カード情報（英語）
-  await scryAll(`set:${code.toLowerCase()} unique:prints`, c => addCard(c));
+  // カード情報（英語）。Scryfall に番号（arena_id）がまだ無いカードは、番号 → カード名の対応表で登録する
+  const setCards = [];
+  await scryAll(`set:${code.toLowerCase()} unique:prints`, c => { setCards.push(c); addCard(c); });
+  await addByArenaIds(setCards);
   // 日本語名
   await scryAll(`set:${code.toLowerCase()} lang:ja unique:prints`, c => {
-    const en = Object.values(cards).find(x => x.name === c.name)
-            || Object.values(cards).find(x => x.cn === c.collector_number);
-    if(en && !en.ja){ en.ja = c.printed_name || (c.card_faces?.[0]?.printed_name) || ""; en.imgJa = imgOf(c); }
+    // 同じカードに番号が複数あること（別イラスト版など）があるので、名前が同じものすべてに付ける。名前で見つからなければカード番号で
+    const same = Object.values(cards).filter(x => x.name === c.name);
+    const hits = same.length ? same : [Object.values(cards).find(x => x.cn === c.collector_number)].filter(Boolean);
+    hits.forEach(en => { if(!en.ja){ en.ja = c.printed_name || (c.card_faces?.[0]?.printed_name) || ""; en.imgJa = imgOf(c); } });
   });
   setStatus(handle || demo ? t("assist.ready", {set: code, n: Object.keys(cards).length}) : t("assist.idle"), handle ? "live" : "");
   render();
@@ -669,15 +673,16 @@ function parseMana(mana){
   }
   return { required, hybrid };
 }
-function addCard(c){
-  if(!c.arena_id) return;
-  if(cards[String(c.arena_id)]) return;              // 通常版を先に登録し、別イラスト版で上書きしない
+function addCard(c, id){
+  const aid = String(id || c.arena_id || "");     // id：Scryfall に番号が無いときに、対応表（arena-ids.js）から渡す番号
+  if(!aid) return;
+  if(cards[aid]) return;              // 通常版を先に登録し、別イラスト版で上書きしない
   const front = (c.type_line || "").split("//")[0];
   const mana = c.mana_cost || c.card_faces?.[0]?.mana_cost || "";
   const pm = parseMana(mana);
   const identity = (c.color_identity || []).filter(x => "WUBRG".includes(x));
   const reqColors = Object.keys(pm.required).filter(k => pm.required[k] > 0);
-  cards[String(c.arena_id)] = {
+  cards[aid] = {
     name: c.name, ja: "", cn: c.collector_number,
     // 色：土地は色識別（二色土地なら2色）、呪文はマナ・コストの必須シンボルの色。
     // 必須シンボルが無くハイブリッドだけのカードは、選択肢の色を持たせる（どれか1色で払える）
@@ -693,6 +698,19 @@ function addCard(c){
     mana: c.mana_cost || c.card_faces?.[0]?.mana_cost || "",
     set: (c.set || "").toUpperCase()
   };
+}
+/* Scryfall に番号がまだ無いカードを、番号 → カード名の対応表（arena-ids.js）で登録する。list はそのセットの Scryfall のカード */
+async function addByArenaIds(list){
+  await ArenaIds.load();
+  const byName = ArenaIds.byName(list);
+  let n = 0;
+  for(const [id, name] of ArenaIds.entries()){
+    if(cards[id]) continue;
+    const c = byName.get(name) || byName.get(ArenaIds.front(name));
+    if(c){ addCard(c, id); n++; }
+  }
+  if(n) log(`arena ids (17Lands list): ${n} cards added by name`);
+  return n;
 }
 async function scryAll(q, fn){
   let url = `${SCRY}/cards/search?q=${encodeURIComponent(q)}`;
@@ -712,10 +730,13 @@ const fetching = new Set();
 async function ensureCards(ids){
   const missing = ids.filter(id => !cards[id] && !fetching.has(id));
   missing.forEach(id => fetching.add(id));
+  await ArenaIds.load();
   for(const id of missing){
     try{
-      const r = await fetch(`${SCRY}/cards/arena/${id}`);
-      if(r.ok){ addCard(await r.json()); }
+      // 対応表にカード名があれば、名前で引く（Scryfall に番号がまだ無い新しいカード）。無ければ番号で引く
+      const name = ArenaIds.name(id);
+      const r = await fetch(name ? `${SCRY}/cards/named?exact=${encodeURIComponent(ArenaIds.front(name))}` : `${SCRY}/cards/arena/${id}`);
+      if(r.ok){ addCard(await r.json(), id); }
     }catch(e){}
     fetching.delete(id);
     await sleep(110);
