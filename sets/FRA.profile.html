@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>リアリティ・フラクチャー リミテッド速報版｜発売直後の傾向と、セットの形 — リミテッド・ワークベンチ</title>
-<meta name="description" content="マジック：ザ・ギャザリング アリーナ「リアリティ・フラクチャー」のリミテッド速報。発売直後の勝っている色・組み合わせと、カードの枚数から見たセットの形。確定版は勝率データが揃い次第。">
+<title>リアリティ・フラクチャー リミテッド暫定版｜カードのティア表と勝率 — リミテッド・ワークベンチ</title>
+<meta name="description" content="マジック：ザ・ギャザリング アリーナ「リアリティ・フラクチャー」のリミテッド（ドラフト・シールド）暫定版。17Lands の毎日の集計から、カードのティア表（S〜D）と勝率、強い色・組み合わせをまとめました。">
 <link rel="canonical" href="https://sealed-workbench.com/sets/FRA.profile">
 <link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/FRA.profile">
 <link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/FRA.profile.en">
-<meta property="og:title" content="リアリティ・フラクチャー リミテッド速報版｜発売直後の傾向と、セットの形">
+<meta property="og:title" content="リアリティ・フラクチャー リミテッド暫定版｜カードのティア表と勝率">
 <meta property="og:url" content="https://sealed-workbench.com/sets/FRA.profile">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
@@ -119,6 +119,22 @@
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  /* カードのティア表 */
+  .ctier input[type=radio]{position:absolute;opacity:0;pointer-events:none}
+  .ctier label{display:inline-block;font-size:12.5px;padding:6px 12px;margin:2px 4px 8px 0;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer}
+  .ctier input:checked + label{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
+  .ctier .tiers{display:none}
+  .ctier input:nth-of-type(1):checked ~ .t-mr,.ctier input:nth-of-type(2):checked ~ .t-u,.ctier input:nth-of-type(3):checked ~ .t-c{display:grid}
+  .tiers{display:grid;gap:5px}
+  .trow{display:grid;grid-template-columns:44px 1fr;gap:6px;align-items:stretch}
+  .tlab{display:flex;align-items:center;justify-content:center;border-radius:7px;font:800 20px/1 "Bricolage Grotesque",sans-serif;color:#fff}
+  .tlab.S{background:#C9472E}.tlab.A{background:#D98A1E}.tlab.B{background:#4F8A4A}.tlab.C{background:#6B7A8A}.tlab.D{background:#8C5E58}
+  .tcells{display:flex;flex-wrap:wrap;gap:5px;padding:5px;background:var(--paper-2);border-radius:7px;min-height:38px;align-items:center}
+  .tchip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--line);border-radius:7px;padding:3px 8px;font-size:13px}
+  .tchip b{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .tempty{font-size:12px;color:var(--muted);padding:0 4px}
+  .tavg{font-size:12px;color:var(--muted);margin:6px 0 0}
+  .prov{background:#FFFBEA;border:1px solid #F2C94C;border-left:6px solid #F2C94C;border-radius:10px;padding:10px 14px;margin:8px 0 14px;font-size:13.5px;line-height:1.7}
   .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
   .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#FFFFFF}.rar.mythic{background:#C4552C}
   .links ul{margin:6px 0 0;padding-left:1.2em}
@@ -160,21 +176,23 @@
       </select></div>
     <nav>
       <div class="ng"><span class="ngl">はじめに</span><span class="ngs">MTGの基本と、このサイトの使い方</span><a href="../start/index.html">MTGとは</a><a href="../start/limited.html">リミテッドとは</a></div>
-      <div class="ng"><span class="ngl">練習する</span><span class="ngs">仮想パックで練習</span><a href="../sealed.html">シールド練習</a><a href="../draft.html">ドラフト練習</a><a href="../draftroom.html">ドラフト練習（対人戦）</a></div>
+      <div class="ng"><span class="ngl">練習する</span><span class="ngs">仮想パックで練習</span><a href="../sealed.html">シールド練習</a><a href="../draft.html">ドラフト練習（CPU戦）</a><a href="../draftroom.html">ドラフト練習（対人戦）</a></div>
       <div class="ng"><span class="ngl">MTGアリーナで使う</span><span class="ngs">実戦のログを読んで助ける・PC専用</span><a href="../sealed-assist.html">シールド補助<b class="pcb">PC</b></a><a href="../assistant.html">ドラフト補助<b class="pcb">PC</b></a></div>
       <div class="ng"><span class="ngl">データを見る</span><span class="ngs">セットごとの強さ・速さを確認</span><a href="../reports.html">環境レポート</a></div>
       <div class="ng"><span class="ngl">対戦する</span><span class="ngs">友達との対戦・大会の進行</span><a href="../table.html">対戦卓</a><a href="../swiss.html">スイスドロー</a></div>
       <div class="ng"><span class="ngl">買う</span><span class="ngs">日本で買えるMTG用品</span><a href="../goods/index.html">日本のサプライ</a></div>
     </nav>
-    <h1>リアリティ・フラクチャー｜リミテッド速報版</h1>
-    <p>発売直後の速報です。順位はこの後のデータで動きます。あわせて、セットの全カードを数えた「環境の形」も載せています。</p>
+    <h1>リアリティ・フラクチャー｜リミテッド暫定版</h1>
+    <p>17Lands の毎日の集計から作った暫定版です。データが固まり次第、確定版に切り替わります。あわせて、セットの全カードを数えた「環境の形」も載せています。</p>
     <link rel="alternate" hreflang="en" href="FRA.profile.en.html">
   </div>
 </header>
 <main>
 <article class="mode">
-  
-<section class="early-note"><h3>速報（10月8日 時点・17Lands のデータより）</h3><p>発売直後の約36万試合（ドラフト＋シールド）では、最も勝っている組み合わせは白青（57.1%）、次いで青黒（56.7%）。単色では青が最も安定しています。コモンでは《欠席の延長》の勝率が頭ひとつ抜けています。順位はこの後のデータで動きます。</p><div class="etop"><h4>コモンのトップ3</h4><ul><li><img src="https://cards.scryfall.io/normal/front/5/a/5a65792e-1a86-41fb-b82d-951936bccf17.jpg?1790682468" alt="欠席の延長" loading="lazy" width="146" height="204"><span>欠席の延長</span></li><li><img src="https://cards.scryfall.io/normal/front/2/b/2bc8d568-162a-4450-90a0-4559c0681692.jpg?1790681505" alt="外科的精密性" loading="lazy" width="146" height="204"><span>外科的精密性</span></li><li><img src="https://cards.scryfall.io/normal/front/d/7/d7b58e5b-efa5-4234-8b11-8152e0d57634.jpg?1790681981" alt="弟子の覚醒" loading="lazy" width="146" height="204"><span>弟子の覚醒</span></li></ul></div><div class="etop"><h4>アンコモンのトップ3</h4><ul><li><img src="https://cards.scryfall.io/normal/front/3/4/34e76ec1-93f5-4a95-b517-0a5821c497be.jpg?1790685149" alt="繰り返される徴用" loading="lazy" width="146" height="204"><span>繰り返される徴用</span></li><li><img src="https://cards.scryfall.io/normal/front/b/4/b47047f9-5f7f-4016-9058-a1d92777883f.jpg?1790684597" alt="工芸品の破壊屋" loading="lazy" width="146" height="204"><span>工芸品の破壊屋</span></li><li><img src="https://cards.scryfall.io/normal/front/6/2/622944f9-6ba1-41d5-a60e-4db2c41bdf7e.jpg?1790687934" alt="炎と灰のキオーラ" loading="lazy" width="146" height="204"><span>炎と灰のキオーラ</span></li></ul></div><p class="when">確定版（全カードの勝率と環境レポート）は、データが固まり次第、このページから自動で切り替わります。</p></section>
+  <h2>ドラフト <small>総試合数 580,156／全体勝率 54.7%</small></h2>
+  <p class="built">集計 2026-10-18</p>
+  <p class="prov"><b>暫定版</b>　17Lands の毎日の集計（2026-10-18 時点）から作っています。データが固まり次第、確定版に切り替わります。</p>
+  <p class="summary">リアリティ・フラクチャーのドラフトは580,156試合のデータで、全体勝率は54.7%。色は青（55.1%）と黒（54.7%）が強く、2色の組み合わせでは白青が56.6%で最強、赤緑が55.3%で最弱です。カード単位ではコモンは「精神追いの眼」、アンコモンは「重圧による崩壊」、レアは「聖域に潜むもの」が最も勝率が高いカードです。</p>
 <section class="video"><div class="yt" data-id="GEsQ0vuJVQc">
     <img src="/assets/video/FRA-ja-early.jpg" alt="【リアリティ・フラクチャー】速報！発売直後のリミテッド環境を1分で｜MTGアリーナ #Shorts" loading="lazy" width="270" height="480">
     <button type="button" aria-label="再生"><span></span></button>
@@ -186,6 +204,126 @@
   <script>document.querySelectorAll(".video .yt button").forEach(function(btn){ if(btn.dataset.wired) return; btn.dataset.wired="1"; btn.addEventListener("click",function(){var b=this.parentNode,f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+b.dataset.id+"?autoplay=1&playsinline=1";f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title=this.getAttribute("aria-label");b.innerHTML="";b.appendChild(f);});});</script>
 </section>
 
+  <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
+    <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>青</td><td class="num"><b>55.1%</b></td><td class="num">310,365</td></tr>
+    <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>黒</td><td class="num"><b>54.7%</b></td><td class="num">259,571</td></tr>
+    <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>緑</td><td class="num"><b>54.3%</b></td><td class="num">250,193</td></tr>
+    <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>赤</td><td class="num"><b>54.3%</b></td><td class="num">229,887</td></tr>
+    <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>白</td><td class="num"><b>54.2%</b></td><td class="num">224,338</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>色の組み合わせ</h3><p class="lead">2色の組み合わせごとの勝率です。試合数の多い順に並べています。</p>
+    <table><thead><tr><th>色の組み合わせ</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>青黒</td><td class="num"><b>55.8%</b></td><td class="num">82,267</td></tr>
+    <tr><td>白青</td><td class="num"><b>56.6%</b></td><td class="num">71,698</td></tr>
+    <tr><td>赤緑</td><td class="num"><b>55.3%</b></td><td class="num">55,999</td></tr>
+    <tr><td>青赤</td><td class="num"><b>55.3%</b></td><td class="num">46,953</td></tr>
+    <tr><td>黒緑</td><td class="num"><b>55.3%</b></td><td class="num">38,939</td></tr>
+    <tr><td>青黒緑</td><td class="num"><b>55.3%</b></td><td class="num">21,404</td></tr>
+    <tr><td>黒赤緑</td><td class="num"><b>55.0%</b></td><td class="num">15,204</td></tr>
+    <tr><td>赤緑青</td><td class="num"><b>54.9%</b></td><td class="num">12,862</td></tr>
+    <tr><td>青</td><td class="num"><b>55.0%</b></td><td class="num">3,091</td></tr>
+    <tr><td>白</td><td class="num"><b>56.5%</b></td><td class="num">1,831</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>マナ総量ごとの勝率</h3><p class="lead">そのマナ総量のカードが手札か戦場にあった試合の勝率です。</p>
+    <table><thead><tr><th>マナ総量</th><th class="num">勝率</th><th class="num">種類数</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>1</td><td class="num"><b>55.8%</b></td><td class="num">9</td><td class="num">10,435</td></tr>
+    <tr><td>2</td><td class="num"><b>55.4%</b></td><td class="num">49</td><td class="num">75,636</td></tr>
+    <tr><td>3</td><td class="num"><b>55.6%</b></td><td class="num">43</td><td class="num">55,561</td></tr>
+    <tr><td>4</td><td class="num"><b>56.3%</b></td><td class="num">22</td><td class="num">33,128</td></tr>
+    <tr><td>5</td><td class="num"><b>55.6%</b></td><td class="num">11</td><td class="num">15,775</td></tr>
+    <tr><td>6</td><td class="num"><b>56.3%</b></td><td class="num">7</td><td class="num">14,146</td></tr>
+    <tr><td>7+</td><td class="num"><b>57.0%</b></td><td class="num">4</td><td class="num">3,450</td></tr>
+    </tbody></table>
+  </section>
+  <section class="ctier"><h3>カードのティア表</h3><p class="lead">全カードの勝率（GIH勝率）の分布から、S〜Dの5段階に分けました。レアリティが違っても、同じランクなら同じくらいの強さです。500試合以上のカードに限っています。</p><input type="radio" name="ct-draft" id="ct-draft-mr" checked><label for="ct-draft-mr">神話レア・レア</label><input type="radio" name="ct-draft" id="ct-draft-u"><label for="ct-draft-u">アンコモン</label><input type="radio" name="ct-draft" id="ct-draft-c"><label for="ct-draft-c">コモン</label>
+    <div class="tiers t-mr"><div class="trow"><div class="tlab S">S</div><div class="tcells"><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>聖域に潜むもの<b>63.2%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>絶無の召喚士<b>61.9%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>変数の追跡者<b>61.8%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>転用された執行人<b>61.6%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>誤謬結論のスフィンクス<b>61.2%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>現実を彫る者、ジェイス<b>61.1%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>鋭き一瞥、ヴラスカ<b>60.9%</b></span><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>リッチの秘宝<b>60.6%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>同族の審判<b>60.3%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>潜在能力の試験官<b>59.9%</b></span></div></div><div class="trow"><div class="tlab A">A</div><div class="tcells"><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>トレイリアの大天使、ライラ<b>59.5%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>身代わりの形成師<b>59.1%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>人喰い植物の耕作者<b>57.9%</b></span><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>悔いし者、リリアナ<b>57.2%</b></span></div></div><div class="trow"><div class="tlab B">B</div><div class="tcells"><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>勝利の預言者<b>55.2%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>ジェイスの策謀<b>55.0%</b></span></div></div><div class="trow"><div class="tlab C">C</div><div class="tcells"><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>理論家の代理<b>52.6%</b></span></div></div><div class="trow"><div class="tlab D">D</div><div class="tcells"><span class="tempty">—</span></div></div></div>
+    <div class="tiers t-u"><div class="trow"><div class="tlab S">S</div><div class="tcells"><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>重圧による崩壊<b>60.6%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>原初の魔女跡追い<b>60.4%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>工芸品の破壊屋<b>60.3%</b></span><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>ゼロ乗算<b>60.1%</b></span></div></div><div class="trow"><div class="tlab A">A</div><div class="tcells"><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>炎と灰のキオーラ<b>59.6%</b></span><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>後悔の書き直し<b>59.1%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>砂漠の牙、ハパチラ<b>58.9%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>激突する元素<b>58.3%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>気前のよい蘇生<b>58.2%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>対抗刻彫<b>58.1%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>繰り返される徴用<b>58.1%</b></span><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>大音響のフォルテ<b>58.0%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>道を知る者、フブルスプ<b>57.9%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>スティンガークイルの音声術士<b>57.8%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>名探偵、プロフト<b>57.8%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>準備万端な計画<b>57.7%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>必死の未来書記<b>57.7%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>極端な迷い子、フブルスプ<b>57.6%</b></span><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>暴力的なこだま<b>57.6%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>ヴィゴーブルームの魔除け<b>57.2%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>光盾の熟練者、テヨ<b>57.0%</b></span></div></div><div class="trow"><div class="tlab B">B</div><div class="tcells"><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>常に友と、ジアン・ヤングー<b>56.9%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>精神蛇行者<b>56.8%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>精神を刻む者としての歩み<b>56.7%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>癒し手としての歩み<b>56.4%</b></span><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>乱伐者、マーウィン<b>56.4%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>ねじれた宿命<b>56.3%</b></span><span class="tchip"><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>書庫の調停者<b>56.0%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>セオリクスの魔除け<b>56.0%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>ヴィゴーブルームの先兵<b>55.9%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>フェイトホールドの魔除け<b>55.9%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>生命大魔術師、ルーリク・サー<b>55.9%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>暴れ咲き花<b>55.9%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>パラドックスとしての歩み<b>55.9%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>監視の領事、サヒーリ<b>55.9%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>逃亡者、梅澤哲子<b>55.5%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>聖サリアの霊<b>55.5%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>汝の宿命の終焉<b>55.3%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>魂木の造り手<b>55.2%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>オルゾフの法魔道士、トミク<b>55.2%</b></span><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>悲しきもてなし役、ガリア<b>54.5%</b></span><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>決意の再建者、ピア<b>54.4%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>アヴィシュカーの宝石、サヒーリ<b>54.3%</b></span></div></div><div class="trow"><div class="tlab C">C</div><div class="tcells"><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>ポケットのお邪魔虫、チビボネ<b>54.0%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>共感による復元<b>54.0%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>争い好きの野良犬、義丸<b>53.9%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>用意周到な運命占い<b>53.8%</b></span><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>悪意ある首謀者、プロフト<b>53.8%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>第一対応者、救命少女<b>53.7%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>冷術師としての歩み<b>53.6%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>故郷に生きるコス<b>53.4%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>戦士の刃<b>53.2%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>予言されし終焉<b>53.1%</b></span><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>苛まれし一匹狼、ウィンター<b>53.0%</b></span><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>追跡者、梅澤哲子<b>53.0%</b></span><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>憎しみの世捨て、メイブル<b>52.8%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>アカデミーの守護者、トラクソス<b>52.8%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>保全者、マーウィン<b>52.6%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>スティンガークイルの魔除け<b>52.6%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>パラドックスの形成師<b>52.5%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>生存者、サリア<b>52.4%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>砂漠の霜、ハパチラ<b>52.3%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>とどめ得ぬもの、ガルタ<b>52.3%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>謙虚な書記、アーニ<b>51.8%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>結節点、おたから<b>51.6%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>魔道士壊し、ルーリク・サー<b>51.4%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>木工の神童<b>51.2%</b></span></div></div><div class="trow"><div class="tlab D">D</div><div class="tcells"><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>野生語りとしての歩み<b>51.1%</b></span><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>大将軍としての歩み<b>50.4%</b></span><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>紅蓮術師としての歩み<b>49.9%</b></span><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>イゼットの火花魔道士、トミク<b>48.3%</b></span></div></div></div>
+    <div class="tiers t-c"><div class="trow"><div class="tlab S">S</div><div class="tcells"><span class="tempty">—</span></div></div><div class="trow"><div class="tlab A">A</div><div class="tcells"><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>精神追いの眼<b>59.6%</b></span><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>欠席の延長<b>57.8%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>対なす幻視<b>57.6%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>弟子の覚醒<b>57.5%</b></span></div></div><div class="trow"><div class="tlab B">B</div><div class="tcells"><span class="tchip"><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>静寂時間の番人<b>56.8%</b></span><span class="tchip"><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>つぶやく書物<b>56.8%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>スフィンクスの接近<b>56.6%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>祝福されしグール<b>56.5%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>救急植療士<b>56.5%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>諜報する幻<b>56.4%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>虚空の外挿者<b>56.4%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>預言する決闘者<b>56.4%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>無限に続く課題<b>56.3%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>外科的精密性<b>56.2%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>ヘクスヘイヴン大隊<b>56.2%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>タムの抵抗術<b>56.0%</b></span><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>生臭いネズミ<b>56.0%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>殴打蔦の達人<b>56.0%</b></span><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>入場不可<b>55.9%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>救う価値あり<b>55.6%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>破壊ヤモリ<b>55.4%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>秘儀の両頭蛇<b>55.3%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>氷の歓迎<b>55.1%</b></span><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>最強の魔女跡追い<b>55.0%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>花開く祝福の天使<b>55.0%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>はためく目撃者<b>54.9%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>記憶の罠<b>54.9%</b></span><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>業火の覚醒<b>54.9%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>ひるまぬ園芸術士<b>54.9%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>送還<b>54.8%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>獣の乱入<b>54.4%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>温室の繁殖者<b>54.4%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>フェイトホールドの年代学者<b>54.3%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>運命造形師の野心家<b>54.3%</b></span><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>最後の喘ぎ<b>54.2%</b></span><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>理論派の屍術士<b>54.1%</b></span></div></div><div class="trow"><div class="tlab C">C</div><div class="tcells"><span class="tchip"><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>佇想の歩哨<b>53.8%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>セオリクスの変転魔道士<b>53.8%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>狩りという暴挙<b>53.7%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>構内の触れ役<b>53.7%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>コンストラリの急造者<b>53.7%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>学期の先見者<b>53.6%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>蛮行の強制<b>53.5%</b></span><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>こだまを静寂に<b>53.4%</b></span><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>血のたてがみの怒り<b>53.4%</b></span><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>琴線を引く者<b>53.4%</b></span><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>技量ある彫闘士<b>53.2%</b></span><span class="tchip"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>凍結理論の達人<b>52.5%</b></span><span class="tchip"><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>医学生の帆凧<b>52.5%</b></span><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>繋操術の技師<b>52.4%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>閃いた繋操魔道士<b>51.4%</b></span></div></div><div class="trow"><div class="tlab D">D</div><div class="tcells"><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>疑念の廃却<b>51.1%</b></span><span class="tchip"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>廊下の野次飛ばし<b>51.1%</b></span><span class="tchip"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>チャンドラの熾火仔<b>50.9%</b></span><span class="tchip"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>必中の播種者<b>50.9%</b></span><span class="tchip"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>金切り声の魂砕き<b>50.7%</b></span><span class="tchip"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>砕け翼のペガサス<b>49.5%</b></span></div></div></div>
+    <p class="tavg">全カードの平均 55.5%</p>
+  </section>
+  <section><h3>カード点数ランキング（レアリティ別）</h3><p class="lead">カードの「点数」は、実際の勝率（GIH勝率：そのカードが手札か戦場にあった試合の勝率）で見ます。高いほど強いカードです。レアリティごとに高い順に並べています。</p>
+    <div class="grid">
+      <div><h3><span class="rar rare">レア</span></h3>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>聖域に潜むもの</td><td class="num"><b>63.2%</b></td><td class="num">604</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>絶無の召喚士</td><td class="num"><b>61.9%</b></td><td class="num">724</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>変数の追跡者</td><td class="num"><b>61.8%</b></td><td class="num">523</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>転用された執行人</td><td class="num"><b>61.6%</b></td><td class="num">567</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>誤謬結論のスフィンクス</td><td class="num"><b>61.2%</b></td><td class="num">662</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>現実を彫る者、ジェイス</td><td class="num"><b>61.1%</b></td><td class="num">566</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>鋭き一瞥、ヴラスカ</td><td class="num"><b>60.9%</b></td><td class="num">522</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>リッチの秘宝</td><td class="num"><b>60.6%</b></td><td class="num">644</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>同族の審判</td><td class="num"><b>60.3%</b></td><td class="num">600</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>潜在能力の試験官</td><td class="num"><b>59.9%</b></td><td class="num">556</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar uncommon">アンコモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>重圧による崩壊</td><td class="num"><b>60.6%</b></td><td class="num">1,843</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>原初の魔女跡追い</td><td class="num"><b>60.4%</b></td><td class="num">1,321</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>工芸品の破壊屋</td><td class="num"><b>60.3%</b></td><td class="num">1,528</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>ゼロ乗算</td><td class="num"><b>60.1%</b></td><td class="num">1,649</td></tr>
+      <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>炎と灰のキオーラ</td><td class="num"><b>59.6%</b></td><td class="num">1,537</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>後悔の書き直し</td><td class="num"><b>59.1%</b></td><td class="num">1,711</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>砂漠の牙、ハパチラ</td><td class="num"><b>58.8%</b></td><td class="num">1,611</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>激突する元素</td><td class="num"><b>58.3%</b></td><td class="num">1,368</td></tr>
+      <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>気前のよい蘇生</td><td class="num"><b>58.2%</b></td><td class="num">1,004</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>対抗刻彫</td><td class="num"><b>58.1%</b></td><td class="num">2,070</td></tr>
+      </tbody></table></div>
+      <div><h3><span class="rar common">コモン</span></h3>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>精神追いの眼</td><td class="num"><b>59.6%</b></td><td class="num">4,292</td></tr>
+      <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>欠席の延長</td><td class="num"><b>57.8%</b></td><td class="num">3,817</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>対なす幻視</td><td class="num"><b>57.7%</b></td><td class="num">3,769</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>弟子の覚醒</td><td class="num"><b>57.5%</b></td><td class="num">3,592</td></tr>
+      <tr><td><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>静寂時間の番人</td><td class="num"><b>56.8%</b></td><td class="num">2,665</td></tr>
+      <tr><td><i class="ms ms-cost ms-c mfi" aria-hidden="true"></i>つぶやく書物</td><td class="num"><b>56.8%</b></td><td class="num">2,886</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>スフィンクスの接近</td><td class="num"><b>56.6%</b></td><td class="num">1,784</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>祝福されしグール</td><td class="num"><b>56.5%</b></td><td class="num">1,193</td></tr>
+      <tr><td><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i>救急植療士</td><td class="num"><b>56.5%</b></td><td class="num">1,234</td></tr>
+      <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>諜報する幻</td><td class="num"><b>56.4%</b></td><td class="num">3,807</td></tr>
+      </tbody></table></div>
+    </div>
+  </section>
+</article>
+<article class="mode">
+  <h2>シールド <small>総試合数 64,466／全体勝率 56.4%</small></h2>
+  <p class="built">集計 2026-10-18</p>
+  <p class="prov"><b>暫定版</b>　17Lands の毎日の集計（2026-10-18 時点）から作っています。データが固まり次第、確定版に切り替わります。</p>
+  <p class="summary">リアリティ・フラクチャーのシールドは64,466試合のデータで、全体勝率は56.4%。色は青（57.2%）と黒（56.5%）が強く、2色の組み合わせでは白青が59.0%で最強、白黒が56.0%で最弱です。</p>
+
+  <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
+    <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i>青</td><td class="num"><b>57.2%</b></td><td class="num">31,549</td></tr>
+    <tr><td><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i>黒</td><td class="num"><b>56.5%</b></td><td class="num">31,565</td></tr>
+    <tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>白</td><td class="num"><b>55.9%</b></td><td class="num">28,580</td></tr>
+    <tr><td><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i>赤</td><td class="num"><b>55.8%</b></td><td class="num">30,404</td></tr>
+    <tr><td><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i>緑</td><td class="num"><b>55.8%</b></td><td class="num">31,827</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>色の組み合わせ</h3><p class="lead">2色の組み合わせごとの勝率です。試合数の多い順に並べています。</p>
+    <table><thead><tr><th>色の組み合わせ</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>青黒</td><td class="num"><b>57.6%</b></td><td class="num">5,842</td></tr>
+    <tr><td>白青</td><td class="num"><b>59.0%</b></td><td class="num">5,601</td></tr>
+    <tr><td>黒赤緑</td><td class="num"><b>57.4%</b></td><td class="num">3,868</td></tr>
+    <tr><td>黒緑</td><td class="num"><b>57.9%</b></td><td class="num">3,734</td></tr>
+    <tr><td>青赤</td><td class="num"><b>57.2%</b></td><td class="num">3,710</td></tr>
+    <tr><td>白青黒</td><td class="num"><b>57.1%</b></td><td class="num">3,216</td></tr>
+    <tr><td>白黒</td><td class="num"><b>56.0%</b></td><td class="num">2,491</td></tr>
+    <tr><td>青黒赤</td><td class="num"><b>57.2%</b></td><td class="num">2,449</td></tr>
+    <tr><td>赤白</td><td class="num"><b>57.1%</b></td><td class="num">2,373</td></tr>
+    <tr><td>緑青</td><td class="num"><b>57.3%</b></td><td class="num">2,308</td></tr>
+    </tbody></table>
+  </section>
+  <section><h3>カード点数ランキング（レアリティ別）</h3><p class="lead">カードの「点数」は、実際の勝率（GIH勝率：そのカードが手札か戦場にあった試合の勝率）で見ます。高いほど強いカードです。レアリティごとに高い順に並べています。</p>
+    <div class="grid">
+    </div>
+  </section>
+</article>
+<article class="mode">
+  
   <section><h3>色ごとの中身（コモン・アンコモン）</h3><p class="lead">単色のコモン・アンコモンだけを数えています。除去と飛行が多い色は、序盤から主導権を取りやすい色です。</p>
   <div style="overflow-x:auto"><table><thead><tr><th>色</th><th class="num">枚数</th><th class="num">クリーチャー</th><th class="num">除去</th><th class="num">飛行</th><th class="num">コンバットトリック</th><th class="num">ドロー</th><th class="num">平均サイズ</th><th class="num">平均マナ</th></tr></thead>
   <tbody><tr><td><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i>白</td>
@@ -273,7 +411,7 @@
   <li><a href="../sealed.html?set=FRA">このセットでシールド練習</a>／<a href="../draft.html?set=FRA">このセットでドラフト練習</a></li>
   <li><a href="FRA.html">環境レポート（データが揃い次第）</a></li>
 </ul></section>
-<p class="source">カード情報：Scryfall。集計は当サイト。</p>
+<p class="source">勝率：17Lands の毎日の集計（暫定）。カード情報：Scryfall。集計は当サイト。</p>
 <div id="goodsStrip"></div>
 <script src="../goods-widget.js?v=6" defer></script>
 </main>
