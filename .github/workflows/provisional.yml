@@ -3,8 +3,8 @@ name: データ｜暫定版の勝率（自動・毎日）
 # 公開データセットがまだ出ていない新セットについて、17Lands の毎日の集計から「暫定版」の環境レポートを作る。
 #   ・対象：紙の発売から12〜60日で、確定版（data/articles/<SET>_<mode>.json）がまだ無いセット
 #     （17Lands の利用ガイドラインで、サイトへの掲載は発売12日目から）
-#   ・作るもの：data/provisional/<SET>_<mode>.json（環境レポートの画面が読む）、data/ratings/<SET>_<mode>.json（勝率一覧・練習ツール）、
-#     下見ページ（sets/<SET>.profile.html）を「暫定版」にして作り直す
+#   ・作るもの：data/provisional/<SET>_<mode>.json（環境レポートの画面・セット別ページが読む）、data/ratings/<SET>_<mode>.json（勝率一覧・練習ツール・補助）、
+#     セット別ページ（sets/<SET>.html。公開データのセットと同じ作り）と、下見の一覧（data/profiles/index.json）の印
 #   ・確定版ができたセットの暫定版は、ここで消す。確定版のファイルには触らない
 # 役割はこれだけ。確定版は「データ｜2 勝率データ集計」が作る。
 
@@ -44,19 +44,19 @@ jobs:
           SETS="$(node maintenance/build-provisional.mjs "${SET_CODE:---auto}")" || echo "::warning::一部のセット・形式を作れませんでした（ログを確認）"
           echo "sets=$(echo $SETS)" >> "$GITHUB_OUTPUT"
 
-      - name: 下見ページを暫定版に作り直す
+      - name: セット別ページを作り直す
         if: steps.prov.outputs.sets != ''
         env:
           SITE_URL: https://sealed-workbench.com
         run: |
-          for S in ${{ steps.prov.outputs.sets }}; do node maintenance/build-set-profile.mjs "$S"; done
-          node maintenance/build-set-pages.mjs     # セット一覧の「暫定版」の表示
+          for S in ${{ steps.prov.outputs.sets }}; do node maintenance/build-set-profile.mjs "$S"; done   # 下見の一覧に、勝率があるセットの印を付ける
+          node maintenance/build-set-pages.mjs     # sets/<SET>.html とセット一覧
 
       - name: コミット
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          for P in data/provisional data/ratings data/profiles sets; do [ -e "$P" ] && git add -A "$P"; done
+          for P in data/provisional data/ratings data/profiles data/names sets; do [ -e "$P" ] && git add -A "$P"; done
           if git diff --staged --quiet; then
             echo "変わったものはありません。"
             exit 0

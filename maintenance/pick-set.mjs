@@ -4,7 +4,7 @@
  *
  *   node maintenance/pick-set.mjs early     … 先行版：発売前後（紙の発売の20日前〜14日後）で、先行版の動画がまだ無い、いちばん新しいセット
  *   node maintenance/pick-set.mjs legacy    … 旧版（本編ショート）：記事データ（data/articles）がある、いちばん新しいセット
- *   node maintenance/pick-set.mjs long      … 長尺：記事データがあって、長尺（data/long.json）がまだ無い、いちばん新しいセット
+ *   node maintenance/pick-set.mjs long      … 長尺：記事データ（確定版か暫定版）があって、長尺（data/long.json）がまだ無い、いちばん新しいセット
  *   node maintenance/pick-set.mjs early-note … 速報メモ：発売前後で、速報メモ（data/early）がまだ無い、いちばん新しいセット
  *
  * 決まればセットコードを標準出力に1行出す。決まらなければ何も出さずに終了コード 2。
@@ -47,8 +47,13 @@ if(KIND === "early" || KIND === "early-note"){
   pick = articleSets[0] || null; why = pick ? `記事データがある、いちばん新しいセット` : "記事データのあるセットがありません";
 }else if(KIND === "long"){
   const long = await readJson("data/long.json", {});
-  pick = articleSets.find(c => !(long[c] && long[c].ja && long[c].ja.id)) || null;
-  why = pick ? `記事データがあって、長尺がまだ無い、いちばん新しいセット` : "長尺がまだ無いセットはありません";
+  // 暫定版（data/provisional）しか無いセットも候補にする。発売日は下見の一覧から
+  const rel = { ...byRelease };
+  for(const p of (await readJson("data/profiles/index.json", { profiles: [] })).profiles || []) if(p.set && p.released_at && !rel[p.set]) rel[p.set] = p.released_at;
+  const prov = (await readdir("data/provisional").catch(() => [])).map(f => (f.match(/^([A-Z0-9]+)_draft\.json$/) || [])[1]).filter(Boolean);
+  const cands = [...new Set([...articleSets, ...prov])].sort((a, b) => String(rel[b] || "").localeCompare(String(rel[a] || "")));
+  pick = cands.find(c => !(long[c] && long[c].ja && long[c].ja.id)) || null;
+  why = pick ? `記事データ（確定版か暫定版）があって、長尺がまだ無い、いちばん新しいセット` : "長尺がまだ無いセットはありません";
 }else{ console.error("使い方: node maintenance/pick-set.mjs early|early-note|legacy|long"); process.exit(1); }
 
 if(!pick){ console.error(`自動では決められませんでした：${why}。セットコードを入れて実行してください。`); process.exit(2); }

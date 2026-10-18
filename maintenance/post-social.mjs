@@ -28,6 +28,7 @@ import { readFile, readdir, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import crypto from "node:crypto";
 import { xLength, fit } from "./x-text.mjs";
+import { loadArticle } from "./report-data.mjs";
 
 // Scryfall は送信元を名乗らないアクセスを拒否するので、必ずこのヘッダーを付ける
 const SCRY_HEADERS = { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)", Accept: "application/json" };
@@ -78,6 +79,11 @@ async function latestSet(){
   const index = await readJson("data/articles/index.json", null);
   if(!index) return null;
   const drafts = index.articles.filter(a => a.mode === "draft");
+  // 公開データがまだ出ていない新しいセット（17Lands の毎日の集計の記事 data/provisional がある）も候補にする
+  for(const f of await readdir("data/provisional").catch(() => [])){
+    const m = f.match(/^([A-Z0-9]+)_draft\.json$/);
+    if(m && !drafts.some(a => a.set === m[1])) drafts.push({ set: m[1], mode: "draft", released_at: "" });
+  }
   // 発売日は index.json に無ければ data/names/<SET>.json から補う
   for(const a of drafts){
     if(!a.released_at){ const n = await readJson(`data/names/${a.set}.json`, null); if(n && n.released_at) a.released_at = n.released_at; }
@@ -111,7 +117,9 @@ async function fetchJaNames(code){
   // 出来事・両面カードは「表 // 裏」の形なので、表の名前でも引けるようにする。
   // 日本語名も表の面のものを使う（「表 // 裏」のまま出さない）。
   const front = s => String(s || "").split(" // ")[0].trim();
-  const jaOf = c => (c.card_faces && c.card_faces[0] && c.card_faces[0].printed_name) || front(c.printed_name);
+  // 日本語名に付いているふりがな（例：「量（りょう）子（し）」）は外す（Scryfall の日本語版の名前に入っているセットがある）
+  const noRuby = t => String(t || "").replace(/([\u4E00-\u9FFF々〆ヵヶ])[（(][\u3041-\u3096ー]+[）)]/g, "$1");
+  const jaOf = c => noRuby((c.card_faces && c.card_faces[0] && c.card_faces[0].printed_name) || front(c.printed_name));
   const jaByCn = {}, jaByName = {};
   ja.forEach(c => {
     const p = jaOf(c);
@@ -172,8 +180,8 @@ const pickMap = (...maps) => maps.find(filled) || {};
 async function setContext(code){
   const ja = await setNamesJa();
   const names = await ensureNames(code);
-  const draft = await readJson(`data/articles/${code}_draft.json`, null);
-  const sealed = await readJson(`data/articles/${code}_sealed.json`, null);
+  const draft = await loadArticle(code, "draft");       // 公開データの記事。無ければ 17Lands の毎日の集計の記事
+  const sealed = await loadArticle(code, "sealed");
   return {
     code,
     name: { ja: ja[code.toLowerCase()] || names.set || code, en: names.set || code },
@@ -213,7 +221,7 @@ function weeklyPost(ctx, lang, theme, track){
     lines = [head, ""];
     picCards = topBy(d, rar, 5);
     topBy(d, rar, 5).forEach((c, i) => lines.push(`~${i + 1}. ${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`));
-    lines.push("", L ? "~GIH勝率＝そのカードが手札か戦場にあった試合の勝率（17Lands公開データを集計）" : "~GIH = games-in-hand win rate, from 17Lands public data");
+    lines.push("", L ? `~GIH勝率＝そのカードが手札か戦場にあった試合の勝率（${d.provisional ? "17Landsのデータ" : "17Lands公開データ"}を集計）` : `~GIH = games-in-hand win rate, from ${d.provisional ? "17Lands data" : "17Lands public data"}`);
   }else if(theme === 2){
     const rows = (d.archetypes || []).filter(a => a.games >= 2000 && a.colors.length === 2).sort((a, b) => b.wr - a.wr).slice(0, 5);
     const head = L ? `【${nm} ドラフト】勝率の高い色の組み合わせ` : `${nm} Draft — best colour pairs by win rate`;
@@ -221,6 +229,8 @@ function weeklyPost(ctx, lang, theme, track){
     rows.forEach((a, i) => lines.push(`~${i + 1}. ${a.colors.split("").map(k => COLOR[lang][k]).join(L ? "" : "")} ${pct(a.wr)}`));
     lines.push("", L ? "~2,000試合以上の組み合わせから。全体平均は" + pct(d.overall_win_rate) : "~Pairs with 2,000+ games. Format average " + pct(d.overall_win_rate));
   }else{
+    // 環境の速さは試合ごとのデータから作る。17Lands の毎日の集計で作った記事には無いので、その週は色の組み合わせにする
+    if(!(d.speed || []).some(s => s.wr != null)) return weeklyPost(ctx, lang, 2, track);
     const best = (d.speed || []).filter(s => s.wr != null).sort((a, b) => b.wr - a.wr)[0];
     const label = { fast: L ? "速い（平均マナ総量2.9未満）" : "fast (avg. MV under 2.9)", mid: L ? "中速（3.2未満）" : "midrange (under 3.2)", slow: L ? "遅い（3.5未満）" : "slow (under 3.5)", slower: L ? "かなり遅い（3.5以上）" : "very slow (3.5+)" }[best?.key] || "";
     const head = L ? `【${nm} ドラフト】環境の速さ` : `${nm} Draft — format speed`;
@@ -276,7 +286,7 @@ function videoPost(ctx, lang, track, withVideo = !!VIDEO_FILE){
     const lines = [
       L ? `【${nm}】速報！発売直後のリミテッド環境を1分で${withVideo ? "" : "（動画）"}` : `${nm} Limited: early look in 60 seconds${withVideo ? "" : " (video)"}`,
       "",
-      L ? `17Lands の発売直後のデータ（ドラフト＋シールド）から、強い色・2色の組み合わせ・コモン／アンコモンのトップを速報でまとめました。確定版はデータが固まり次第。` : `Strongest colours, best pairs and top commons/uncommons from the first days of 17Lands data. Full review once the data is final.`,
+      L ? `17Lands の発売直後のデータ（ドラフト＋シールド）から、強い色・2色の組み合わせ・コモン／アンコモンのトップを速報でまとめました。全カードの勝率は発売12日目からサイトで見られます。` : `Strongest colours, best pairs and top commons/uncommons from the first days of 17Lands data. Every card's win rate goes up on the site from day 12.`,
       "",
       withVideo ? null : `https://www.youtube.com/shorts/${id}`,
       L ? `シールド／ドラフトの構築練習 ${SITE}/?from=${track}` : `Sealed / Draft practice: ${SITE}/?from=${track}`,

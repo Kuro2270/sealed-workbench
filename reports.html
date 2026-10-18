@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
-<script src="./i18n.js?v=7"></script>
+<script src="./i18n.js?v=8"></script>
 <script src="./analytics.js"></script>
 <script src="./tip.js" defer></script>
 <script src="./trophies.js?v=10"></script>
@@ -230,9 +230,6 @@
   .ccolors{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 12px}
   .ccolors .lbl{font-size:12.5px;color:var(--muted);margin-right:2px}
   .ccolors .chip{padding:6px 10px}
-  /* 暫定版の案内 */
-  .prov{background:#FFFBEA;border:1px solid #F2C94C;border-left:6px solid #F2C94C;border-radius:10px;padding:12px 16px;margin:0 0 22px;font-size:13.5px;line-height:1.7}
-  .prov b{color:#2A3B4C}
   /* カード表の絞り込み */
   .cfilter{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 14px}
   .cfilter .chips{margin:0}
@@ -504,7 +501,7 @@ async function loadIndex(){
     // 下見だけのセット（勝率データ待ち）も選べるようにする
     try{
       const pr = await fetch("./data/profiles/index.json", {cache:"no-cache"});
-      if(pr.ok){ const pj = await pr.json(); profileOnly = (pj.profiles || []).map(x => x.set).filter(c => !index.some(a => a.set === c)); profileRel = Object.fromEntries((pj.profiles || []).map(x => [x.set, x.released_at || ""])); }
+      if(pr.ok){ const pj = await pr.json(); profileOnly = (pj.profiles || []).map(x => x.set).filter(c => !index.some(a => a.set === c)); profileRel = Object.fromEntries((pj.profiles || []).map(x => [x.set, x.released_at || ""])); withData = (pj.profiles || []).filter(x => x.provisional).map(x => x.set); }
     }catch(e){}
     renderSetOptions();
     const want = new URLSearchParams(location.search).get("set");
@@ -519,7 +516,7 @@ async function loadIndex(){
   }
 }
 
-let profileOnly = [], profileRel = {};
+let profileOnly = [], profileRel = {}, withData = [];
 function renderSetOptions(){
   const sel = $("setSelect"), keep = sel.value;
 
@@ -989,20 +986,19 @@ function render(){
 
   const out = [];
 
-  // 暫定版（確定版のデータが出るまでの間）
-  if(d.provisional){
-    out.push(`<div class="prov"><b>${esc(t("reports.prov.h"))}</b>　${esc(t("reports.prov.body", {d: new Date(d.data_generated_at).toLocaleDateString(I18N.isJa() ? "ja-JP" : "en-US")}))}</div>`);
-  }
-
-  // 環境の速さ（最も勝率の高い区分だけを書く）
+  // 環境の速さ：まとめの一文と、デッキの平均マナ総量ごとの勝率（試合ごとのデータから。17Lands の毎日の集計で作ったときは無いので、出さない）
   if(d.speed && d.speed.length){
-    const best = d.speed.filter(s => s.wr != null).sort((a, b) => b.wr - a.wr)[0];
+    const rows = d.speed.filter(s => s.wr != null);
+    const best = rows.slice().sort((a, b) => b.wr - a.wr)[0];
+    const bandLabel = (s, i) => i === 0 ? t("reports.speed.under", {n: s.max}) : s.max == null ? t("reports.speed.over", {n: rows[i - 1].max}) : t("reports.speed.range", {a: rows[i - 1].max, b: s.max});
     if(best){
       out.push(`<section>
         <h2>${t("reports.speed.h")}</h2>
         <div class="verdict">${d.verdict && d.verdict.key ? `<b>${esc(t("verdict." + d.verdict.key))}</b><span class="gap">` : ""}${t("reports.speed.best", {
             label: t("reports.speedn." + best.key), p: (best.wr * 100).toFixed(1)
           })}${paceLine()}${d.verdict && d.verdict.key ? `</span>` : ""}</div>
+        <p class="lead" style="margin-top:14px">${t("reports.speed.lead")}</p>
+        <div class="bars">${rows.map((s, i) => barRow(bandLabel(s, i), s.wr, s.games, s === best ? "hot" : "")).join("")}</div>
         ${d.notes?.speed ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.speed[I18N.lang] || "")}</p></div>` : ""}
       </section>`);
     }
@@ -1242,7 +1238,8 @@ $("setSelect").onchange = () => { updateModeTabs(); rememberChoice(); load(); };
 function syncStaticLink(){
   const code = $("setSelect").value;
   const suffix = I18N.lang === "en" ? ".en" : "";
-  $("staticLink").href = !code ? `./sets/index${suffix}.html` : (profileOnly.includes(code) ? `./sets/${code}.profile${suffix}.html` : `./sets/${code}${suffix}.html`);
+  // 下見だけのセットは下見ページへ。勝率データ（17Lands の毎日の集計を含む）があるセットは、セット別ページへ
+  $("staticLink").href = !code ? `./sets/index${suffix}.html` : (profileOnly.includes(code) && !withData.includes(code) ? `./sets/${code}.profile${suffix}.html` : `./sets/${code}${suffix}.html`);
 }
 $("setSelect").addEventListener("change", syncStaticLink);
 document.querySelectorAll("#modeTabs .tab").forEach(b => {

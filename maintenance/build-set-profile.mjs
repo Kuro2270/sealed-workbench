@@ -17,7 +17,7 @@
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 const manaI = k => `<i class="ms ms-cost ${k === "M" ? "ms-multicolor mfi-m" : "ms-" + (k === "L" ? "c" : k.toLowerCase())} mfi" aria-hidden="true"></i>`;   // 色の見出しはマナシンボルで（mana-font）
-import { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE, pretty, videoSection, modeSection, fillMissingJa, namesInArticle } from "./build-set-pages.mjs";
+import { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE, pretty, videoSection } from "./build-set-pages.mjs";
 
 const ARG = (process.argv[2] || "").toUpperCase();
 if(!ARG){ console.error("使い方: node maintenance/build-set-profile.mjs <SET>　または --auto（発売前後で下見が無いセットを探して作る）"); process.exit(1); }
@@ -163,18 +163,13 @@ const P = {
     desc: s => `マジック：ザ・ギャザリング アリーナ「${s}」のリミテッドを、勝率データが出る前にカードの枚数から読む。色ごとの除去・飛行・クリーチャーの数、マナ総量の分布。`,
     h1: s => `${s}｜リミテッド下見（データ前）`,
     lead: "勝率は、データが固まってから載せます。それまでは、セットの全カードを数えて「環境の形」を見ます。",
-    when: "データが固まり次第、このセットの環境レポートが出ます。",
+    when: "このセットの環境レポートは、発売12日目から出ます。",
     earlyH: d => `速報（${d} 時点・17Lands のデータより）`, earlyTop: { common: "コモンのトップ3", uncommon: "アンコモンのトップ3" },
     earlyTitle: s => `${s} リミテッド速報版｜発売直後の傾向と、セットの形`,
-    earlyDesc: s => `マジック：ザ・ギャザリング アリーナ「${s}」のリミテッド速報。発売直後の勝っている色・組み合わせと、カードの枚数から見たセットの形。確定版は勝率データが揃い次第。`,
+    earlyDesc: s => `マジック：ザ・ギャザリング アリーナ「${s}」のリミテッド速報。発売直後の勝っている色・組み合わせと、カードの枚数から見たセットの形。`,
     earlyH1: s => `${s}｜リミテッド速報版`,
-    provTitle: s => `${s} リミテッド暫定版｜カードのティア表と勝率`,
-    provDesc: s => `マジック：ザ・ギャザリング アリーナ「${s}」のリミテッド（ドラフト・シールド）暫定版。17Lands の毎日の集計から、カードのティア表（S〜D）と勝率、強い色・組み合わせをまとめました。`,
-    provH1: s => `${s}｜リミテッド暫定版`,
-    provLead: "17Lands の毎日の集計から作った暫定版です。データが固まり次第、確定版に切り替わります。あわせて、セットの全カードを数えた「環境の形」も載せています。",
-    provSource: "勝率：17Lands の毎日の集計（暫定）。",
     earlyLead: "発売直後の速報です。順位はこの後のデータで動きます。あわせて、セットの全カードを数えた「環境の形」も載せています。",
-    earlyWhen: "確定版（全カードの勝率と環境レポート）は、データが固まり次第、このページから自動で切り替わります。",
+    earlyWhen: "全カードの勝率と環境レポートは、発売12日目から出ます。",
     sumH: "ひと目でわかる",
     sum: p => `コモン・アンコモンの除去は ${p.counts.removal} 枚、飛行持ちは ${p.counts.flyers} 枚。コモン・アンコモンの平均マナ総量は ${p.avgCmcAll.toFixed(2)}。`,
     colorsH: "色ごとの中身（コモン・アンコモン）", colorsLead: "単色のコモン・アンコモンだけを数えています。除去と飛行が多い色は、序盤から主導権を取りやすい色です。",
@@ -203,15 +198,10 @@ const P = {
     when: "The full format report for this set appears once the data is final.",
     earlyH: d => `Early look (as of ${d}, from 17Lands data)`, earlyTop: { common: "Top 3 commons", uncommon: "Top 3 uncommons" },
     earlyTitle: s => `${s} Limited early look — first-week trends and the shape of the set`,
-    earlyDesc: s => `An early look at Magic: The Gathering Arena Limited for ${s}: the colours and pairs winning in the first days, plus the shape of the set by card counts. Full review once win-rate data lands.`,
+    earlyDesc: s => `An early look at Magic: The Gathering Arena Limited for ${s}: the colours and pairs winning in the first days, plus the shape of the set by card counts.`,
     earlyH1: s => `${s} — Limited early look`,
-    provTitle: s => `${s} Limited provisional report — card tier list and win rates`,
-    provDesc: s => `A provisional Magic: The Gathering Arena Limited report for ${s} (Draft and Sealed), from 17Lands' daily figures: a card tier list (S to D), card win rates and the strongest colours and pairs.`,
-    provH1: s => `${s} — Limited provisional report`,
-    provLead: "A provisional report built from 17Lands' daily figures. It switches to the final version once the full data is out. The card-count shape of the set is below as well.",
-    provSource: "Win rates: 17Lands daily figures (provisional). ",
     earlyLead: "An early look from the first days of the format. Rankings will move. The card-count shape of the set is below as well.",
-    earlyWhen: "The full review (every card's win rate) arrives once the data is final. This page switches over automatically.",
+    earlyWhen: "Every card's win rate and the full set report arrive from day 12 after release.",
     sumH: "At a glance",
     sum: p => `${p.counts.removal} removal spells and ${p.counts.flyers} flyers at common and uncommon. Average mana value of commons and uncommons: ${p.avgCmcAll.toFixed(2)}.`,
     colorsH: "What each colour has (commons & uncommons)", colorsLead: "Mono-coloured commons and uncommons only. Colours with more removal and flyers tend to take the initiative early.",
@@ -299,18 +289,18 @@ function page(lang, p, nameJa){
   const T = P[lang], B = L[lang];
   const name = lang === "ja" ? nameJa : p.setName;
   const canonical = pretty(`${SITE}/sets/${SET}.profile${lang === "en" ? ".en" : ""}.html`);
-  const isProv = !!(PROV.draft || PROV.sealed);           // 暫定版（17Lands の毎日の集計。発売12日目から）があれば、それを先頭に出す
-  const isEarly = !isProv && !!(EARLY && EARLY[lang]);
-  const pick = (prov, early, base) => isProv ? prov : isEarly ? early : base;
-  const head = `<title>${esc(pick(T.provTitle(name), T.earlyTitle(name), T.title(name)))} — ${esc(B.site)}</title>
-<meta name="description" content="${esc(pick(T.provDesc(name), T.earlyDesc(name), T.desc(name)))}">
+  // 勝率データ（17Lands の毎日の集計を含む）が出たあとの中身は、セット別ページ（sets/<SET>.html。build-set-pages.mjs）にある。ここは下見だけ
+  const isEarly = !!(EARLY && EARLY[lang]);
+  const pick = (early, base) => isEarly ? early : base;
+  const head = `<title>${esc(pick(T.earlyTitle(name), T.title(name)))} — ${esc(B.site)}</title>
+<meta name="description" content="${esc(pick(T.earlyDesc(name), T.desc(name)))}">
 <link rel="canonical" href="${canonical}">
 <link rel="alternate" hreflang="ja" href="${pretty(`${SITE}/sets/${SET}.profile.html`)}">
 <link rel="alternate" hreflang="en" href="${pretty(`${SITE}/sets/${SET}.profile.en.html`)}">
-<meta property="og:title" content="${esc(pick(T.provTitle(name), T.earlyTitle(name), T.title(name)))}">
+<meta property="og:title" content="${esc(pick(T.earlyTitle(name), T.title(name)))}">
 <meta property="og:url" content="${canonical}">`;
-  const header = `    <h1>${esc(pick(T.provH1(name), T.earlyH1(name), T.h1(name)))}</h1>
-    <p>${esc(pick(T.provLead, T.earlyLead, T.lead))}</p>`;
+  const header = `    <h1>${esc(pick(T.earlyH1(name), T.h1(name)))}</h1>
+    <p>${esc(pick(T.earlyLead, T.lead))}</p>`;
   const row = c => { const b = p.byColor[c]; return `<tr><td>${manaI(c)}${esc(T.colorName[c])}</td>
 <td class="num">${b.cu}</td><td class="num">${b.creatures} <small>(${Math.round(b.creatureShare * 100)}%)</small></td><td class="num"><b>${b.removal}</b></td><td class="num"><b>${b.flyers}</b></td><td class="num">${b.tricks}</td><td class="num">${b.draw}</td><td class="num">${b.avgPower.toFixed(1)}/${b.avgToughness.toFixed(1)}</td><td class="num">${b.avgCmc.toFixed(2)}</td></tr>`; };
   const pairRows = p.pairs.map(x => `<tr><td>${[...x.pair].map(c => `${manaI(c)}`).join("")}${[...x.pair].map(c => esc(T.colorName[c])).join(lang === "ja" ? "" : "-")}</td><td class="num">${x.count}</td><td><small>${esc(x.uncommons.slice(0, 3).join(", "))}${x.uncommons.length > 3 ? "…" : ""}</small></td></tr>`).join("\n");
@@ -321,8 +311,7 @@ function page(lang, p, nameJa){
   }).join("\n")).join("\n");
   // 先行版のショート（発売直後の速報）が公開になっていれば、下見の冒頭に出す（「動画を配信」が data/videos.json に記録する）。
   // 速報メモ（build-early.mjs が作る文章。表にはしない）も、動画が公開になってから一緒に出す
-  const earlyVideo = isProv ? "" : videoSection(lang, SET, "early", name, VIDEOS);   // 暫定版のときは、ドラフトの欄に入る
-  const provHtml = isProv ? ["draft", "sealed"].filter(m => PROV[m]).map(m => modeSection(lang, SET, m, PROV[m], null, lang === "ja" ? JN : {}, name, VIDEOS, JI[lang] || {})).join("\n") + "\n" : "";
+  const earlyVideo = videoSection(lang, SET, "early", name, VIDEOS);
   // トップ3はカード名と画像だけ（勝率の数字は載せない）
   const topRow = r => {
     const cards = ((EARLY && EARLY.top) || {})[r] || [];
@@ -336,8 +325,8 @@ function page(lang, p, nameJa){
     ? `<section class="early-note"><h3>${esc(T.earlyH((EARLY.as_of_label || {})[lang] || EARLY.as_of || ""))}</h3><p>${esc(EARLY[lang])}</p>` +
       topRow("common") + topRow("uncommon") +
       `<p class="when">${esc(T.earlyWhen)}</p></section>` : "";
-  const main = `${provHtml}<article class="mode">
-  ${isEarly || isProv ? "" : `<p class="verdict">${esc(T.when)}</p>`}${earlyNote ? "\n" + earlyNote : ""}${earlyVideo ? "\n" + earlyVideo : ""}
+  const main = `<article class="mode">
+  ${isEarly ? "" : `<p class="verdict">${esc(T.when)}</p>`}${earlyNote ? "\n" + earlyNote : ""}${earlyVideo ? "\n" + earlyVideo : ""}
   <section><h3>${esc(T.colorsH)}</h3><p class="lead">${esc(T.colorsLead)}</p>
   <div style="overflow-x:auto"><table><thead><tr><th>${esc(T.th.color)}</th><th class="num">${esc(T.th.cards)}</th><th class="num">${esc(T.th.creatures)}</th><th class="num">${esc(T.th.removal)}</th><th class="num">${esc(T.th.flyers)}</th><th class="num">${esc(T.th.tricks)}</th><th class="num">${esc(T.th.draw)}</th><th class="num">${esc(T.th.size)}</th><th class="num">${esc(T.th.cmc)}</th></tr></thead>
   <tbody>${COLORS.map(row).join("\n")}</tbody></table></div></section>
@@ -416,7 +405,7 @@ function page(lang, p, nameJa){
   <li><a href="../sealed.html?set=${SET}">${esc(T.linkSealed)}</a>／<a href="../draft.html?set=${SET}">${esc(T.linkDraft)}</a></li>
   <li><a href="${SET}${lang === "en" ? ".en" : ""}.html">${esc(T.linkReport)}</a></li>
 </ul></section>
-<p class="source">${esc((isProv ? T.provSource : "") + T.source)}</p>`;
+<p class="source">${esc(T.source)}</p>`;
   return shell(lang, `${SET}.profile`, head, { header, main }).replace(`href="${B.otherHref(`${SET}.profile`)}"`, `href="${SET}.profile${lang === "ja" ? ".en" : ""}.html"`);
 }
 
@@ -430,12 +419,8 @@ const ja = await setNamesJa();
 const nameJa = ja[SET.toLowerCase()] || p.setName;
 // 除去カードの日本語名と日本語版の画像（Scryfall に日本語版がまだ無いカードは英語のまま）。
 // 発売前は日本語データが不完全なことがあるので data/names/ には保存しない（勝率データ集計のときに改めて取る）
-let JN = {};                                       // 英語名 → 日本語名（暫定版の表で使う）
-let JI = { ja: {}, en: {} };                       // 英語名 → カード画像（暫定版の表の、名前の横の絵）
 try{
   const jn = await fetchJaNames(SET);
-  JN = jn.names || {};
-  JI = { ja: jn.images || {}, en: jn.imagesEn || {} };
   let hit = 0;
   const rows = [...p.cards, ...Object.keys(p.byColor).flatMap(c => p.byColor[c].removalCards)];
   for(const r of rows){
@@ -449,11 +434,7 @@ try{
 // 先行版のショート（「動画を配信」が public にしたものだけ載る）
 const VIDEOS = await readJson("data/videos.json", {});
 const EARLY = await readJson(`data/early/${SET}.json`, null);
-const PROV = { draft: await readJson(`data/provisional/${SET}_draft.json`, null), sealed: await readJson(`data/provisional/${SET}_sealed.json`, null) };
-// 暫定版に出てくる、セットの外から入っているカード（特別枠）の日本語名
-try{ const n = await fillMissingJa(JN, [PROV.draft, PROV.sealed].filter(Boolean).flatMap(namesInArticle), JI.ja); if(n) console.error(`特別枠などの日本語名・画像を ${n} 件足しました`); }catch(e){}
-for(const k of Object.keys(JI.ja)) if(!JI.en[k]) JI.en[k] = JI.ja[k];   // 英語ページで足りない分（特別枠など）は日本語ページと同じ画像
-// 勝率データが出る日は書かない（元データの公開日は決まっておらず、発売から12日を過ぎても出ないことがある。2026年10月 FRA で確認）。表現は「データが固まり次第」
+// 勝率は発売12日目から（17Lands の利用ガイドラインで、サイトへの掲載は12日目から。公開データセットを待たず、毎日の集計で出す）
 await mkdir("data/profiles", { recursive: true });
 await mkdir("sets", { recursive: true });
 await writeFile(`data/profiles/${SET}.json`, JSON.stringify({ ...p, nameJa, generated_at: new Date().toISOString() }, null, 1), "utf8");
@@ -466,7 +447,7 @@ await writeFile(`data/profiles/${SET}.json`, JSON.stringify({ ...p, nameJa, gene
     const j = await readJson(`data/profiles/${f}`, null);
     const code = f.replace(/\.json$/, "");
     const { existsSync } = await import("node:fs");
-    const provisional = existsSync(`data/provisional/${code}_draft.json`) || existsSync(`data/provisional/${code}_sealed.json`);   // 暫定版があるか（トップの表示に使う）
+    const provisional = existsSync(`data/provisional/${code}_draft.json`) || existsSync(`data/provisional/${code}_sealed.json`);   // 17Lands の毎日の集計の勝率があるか（トップ・環境レポートで、下見ではなくセット別ページへ案内するのに使う）
     if(j) list.push({ set: code, name: j.setName, nameJa: j.nameJa, released_at: j.released_at || null, ...(provisional ? { provisional: true } : {}) });
   }
   list.sort((a, b) => (b.released_at || "").localeCompare(a.released_at || ""));

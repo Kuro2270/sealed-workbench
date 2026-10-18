@@ -10,7 +10,9 @@
  *   sets/index.html      一覧（日本語）／ sets/index.en.html（英語）
  *   data/names/<SET>.json  カードの日本語名（Scryfall から一度だけ取得して保存）
  *
- * ・data/articles/<SET>_<mode>.json（環境レポートと同じデータ）から本文を組み立てる
+ * ・data/articles/<SET>_<mode>.json（環境レポートと同じデータ）から本文を組み立てる。
+ *   公開データがまだ出ていない新しいセットは、17Lands の毎日の集計から作った data/provisional/<SET>_<mode>.json で同じページを作る
+ *   （report-data.mjs で読む。速さのデータは無いので、その欄は出ない。公開データが出たら、同じURLのまま速さの欄が加わる）
  * ・環境レポートのページは1つのURLでセットを切り替える作りなので、検索エンジンには
  *   1ページにしか見えない。ここではセットごとに別のURLを用意して、
  *   「<セット名> ドラフト 勝率」のような検索に1セットずつ引っかかるようにする
@@ -19,6 +21,7 @@
 
 import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { existsSync, readFileSync } from "node:fs";
+import { loadArticle } from "./report-data.mjs";
 
 // Scryfall は送信元を名乗らないアクセスを拒否するので、必ずこのヘッダーを付ける
 const SCRY_HEADERS = { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)", Accept: "application/json" };
@@ -43,9 +46,9 @@ const L = {
     site: "リミテッド・ワークベンチ",            // ヘッダーの文字（左のロゴが「MTGアリーナ」を担う）
     siteFull: "MTGアリーナ リミテッド・ワークベンチ",   // <title> 用（検索向けに「MTGアリーナ」を残す）
     title: (s, c) => `${s}（${c}）リミテッド カード点数ランキング・評価｜勝率で見る強いカード`,
-    desc: (s, g, c) => `MTGアリーナ「${s}（${c}）」のリミテッド（ドラフト・シールド）で強いカードを、17Landsの実戦データ（${g}試合）の勝率で採点。コモン・アンコモン・レア別のカード点数ランキングに加えて、環境の速さ、強い色、勝率の高い2色の組み合わせも分かります。`,
+    desc: (s, g, c, sp) => `MTGアリーナ「${s}（${c}）」のリミテッド（ドラフト・シールド）で強いカードを、17Landsの実戦データ（${g}試合）の勝率で採点。コモン・アンコモン・レア別のカード点数ランキングに加えて、${sp ? "環境の速さ、" : ""}強い色、勝率の高い2色の組み合わせも分かります。`,
     h1: s => `${s}｜リミテッド カード点数ランキングと環境レポート`,
-    lead: "マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。カードの点数（評価）は、この勝率で見られます。",
+    lead: "マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsのデータを集計した実戦の勝率です。カードの点数（評価）は、この勝率で見られます。",
     mode: { draft: "ドラフト", sealed: "シールド", early: "発売直後の速報" },
     games: (n, d) => `総試合数 ${n}／全体勝率 ${d}`,
     built: d => `集計 ${d}`,
@@ -59,12 +62,12 @@ const L = {
     colorsH: "色の強さ", colorsLead: "その色のカードをデッキに入れた試合の勝率です。",
     archeH: "色の組み合わせ", archeLead: "2色の組み合わせごとの勝率です。試合数の多い順に並べています。",
     curveH: "マナ総量ごとの勝率", curveLead: "そのマナ総量のカードが手札か戦場にあった試合の勝率です。",
-    tipGih: "GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。",
+    tipGih: "GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。",
     ctierH: "カードのティア表", ctierLead: n => `全カードの勝率（GIH勝率）の分布から、S〜Dの5段階に分けました。レアリティが違っても、同じランクなら同じくらいの強さです。${n}試合以上のカードに限っています。`,
     ctierGroup: { mr: "神話レア・レア", u: "アンコモン", c: "コモン" }, ctierAvg: p => `全カードの平均 ${p}`,
     ctierCount: "{n}枚", ctierColors: "色（選んだ色だけで使えるカード）", ctierAll: "すべて", ctierMulti: "多色", ctierColorless: "無色",
     ctierNote: "勝率（GIH勝率）は、その試合でカードを引けたとき（初手か、引いて手札に来たとき）の勝率です。",
-    provH: "暫定版", provBody: d => `17Lands の毎日の集計（${d} 時点）から作っています。データが固まり次第、確定版に切り替わります。`,
+    speedLead: "デッキの平均マナ総量ごとの勝率です。", band: { under: n => `${n}未満`, range: (a, b) => `${a}〜${b}`, over: n => `${n}以上` }, colBand: "平均マナ総量",
     cardsH: "カードの勝率一覧（レアリティ別）", cardsLead: "ティア表のカードを、レアリティごとに勝率（GIH勝率）の高い順に並べ、試合数と一緒に載せています。",
     faqH: "リミテッドのカードの点数について",
     faq: [
@@ -85,6 +88,7 @@ const L = {
     indexH1: "セット別のリミテッド カード点数ランキングと環境レポート",
     indexLead: "セットを選ぶと、そのセットのカード点数ランキングと、ドラフト・シールドの環境レポートが開きます。発売日の新しい順です。",
     source: "出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。",
+    sourceDaily: "出典：17Lands（毎日の集計）を当サイトが集計。カード情報はScryfall。",
     none: "このセットのデータはまだありません。",
     nav: { start:"MTGとは", limited:"リミテッドとは", sealed:"シールド練習", draft:"ドラフト練習（CPU戦）", room:"ドラフト練習（対人戦）", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", sassist:"シールド補助", table:"対戦卓", privacy:"プライバシー", goods:"日本のサプライ" },
     navgrp: { start:"はじめに", build:"練習する", assist:"MTGアリーナで使う", data:"データを見る", play:"対戦する", shop:"買う" },
@@ -97,9 +101,9 @@ const L = {
     site: "Limited Workbench",
     siteFull: "MTG Arena Limited Workbench",
     title: (s, c) => `${s} (${c}) Limited card ratings — best cards ranked by win rate (MTG Arena)`,
-    desc: (s, g, c) => `Which cards are best in ${s} (${c}) Limited on MTG Arena? Card ratings by win rate from ${g} games of 17Lands data, ranked by rarity — plus format speed, the strongest colours and the best two-colour pairs.`,
+    desc: (s, g, c, sp) => `Which cards are best in ${s} (${c}) Limited on MTG Arena? Card ratings by win rate from ${g} games of 17Lands data, ranked by rarity — plus ${sp ? "format speed, " : ""}the strongest colours and the best two-colour pairs.`,
     h1: s => `${s} | Limited card ratings and format report`,
-    lead: "Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data. Use them as card ratings: the higher the win rate, the stronger the card.",
+    lead: "Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands data. Use them as card ratings: the higher the win rate, the stronger the card.",
     mode: { draft: "Draft", sealed: "Sealed", early: "Early look" },
     games: (n, d) => `${n} games · overall win rate ${d}`,
     built: d => `Built ${d}`,
@@ -113,12 +117,12 @@ const L = {
     colorsH: "Colour strength", colorsLead: "Win rate of games where the deck included cards of that colour.",
     archeH: "Colour pairs", archeLead: "Win rate by two-colour pair, sorted by number of games.",
     curveH: "Win rate by mana value", curveLead: "Win rate of games where a card of that mana value was in hand or on the battlefield.",
-    tipGih: "GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data.",
+    tipGih: "GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands data.",
     ctierH: "Card tier list", ctierLead: n => `Every card graded S to D from the spread of GIH win rates across the whole set. The scale is shared, so the same grade means similar strength at any rarity. Cards with at least ${n} games.`,
     ctierGroup: { mr: "Mythic & rare", u: "Uncommon", c: "Common" }, ctierAvg: p => `Average across all cards ${p}`,
     ctierCount: "{n} cards", ctierColors: "Colours (cards castable with the ones you pick)", ctierAll: "All", ctierMulti: "Multicolour", ctierColorless: "Colourless",
     ctierNote: "Win rate (GIH) is the win rate of games where the card was drawn — in the opening hand or drawn later.",
-    provH: "Provisional", provBody: d => `Built from 17Lands' daily figures (as of ${d}). It switches to the final version once the full data is out.`,
+    speedLead: "Win rate by a deck's average mana value.", band: { under: n => `under ${n}`, range: (a, b) => `${a}–${b}`, over: n => `${n}+` }, colBand: "Avg. mana value",
     cardsH: "Card win rates by rarity", cardsLead: "The tier list cards by rarity, sorted by GIH win rate, with the number of games.",
     faqH: "About Limited card ratings",
     faq: [
@@ -139,6 +143,7 @@ const L = {
     indexH1: "Limited card ratings and format reports by set",
     indexLead: "Pick a set to open its card ratings and its Draft and Sealed report. Newest first.",
     source: "Source: 17Lands Public Data (CC BY 4.0), aggregated by this site. Card data via Scryfall.",
+    sourceDaily: "Source: 17Lands (daily figures), aggregated by this site. Card data via Scryfall.",
     none: "No data for this set yet.",
     nav: { start:"What is MTG?", limited:"What is Limited?", sealed:"Sealed practice", draft:"Draft practice (vs CPU)", room:"Draft practice (vs players)", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", sassist:"Sealed assistant", table:"Play table", privacy:"Privacy", goods:"Japanese supplies" },
     navgrp: { start:"Start", build:"Practice", assist:"Use with MTG Arena", data:"Data", play:"Play", shop:"Shop" },
@@ -475,7 +480,6 @@ ${head}
   .tchip .tpic > :last-child{position:absolute;right:-5px;bottom:-4px;transform:scale(.72)}
   .tempty{font-size:12px;color:var(--muted);padding:0 4px}
   .tavg{font-size:12px;color:var(--muted);margin:6px 0 0}
-  .prov{background:#FFFBEA;border:1px solid #F2C94C;border-left:6px solid #F2C94C;border-radius:10px;padding:10px 14px;margin:8px 0 14px;font-size:13.5px;line-height:1.7}
   .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
   .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#FFFFFF}.rar.mythic{background:#C4552C}
   .links ul{margin:6px 0 0;padding-left:1.2em}
@@ -538,7 +542,7 @@ function summaryText(lang, mode, d, setDisplay, cn, pairLabel, colorLabel){
   const speed = (d.speed || []).filter(x => x.wr != null);
   const fastest = speed.length ? speed.reduce((m, x) => x.wr > m.wr ? x : m) : null;
   const vk = (d.verdict && d.verdict.key) || "even";
-  const paceWord = d.provisional ? null : ja ? ({ fast: "速く、軽いデッキが勝ちやすい", "lean-fast": "やや速く、軽いデッキのほうが勝ちやすい", even: "速さでは差がつきにくい", "lean-slow": "やや遅く、重いデッキのほうが勝ちやすい", slow: "遅く、重いデッキが勝ちやすい" })[vk]
+  const paceWord = !(d.speed || []).some(x => x.wr != null) ? null : ja ? ({ fast: "速く、軽いデッキが勝ちやすい", "lean-fast": "やや速く、軽いデッキのほうが勝ちやすい", even: "速さでは差がつきにくい", "lean-slow": "やや遅く、重いデッキのほうが勝ちやすい", slow: "遅く、重いデッキが勝ちやすい" })[vk]
                       : ({ fast: "fast decks clearly win more", "lean-fast": "it leans fast — lighter decks win a little more", even: "speed makes little difference", "lean-slow": "it leans slow — heavier decks win a little more", slow: "slow, heavier decks clearly win more" })[vk];
   const top = r => ((d.top && d.top[r]) || [])[0];
   const c1 = top("common"), u1 = top("uncommon"), r1 = top("rare");
@@ -574,12 +578,13 @@ function modeSection(lang, code, mode, d, speedIndex, names, setDisplay, videos,
   let out = `<article class="mode">
   <h2>${esc(T.mode[mode])} <small>${esc(T.games((d.total_games || 0).toLocaleString(), pct(d.overall_win_rate)))}</small></h2>
   <p class="built">${esc(T.built((d.data_generated_at || d.generated_at || "").slice(0, 10)))}</p>
-${d.provisional ? `  <p class="prov"><b>${esc(T.provH)}</b>　${esc(T.provBody((d.data_generated_at || "").slice(0, 10)))}</p>
-` : ""}  <p class="summary">${esc(summaryText(lang, mode, d, setDisplay, cn, pairLabel, colorLabel))}</p>
+  <p class="summary">${esc(summaryText(lang, mode, d, setDisplay, cn, pairLabel, colorLabel))}</p>
 ${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoSection(lang, code, "early", setDisplay, videos) : ""}`;
 
-  // 環境の速さ
-  const best = (d.speed || []).filter(s => s.wr != null).sort((a, b) => b.wr - a.wr)[0];
+  // 環境の速さ（まとめの一文と、デッキの平均マナ総量ごとの勝率。試合ごとのデータから作るので、17Lands の毎日の集計で作ったページには無い）
+  const speedRows = (d.speed || []).filter(s => s.wr != null);
+  const best = speedRows.slice().sort((a, b) => b.wr - a.wr)[0];
+  const bandOf = (s, i) => i === 0 ? T.band.under(s.max) : s.max == null ? T.band.over(speedRows[i - 1].max) : T.band.range(speedRows[i - 1].max, s.max);
   if(best){
     let paceTxt = "";
     const grp = speedIndex && speedIndex[mode];
@@ -596,6 +601,10 @@ ${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoS
     out += `
   <section><h3>${esc(T.speedH)}</h3>
     <div class="verdict"><b>${esc(vtxt)}</b><span class="gap">${esc(T.speedBest(T.speedn[best.key] || best.key, pct(best.wr)))}${esc(paceTxt)}</span></div>
+    <p class="lead" style="margin-top:12px">${esc(T.speedLead)}</p>
+    <table><thead><tr><th>${esc(T.colBand)}</th><th class="num">${esc(T.col.wr)}</th><th class="num">${esc(T.col.games)}</th></tr></thead><tbody>
+    ${speedRows.map((s, i) => `<tr><td>${esc(bandOf(s, i))}</td><td class="num">${s === best ? `<b>${pct(s.wr)}</b>` : pct(s.wr)}</td><td class="num">${(s.games || 0).toLocaleString()}</td></tr>`).join("\n    ")}
+    </tbody></table>
   </section>`;
   }
   // 色の強さ
@@ -667,17 +676,18 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos, 
   const T = L[lang];
   const modes = ["draft","sealed"].filter(m => arts[m]);
   const totalGames = modes.reduce((a, m) => a + (arts[m].total_games || 0), 0).toLocaleString();
+  const hasSpeed = modes.some(m => (arts[m].speed || []).some(x => x.wr != null));   // 速さのデータ（公開データから作ったときだけある）
   const canonical = pretty(`${SITE}/${OUT}/${code}${lang === "en" ? ".en" : ""}.html`);
   const altJa = pretty(`${SITE}/${OUT}/${code}.html`), altEn = pretty(`${SITE}/${OUT}/${code}.en.html`);
   const title = T.title(setDisplay, code);
   const head = `<title>${esc(title)} — ${esc(T.siteFull)}</title>
-<meta name="description" content="${esc(T.desc(setDisplay, totalGames, code))}">
+<meta name="description" content="${esc(T.desc(setDisplay, totalGames, code, hasSpeed))}">
 <link rel="canonical" href="${canonical}">
 <link rel="alternate" hreflang="ja" href="${altJa}">
 <link rel="alternate" hreflang="en" href="${altEn}">
 <link rel="alternate" hreflang="x-default" href="${altJa}">
 <meta property="og:title" content="${esc(title)}">
-<meta property="og:description" content="${esc(T.desc(setDisplay, totalGames, code))}">
+<meta property="og:description" content="${esc(T.desc(setDisplay, totalGames, code, hasSpeed))}">
 <meta property="og:url" content="${canonical}">`;
   const header = `    <h1>${esc(T.h1(setDisplay))} <small class="code">${esc(code)}</small></h1>
     <p>${esc(T.lead)}${info.released_at ? `　${lang === "ja" ? "発売" : "Released"} ${esc(info.released_at)}` : ""}</p>`;
@@ -695,8 +705,10 @@ ${T.faq.map(([q, a]) => `  <details><summary>${esc(q)}</summary><p>${esc(a)}</p>
   <li><a href="../sealed.html">${esc(T.linkSealed)}</a>／<a href="../draft.html">${esc(T.linkDraft)}</a>／<a href="../assistant.html">${esc(T.linkAssist)}</a></li>
   <li><a href="index${lang === "en" ? ".en" : ""}.html">${esc(T.linkIndex)}</a></li>
 </ul></section>
-<p class="source">${esc(T.source)}</p>`;
-  return shell(lang, code, head, { header, main: body + "\n" + faq + "\n" + links }, `${SITE}/${OUT}/og/${code}-${lang}.png`);
+<p class="source">${esc(modes.some(m => arts[m].provisional) ? T.sourceDaily : T.source)}</p>`;
+  // セットごとの OGP 画像（build-set-ogp.mjs が作る）。まだ無いセットは、サイト共通の画像にする（SNS で画像が出ないのを防ぐ）
+  const og = existsSync(`${OUT}/og/${code}-${lang}.png`) ? `${SITE}/${OUT}/og/${code}-${lang}.png` : null;
+  return shell(lang, code, head, { header, main: body + "\n" + faq + "\n" + links }, og);
 }
 
 /* 長尺の環境まとめ動画（横長・日本語／英語）。data/long.json に載せたものだけ出す。目次のリンクを押すと、その時刻から再生する */
@@ -778,7 +790,7 @@ function indexPage(lang, rows, profileOnly = []){
     <p>${esc(T.lead)}</p>`;
   const main = `<p class="lead">${esc(T.indexLead)}</p>
 ${profileOnly.length ? `<ul class="setlist" style="margin-bottom:14px">
-${profileOnly.map(r => `  <li><a href="${r.code}.profile${lang === "en" ? ".en" : ""}.html">${esc(r.name[lang])}<small>${esc(r.code)}${r.released_at ? "　" + esc(r.released_at) : ""}　${r.prov ? (lang === "ja" ? "暫定版（カードのティア表・勝率）" : "Provisional (card tiers & win rates)") : (lang === "ja" ? "下見（勝率データ待ち）" : "Preview (awaiting win-rate data)")}</small></a></li>`).join("\n")}
+${profileOnly.map(r => `  <li><a href="${r.code}.profile${lang === "en" ? ".en" : ""}.html">${esc(r.name[lang])}<small>${esc(r.code)}${r.released_at ? "　" + esc(r.released_at) : ""}　${lang === "ja" ? "下見（勝率データ待ち）" : "Preview (awaiting win-rate data)"}</small></a></li>`).join("\n")}
 </ul>` : ""}
 <ul class="setlist">
 ${rows.map(r => `  <li><a href="${r.code}${lang === "en" ? ".en" : ""}.html">${esc(r.name[lang])}<small>${esc(r.code)}${r.released_at ? "　" + esc(r.released_at) : ""}　${esc((r.games || 0).toLocaleString())} ${lang === "ja" ? "試合" : "games"}</small></a></li>`).join("\n")}
@@ -797,14 +809,17 @@ async function main(){
   const ja = await setNamesJa();
   await mkdir(OUT, { recursive: true });
 
-  const codes = [...new Set(index.articles.map(a => a.set))];
+  // 公開データの記事があるセットと、17Lands の毎日の集計の記事（data/provisional）しかない新しいセット
+  const provCodes = (await readdir("data/provisional").catch(() => [])).map(f => (f.match(/^([A-Z0-9]+)_(draft|sealed)\.json$/) || [])[1]).filter(Boolean);
+  const codes = [...new Set([...index.articles.map(a => a.set), ...provCodes])];
   const rows = [];
   for(const code of codes){
     const arts = {};
     for(const m of ["draft","sealed"]){
-      const d = await readJson(`${ARTICLES}/${code}_${m}.json`, null);
+      const d = await loadArticle(code, m);
       if(d) arts[m] = d;
     }
+    if(!Object.keys(arts).length) continue;
     const cache = await cardNamesJa(code);
     const info = await setInfo(code, cache);
     cache.names = cache.names || {};
@@ -832,8 +847,7 @@ async function main(){
       const code = f.replace(/\.json$/, "");
       if(codes.includes(code)) continue;
       const pr = await readJson(`data/profiles/${f}`, null);
-      if(pr) profileOnly.push({ code, name: { ja: pr.nameJa || pr.setName || code, en: pr.setName || code }, released_at: pr.released_at || "",
-        prov: existsSync(`data/provisional/${code}_draft.json`) || existsSync(`data/provisional/${code}_sealed.json`) });
+      if(pr) profileOnly.push({ code, name: { ja: pr.nameJa || pr.setName || code, en: pr.setName || code }, released_at: pr.released_at || "" });
     }
   }catch(e){}
   profileOnly.sort((a, b) => (b.released_at || "").localeCompare(a.released_at || ""));

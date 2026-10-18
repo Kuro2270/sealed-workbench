@@ -13,15 +13,19 @@
  *       （色の組み合わせの深堀りでは、コモン・アンコモンだけで鍵カードを選ぶ。勝率がそこそこ高く使用率が低い色は「狙い目」として特設）
  *       ドラフトとシールドの両方のデータ（data/articles と data/ratings）を使う。
  *
- * 材料
+ * 材料（どれを読むかは report-data.mjs が決める。確定版があれば確定版、無ければ暫定版）
  *   ・data/articles/<SET>_draft.json と <SET>_sealed.json（どちらも必要）
  *   ・data/ratings/<SET>_PremierDraft.json と <SET>_Sealed.json（カードごとの勝率）
+ *   ・暫定版（17Lands の毎日の集計。data/provisional と data/ratings/<SET>_draft.json / _sealed.json）でも作れる。
+ *     ゲームごとのデータが無いので、「環境の速さ」の章と、組み合わせごとの「デッキの速さ・マナカーブ」の場面は入らない。
+ *     概要欄のデータの出どころは「17Lands（〇月〇日時点の集計）」にする
  *   ・コモンの除去は、data/profiles/<SET>.json の除去一覧があればそれを、無ければ Scryfall からオラクル文を取って判定する。
  *     どちらも取れなければ、その場面は入れない
  *   ・ほかは build-short.mjs と同じ（VOICEVOX、背景 short/bg.mp4、BGM short/bgm/、読み辞書 short/yomi.json）
  */
 
 import { splitSay } from "./highlight-split.mjs";
+import { loadReport } from "./report-data.mjs";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { execFileSync, execFile } from "node:child_process";
 import { cpus } from "node:os";
@@ -220,8 +224,11 @@ function buildScript(ctx){
   scenes.push({ kind: "hook", art: true, chapter: L("はじめに", "Intro"),
     say: EN ? `Here's the complete ${nameJa} Limited format for MTG Arena, based on ${man(gamesD + gamesS)} games of data. The strongest colour pairs, ten bomb rares you can pick without hesitation, trap rares that look great but win less than you'd expect, and the best commons and uncommons for every colour. We'll look at both Draft and Sealed data.` : `MTGアリーナ、リミテッドの${nameJa}環境を、${man(gamesD + gamesS)}試合のデータでまるごと解説します。最強の色の組み合わせ、迷わず取っていいボムのレア十枚、見た目に反して勝てない罠なレアカード、そして、色別のおすすめのコモンとアンコモンまで。ドラフトとシールドの両方のデータで見ていきます。`,
     title: nameJa, gamesD, gamesS, tail: 0.6 });
-  scenes.push({ kind: "agenda", say: EN ? `Here's the plan: format speed, colour pairs and deck speed, sleeper pairs, bombs, trap rares, the best cards for each colour, and finally a summary.` : `順番に、環境の速さ、色の組み合わせとデッキの速さ、ボム、罠なレアカード、色別のおすすめを見て、最後にまとめます。${WITH_REMOVAL ? "除去も紹介します。" : ""}`,
-    items: (EN ? ["Format speed", "Colour strength", "Pair speed & mana curve", "Sleeper pairs", ...(WITH_DVS ? ["Draft vs Sealed"] : []), "Top 10 bomb rares", "Trap rares", "Top commons & uncommons", ...(WITH_REMOVAL ? ["Removal"] : []), "Summary"] : ["環境の速さ", "色の強さ", "色の組み合わせと速さ", "狙い目の色", ...(WITH_DVS ? ["ドラフトとシールドの違い"] : []), "ボムのレア10枚", "罠なレアカード", "色別のコモン・アンコモン", ...(WITH_REMOVAL ? ["除去（コモン・アンコモン）"] : []), "まとめ"]), tail: 0.4 });
+  // 速さのデータ（試合ごとのデータから作る）は確定版にしか無い。暫定版では「環境の速さ」の章を入れず、組み合わせごとはマナカーブだけにする
+  const hasPace = (dd.speed || []).some(x => x.wr != null && x.games), hasDeckSpeed = Object.keys(rd.pair_speed || {}).length > 0;
+  const pairLabel = hasDeckSpeed ? L("色の組み合わせと速さ", "Pair speed & mana curve") : L("色の組み合わせ", "Colour pairs");
+  scenes.push({ kind: "agenda", say: EN ? `Here's the plan: ${hasPace ? "format speed, " : ""}colour pairs${hasDeckSpeed ? " and deck speed" : ""}, sleeper pairs, bombs, trap rares, the best cards for each colour, and finally a summary.` : `順番に、${hasPace ? "環境の速さ、" : ""}色の組み合わせ${hasDeckSpeed ? "とデッキの速さ" : ""}、ボム、罠なレアカード、色別のおすすめを見て、最後にまとめます。${WITH_REMOVAL ? "除去も紹介します。" : ""}`,
+    items: (EN ? [...(hasPace ? ["Format speed"] : []), "Colour strength", pairLabel, "Sleeper pairs", ...(WITH_DVS ? ["Draft vs Sealed"] : []), "Top 10 bomb rares", "Trap rares", "Top commons & uncommons", ...(WITH_REMOVAL ? ["Removal"] : []), "Summary"] : [...(hasPace ? ["環境の速さ"] : []), "色の強さ", pairLabel, "狙い目の色", ...(WITH_DVS ? ["ドラフトとシールドの違い"] : []), "ボムのレア10枚", "罠なレアカード", "色別のコモン・アンコモン", ...(WITH_REMOVAL ? ["除去（コモン・アンコモン）"] : []), "まとめ"]), tail: 0.4 });
 
   /* --- 速さ --- */
   const paceRows = d => (d.speed || []).filter(s => s.wr != null && s.games).map((s, i, a) => ({
@@ -469,6 +476,7 @@ function buildScript(ctx){
     return t;
   };
   const pairSpeedScene = p => {
+    if(!hasDeckSpeed && !rd.pair_curve) return null;   // 暫定版（デッキ単位のデータが無い）：カード単位だけでは差がわずかで、言えることが少ないので入れない
     const raw = (rd.pair_speed || {})[p.pair];
     const tot = raw ? raw.reduce((n, r) => n + r.games, 0) : 0;
     const rows = raw ? raw.filter(r => r.wr != null && r.games >= Math.max(300, tot * 0.04)).map(r => ({ ...r, label: SP_LABEL[r.key] || "" })) : [];
@@ -1364,9 +1372,11 @@ async function speak(text, wavPath, opt = {}){
 /* ------------------------------------------------------------ 実行 */
 
 async function main(){
-  const dd = await readJson(`data/articles/${SET}_draft.json`, null), ds = await readJson(`data/articles/${SET}_sealed.json`, null);
-  const rd = await readJson(`data/ratings/${SET}_PremierDraft.json`, null), rs = await readJson(`data/ratings/${SET}_Sealed.json`, null);
-  if(!dd || !ds || !rd || !rs){ console.error(`${SET}: ドラフトとシールドの記事データ・勝率一覧が両方そろっていません（articles ${!!dd}/${!!ds}, ratings ${!!rd}/${!!rs}）`); process.exit(1); }
+  const repD = await loadReport(SET, "draft"), repS = await loadReport(SET, "sealed");
+  if(!repD || !repS){ console.error(`${SET}: ドラフトとシールドの記事データ・勝率一覧が両方そろっていません（ドラフト ${!!repD} / シールド ${!!repS}。確定版・暫定版のどちらも無い）`); process.exit(1); }
+  const dd = repD.article, ds = repS.article, rd = repD.ratings, rs = repS.ratings;
+  const PROV = repD.provisional || repS.provisional;
+  console.error(`材料: ドラフト ${repD.provisional ? "暫定版" : "確定版"} / シールド ${repS.provisional ? "暫定版" : "確定版"}`);
   const nm = await readJson(`data/names/${SET}.json`, { names: {}, images: {} });
   const nameJa = EN ? shortName(nm.set || SET) : shortName((await setNameJa(SET)) || nm.set || SET);      // 英語版は、英語のセット名（ここでは変数名はそのまま）
   const sharp = (await import("sharp")).default;
@@ -1653,13 +1663,20 @@ async function main(){
   const ts = s => { const m = Math.floor(s / 60), r = Math.floor(s % 60); return `${m}:${String(r).padStart(2, "0")}`; };
   await writeFile(`${OUT}/chapters.txt`, chapters.map(c => `${ts(c.at)} ${c.title}`).join("\n") + "\n", "utf8");
   const gD = man(dd.total_games), gS = man(ds.total_games);
+  const hasDeckSpeed = Object.keys(rd.pair_speed || {}).length > 0;
+  // データの出どころ。暫定版は公開データセットではなく 17Lands の毎日の集計なので、集計した日を添える（数字が日々動くため）
+  const asOf = new Date(Date.parse(dd.data_generated_at || dd.generated_at || "") + 9 * 3600000);
+  const dataLine = !PROV ? (EN ? "Data: 17Lands Public Data (CC BY 4.0)" : "データ: 17Lands Public Data (CC BY 4.0)")
+    : isNaN(asOf) ? (EN ? "Data: 17Lands (https://www.17lands.com)" : "データ: 17Lands（https://www.17lands.com）")
+    : EN ? `Data: 17Lands, as of ${asOf.toLocaleDateString("en-US", { timeZone: "UTC", year: "numeric", month: "short", day: "numeric" })} (https://www.17lands.com)`
+    : `データ: 17Lands（${asOf.getUTCFullYear()}年${asOf.getUTCMonth() + 1}月${asOf.getUTCDate()}日時点の集計。https://www.17lands.com）`;
   await writeFile(`${OUT}/title.txt`, EN ? `[MTG Arena] ${nameJa} Limited Review | Best Colours, Sleeper Pairs, Top 10 Bombs & Trap Rares` : `【${nameJa}】リミテッド環境まとめ｜強い色・狙い目の色・ボム10枚・罠なレアカード・色別おすすめ【MTGアリーナ】`, "utf8");   // YouTube に上げるときの題
-  const credit = EN ? `Data: 17Lands Public Data (CC BY 4.0)
+  const credit = EN ? `${dataLine}
 Voice: Kokoro TTS
 ${ZUNDA ? "Character: Shikoku Metan (VOICEVOX / Tohoku Zunko project; illustration by Sakamoto Ahiru, recoloured)\n" : ""}${bgmCredit ? `BGM: ${bgmCredit}\n` : ""}Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.` : "";
   if(EN) await writeFile(`${OUT}/description.txt`,
 `A complete MTG Arena Limited review of ${nameJa}, based on 17Lands data (${gD} Draft games and ${gS} Sealed games).
-The strongest colour pairs and deck speed, sleeper pairs, the top 10 bomb rares, trap rares, and the best commons and uncommons for every colour.
+The strongest colour pairs${hasDeckSpeed ? " and deck speed" : ""}, sleeper pairs, the top 10 bomb rares, trap rares, and the best commons and uncommons for every colour.
 
 ▼ Chapters
 ${chapters.map(c => `${ts(c.at)} ${c.title}`).join("\n")}
@@ -1673,7 +1690,7 @@ ${credit}
 `, "utf8");
   else await writeFile(`${OUT}/description.txt`,
 `MTGアリーナ、リミテッドの${nameJa}環境を、17Landsの実戦データ（ドラフト${gD}試合・シールド${gS}試合）でまるごと解説します。
-最強の色の組み合わせとデッキの速さ、狙い目の色、ボムのレア10枚、罠なレアカード、色別のおすすめコモン・アンコモンまで。
+最強の色の組み合わせ${hasDeckSpeed ? "とデッキの速さ" : ""}、狙い目の色、ボムのレア10枚、罠なレアカード、色別のおすすめコモン・アンコモンまで。
 
 ▼ 目次
 ${chapters.map(c => `${ts(c.at)} ${c.title}`).join("\n")}
@@ -1681,7 +1698,7 @@ ${chapters.map(c => `${ts(c.at)} ${c.title}`).join("\n")}
 ▼ 全カードの勝率・環境レポート・シールド／ドラフトの練習（無料）
 https://${SITE}/
 
-データ: 17Lands Public Data (CC BY 4.0)
+${dataLine}
 音声: VOICEVOX:ずんだもん
 ${ZUNDA ? "立ち絵: 坂本アヒル（https://twitter.com/sakamoto_ahr）\n" : ""}${bgmCredit ? `BGM: ${bgmCredit}\n` : ""}Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.
 

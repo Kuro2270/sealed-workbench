@@ -21,6 +21,7 @@
  */
 import { readFile, writeFile, mkdir, readdir, unlink } from "node:fs/promises";
 import { cardTiers } from "./card-tier.mjs";
+import { fetchCardRows, listOf } from "./l17-cards.mjs";
 import { MIN_GAMES, topByRarity, colorStrength } from "./build-articles.mjs";
 
 const UA = "sealed-workbench/1.0 (https://sealed-workbench.com)";
@@ -77,28 +78,9 @@ async function cardMeta(set){
 /* 1つの形式（PremierDraft / Sealed）を作る */
 async function buildMode(set, mode, released, meta){
   const fmt = MODES[mode];
-  /* カード勝率の取り口は2つ試して、試合数の多いほうを使う。
-     ・/api/card_data（17Lands のカード表の画面が使っているもの。全期間）… 画面と同じ数字
-     ・/card_ratings/data（以前からのもの）… 2026年10月 FRA では、全体の4%ほどの試合しか返らなかった（期間の指定を変えても同じ）
-     どちらも項目の名前は同じ（game_count・ever_drawn_win_rate など） */
+  /* カード勝率の取り口は2つ試して、試合数の多いほうを使う（l17-cards.mjs。速報と共通） */
   const set_ = encodeURIComponent(set);
-  const variants = [
-    { label: "カード表の画面と同じ（全期間）", url: extra => `${L17}/api/card_data?expansion=${set_}&event_type=${fmt}&time_period=ALL_TIME${extra}` },
-    { label: "以前からの取り口", url: extra => `${L17}/card_ratings/data?expansion=${set_}&format=${fmt}&start_date=${iso(Date.parse(released) - 21 * DAY)}&end_date=${iso(NOW + DAY)}${extra}` }
-  ];
-  const listOf = d => Array.isArray(d) ? d : (d && (d.data || d.cards)) || [];
-  const sumGames = rows => (rows || []).reduce((n, r) => n + (+r.game_count || 0), 0);
-  let pick = variants[0], cardRows = null, best = -1;
-  for(const v of variants){
-    try{
-      const rows = listOf(await getJson(v.url("")));
-      const n = sumGames(rows);
-      console.error(`  ${set} ${fmt}: カード勝率（${v.label}）の試合数の合計 ${n.toLocaleString()}／カード ${rows.length} 種`);
-      if(n > best){ best = n; pick = v; cardRows = rows; }
-    }catch(e){ console.error(`  ${e.message}`); }
-    await sleep(1500);
-  }
-  if(!cardRows) throw new Error("カード勝率を取れませんでした");
+  const { rows: cardRows, games: best, variant: pick } = await fetchCardRows({ set, fmt, released, getJson, L17, now: NOW });
   const colorRows = await getJson(`${L17}/color_ratings/data?expansion=${set_}&event_type=${fmt}&start_date=${iso(Date.parse(released) - 21 * DAY)}&end_date=${iso(NOW + DAY)}&combine_splash=true`); await sleep(1500);
 
   /* 色の組み合わせと、全体の試合数・勝率 */

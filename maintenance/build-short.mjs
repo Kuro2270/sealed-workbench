@@ -75,7 +75,7 @@ const UI = JA ? {
   surpriseH: "意外な事実", nobody: "誰も組んでいない", strongerTogether: "組むと強くなる", weakerTogether: "組むと弱くなる",
   wrRank: (v, r) => `勝率 ${v}%（${r}位）`, wr: v => `勝率 ${v}%`, usedOnly: (g, p) => `使われた試合は ${g}。全体の${p}%だけ`, vsAvg2: (sign, n) => `2色それぞれの平均より ${sign}${n}pt`,
   outroA: "チャンネル登録を", outroB: "お願いします", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん",
-  earlyBadge: "速報", earlyHookC: "リミテッド速報", earlyH: "まだ序盤のデータです", early1: "順位はこれから動きます", early2: "確定版はデータが固まり次第", earlyAsOf: d => `${d} 時点`
+  earlyBadge: "速報", earlyHookC: "リミテッド速報", earlyH: "まだ序盤のデータです", early1: "順位はこれから動きます", early2: "全カードの勝率は発売12日目から", earlyAsOf: d => `${d} 時点`
 } : {
   analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute", hookA: "Limited in 1 minute", hookC: m => m ? "SEALED" : "DRAFT", hookD1: g => `${g} games analyzed`, hookD2: "Best colors & cards",
   tierH: "Colour-pair tier list", targetTag: "AIM FOR", bombsH: (a, b) => `Top 6 rare & mythic bombs (#${a}–${b})`, bombsTag: { mythic: "Mythic", rare: "Rare" },
@@ -89,7 +89,7 @@ const UI = JA ? {
   surpriseH: "One surprise", nobody: "Nobody plays it", strongerTogether: "Better together", weakerTogether: "Worse together",
   wrRank: (v, r) => `${v}% win rate (#${r})`, wr: v => `${v}% win rate`, usedOnly: (g, p) => `Only ${g} games — ${p}% of all decks`, vsAvg2: (sign, n) => `${sign}${n}pt vs each colour's average`,
   outroA: "Please subscribe", outroB: "", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS",
-  earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1", earlyH: "Early data", early1: "Rankings will move", early2: "Full review once data is final", earlyAsOf: d => `as of ${d}`
+  earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1", earlyH: "Early data", early1: "Rankings will move", early2: "Every card's win rate from day 12", earlyAsOf: d => `as of ${d}`
 };
 const FONT = "'Noto Sans CJK JP','Noto Sans JP',sans-serif";
 
@@ -306,7 +306,7 @@ function buildScript(d, nameJa, names){
     const base = { kind: "early", asOf: d.as_of || "", tail: 0.6 };
     scenes.push({ ...base, say: JA ? `まだ序盤のデータなので、順位はこれから動きます。` : `This is early data, so the rankings will move.` });
     scenes.push({ ...base, nofade: true, subscribe: true, tail: 0.8,
-      say: JA ? `確定版も出すので、チャンネル登録をぜひお願いします。`
+      say: JA ? `このあと環境まとめの解説動画も出すので、チャンネル登録をぜひお願いします。`
               : `The full review is coming, so please subscribe.` });
   }
 
@@ -738,7 +738,7 @@ function sceneSvg(sc){
         T(W / 2, 1010, sc.note, { size: JA ? 34 : 30, anchor: "middle", fill: MUTED }), sc.say);
     }
     case "early": {
-      // 先行版の断り書き：序盤のデータであること、確定版が後で出ること
+      // 先行版の断り書き：序盤のデータであること、全カードの勝率が発売12日目から出ること
       return frame(
         `<rect x="${W / 2 - 170}" y="470" width="340" height="86" rx="43" fill="#E53935" stroke="#FFFFFF" stroke-width="5"/>` +
         T(W / 2, 530, UI.earlyBadge, { size: JA ? 56 : 44, weight: 900, anchor: "middle", fill: "#FFFFFF" }) +

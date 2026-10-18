@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
-<script src="./i18n.js?v=7"></script>
+<script src="./i18n.js?v=8"></script>
 <script src="./analytics.js"></script>
 <script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
@@ -630,9 +630,11 @@ async function ensureSet(code){
     if(r.ok){ const d = await r.json(); (d.cards || []).forEach(c => { wr[c.name] = { gih: c.gih, games: c.games, byPair: c.by_pair || {} }; }); }
   }catch(e){}
   // 環境の速さ（環境レポートと同じデータ）：最も勝率の高い区分を採用する
+  // 公開データがまだ出ていない新しいセットは、17Lands の毎日の集計から作った記事データ（data/provisional。速さは無い）を使う
   pace = ""; archetypes = {}; avgWR = 0;
   try{
-    const r = await fetch(`./data/articles/${code}_draft.json`, {cache: "no-cache"});
+    let r = await fetch(`./data/articles/${code}_draft.json`, {cache: "no-cache"});
+    if(!r.ok) r = await fetch(`./data/provisional/${code}_draft.json`, {cache: "no-cache"});
     if(r.ok){
       const d = await r.json();
       const best = (d.speed || []).filter(x => x.wr != null).sort((a, b) => b.wr - a.wr)[0];
@@ -1462,7 +1464,10 @@ async function runDemo(){
   try{
     const r = await fetch("./data/articles/index.json", {cache: "no-cache"});
     const j = await r.json();
-    const d = (j.articles || []).filter(a => a.mode === "draft").sort((a, b) => (b.released_at || "").localeCompare(a.released_at || ""));
+    const d = (j.articles || []).filter(a => a.mode === "draft").map(a => ({ set: a.set, released_at: a.released_at || "" }));
+    // 17Lands の毎日の集計で勝率があるセット（下見の一覧で provisional の印）も候補にする
+    try{ const pr = await fetch("./data/profiles/index.json", {cache: "no-cache"}); if(pr.ok) ((await pr.json()).profiles || []).filter(p => p.provisional).forEach(p => d.push({ set: p.set, released_at: p.released_at || "" })); }catch(e){}
+    d.sort((a, b) => b.released_at.localeCompare(a.released_at));
     latest = d[0]?.set || (j.articles || [])[0]?.set || "";
   }catch(e){}
   if(!latest){ setStatus(t("assist.demoFailed"), "bad"); return; }

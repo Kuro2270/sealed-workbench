@@ -1,12 +1,12 @@
 name: 長尺｜1b 自動作成の起動（自動・毎日）
 
-# 記事データ（data/articles/<SET>_draft.json。「データ｜2 勝率データ集計」が作る）ができた新しいセットについて、長尺動画を自動で作り、
-# YouTube に「非公開」で上げる。毎日1回（9:10）、記事データがあり、かつ「紙の発売日 + 12日（勝率データが出る日）」から
-# 0〜28日のセットについて「長尺動画を作る」を自動で始め、確認用の Issue を立てる（同じセットで2回は作らない）。
-# 起点を記事ファイルの日付にしないのは、週1の集計で全セットの記事が作り直され、古いセットまで対象になってしまうため。
+# 新しいセットの長尺動画を、確定版（公開データセット）を待たずに、暫定版（17Lands の毎日の集計）で自動で作り、YouTube に「非公開」で上げる。
+# 毎日1回（9:10）、「紙の発売から14〜40日目」で、ドラフトとシールドの材料がそろったセットについて「長尺動画を作る」を始め、確認用の Issue を立てる。
+#   ・どのセットが作る日かは long-due.mjs が決める（材料は確定版があれば確定版、無ければ暫定版。14日目なら、ふつうは暫定版）
+#   ・同じセットで2回は作らない（Issue の題で確かめる）。確定版が出たあとに作り直すこともしない
+#   ・すでにサイトに長尺が載っているセット（data/long.json にある）は作らない
 # 公開は自動ではしない。Issue（メール・アプリで通知）を見て、YouTube Studio で内容を確認し、手で「公開」にする。
-# すでにサイトに長尺が載っているセット（data/long.json にある）は作らない。
-# 以前は「日本語ドラフトのショートが上がった日の14日後」を起点にしていたが、2026年10月に旧版のショートの自動作成を止めたので、起点を記事データに変えた。
+# 2026年10月までは「確定版の記事データができてから」作っていたが、旬を逃すので、暫定版で14日目に作るように変えた。
 
 on:
   schedule:
@@ -25,31 +25,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 記事データができたセットの長尺を作り始め、確認の Issue を立てる
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 作る日が来たセットを選ぶ
+        run: node maintenance/long-due.mjs > due.txt
+
+      - name: 長尺を作り始め、確認の Issue を立てる
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const DAYS_MIN = 0, DAYS_MAX = 28, DATA_DAYS = 12;   // 発売12日目（勝率データが出る日）から28日以内。古いセットは対象にしない
-            const dir = 'data/articles';
-            if(!fs.existsSync(dir)) return;
-            const index = fs.existsSync(`${dir}/index.json`) ? JSON.parse(fs.readFileSync(`${dir}/index.json`, 'utf8')) : { articles: [] };
-            const releasedAt = {};
-            for(const a of index.articles || []) if(a.set && a.released_at && !releasedAt[a.set]) releasedAt[a.set] = a.released_at;
-            const today = Date.now();
-            const longDone = fs.existsSync('data/long.json') ? JSON.parse(fs.readFileSync('data/long.json', 'utf8')) : {};
+            const due = fs.readFileSync('due.txt', 'utf8').split('\n').filter(Boolean).map(l => { const [set, released, kind] = l.split('\t'); return { set, released, kind }; });
+            if(!due.length) return;
             const issues = await github.paginate(github.rest.issues.listForRepo, {
               owner: context.repo.owner, repo: context.repo.repo, state: 'all', labels: 'long', per_page: 100 });
-            for(const f of fs.readdirSync(dir)){
-              const m = f.match(/^([A-Z0-9]+)_draft\.json$/);
-              if(!m) continue;
-              const set = m[1];
-              const v = JSON.parse(fs.readFileSync(`${dir}/${f}`, 'utf8'));
-              const rel = Date.parse(releasedAt[set] || '');
-              if(!rel) continue;
-              const days = Math.floor((today - (rel + DATA_DAYS * 86400000)) / 86400000);
-              if(!(days >= DAYS_MIN && days <= DAYS_MAX)) continue;
-              if(longDone[set] && longDone[set].ja && longDone[set].ja.id) continue;
+            for(const { set, released, kind } of due){
               const title = `【要確認】長尺動画を作って非公開で上げました：${set}`;
               const oldTitle = `【要対応】長尺動画を作る日です：${set}`;   // 以前の知らせ方で、すでに知らせたセットは自動では作らない
               if(issues.some(i => i.title === title || i.title === oldTitle)) continue;
@@ -67,19 +59,19 @@ jobs:
                 owner: context.repo.owner, repo: context.repo.repo,
                 title, assignees: [context.repo.owner], labels: ['long'],
                 body: [
-                  `${set} の記事データ（勝率データの集計）ができたので、長尺（環境まとめ）を自動で作り始めました（1〜2時間ほどかかります）。`,
+                  `${set} の長尺（環境まとめ）を、${kind}のデータで自動で作り始めました（1〜2時間ほどかかります）。`,
                   `できあがると YouTube に「非公開」で上がります。公開は自動ではしません。`,
                   ``,
                   `## やること`,
                   `1. 作成の進み具合と結果: ${runs}`,
-                  `2. 実行結果の読み上げ台本（読み違い）と、動画の長さ・カード画像・除去の一覧を確認する`,
+                  `2. 実行結果の読み上げ台本（読み違い）と、動画の長さ・カード画像を確認する`,
                   `3. 問題なければ YouTube Studio で「公開」にする。「子ども向けではない」になっているかも見る`,
                   `4. 公開すると、翌日までに自動でサイトに載る（すぐ載せたいときは Actions「長尺動画をサイトに載せる」を実行）`,
                   ``,
                   `作成が失敗したときは、GitHub から失敗の通知が届きます。直したうえで Actions「長尺動画を作る」に ${set} を入れて手で実行してください。`,
                   `直したい点があれば、同じ手順で作り直せます（古い非公開動画は YouTube Studio で削除してください）。`,
                   ``,
-                  `記事データ: data/articles/${set}_draft.json（集計 ${(v.generated_at || v.data_generated_at || '').slice(0, 10)}／発売 ${releasedAt[set]}）`
+                  `材料: ${kind}（発売 ${released}）`
                 ].join('\n')
               });
             }

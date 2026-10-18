@@ -10,12 +10,13 @@
  *   VIDEO_URL=https://… を付けると、動画のリンクにそれを使う
  *
  * 読むもの：YouTube に上げたときの記録（short/<SET>/<TAG>.youtube.json、long/<SET>/[en/]youtube.json）、
- *           記事データ（data/articles/<SET>_<形式>.json）、カードの日本語名（data/names/<SET>.json）
+ *           記事データ（data/articles/<SET>_<形式>.json。無ければ暫定版 data/provisional。report-data.mjs で読む）、カードの日本語名（data/names/<SET>.json）
  * 役割はこれだけ（投稿はしない。文字数の数え方は x-text.mjs）。
  */
 import { readFile } from "node:fs/promises";
 import { xLength } from "./x-text.mjs";
 import { setName } from "./set-name.mjs";
+import { loadArticle } from "./report-data.mjs";
 
 const [kind = "short", SET_IN = "", LANG_IN = "ja", MODE_IN = "draft"] = process.argv.slice(2);
 const SET = SET_IN.toUpperCase(), JA = LANG_IN !== "en", LANG = JA ? "ja" : "en";
@@ -36,7 +37,7 @@ async function main(){
   }
   const TAG = MODE === "draft" ? LANG : `${LANG}-${MODE}`;
   const yt = kind === "long" ? await readJson(`long/${SET}/${JA ? "" : "en/"}youtube.json`, null) : await readJson(`short/${SET}/${TAG}.youtube.json`, null);
-  const d = await readJson(`data/articles/${SET}_${MODE}.json`, null);
+  const d = MODE === "early" ? await readJson(`data/articles/${SET}_${MODE}.json`, null) : await loadArticle(SET, MODE);
   const names = (await readJson(`data/names/${SET}.json`, {})).names || {};
   const nm = (await setName(SET))[LANG];
   // VIDEO_URL があればそれを使う（公開後に「SNS｜X の文案を作る」が呼ぶとき。YouTube に上げたときの記録はリポジトリに残らないため）

@@ -6,13 +6,14 @@
  *
  * 出力: sets/og/<SET>-ja.png / sets/og/<SET>-en.png
  *
- * ・data/articles/<SET>_draft.json（無ければ sealed）から数字を取り、
+ * ・data/articles/<SET>_draft.json（無ければ sealed。公開データがまだ無いセットは data/provisional の記事）から数字を取り、
  *   data/names/<SET>.json のカード画像（日本語版／英語版）を右側に3枚並べる
  * ・文字は SVG で描き、カード画像と一緒に sharp で PNG にする
  * ・sharp が無い環境では SVG だけを残して終了する（Actions では sharp を入れてから実行する）
  */
 
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
+import { loadArticle } from "./report-data.mjs";
 
 const SCRY_HEADERS = { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)", Accept: "application/json" };
 const W = 1200, H = 630;
@@ -119,10 +120,12 @@ async function main(){
   try{ sharp = (await import("sharp")).default; }catch(e){ console.error("sharp が無いので SVG だけを出力します"); }
   const ja = await setNamesJa();
   await mkdir(OUT, { recursive: true });
-  const codes = [...new Set(index.articles.map(a => a.set))];
+  // 公開データの記事があるセットと、17Lands の毎日の集計の記事（data/provisional）しかない新しいセット
+  const provCodes = (await readdir("data/provisional").catch(() => [])).map(f => (f.match(/^([A-Z0-9]+)_(draft|sealed)\.json$/) || [])[1]).filter(Boolean);
+  const codes = [...new Set([...index.articles.map(a => a.set), ...provCodes])];
   let made = 0;
   for(const code of codes){
-    const d = await readJson(`${ARTICLES}/${code}_draft.json`, null) || await readJson(`${ARTICLES}/${code}_sealed.json`, null);
+    const d = await loadArticle(code, "draft") || await loadArticle(code, "sealed");
     if(!d) continue;
     const names = await readJson(`${NAMES}/${code}.json`, { names: {}, images: {}, imagesEn: {}, set: code });
     // 神話レアの勝率トップ3。3枚に満たないセットはレアで補う

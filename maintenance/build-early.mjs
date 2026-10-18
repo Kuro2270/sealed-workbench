@@ -13,7 +13,9 @@
  *   ・17Lands の利用ガイドラインでは、第三者サイトでのデータ掲載は発売12日目まで控える（Embargo）一方、
  *     動画や記事で数字を引用するのは初日から差し支えないとされている。そのため、先行版のデータは
  *     サイトには載せず、動画にだけ使う。このファイルは commit しない（ワークフローの中だけで使う）。
- *   ・通信は 17Lands に 2 回（カード勝率・色別勝率）と Scryfall だけ。毎日たたかない。
+ *   ・通信は 17Lands に形式ごとに 3 回（カード勝率の取り口2つ・色別勝率）と Scryfall だけ。毎日たたかない。
+ *     カード勝率は l17-cards.mjs（暫定版と共通）で、17Lands のカード表の画面と同じ数字（全試合）を取る。
+ *     以前の取り口（card_ratings/data）は全体の4%ほどの試合しか返らず、発売直後は数字が薄すぎたため
  *   ・動画の概要欄とコメントに「データ: 17Lands」の表記を入れる（ガイドラインの引用の決まり）。
  *
  *   ・ドラフト（PremierDraft）とシールド（Sealed）を合算した「リミテッド速報」にする。発売直後はシールドの試合が
@@ -23,6 +25,7 @@
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { fetchCardRows } from "./l17-cards.mjs";
 
 const SET = String(process.argv[2] || "").toUpperCase();
 if(!SET){ console.error("使い方: node maintenance/build-early.mjs <SET>"); process.exit(1); }
@@ -121,8 +124,7 @@ for(const FORMAT of FORMATS){
   try{
     colorRows = await getJson(`${L17}/color_ratings/data?${q}&event_type=${encodeURIComponent(FORMAT)}&combine_splash=true`, `17Lands の色別勝率（${FORMAT}）`);
     await sleep(1500);
-    cardRows = await getJson(`${L17}/card_ratings/data?${q}&format=${encodeURIComponent(FORMAT)}`, `17Lands のカード勝率（${FORMAT}）`);
-    await sleep(1500);
+    cardRows = (await fetchCardRows({ set: SET, fmt: FORMAT, released: setInfo.released_at, getJson: u => getJson(u, `17Lands のカード勝率（${FORMAT}）`), L17 })).rows;
   }catch(e){ console.error(`  ${e.message}（この形式は飛ばします）`); continue; }
   let fGames = 0, fWins = 0, fPairs = 0;
   for(const r of colorRows || []){

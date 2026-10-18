@@ -5,6 +5,7 @@ name: 長尺｜1 長尺動画を作る（自動・ショートの2週間後）
 #   ・日本語: ナレーションは VOICEVOX（ずんだもん）。英語: ナレーションは Kokoro（英語の音声）。どちらもずんだもんの立ち絵つき。動画の最後にクレジットが入る
 #   ・背景のプレイ映像は Releases のタグ assets にある bg.mp4（無ければ紺色）
 #   ・ドラフトとシールドの記事データ（data/articles）と勝率一覧（data/ratings）が両方そろっているセットだけ作れる
+#     確定版がまだ無いセットは、暫定版（data/provisional。「データ｜暫定版の勝率」が作る）で作る。暫定版には速さのデータが無いので、「環境の速さ」の章は入らない
 # できた動画・目次（chapters.txt）・概要欄の下書き（description.txt）は、この実行ページの「Artifacts」から ZIP で落とせる（30日で消える）。
 #   Artifacts の名前: 日本語は long-<SET>、英語は long-<SET>-en
 # ショート動画の公開から2週間後に、自動でも作られる（long-reminder.yml。lang は both）。できたら YouTube に「非公開」で自動的に上げる（許可が登録されていれば）。内容を確認して、YouTube Studio で手で「公開」にする。
@@ -108,12 +109,9 @@ jobs:
         run: |
           export SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"
           echo "SET_CODE=$SET_CODE" >> "$GITHUB_ENV"
-          for f in "data/articles/${SET_CODE}_draft.json" "data/articles/${SET_CODE}_sealed.json" "data/ratings/${SET_CODE}_PremierDraft.json" "data/ratings/${SET_CODE}_Sealed.json"; do
-            if [ ! -f "$f" ]; then
-              echo "::error::$f がまだありません。勝率データ集計が終わってから作ってください。"
-              exit 1
-            fi
-          done
+          # 材料（確定版、無ければ暫定版）がドラフトとシールドの両方そろっているか
+          node maintenance/report-data.mjs "$SET_CODE" > material.txt || { cat material.txt; echo "::error::${SET_CODE} の記事データ・勝率一覧が、ドラフトとシールドの両方そろっていません（確定版・暫定版のどちらも）。"; exit 1; }
+          cat material.txt; { echo; echo '```'; cat material.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           node maintenance/build-long.mjs "$SET_CODE" 2>&1 | grep --line-buffered -v onnxruntime | tee long.log
           test -f "long/${SET_CODE}/ja.mp4"
           {
@@ -232,12 +230,9 @@ jobs:
         run: |
           export SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"
           echo "SET_CODE=$SET_CODE" >> "$GITHUB_ENV"
-          for f in "data/articles/${SET_CODE}_draft.json" "data/articles/${SET_CODE}_sealed.json" "data/ratings/${SET_CODE}_PremierDraft.json" "data/ratings/${SET_CODE}_Sealed.json"; do
-            if [ ! -f "$f" ]; then
-              echo "::error::$f がまだありません。勝率データ集計が終わってから作ってください。"
-              exit 1
-            fi
-          done
+          # 材料（確定版、無ければ暫定版）がドラフトとシールドの両方そろっているか
+          node maintenance/report-data.mjs "$SET_CODE" > material.txt || { cat material.txt; echo "::error::${SET_CODE} の記事データ・勝率一覧が、ドラフトとシールドの両方そろっていません（確定版・暫定版のどちらも）。"; exit 1; }
+          cat material.txt; { echo; echo '```'; cat material.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           node maintenance/build-long.mjs "$SET_CODE" en 2>&1 | grep --line-buffered -v onnxruntime | tee long.log
           test -f "long/${SET_CODE}/en/en.mp4"
           {
