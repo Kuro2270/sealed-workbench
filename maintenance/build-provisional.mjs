@@ -15,7 +15,7 @@
  *   ・確定版（data/articles/<SET>_<mode>.json）があるセットは作らない（確定版のファイルを上書きしないため）。
  *     そのセットの暫定版が残っていれば消す（data/provisional/ だけ。data/ratings/ は確定版が上書き済み）。
  *   ・環境の速さ（デッキの平均マナ総量ごとの勝率）とゲームの長さは、試合ごとのデータが要るので暫定版には無い。
- *   ・17Lands への通信は、1セットにつき 26 回ほど（形式ごとに色別勝率・カード勝率2通り・2色10通りのカード勝率）。間を 1.5 秒あける。
+ *   ・17Lands への通信は、1セットにつき 26 回ほど（形式ごとに色別勝率・カード勝率2つの取り口・2色10通りのカード勝率）。間を 1.5 秒あける。
  *
  * 環境変数: L17_API / SCRY_API（確認用に差し替えられる）、PROV_NOW（確認用。今日の日付 YYYY-MM-DD）
  */
@@ -77,31 +77,29 @@ async function cardMeta(set){
 /* 1つの形式（PremierDraft / Sealed）を作る */
 async function buildMode(set, mode, released, meta){
   const fmt = MODES[mode];
-  /* 期間の指定は2通り試して、試合数の多いほうを使う。
-     17Lands のカード表の画面は「全期間（time_period=ALL_TIME）」で、日付（start_date / end_date）で取ると
-     ごく一部の試合しか返らないことがある（2026年10月 FRA で、日付指定では全期間の4%ほどしか返らなかった） */
-  const base = `expansion=${encodeURIComponent(set)}`;
+  /* カード勝率の取り口は2つ試して、試合数の多いほうを使う。
+     ・/api/card_data（17Lands のカード表の画面が使っているもの。全期間）… 画面と同じ数字
+     ・/card_ratings/data（以前からのもの）… 2026年10月 FRA では、全体の4%ほどの試合しか返らなかった（期間の指定を変えても同じ）
+     どちらも項目の名前は同じ（game_count・ever_drawn_win_rate など） */
+  const set_ = encodeURIComponent(set);
   const variants = [
-    `${base}&time_period=ALL_TIME`,
-    base,                                                                                   // 期間の指定なし
-    `${base}&start_date=${iso(Date.parse(released) - 3 * DAY)}&end_date=${iso(NOW)}`,       // アリーナの発売日（紙の3日前）から今日まで
-    `${base}&start_date=${iso(Date.parse(released) - 21 * DAY)}&end_date=${iso(NOW + DAY)}`
+    { label: "カード表の画面と同じ（全期間）", url: extra => `${L17}/api/card_data?expansion=${set_}&event_type=${fmt}&time_period=ALL_TIME${extra}` },
+    { label: "以前からの取り口", url: extra => `${L17}/card_ratings/data?expansion=${set_}&format=${fmt}&start_date=${iso(Date.parse(released) - 21 * DAY)}&end_date=${iso(NOW + DAY)}${extra}` }
   ];
-  const label = v => v.includes("ALL_TIME") ? "全期間" : !v.includes("start_date") ? "期間の指定なし" : v.includes(iso(Date.parse(released) - 3 * DAY)) ? "アリーナ発売日から" : "日付指定（広め）";
+  const listOf = d => Array.isArray(d) ? d : (d && (d.data || d.cards)) || [];
   const sumGames = rows => (rows || []).reduce((n, r) => n + (+r.game_count || 0), 0);
-  let q = variants[0], cardRows = null, best = -1;
+  let pick = variants[0], cardRows = null, best = -1;
   for(const v of variants){
     try{
-      const rows = await getJson(`${L17}/card_ratings/data?${v}&format=${fmt}`);
+      const rows = listOf(await getJson(v.url("")));
       const n = sumGames(rows);
-      console.error(`  ${set} ${fmt}: カード勝率（${label(v)}）の試合数の合計 ${n.toLocaleString()}／カード ${(rows || []).length} 種`);
-      if(n > best){ best = n; q = v; cardRows = rows; }
+      console.error(`  ${set} ${fmt}: カード勝率（${v.label}）の試合数の合計 ${n.toLocaleString()}／カード ${rows.length} 種`);
+      if(n > best){ best = n; pick = v; cardRows = rows; }
     }catch(e){ console.error(`  ${e.message}`); }
     await sleep(1500);
   }
   if(!cardRows) throw new Error("カード勝率を取れませんでした");
-  let colorRows = await getJson(`${L17}/color_ratings/data?${q}&event_type=${fmt}&combine_splash=true`).catch(() => null); await sleep(1500);
-  if(!colorRows || !colorRows.length){ colorRows = await getJson(`${L17}/color_ratings/data?${variants[1]}&event_type=${fmt}&combine_splash=true`); await sleep(1500); }
+  const colorRows = await getJson(`${L17}/color_ratings/data?expansion=${set_}&event_type=${fmt}&start_date=${iso(Date.parse(released) - 21 * DAY)}&end_date=${iso(NOW + DAY)}&combine_splash=true`); await sleep(1500);
 
   /* 色の組み合わせと、全体の試合数・勝率 */
   const MONO = { White: "W", Blue: "U", Black: "B", Red: "R", Green: "G" };
@@ -141,7 +139,7 @@ async function buildMode(set, mode, released, meta){
   const byName = new Map(cards.map(c => [c.name, c]));
   for(const p of PAIRS){
     try{
-      const rows = await getJson(`${L17}/card_ratings/data?${q}&format=${fmt}&colors=${p}`);
+      const rows = listOf(await getJson(pick.url(`&colors=${p}`)));
       // 色の指定が効いていない（全デッキと同じ数字が返ってきた）ときは、2色ごとの勝率は付けない
       const matched = (rows || []).filter(r => byName.has(r.name) && +r.ever_drawn_game_count > 0);
       const same = matched.filter(r => +r.ever_drawn_game_count === byName.get(r.name).games).length;
