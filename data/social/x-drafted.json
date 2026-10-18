@@ -1,0 +1,22 @@
+{
+  "FRA-early": {
+    "at": "2026-10-18T08:18:34.589Z",
+    "seeded": true
+  },
+  "TMT-long": {
+    "at": "2026-10-18T08:18:34.590Z",
+    "seeded": true
+  },
+  "MSH-long": {
+    "at": "2026-10-18T08:18:34.590Z",
+    "seeded": true
+  },
+  "HOB-long": {
+    "at": "2026-10-18T08:18:34.590Z",
+    "seeded": true
+  },
+  "SOS-long": {
+    "at": "2026-10-18T08:18:34.590Z",
+    "seeded": true
+  }
+}
