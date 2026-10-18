@@ -1,14 +1,16 @@
 /*
  * サイトのデータが段階的に新しくなったことの「出来事」と、その告知文（X は日本語・Bluesky は英語）を作る。役割はこれだけ（投稿はしない）。
- *   出来事は4つ。どれもサイトのファイルを見て決める（17Lands には問い合わせない）。
+ *   出来事は5つ。どれもサイトのファイルを見て決める（17Lands には問い合わせない）。
  *     memo    … 速報メモを、アリーナの配信から7日目の数字で書き直した（data/early/<SET>.json の round が 2）
  *     first   … 全カードの勝率とティア表を載せた（配信12日目。data/provisional/<SET>_draft.json の stage）
+ *     assist  … ドラフト補助・シールド補助が、そのセットの勝率つきで使えるようになった（first の翌日。同じ日に2件出さないため1日ずらす）
  *     refined … その1週間後に、増えたデータで勝率を作り直した（stage が refined）
  *     final   … 17Lands の公開データで作り直し、「環境の速さ」が加わった（data/articles/<SET>_draft.json に speed がある、発売から60日以内のセット）
  *   X の文案は x-drafts.mjs、Bluesky への投稿は post-data-news.mjs が、ここを使う。
  *
  *   await dataEvents()            … [{ id, kind, set, at }]
- *   await newsText(event, track)  … track が "x" なら日本語（X 用）、"bsky" なら英語（Bluesky 用）の本文。{ text, title, url }
+ *   await newsText(event, track)  … track が "x" なら日本語（X 用）、"bsky" なら英語（Bluesky 用）の本文。{ text, title, url, desc }
+ *   SEED_SKIP … はじめての実行でも「告知済み」にしないで出す出来事（補助ツールの告知は、いま使えるセットにも出したいため）
  */
 import { readFile, readdir } from "node:fs/promises";
 import { fit } from "./x-text.mjs";
@@ -21,6 +23,8 @@ const readJson = async (p, f) => { try{ return JSON.parse(await readFile(p, "utf
 const tagOf = s => "#" + String(s).replace(/[\s・:：'’!！?？,，.。&＆\-－]/g, "");
 const pct = v => (v * 100).toFixed(1) + "%";
 const CJ = { W: "白", U: "青", B: "黒", R: "赤", G: "緑" }, CE = { W: "White", U: "Blue", B: "Black", R: "Red", G: "Green" };
+const jstToday = () => new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+export const SEED_SKIP = ["assist"];
 
 export async function dataEvents(){
   const out = [];
@@ -34,6 +38,8 @@ export async function dataEvents(){
     const d = await readJson(`data/provisional/${f}`, null); if(!d) continue;
     const firstAt = d.first_at || String(d.generated_at || "").slice(0, 10);
     out.push({ id: `${m[1]}-first`, kind: "first", set: m[1], at: firstAt });
+    const assistAt = new Date(Date.parse(firstAt + "T00:00:00Z") + DAY).toISOString().slice(0, 10);
+    if(jstToday() >= assistAt) out.push({ id: `${m[1]}-assist`, kind: "assist", set: m[1], at: assistAt });
     if(d.stage === "refined") out.push({ id: `${m[1]}-refined`, kind: "refined", set: m[1], at: String(d.generated_at || "").slice(0, 10) });
   }
   const idx = await readJson("data/articles/index.json", { articles: [] });
@@ -61,11 +67,17 @@ export async function newsText(e, track){
   const ja = track === "x";
   const nm = (await setName(e.set))[ja ? "ja" : "en"];
   const names = ja ? ((await readJson(`data/names/${e.set}.json`, {})).names || {}) : {};
-  const page = `${SITE}/sets/${e.set}${e.kind === "memo" ? ".profile" : ""}${ja ? "" : ".en"}.html`;
+  // 補助ツールの告知は「MTGアリーナで使う」のページ（ドラフト補助・シールド補助の入口）へ。ほかはセット別ページ（速報メモは下見ページ）
+  const page = e.kind === "assist" ? `${SITE}/arena.html` : `${SITE}/sets/${e.set}${e.kind === "memo" ? ".profile" : ""}${ja ? "" : ".en"}.html`;
   const url = `${page}?from=${track}`;
   const tags = ja ? ["#MTGアリーナ", "#MTGA", "#リミテッド", tagOf(nm)] : ["#MTGArena", "#MTGLimited", tagOf(nm)];
-  let head, body = [];
-  if(e.kind === "memo"){
+  let head, body = [], desc = "Card win rates, a card tier list and colour pairs for MTG Arena Limited. Free, no sign-up.";
+  if(e.kind === "assist"){
+    head = ja ? `【${nm}】ドラフト補助・シールド補助が、全カードの勝率つきで使えます` : `${nm}: the Draft and Sealed assistants now have every card's win rate`;
+    body = ja ? ["・ドラフト補助：いま見ているパックを、勝率と自分の色からおすすめ順に", "・シールド補助：配られたプールから、2色のデッキ案を組みます", "~アリーナのログを読むだけ。PCのChrome／Edgeで無料"]
+              : ["• Draft assistant: ranks the pack in front of you by win rate and your colours", "• Sealed assistant: builds two-colour deck ideas from your real pool", "~It just reads Arena's log. Free, on PC (Chrome / Edge)."];
+    desc = "Draft and Sealed assistants for MTG Arena: they read Arena's log and suggest picks and decks by win rate. Free, PC (Chrome / Edge).";
+  }else if(e.kind === "memo"){
     const n = await readJson(`data/early/${e.set}.json`, {});
     head = ja ? `【${nm}】発売1週間の速報メモを更新しました` : `${nm}: the early look, updated with week-one data`;
     const first = String((ja ? n.ja : n.en) || "").split(ja ? /(?<=。)/ : /(?<=\.)\s/)[0];
@@ -83,5 +95,5 @@ export async function newsText(e, track){
     body.push(...highlights(d, names, ja));
   }
   const text = fit([head, "", ...body, "", url, "", tags.join(" ")], track);
-  return { text, title: head, url: page };
+  return { text, title: head, url: page, desc };
 }

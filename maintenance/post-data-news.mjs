@@ -4,6 +4,7 @@
  *   X（日本語・手で投稿）の文案は x-drafts.mjs が同じ出来事から作る。
  *   告知した出来事は data/social/data-posted.json に記録し、2回は出さない。
  *   はじめての実行は、いまある出来事を「告知済み」として記録するだけで、投稿はしない（過去の分をまとめて流さないため）。
+ *   ただし補助ツールの告知（SEED_SKIP）は、いま使えるセットにも出す。
  *   14日より前の出来事は出さない（時機を逃した告知を出さないため）。
  *
  *   node maintenance/post-data-news.mjs           … 告知する
@@ -12,7 +13,7 @@
  */
 import { readFile, writeFile, mkdir, appendFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { dataEvents, newsText } from "./data-news.mjs";
+import { dataEvents, newsText, SEED_SKIP } from "./data-news.mjs";
 import { postBskyLink } from "./bsky-link-post.mjs";
 
 const DRY = process.env.DRY_RUN === "1";
@@ -27,7 +28,7 @@ async function main(){
   let n = 0;
   for(const e of await dataEvents()){
     if(done[e.id]) continue;
-    if(first){ done[e.id] = { at: new Date().toISOString(), seeded: true }; continue; }
+    if(first && !SEED_SKIP.includes(e.kind)){ done[e.id] = { at: new Date().toISOString(), seeded: true }; continue; }
     if(e.at && Date.now() - Date.parse(e.at) > FRESH_MS){ console.log(`${e.id}: 古いので出しません（${e.at}）`); done[e.id] = { at: new Date().toISOString(), skipped: "old" }; continue; }
     const t = await newsText(e, "bsky");
     console.log(`\n--- ${e.id} ---\n${t.text}`);
@@ -38,7 +39,7 @@ async function main(){
     const image = existsSync(`sets/og/${e.set}-en.png`) ? `sets/og/${e.set}-en.png` : "ogp-en.png";
     let ok = false;
     try{
-      const res = await postBskyLink(t.text, { uri: t.url, title: t.title, description: "Card win rates, a card tier list and colour pairs for MTG Arena Limited. Free, no sign-up.", image });
+      const res = await postBskyLink(t.text, { uri: t.url, title: t.title, description: t.desc, image });
       console.log(res.message); ok = res.ok;
     }catch(err){ console.error(err.message); process.exitCode = 1; continue; }   // 失敗したものは記録せず、次の実行でもう一度
     done[e.id] = { at: new Date().toISOString(), bsky: ok };

@@ -5,7 +5,7 @@
  *   1. 新セットで練習（ドラフト・シールド）ができるようになったとき … 「SNS｜新セット発売の告知」の記録（data/social/release-posted.json）
  *   2. 速報のショート（日本語）を公開したとき                       … data/videos.json の <SET>.ja.early が公開（public）になったもの
  *   3. 環境まとめの長尺（日本語）を公開したとき                     … data/long.json の <SET>.ja（サイトに載った＝公開済み）
- *   4. サイトのデータが段階的に新しくなったとき（速報メモの更新・全カードの勝率の公開・1週間後の更新・環境の速さの追加）… data-news.mjs
+ *   4. サイトのデータが段階的に新しくなったとき（速報メモの更新・全カードの勝率の公開・補助ツールの案内・1週間後の更新・環境の速さの追加）… data-news.mjs
  *      4 の記録は、はじめて加わったときに、いまある分を「作成済み」として記録するだけにする（Bluesky の告知 post-data-news.mjs と同じ）
  * 文案を作ったものは data/social/x-drafted.json に記録し、2回は作らない。
  * はじめて動かしたとき（記録が無いとき）は、過去の分をまとめて出さないよう、いまあるものを「作成済み」として記録するだけにする。
@@ -25,7 +25,7 @@ import { execFileSync } from "node:child_process";
 import { releaseTexts } from "./release-text.mjs";
 import { setName } from "./set-name.mjs";
 import { makeReleaseImage } from "./x-release-image.mjs";
-import { dataEvents, newsText } from "./data-news.mjs";
+import { dataEvents, newsText, SEED_SKIP } from "./data-news.mjs";
 
 const DRY = process.env.DRY_RUN === "1";
 const PREVIEW = (process.env.PREVIEW_SET || "").trim().toUpperCase();
@@ -68,7 +68,7 @@ async function draft(e){
   const nm = await setName(e.set);
   const ja = nm.ja === e.set && e.fallbackName ? e.fallbackName : nm.ja;
   const text = e.data ? (await newsText(e, "x")).text : e.kind === "release" ? releaseTexts({ ja, en: nm.en }).x : videoText(e);
-  const title = `${ja}（${e.set}）の${{ release: "発売告知", early: "速報動画の告知", long: "環境まとめ動画の告知", memo: "速報メモ更新の告知", first: "勝率公開の告知", refined: "勝率更新の告知", final: "環境の速さ追加の告知" }[e.kind]}`;
+  const title = `${ja}（${e.set}）の${{ release: "発売告知", early: "速報動画の告知", long: "環境まとめ動画の告知", memo: "速報メモ更新の告知", first: "勝率公開の告知", assist: "補助ツールの告知", refined: "勝率更新の告知", final: "環境の速さ追加の告知" }[e.kind]}`;
   return { title, text, ja };
 }
 
@@ -116,7 +116,7 @@ async function main(){
   let n = 0;
   for(const e of all){
     if(done[e.id]) continue;
-    if(first || (e.data && firstData)){ done[e.id] = { at: new Date().toISOString(), seeded: true }; continue; }
+    if(first || (e.data && firstData && !SEED_SKIP.includes(e.kind))){ done[e.id] = { at: new Date().toISOString(), seeded: true }; continue; }
     if(e.at && Date.now() - Date.parse(e.at) > FRESH_MS){ console.log(`${e.id}: 古いので作りません（${e.at}）`); done[e.id] = { at: new Date().toISOString(), skipped: "old" }; continue; }
     const { title, text, ja } = await draft(e);
     const img = await imageFor(e, ja, DRY ? PREVIEW_DIR : IMG_DIR);
