@@ -156,7 +156,6 @@
   .tchip .tpic > :last-child{position:absolute;right:-5px;bottom:-4px;transform:scale(.72)}
   .tempty{font-size:12px;color:var(--muted);padding:0 4px}
   .tavg{font-size:12px;color:var(--muted);margin:6px 0 0}
-  .prov{background:#FFFBEA;border:1px solid #F2C94C;border-left:6px solid #F2C94C;border-radius:10px;padding:10px 14px;margin:8px 0 14px;font-size:13.5px;line-height:1.7}
   .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
   .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#FFFFFF}.rar.mythic{background:#C4552C}
   .links ul{margin:6px 0 0;padding-left:1.2em}
@@ -205,7 +204,7 @@
       <div class="ng"><span class="ngl">買う</span><span class="ngs">日本で買えるMTG用品</span><a href="../goods/index.html">日本のサプライ</a></div>
     </nav>
     <h1>ブルームバロウ｜リミテッド カード点数ランキングと環境レポート <small class="code">BLB</small></h1>
-    <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。カードの点数（評価）は、この勝率で見られます。　発売 2024-08-02</p>
+    <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsのデータを集計した実戦の勝率です。カードの点数（評価）は、この勝率で見られます。　発売 2024-08-02</p>
     <link rel="alternate" hreflang="en" href="BLB.en.html">
   </div>
 </header>
@@ -217,6 +216,13 @@
 
   <section><h3>環境の速さ</h3>
     <div class="verdict"><b>速い環境です。低マナ域を厚くしたデッキが勝ちやすい傾向がはっきり出ています。</b><span class="gap">平均マナ総量2.9未満の速いデッキが最も勝率が高く、55.7%です。 ゲームは平均8.9ターンで、直近8セットの中では短めです。</span></div>
+    <p class="lead" style="margin-top:12px">デッキの平均マナ総量ごとの勝率です。</p>
+    <table><thead><tr><th>平均マナ総量</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>2.9未満</td><td class="num"><b>55.7%</b></td><td class="num">660,255</td></tr>
+    <tr><td>2.9〜3.2</td><td class="num">54.9%</td><td class="num">340,342</td></tr>
+    <tr><td>3.2〜3.5</td><td class="num">54.3%</td><td class="num">91,771</td></tr>
+    <tr><td>3.5以上</td><td class="num">53.1%</td><td class="num">11,462</td></tr>
+    </tbody></table>
   </section>
   <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
     <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
@@ -262,7 +268,7 @@
   <section><h3>カードの勝率一覧（レアリティ別）</h3><p class="lead">ティア表のカードを、レアリティごとに勝率（GIH勝率）の高い順に並べ、試合数と一緒に載せています。</p>
     <div class="grid">
       <div><h3><span class="rar mythic">神話レア</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/b/2/b200c077-1a47-4b48-aa2f-c79a1ba1ff88.jpg?1782789491" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>損失の季節</span></span></td><td class="num"><b>66.4%</b></td><td class="num">12,986</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/b/0/b06110d2-d775-46c2-afbb-a57f4aa3529d.jpg?1782789550" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>羽の夜のマーハ</span></span></td><td class="num"><b>64.0%</b></td><td class="num">12,105</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/b/c/bc01e284-07b9-4600-9ea7-4613a1fd984a.jpg?1782789852" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i><span>巣穴の戦導者</span></span></td><td class="num"><b>63.8%</b></td><td class="num">11,140</td></tr>
@@ -275,7 +281,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/9/d/9db3f3df-8116-4822-9e4c-4cc77955b26a.jpg?1782789141" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>集会の季節</span></span></td><td class="num"><b>61.2%</b></td><td class="num">12,079</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">レア</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/1/8/186ceafc-698f-4ddd-824a-099259ade0f2.jpg?1782789057" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i><span>夢露の幻惑者</span></span></td><td class="num"><b>65.3%</b></td><td class="num">24,713</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/5/c/5c1a79bf-958d-468f-be8e-c087e5166c2e.jpg?1782789232" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>肥えた緑甲羅</span></span></td><td class="num"><b>64.7%</b></td><td class="num">27,729</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/6/6/66013f62-5cee-4ef0-9c9b-ecac85fda855.jpg?1782789863" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i><span>渓間の冒険呼び</span></span></td><td class="num"><b>64.6%</b></td><td class="num">23,077</td></tr>
@@ -288,7 +294,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/b/5/b57ac576-ab71-4d2a-a945-669dded50a7e.jpg?1782789127" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>耕作する高原導き</span></span></td><td class="num"><b>61.3%</b></td><td class="num">25,654</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">アンコモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/7/3/73fda052-03ef-4b2e-bc74-069621025ef1.jpg?1782788939" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i><span>蔦刈りの導師</span></span></td><td class="num"><b>62.2%</b></td><td class="num">52,404</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/c/7/c7880128-755b-4371-980e-84e3c77f5df7.jpg?1782789200" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>狩人の才能</span></span></td><td class="num"><b>62.1%</b></td><td class="num">68,428</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/4/8/48b5ac8a-0224-4444-bc5e-edf3d970d7a3.jpg?1782789464" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>思考忍びの邪術師</span></span></td><td class="num"><b>61.4%</b></td><td class="num">67,486</td></tr>
@@ -301,7 +307,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/f/e/fe0821ea-7e82-45f2-bb80-a2b8b8b0d90b.jpg?1782789958" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i><span>跳び込め</span></span></td><td class="num"><b>59.5%</b></td><td class="num">47,444</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">コモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/1/f/1fa6fb36-992f-40e2-bc3c-ba26c4d7e20c.jpg?1782789505" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>堪能</span></span></td><td class="num"><b>59.6%</b></td><td class="num">142,926</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/2/c/2cd4eec2-39c6-4822-8a39-c47dc9c54a7c.jpg?1782790001" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i><span>人参ケーキ</span></span></td><td class="num"><b>58.7%</b></td><td class="num">117,496</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/0/6/06b74a8c-5280-4526-98b0-e46aca382671.jpg?1782789952" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i><span>剛胆な兎</span></span></td><td class="num"><b>58.4%</b></td><td class="num">127,865</td></tr>
@@ -323,6 +329,13 @@
 
   <section><h3>環境の速さ</h3>
     <div class="verdict"><b>速い環境です。低マナ域を厚くしたデッキが勝ちやすい傾向がはっきり出ています。</b><span class="gap">平均マナ総量3.2未満の中速デッキが最も勝率が高く、56.2%です。 ゲームは平均9.1ターンで、直近8セットと同じくらいの長さです。</span></div>
+    <p class="lead" style="margin-top:12px">デッキの平均マナ総量ごとの勝率です。</p>
+    <table><thead><tr><th>平均マナ総量</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>2.9未満</td><td class="num">55.7%</td><td class="num">28,938</td></tr>
+    <tr><td>2.9〜3.2</td><td class="num"><b>56.2%</b></td><td class="num">20,787</td></tr>
+    <tr><td>3.2〜3.5</td><td class="num">56.2%</td><td class="num">6,463</td></tr>
+    <tr><td>3.5以上</td><td class="num">51.5%</td><td class="num">664</td></tr>
+    </tbody></table>
   </section>
   <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
     <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
@@ -368,7 +381,7 @@
   <section><h3>カードの勝率一覧（レアリティ別）</h3><p class="lead">ティア表のカードを、レアリティごとに勝率（GIH勝率）の高い順に並べ、試合数と一緒に載せています。</p>
     <div class="grid">
       <div><h3><span class="rar mythic">神話レア</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/b/2/b200c077-1a47-4b48-aa2f-c79a1ba1ff88.jpg?1782789491" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>損失の季節</span></span></td><td class="num"><b>68.6%</b></td><td class="num">942</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/b/0/b06110d2-d775-46c2-afbb-a57f4aa3529d.jpg?1782789550" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>羽の夜のマーハ</span></span></td><td class="num"><b>64.8%</b></td><td class="num">1,098</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/7/5/7577c303-6705-46b0-9935-0f315af02998.jpg?1782788926" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i><span>全てを喰らうもの、イグラ</span></span></td><td class="num"><b>64.6%</b></td><td class="num">1,151</td></tr>
@@ -381,7 +394,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/9/d/9db3f3df-8116-4822-9e4c-4cc77955b26a.jpg?1782789141" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>集会の季節</span></span></td><td class="num"><b>61.4%</b></td><td class="num">991</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">レア</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/5/c/5c1a79bf-958d-468f-be8e-c087e5166c2e.jpg?1782789232" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>肥えた緑甲羅</span></span></td><td class="num"><b>65.4%</b></td><td class="num">2,195</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/6/f/6f1c8837-76d2-4a8d-be9d-3e44b6db15d6.jpg?1782789194" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>亭主の才能</span></span></td><td class="num"><b>65.3%</b></td><td class="num">2,349</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/9/b/9bed728c-3c85-4dfd-a737-9e21794e3bdd.jpg?1782788923" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i><span>星界を呼ぶ者、ゾラリーネ</span></span></td><td class="num"><b>65.2%</b></td><td class="num">1,638</td></tr>
@@ -394,7 +407,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/6/9/696b529a-91ab-4159-af67-c05132d8f532.jpg?1782789191" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>鋭い目の管理者</span></span></td><td class="num"><b>61.3%</b></td><td class="num">1,740</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">アンコモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/7/3/73fda052-03ef-4b2e-bc74-069621025ef1.jpg?1782788939" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i><span>蔦刈りの導師</span></span></td><td class="num"><b>65.3%</b></td><td class="num">1,810</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/4/8/48b5ac8a-0224-4444-bc5e-edf3d970d7a3.jpg?1782789464" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>思考忍びの邪術師</span></span></td><td class="num"><b>62.8%</b></td><td class="num">3,305</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/1/d/1d59d65a-088a-4d9a-b9e1-da89d6fe0ad0.jpg?1782789573" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>討伐</span></span></td><td class="num"><b>62.3%</b></td><td class="num">3,540</td></tr>
@@ -407,7 +420,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/c/1/c1bfb67c-633c-482c-a3c9-0da5b1ef2be1.jpg?1782789542" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>月の石の先触れ</span></span></td><td class="num"><b>59.9%</b></td><td class="num">2,232</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">コモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/8/8/8803cd10-7cfb-4f58-ac2d-64c3c0faff54.jpg?1782789499" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>泥岩の鱗</span></span></td><td class="num"><b>60.9%</b></td><td class="num">2,784</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/1/f/1fa6fb36-992f-40e2-bc3c-ba26c4d7e20c.jpg?1782789505" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>堪能</span></span></td><td class="num"><b>60.3%</b></td><td class="num">6,698</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/2/c/2cd4eec2-39c6-4822-8a39-c47dc9c54a7c.jpg?1782790001" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i><span>人参ケーキ</span></span></td><td class="num"><b>59.7%</b></td><td class="num">5,047</td></tr>

@@ -156,7 +156,6 @@
   .tchip .tpic > :last-child{position:absolute;right:-5px;bottom:-4px;transform:scale(.72)}
   .tempty{font-size:12px;color:var(--muted);padding:0 4px}
   .tavg{font-size:12px;color:var(--muted);margin:6px 0 0}
-  .prov{background:#FFFBEA;border:1px solid #F2C94C;border-left:6px solid #F2C94C;border-radius:10px;padding:10px 14px;margin:8px 0 14px;font-size:13.5px;line-height:1.7}
   .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
   .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#FFFFFF}.rar.mythic{background:#C4552C}
   .links ul{margin:6px 0 0;padding-left:1.2em}
@@ -205,7 +204,7 @@
       <div class="ng"><span class="ngl">買う</span><span class="ngs">日本で買えるMTG用品</span><a href="../goods/index.html">日本のサプライ</a></div>
     </nav>
     <h1>サンダー・ジャンクションの無法者｜リミテッド カード点数ランキングと環境レポート <small class="code">OTJ</small></h1>
-    <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsの公開データを集計した実戦の勝率です。カードの点数（評価）は、この勝率で見られます。　発売 2024-04-19</p>
+    <p>マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsのデータを集計した実戦の勝率です。カードの点数（評価）は、この勝率で見られます。　発売 2024-04-19</p>
     <link rel="alternate" hreflang="en" href="OTJ.en.html">
   </div>
 </header>
@@ -217,6 +216,13 @@
 
   <section><h3>環境の速さ</h3>
     <div class="verdict"><b>やや遅い環境です。差は小さいものの、重いデッキほど勝率が高い並びになっています。</b><span class="gap">平均マナ総量3.5以上の重いデッキが最も勝率が高く、56.2%です。 ゲームは平均9.2ターンで、直近8セットと同じくらいの長さです。</span></div>
+    <p class="lead" style="margin-top:12px">デッキの平均マナ総量ごとの勝率です。</p>
+    <table><thead><tr><th>平均マナ総量</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>2.9未満</td><td class="num">54.3%</td><td class="num">725,610</td></tr>
+    <tr><td>2.9〜3.2</td><td class="num">55.1%</td><td class="num">479,684</td></tr>
+    <tr><td>3.2〜3.5</td><td class="num">55.6%</td><td class="num">156,063</td></tr>
+    <tr><td>3.5以上</td><td class="num"><b>56.2%</b></td><td class="num">26,525</td></tr>
+    </tbody></table>
   </section>
   <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
     <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
@@ -262,7 +268,7 @@
   <section><h3>カードの勝率一覧（レアリティ別）</h3><p class="lead">ティア表のカードを、レアリティごとに勝率（GIH勝率）の高い順に並べ、試合数と一緒に載せています。</p>
     <div class="grid">
       <div><h3><span class="rar mythic">神話レア</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/c/6/c67b7dec-a405-4951-ac9a-4e76e6e19583.jpg?1782796698" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>鉄道の喧嘩屋</span></span></td><td class="num"><b>65.6%</b></td><td class="num">15,839</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/7/5/758382eb-a71e-4d45-918c-b5674d830531.jpg?1782796421" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i><span>用心棒、ラクドス</span></span></td><td class="num"><b>64.6%</b></td><td class="num">14,999</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/8/7/8766970f-af3a-40df-84cc-6006493ccb4c.jpg?1782796794" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>棘を播く者、逆棘のビル</span></span></td><td class="num"><b>64.3%</b></td><td class="num">15,295</td></tr>
@@ -275,7 +281,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/e/0/e00cc879-7402-4a34-8d59-f37e397ef428.jpg?1782796740" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>金脈のハイドラ</span></span></td><td class="num"><b>59.8%</b></td><td class="num">14,753</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">レア</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/8/0/809ed223-6b2b-4763-b2f4-18c724e90029.jpg?1782796584" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i><span>乱伐者、ボニー・ポール</span></span></td><td class="num"><b>66.9%</b></td><td class="num">34,102</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/b/2/b2624c9d-ccb6-44e5-8473-9f5ce8489c82.jpg?1782796410" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i><span>落星の学者、ロクサーヌ</span></span></td><td class="num"><b>64.2%</b></td><td class="num">31,315</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/7/5/759dd334-8494-488f-ac37-06b9d0eecb12.jpg?1782796719" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>気性の荒いタンブルワグ</span></span></td><td class="num"><b>62.9%</b></td><td class="num">32,227</td></tr>
@@ -288,7 +294,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/4/6/46db446e-71f3-46f0-a4ea-f147fec1f89f.jpg?1782797098" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>戦慄の奔出</span></span></td><td class="num"><b>60.4%</b></td><td class="num">29,078</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">アンコモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/8/5/85c6f9bf-bf12-40c2-82e8-c8c3dab67bf0.jpg?1782796714" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>荒野無頼団の緑刃</span></span></td><td class="num"><b>61.3%</b></td><td class="num">80,230</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/9/b/9bfbea77-665c-4516-b7c6-96f3406ffb57.jpg?1782797555" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i><span>法による束縛</span></span></td><td class="num"><b>61.2%</b></td><td class="num">73,737</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/6/7/677ae55d-77ec-4402-a549-e86f1327a2c1.jpg?1782796658" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>棘林のアルマジロ</span></span></td><td class="num"><b>61.0%</b></td><td class="num">74,014</td></tr>
@@ -301,7 +307,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/e/c/ec4af56b-f511-4fcd-8d1c-77d33b2e9d1d.jpg?1782796638" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>町荒らし</span></span></td><td class="num"><b>58.6%</b></td><td class="num">63,661</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">コモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/7/0/7067c6d2-d6a9-40c2-869d-5a77721fbaaa.jpg?1782796644" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>鞍上からの投擲</span></span></td><td class="num"><b>59.2%</b></td><td class="num">173,462</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/3/9/390226b4-91ca-43e8-81ba-cc9a4be1a0af.jpg?1782797210" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>貪る灰</span></span></td><td class="num"><b>57.9%</b></td><td class="num">156,667</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/5/d/5d2b8b58-048d-4ae2-ad9f-e81b44b9107f.jpg?1782797472" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i><span>盾、構え</span></span></td><td class="num"><b>57.8%</b></td><td class="num">115,386</td></tr>
@@ -323,6 +329,13 @@
 
   <section><h3>環境の速さ</h3>
     <div class="verdict"><b>遅い環境です。重いカードを支えられるデッキが勝ちやすい傾向が出ています。</b><span class="gap">平均マナ総量3.5未満の遅いデッキが最も勝率が高く、62.5%です。 ゲームは平均8.9ターンで、直近8セットの中では短めです。</span></div>
+    <p class="lead" style="margin-top:12px">デッキの平均マナ総量ごとの勝率です。</p>
+    <table><thead><tr><th>平均マナ総量</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
+    <tr><td>2.9未満</td><td class="num">55.6%</td><td class="num">4,589</td></tr>
+    <tr><td>2.9〜3.2</td><td class="num">59.2%</td><td class="num">3,499</td></tr>
+    <tr><td>3.2〜3.5</td><td class="num"><b>62.5%</b></td><td class="num">1,309</td></tr>
+    <tr><td>3.5以上</td><td class="num">58.8%</td><td class="num">204</td></tr>
+    </tbody></table>
   </section>
   <section><h3>色の強さ</h3><p class="lead">その色のカードをデッキに入れた試合の勝率です。</p>
     <table><thead><tr><th>色</th><th class="num">勝率</th><th class="num">試合数</th></tr></thead><tbody>
@@ -365,7 +378,7 @@
   <section><h3>カードの勝率一覧（レアリティ別）</h3><p class="lead">ティア表のカードを、レアリティごとに勝率（GIH勝率）の高い順に並べ、試合数と一緒に載せています。</p>
     <div class="grid">
       <div><h3><span class="rar uncommon">アンコモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/6/7/677ae55d-77ec-4402-a549-e86f1327a2c1.jpg?1782796658" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>棘林のアルマジロ</span></span></td><td class="num"><b>68.1%</b></td><td class="num">631</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/8/5/85c6f9bf-bf12-40c2-82e8-c8c3dab67bf0.jpg?1782796714" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>荒野無頼団の緑刃</span></span></td><td class="num"><b>65.3%</b></td><td class="num">568</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/9/b/9bfbea77-665c-4516-b7c6-96f3406ffb57.jpg?1782797555" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i><span>法による束縛</span></span></td><td class="num"><b>64.6%</b></td><td class="num">585</td></tr>
@@ -373,7 +386,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/a/9/a97147d5-797d-441c-a7d6-e04a87a0915e.jpg?1782796729" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>剛胆な馬小屋主</span></span></td><td class="num"><b>56.5%</b></td><td class="num">566</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">コモン</span></h3>
-      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
+      <table><thead><tr><th>カード</th><th class="num"><span data-tip="GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。" tabindex="0">点数（GIH勝率）</span></th><th class="num">試合数</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/7/0/7067c6d2-d6a9-40c2-869d-5a77721fbaaa.jpg?1782796644" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>鞍上からの投擲</span></span></td><td class="num"><b>64.4%</b></td><td class="num">1,185</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/1/c/1c8b9547-e6d4-4bb3-b85e-e52bc334cd21.jpg?1782797199" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>砂漠の本分</span></span></td><td class="num"><b>63.7%</b></td><td class="num">891</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/0/0/00cff230-273a-4bfa-8aac-75473e9c79d7.jpg?1782796703" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>辛抱強い自然主義者</span></span></td><td class="num"><b>63.6%</b></td><td class="num">946</td></tr>
