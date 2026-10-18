@@ -407,6 +407,7 @@ const D = {                 // ドラフトの状態
   pack: [],                 // いま見ているパック（arena_id の配列）
   picked: [],               // ピック済み（arena_id の配列）
   done: false,              // ドラフトが終わったか
+  fromCourse: false,        // ピックをログで見ておらず、参加中のイベントの一覧（Courses）から取ったか（アリーナ再起動のあと）
   colorScore: {W:0,U:0,B:0,R:0,G:0}
 };
 let view = "pack";          // 小窓に出す内容：pack（いまのパック）／deck（デッキ案）
@@ -471,6 +472,23 @@ function handleLine(line){
   if(!o) return;
   let hit = false;
 
+  // アリーナを再起動したあと：ドラフト中のピックは新しいログに残らないが、参加中のイベントの一覧（Courses）に
+  // ピックしたカード（CardPool。ドラフトなら42枚）が入っている。ピックを見ていないときだけ、そこからデッキ案を出す
+  if(Array.isArray(o.Courses) && !D.pack.length && (!D.picked.length || D.fromCourse)){
+    const c = o.Courses.filter(x => x && /draft/i.test(x.InternalEventName || "") && x.CurrentModule !== "Complete"
+                                   && Array.isArray(x.CardPool) && x.CardPool.length >= 40).pop();
+    if(c){
+      const ids = c.CardPool.map(String);
+      if(ids.join(",") !== D.picked.join(",")){
+        const m = c.InternalEventName.match(/_([A-Z0-9]{3,5})_/);
+        if(m) D.set = m[1];
+        D.event = c.InternalEventName; D.picked = ids; D.pack = []; D.done = true; D.fromCourse = true; view = "deck";
+        recomputeColors();
+        hit = true; log(`draft pool from course list: ${c.InternalEventName} ${ids.length} cards (${c.CurrentModule})`);
+      }
+    }
+  }
+
   // イベント名（セットコードを取り出す）
   const evName = deepFind(o, ["internaleventname","eventname"]);
   if(typeof evName === "string" && /draft/i.test(evName)){
@@ -502,7 +520,7 @@ function handleLine(line){
   }
   // 新しいドラフトが始まったら状態を戻す
   if(D.done && deepFind(o, ["draftpack","packcards"]) !== undefined && toIds(deepFind(o, ["draftpack","packcards"])).length){
-    D.done = false; D.picked = []; view = "pack"; recomputeColors();
+    D.done = false; D.fromCourse = false; D.picked = []; view = "pack"; recomputeColors();
   }
 
   // Bot 相手のドラフト：DraftPack / PackNumber / PickNumber / PickedCards
@@ -581,7 +599,7 @@ async function startWatch(){
   markSetupDone();
   stopWatch();
   demo = false;
-  D.set = ""; D.event = ""; D.pack = []; D.picked = []; D.packNo = 0; D.pickNo = 0; D.done = false; view = "pack"; recomputeColors();
+  D.set = ""; D.event = ""; D.pack = []; D.picked = []; D.packNo = 0; D.pickNo = 0; D.done = false; D.fromCourse = false; view = "pack"; recomputeColors();
   // 先頭から読む。Player.log は起動ごとに作り直されるので、今回の起動分をなぞれば
   // ドラフトの途中で選んでも、いまのパックまでたどり着く。
   offset = 0;
@@ -1538,7 +1556,7 @@ const DEMO_LINES = [
 ];
 async function runDemo(){
   stopWatch(); demo = true; handle = null;
-  D.set = ""; D.event = ""; D.pack = []; D.picked = []; D.packNo = 0; D.pickNo = 0; D.done = false; view = "pack"; recomputeColors();
+  D.set = ""; D.event = ""; D.pack = []; D.picked = []; D.packNo = 0; D.pickNo = 0; D.done = false; D.fromCourse = false; view = "pack"; recomputeColors();
   setStatus(t("assist.demoLoading"));
   // 最新セットのカードから14枚を仮のパックにする
   let latest = "";
