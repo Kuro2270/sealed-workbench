@@ -596,7 +596,7 @@
     "assist.bestTwoNote":{ ja:"評価が近いので2枚並べています。デッキの方向や好みで選んでください。", en:"These two score almost the same — choose by the deck you want to build." },
     "assist.slotsNow":  { ja:"クリーチャー {c}／スペル {s}（クリーチャーのいまの目安 {e}枚・最終 {tc}枚）", en:"Creatures {c} / spells {s} (creature target now {e}, final {tc})" },
     "assist.slots":     { ja:"クリーチャー {c}／スペル {s}（目安 {tc}：{ts}）", en:"Creatures {c} / spells {s} (aim {tc}:{ts})" },
-    "assist.slotsTip":  { ja:"自分の色でピック済みの枚数です。最終的にはクリーチャー17枚が目安ですが、途中は各パックの終わりまでに4枚・10枚・17枚あればよいとして比べます。目安より足りないときだけクリーチャーを持ち上げ、その幅は1パック目で最大1.5、2パック目で3、3パック目で4ポイントです。", en:"On-colour picks so far. The final aim is about 17 creatures, but along the way the target is 4 by the end of pack 1, 10 by pack 2 and 17 by pack 3. Creatures are boosted only when you are behind that pace — by up to 1.5 points in pack 1, 3 in pack 2 and 4 in pack 3." },
+    "assist.slotsTip":  { ja:"自分の色でピック済みの枚数です。最終的にはクリーチャー17枚が目安です。途中は、各パックの終わりまでに4枚・10枚・17枚というペースと、自分の色のカードの23分の17という割合の、多いほうと比べます。目安より足りないときはクリーチャーを持ち上げ、その幅は1パック目で最大1.5、2パック目で3、3パック目で4ポイントです。", en:"On-colour picks so far. The final aim is about 17 creatures. Along the way the target is the larger of a pace (4 by the end of pack 1, 10 by pack 2, 17 by pack 3) and a share (17 of every 23 on-colour cards). Creatures are boosted when you are behind — by up to 1.5 points in pack 1, 3 in pack 2 and 4 in pack 3." },
     "assist.paceLabel": { ja:"環境の速さ：{p}", en:"Format pace: {p}" },
     "assist.paceTip":   { ja:"環境レポートと同じデータです。速い環境では低マナ域を、遅い環境では中〜高マナ域を持ち上げます。", en:"Same data as the set report. Fast formats boost cheap cards; slow formats boost the mid-to-high end." },
     "assist.pace.fast": { ja:"速い", en:"fast" },
