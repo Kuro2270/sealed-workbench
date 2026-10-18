@@ -11,9 +11,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
-<script src="./i18n.js?v=9"></script>
+<script src="./i18n.js?v=10"></script>
 <script src="./analytics.js"></script>
 <script src="./arena-ids.js?v=1"></script>
+<script src="./card-role.js?v=1"></script>
+<script src="./deck-tune.js?v=1"></script>
 <script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
@@ -167,6 +169,8 @@
   ul.dl li{display:grid;grid-template-columns:18px 26px 1fr auto;gap:8px;align-items:center;padding:3px 4px;border-bottom:1px solid var(--paper-2);font-size:13.5px}
   ul.dl li .cmc{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
   ul.dl li .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  ul.dl li .rmtag{display:inline-block;margin-left:4px;padding:0 5px;border-radius:5px;font-size:10.5px;font-weight:700;line-height:16px;vertical-align:1px;background:#FBE3DF;color:#A3321F}
+  ul.dl li .rmtag.tk{background:#E2EEFB;color:#1F4E86}
   ul.dl li .wr{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
   ul.dl li .qty{color:var(--gold);margin-left:4px}
   .deck-alt{margin-top:10px;font-size:12.5px;color:var(--muted)}
@@ -408,6 +412,11 @@ let cards = {};             // arena_id → {name, ja, colors, rarity, cmc, type
 let wr = {};                // 英語名 → {gih, games}
 let loadedSet = "";
 let pace = "";                // 環境の速さ（fast / mid / slow / slower）
+let paceMax = null;           // その速さの、デッキの平均マナ総量の上限（環境レポートの区切り）
+let paceFromData = false;     // 環境レポートの数字から決めたか（false なら下の既定）
+/* 速さのデータがまだ無いセット（環境レポートが暫定版のあいだ）の既定。
+   過去のセットの実績で決める：ドラフトは15セット中12セットで「速い」デッキの勝率が最も高かった */
+const PACE_DEFAULT = "fast";
 let archetypes = {};          // 2色の組み合わせ → { wr, diff }（環境の平均との差、ポイント）
 let avgWR = 0;
 const RAR_BASE = { common:52.0, uncommon:53.5, rare:55.0, mythic:56.0 };
@@ -632,7 +641,7 @@ async function ensureSet(code){
   }catch(e){}
   // 環境の速さ（環境レポートと同じデータ）：最も勝率の高い区分を採用する
   // 公開データがまだ出ていない新しいセットは、17Lands の毎日の集計から作った記事データ（data/provisional。速さは無い）を使う
-  pace = ""; archetypes = {}; avgWR = 0;
+  pace = ""; paceMax = null; paceFromData = false; archetypes = {}; avgWR = 0;
   try{
     let r = await fetch(`./data/articles/${code}_draft.json`, {cache: "no-cache"});
     if(!r.ok) r = await fetch(`./data/provisional/${code}_draft.json`, {cache: "no-cache"});
@@ -640,6 +649,8 @@ async function ensureSet(code){
       const d = await r.json();
       const best = (d.speed || []).filter(x => x.wr != null).sort((a, b) => b.wr - a.wr)[0];
       pace = best ? best.key : "";
+      paceMax = best ? best.max : null;
+      paceFromData = !!best;
       // 2色の組み合わせごとの勝率（環境レポートと同じデータ）。平均との差をポイントで持つ
       archetypes = {};
       avgWR = d.overall_win_rate || 0;
@@ -648,6 +659,7 @@ async function ensureSet(code){
     }
   }catch(e){}
   // カード情報（英語）。Scryfall に番号（arena_id）がまだ無いカードは、番号 → カード名の対応表で登録する
+  if(!pace){ pace = PACE_DEFAULT; paceMax = null; }       // 既定の速さ（上限は deck-tune.js の速さごとの既定）
   const setCards = [];
   await scryAll(`set:${code.toLowerCase()} unique:prints`, c => { setCards.push(c); addCard(c); });
   await addByArenaIds(setCards);
@@ -694,6 +706,8 @@ function addCard(c, id){
     legendary: front.includes("Legendary"),
     subtypes: (front.split("—")[1] || "").trim().split(/\s+/).filter(Boolean),
     oracle: c.oracle_text || c.card_faces?.[0]?.oracle_text || "",
+    removal: CardRole.removal(CardRole.textOf(c)),            // 除去か（card-role.js。両面・出来事は各面の文面で見る）
+    makesCreatures: CardRole.makesCreatures(CardRole.textOf(c)), // クリーチャー・トークンを出す呪文か（クリーチャー枠で数える）
     img: imgOf(c), imgJa: "",
     mana: c.mana_cost || c.card_faces?.[0]?.mana_cost || "",
     set: (c.set || "").toUpperCase()
@@ -927,10 +941,11 @@ function colorWeight(){ return WEIGHTS[localStorage.getItem("assist.weight") || 
 
 /* デッキの枠：40枚デッキの土地以外23枚のうち、クリーチャー17枚・スペル6枚を目安にする */
 const DECK_TARGET = { creature: 17, spell: 6 };
+/* クリーチャー・トークンを出す呪文は、盤面にクリーチャーを置く役なので、クリーチャー枠で数える */
 function kindOf(c){
   const ty = (c && c.type) || "";
   if(ty.includes("Land")) return "land";
-  return ty.includes("Creature") ? "creature" : "spell";
+  return ty.includes("Creature") || (c && c.makesCreatures) ? "creature" : "spell";
 }
 /* マナ域は 1〜6以上 の6段階でまとめる。0マナは1マナ扱い */
 const MV_MIN = 1, MV_MAX = 6;
@@ -939,14 +954,14 @@ const mvBucket = c => Math.max(MV_MIN, Math.min(MV_MAX, Math.round((c && c.cmc) 
 /* 自分の色のカードだけを数える（デッキに入る見込みのある分） */
 function pickedCounts(){
   const bonus = colorBonus();
-  const n = { creature: 0, spell: 0, play: 0, mv: {1:0,2:0,3:0,4:0,5:0,6:0} };
+  const n = { creature: 0, spell: 0, play: 0, removal: 0, mv: {1:0,2:0,3:0,4:0,5:0,6:0} };
   D.picked.forEach(id => {
     const c = cards[id]; if(!c) return;
     const k = kindOf(c); if(k === "land") return;
     // 無色はどのデッキにも入る。ハイブリッド（例：白か青で払える）は、どちらか1色が合えば入る
     const on = !c.colors.length
             || (c.pureHybrid ? c.colors.some(x => bonus[x] >= 1) : c.colors.every(x => bonus[x] >= 1));
-    if(on){ n[k]++; n.play++; n.mv[mvBucket(c)]++; }
+    if(on){ n[k]++; n.play++; n.mv[mvBucket(c)]++; if(c.removal) n.removal++; }
   });
   return n;
 }
@@ -986,6 +1001,16 @@ const CURVE_TARGET = {
 };
 /* カーブ補正の最大幅（勝率ポイント） */
 const CURVE_WEIGHT = 2;
+/* 除去：デッキ案の目安は5枚（deck-tune.js）。ピックでは、色が合わずに使えなくなる分を見込んで
+   ドラフトの終わりまでに REMOVAL_GOAL 枚を持っておきたい。
+   途中は、デッキに入りそうな枚数（23枚中いま何枚か）に比例した目安と比べ、足りなければ除去を持ち上げる。
+   取りすぎを下げることはしない（除去は何枚あっても困らない） */
+const REMOVAL_GOAL = DeckTune.REMOVAL_MIN + 1;
+const REMOVAL_WEIGHT = 3;
+function removalNeed(n){
+  const goal = Math.min(REMOVAL_GOAL, REMOVAL_GOAL * n.play / 23);
+  return { need: Math.max(0, Math.min(1, (goal - n.removal) / 1.5)), have: n.removal, goal };
+}
 /* そのマナ域が今の手持ちに対して足りているか。
    23枚ぶんの目安を、いま持っている枚数ぶんに割り戻して比べる。
    +1 なら大きく足りない、−1 なら取りすぎ。
@@ -1022,6 +1047,7 @@ function scorePack(){
   const st = synergyState();
   const counts = pickedCounts();
   const cMode = curveMode();
+  const remNeed = removalNeed(counts);
   return D.pack.map(id => {
     const c = cards[id];
     const base = ratingOf(id, usePair);
@@ -1054,6 +1080,9 @@ function scorePack(){
         adjPace = ramp * CURVE_WEIGHT * curve.need;
       }
     }
+    // 3b) 除去が足りなければ、除去を持ち上げる（枠・カーブと同じく8手目で最大）
+    let adjRemoval = 0;
+    if(c && c.removal && kind !== "land"){ adjRemoval = ramp * REMOVAL_WEIGHT * remNeed.need; }
     // 4) 伝説のカード：同じものは場に1枚しか置けないので、2枚目は大きく、3枚目以降はほぼ取らない
     let adjLegend = 0, owned = 0;
     if(c && c.legendary){
@@ -1065,8 +1094,8 @@ function scorePack(){
     const syn = c ? synergyFor(c, st) : { adj: 0, why: [] };
     const adjSyn = ramp * syn.adj;
     const basic = !!(c && c.basic);
-    const score = basic ? -1 : base + adjColor + adjSlot + adjPace + adjLegend + adjSyn;
-    return { id, c, base, fit, adjColor, adjSlot, adjPace, adjLegend, adjSyn, synWhy: syn.why, usePair, owned, score, commit, basic, kind, curve };
+    const score = basic ? -1 : base + adjColor + adjSlot + adjPace + adjRemoval + adjLegend + adjSyn;
+    return { id, c, base, fit, adjColor, adjSlot, adjPace, adjRemoval, remHave: remNeed.have, adjLegend, adjSyn, synWhy: syn.why, usePair, owned, score, commit, basic, kind, curve };
   }).sort((a, b) => b.score - a.score);
 }
 /* おすすめ欄に出す勝率。目標の2色が決まっていれば、その2色での勝率を出す */
@@ -1100,6 +1129,7 @@ function reasonFor(e){
   }
   if(e.adjLegend < 0) extra.push(t("assist.reasonLegend", {n: e.owned}));
   if(e.adjSlot >= 1) extra.push(t(e.kind === "creature" ? "assist.reasonNeedCreature" : "assist.reasonNeedSpell"));
+  if(e.adjRemoval >= 1) extra.push(t("assist.reasonRemoval", {h: e.remHave}));
   if(e.curve){
     const m = e.curve.mv >= MV_MAX ? t("assist.mv6") : t("assist.mv", {n: e.curve.mv});
     const g = e.curve.goal.toFixed(1);
@@ -1112,6 +1142,7 @@ function reasonFor(e){
 function breakdown(e){
   const f = v => (v >= 0 ? "+" : "") + v.toFixed(1);
   return t("assist.breakdown", {b: e.base.toFixed(1), c: f(e.adjColor), s: f(e.adjSlot), p: f(e.adjPace)})
+    + (e.adjRemoval ? "　" + t("assist.breakdownRemoval", {v: f(e.adjRemoval)}) : "")
     + (e.adjSyn ? "　" + t("assist.breakdownSyn", {v: f(e.adjSyn)}) : "")
     + (e.adjLegend ? "　" + t("assist.breakdownLegend", {v: f(e.adjLegend)}) : "");
 }
@@ -1131,6 +1162,7 @@ function fitsPair(c, pair){
   return kindOf(c) === "land" ? c.colors.every(k => pair.includes(k)) : true;
 }
 
+const REMOVAL_FLOOR = 50;     // スペル枠に優先して入れる除去の、勝率の下限
 function buildDeck(pair){
   const pool = D.picked.map(id => ({ id, c: cards[id] })).filter(x => x.c);
   const spells = pool.filter(x => kindOf(x.c) !== "land" && fitsPair(x.c, pair)).map(x => ({ ...x, r: ratingOf(x.id, pair), kind: kindOf(x.c) }));
@@ -1146,7 +1178,9 @@ function buildDeck(pair){
     }
   };
   const creatures = spells.filter(x => x.kind === "creature").sort(byR);
-  const others    = spells.filter(x => x.kind === "spell").sort(byR);
+  // スペル枠は除去を先に入れる（勝率が REMOVAL_FLOOR 未満の、明らかに弱いものは除く）。残りは勝率の高い順（ドロー・装備など）
+  const remFirst = x => x.c.removal && x.r >= REMOVAL_FLOOR ? 1 : 0;
+  const others    = spells.filter(x => x.kind === "spell").sort((a, b) => remFirst(b) - remFirst(a) || b.r - a.r);
   take(creatures, DECK_TARGET.creature, 2);
   take(others, DECK_TARGET.spell, 2);
   const rest = creatures.concat(others).sort(byR);
@@ -1156,11 +1190,13 @@ function buildDeck(pair){
   const heavy = () => deck.filter(x => (x.c.cmc || 0) >= 5);
   while(heavy().length > 6 && rest.length){
     const h = heavy().sort((a, b) => a.r - b.r)[0];
-    const light = rest.find(x => (x.c.cmc || 0) <= 3 && h.r - x.r < 4 && allowed(x, 2));
+    const light = rest.find(x => (x.c.cmc || 0) <= 3 && x.kind === h.kind && h.r - x.r < 4 && allowed(x, 2));   // 同じ枠どうしで入れ替える
     if(!light) break;
     deck.splice(deck.indexOf(h), 1); rest.splice(rest.indexOf(light), 1);
     deck.push(light); rest.push(h); rest.sort(byR);
   }
+  // 除去の枚数と、環境の速さに合わせたカーブ・平均マナ（deck-tune.js）。勝率の差が小さい範囲でだけ入れ替える
+  const tuned = DeckTune.tune(deck, rest, { pace, avgMax: paceMax, allowed: x => allowed(x, 2) });
 
   // 特殊土地：基本土地でなく、色がこの2色に収まり（無色も可）、勝率が平均以上のものを最大3枚、17枚の土地に含める
   const specials = pool.filter(x => kindOf(x.c) === "land" && !x.c.basic && fitsPair(x.c, pair))
@@ -1212,9 +1248,13 @@ function buildDeck(pair){
   }
   const doubles = ks.filter(k => maxPip[k] >= 2);
   const archeAdj = ARCHE_WEIGHT * 2 * archeDiff(pair);
-  const score = deck.reduce((a, x) => a + x.r, 0) - (23 - deck.length) * 45 - Math.max(0, heavy().length - 6) * 2 + archeAdj;
+  // 除去が目安に届かない・平均マナが重すぎる組み合わせは、そのぶん評価を下げる（2色を選ぶとき用）
+  const remShort = Math.max(0, tuned.goals.removalMin - tuned.removal);
+  const avgOver = tuned.goals.avgMax != null ? Math.max(0, tuned.avg - tuned.goals.avgMax) : 0;
+  const score = deck.reduce((a, x) => a + x.r, 0) - (23 - deck.length) * 45 - Math.max(0, heavy().length - 6) * 2 + archeAdj
+              - remShort * 3 - avgOver * 10;
   const side = rest.slice(0, 6);
-  return { pair, deck, side, lands, specials, pips, doubles, count, score, short: 23 - deck.length,
+  return { pair, deck, side, lands, specials, pips, doubles, count, score, short: 23 - deck.length, removal: tuned.removal,
            avgCmc: deck.length ? deck.reduce((a, x) => a + (x.c.cmc || 0), 0) / deck.length : 0 };
 }
 function bestDecks(){
@@ -1293,7 +1333,7 @@ function render(){
       cb.appendChild(s);
     });
   }
-  if(pace){
+  if(pace && paceFromData){
     const s = document.createElement("span"); s.className = "cb";
     s.textContent = t("assist.paceLabel", {p: t("assist.pace." + pace)});
     s.title = t("assist.paceTip");
@@ -1396,7 +1436,7 @@ function renderDeck(){
   const row = x => {
     const cols = x.c.colors, dot = cols.length === 0 ? "var(--c)" : cols.length > 1 ? "var(--m)" : `var(--${cols[0].toLowerCase()})`;
     return `<li><span class="dot" style="background:${dot}"></span><span class="cmc">${x.c.cmc ?? 0}</span>` +
-           `<span class="nm">${esc(displayName(x.c))}${x.n > 1 ? ` <b class="qty">×${x.n}</b>` : ""}</span><span class="wr">${pct(x)}</span></li>`;
+           `<span class="nm">${esc(displayName(x.c))}${x.n > 1 ? ` <b class="qty">×${x.n}</b>` : ""}${x.c.removal ? ` <b class="rmtag">${esc(t("assist.removalTag"))}</b>` : ""}${x.c.makesCreatures && !(x.c.type || "").includes("Creature") ? ` <b class="rmtag tk">${esc(t("assist.tokenTag"))}</b>` : ""}</span><span class="wr">${pct(x)}</span></li>`;
   };
   const byCmc = (a, b) => (a.c.cmc || 0) - (b.c.cmc || 0) || b.r - a.r;
   const cre = group(d.deck.filter(x => x.kind === "creature")).sort(byCmc);
@@ -1412,6 +1452,7 @@ function renderDeck(){
       `<span class="cb main">${esc(pairName(d.pair))}</span>` +
       `<span class="cb">${esc(t("assist.deckCount", {n: d.deck.length, c: creN, s: splN}))}</span>` +
       `<span class="cb">${esc(t("assist.deckAvg", {v: d.avgCmc.toFixed(2)}))}</span>` +
+      `<span class="cb">${esc(t("assist.deckRemoval", {n: d.removal}))}</span>` +
     `</div>` +
     (d.short > 0 ? `<p class="deck-note">${esc(t("assist.deckShort", {n: d.short}))}</p>` : "") +
     `<div class="deck-sec"><b>${esc(t("assist.deckCreatures"))}</b><span>${creN}</span></div><ul class="dl">${cre.map(row).join("")}</ul>` +
