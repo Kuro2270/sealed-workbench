@@ -1,0 +1,69 @@
+name: データ｜暫定版の勝率（自動・毎日）
+
+# 公開データセットがまだ出ていない新セットについて、17Lands の毎日の集計から「暫定版」の環境レポートを作る。
+#   ・対象：紙の発売から12〜60日で、確定版（data/articles/<SET>_<mode>.json）がまだ無いセット
+#     （17Lands の利用ガイドラインで、サイトへの掲載は発売12日目から）
+#   ・作るもの：data/provisional/<SET>_<mode>.json（環境レポートの画面が読む）、data/ratings/<SET>_<mode>.json（勝率一覧・練習ツール）、
+#     下見ページ（sets/<SET>.profile.html）を「暫定版」にして作り直す
+#   ・確定版ができたセットの暫定版は、ここで消す。確定版のファイルには触らない
+# 役割はこれだけ。確定版は「データ｜2 勝率データ集計」が作る。
+
+on:
+  schedule:
+    - cron: "23 19 * * *"      # 毎日 4:23（日本時間）。新データの点検（3:30）のあと
+  workflow_dispatch:
+    inputs:
+      set:
+        description: "セットコード（例: FRA）。空なら対象のセットを自動で探す"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: provisional
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 17Lands の毎日の集計から暫定版を作る
+        id: prov
+        env:
+          SET_IN: ${{ inputs.set }}
+        run: |
+          SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"
+          SETS="$(node maintenance/build-provisional.mjs "${SET_CODE:---auto}")" || echo "::warning::一部のセット・形式を作れませんでした（ログを確認）"
+          echo "sets=$(echo $SETS)" >> "$GITHUB_OUTPUT"
+
+      - name: 下見ページを暫定版に作り直す
+        if: steps.prov.outputs.sets != ''
+        env:
+          SITE_URL: https://sealed-workbench.com
+        run: |
+          for S in ${{ steps.prov.outputs.sets }}; do node maintenance/build-set-profile.mjs "$S"; done
+          node maintenance/build-set-pages.mjs     # セット一覧の「暫定版」の表示
+
+      - name: コミット
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for P in data/provisional data/ratings data/profiles sets; do [ -e "$P" ] && git add -A "$P"; done
+          if git diff --staged --quiet; then
+            echo "変わったものはありません。"
+            exit 0
+          fi
+          git commit -m "暫定版の勝率を更新（${{ steps.prov.outputs.sets }}）"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push origin main && exit 0
+            sleep 5
+          done
+          echo "押し戻せませんでした" && exit 1

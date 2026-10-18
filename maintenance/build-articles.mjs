@@ -21,6 +21,7 @@
 
 import { readdir, readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
+import { cardTiers } from "./card-tier.mjs";
 
 const RATINGS = "data/ratings";
 const NOTES   = "data/notes";
@@ -241,6 +242,7 @@ async function main(){
         curve: m.curve,
         speed: m.speed,
         verdict: speedVerdict(m.speed, m.avg_turns, m.curve),
+        tiers: cardTiers(cards, MIN_GAMES),        // カードのティア表（神話レア・レア／アンコモン／コモン）
 
         notes: {
           summary:    notes.summary    || null,
@@ -311,7 +313,12 @@ async function main(){
     `  ${m.set} ${m.mode}（${m.total_games.toLocaleString()}試合 / ${m.avg_turns ? m.avg_turns.toFixed(1) + "ターン" : "—"} / ${m.verdict}${m.hasNotes ? " / 考察あり" : ""}）\n`));
 }
 
-main().catch(e => {
-  console.error("レポートの生成に失敗しました:", e.message);
-  process.exit(1);
-});
+export { MIN_GAMES, topByRarity, colorStrength };
+// 直接実行したときだけ動かす（build-provisional.mjs から部品を借りるため）
+import { pathToFileURL } from "node:url";
+if(process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href){
+  main().catch(e => {
+    console.error("レポートの生成に失敗しました:", e.message);
+    process.exit(1);
+  });
+}

@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
-<script src="./i18n.js?v=4"></script>
+<script src="./i18n.js?v=5"></script>
 <script src="./analytics.js"></script>
 <script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
@@ -318,13 +318,13 @@ async function loadLatest(){
     const preview = {};
     try{
       const pr = await fetch("./data/profiles/index.json", {cache:"no-cache"});
-      if(pr.ok) ((await pr.json()).profiles || []).forEach(p => { if(p.set && p.released_at && !m[p.set]){ m[p.set] = p.released_at; preview[p.set] = true; } });
+      if(pr.ok) ((await pr.json()).profiles || []).forEach(p => { if(p.set && p.released_at && !m[p.set]){ m[p.set] = p.released_at; preview[p.set] = p.provisional ? "prov" : true; } });
     }catch(e){}
     const top = Object.entries(m).sort((a, b) => b[1].localeCompare(a[1])).slice(0, 4);
     LATEST = await Promise.all(top.map(async ([code, date]) => {
       let name = code;
       try{ const n = await (await fetch("./data/names/" + code + ".json")).json(); if(n.set) name = n.set; }catch(e){}
-      return { code, date, name, preview: !!preview[code] };
+      return { code, date, name, preview: !!preview[code], prov: preview[code] === "prov" };
     }));
   }catch(e){ LATEST = []; }
   drawLatest();
@@ -338,7 +338,7 @@ function drawLatest(){
   const box = document.getElementById("latest");
   if(LATEST === null) return;
   const en = I18N.lang === "en";
-  box.innerHTML = LATEST.map(s => `<a class="setcard" href="./sets/${s.code}${s.preview ? ".profile" : ""}${en ? ".en" : ""}.html"><span class="logo"><img src="./assets/logo/${s.code}.png" alt="" data-code="${s.code}" loading="lazy" onerror="logoFallback(this)"></span><span class="code">${s.code}</span><span class="nm">${String(I18N.setName ? I18N.setName(s.code, s.name) : s.name).replace(/[<>&]/g, "")}</span><span class="dt">${s.date}${s.preview ? ` · ${I18N.t("top.latest.preview")}` : ""}</span></a>`).join("");
+  box.innerHTML = LATEST.map(s => `<a class="setcard" href="./sets/${s.code}${s.preview ? ".profile" : ""}${en ? ".en" : ""}.html"><span class="logo"><img src="./assets/logo/${s.code}.png" alt="" data-code="${s.code}" loading="lazy" onerror="logoFallback(this)"></span><span class="code">${s.code}</span><span class="nm">${String(I18N.setName ? I18N.setName(s.code, s.name) : s.name).replace(/[<>&]/g, "")}</span><span class="dt">${s.date}${s.preview ? ` · ${I18N.t(s.prov ? "top.latest.prov" : "top.latest.preview")}` : ""}</span></a>`).join("");
   document.getElementById("moreSets").href = en ? "./sets/index.en.html" : "./sets/";
   document.querySelector(".latest").parentElement.hidden = LATEST.length === 0;
 }

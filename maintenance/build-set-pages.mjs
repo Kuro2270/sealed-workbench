@@ -60,6 +60,9 @@ const L = {
     archeH: "色の組み合わせ", archeLead: "2色の組み合わせごとの勝率です。試合数の多い順に並べています。",
     curveH: "マナ総量ごとの勝率", curveLead: "そのマナ総量のカードが手札か戦場にあった試合の勝率です。",
     tipGih: "GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。",
+    ctierH: "カードのティア表", ctierLead: n => `全カードの勝率（GIH勝率）の分布から、S〜Dの5段階に分けました。レアリティが違っても、同じランクなら同じくらいの強さです。${n}試合以上のカードに限っています。`,
+    ctierGroup: { mr: "神話レア・レア", u: "アンコモン", c: "コモン" }, ctierAvg: p => `全カードの平均 ${p}`,
+    provH: "暫定版", provBody: d => `17Lands の毎日の集計（${d} 時点）から作っています。データが固まり次第、確定版に切り替わります。`,
     cardsH: "カード点数ランキング（レアリティ別）", cardsLead: "カードの「点数」は、実際の勝率（GIH勝率：そのカードが手札か戦場にあった試合の勝率）で見ます。高いほど強いカードです。レアリティごとに高い順に並べています。",
     faqH: "リミテッドのカードの点数について",
     faq: [
@@ -109,6 +112,9 @@ const L = {
     archeH: "Colour pairs", archeLead: "Win rate by two-colour pair, sorted by number of games.",
     curveH: "Win rate by mana value", curveLead: "Win rate of games where a card of that mana value was in hand or on the battlefield.",
     tipGih: "GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data.",
+    ctierH: "Card tier list", ctierLead: n => `Every card graded S to D from the spread of GIH win rates across the whole set. The scale is shared, so the same grade means similar strength at any rarity. Cards with at least ${n} games.`,
+    ctierGroup: { mr: "Mythic & rare", u: "Uncommon", c: "Common" }, ctierAvg: p => `Average across all cards ${p}`,
+    provH: "Provisional", provBody: d => `Built from 17Lands' daily figures (as of ${d}). It switches to the final version once the full data is out.`,
     cardsH: "Card ratings by rarity", cardsLead: "A card's rating is its real win rate (GIH win rate: games where the card was in hand or on the battlefield). Higher is stronger. Sorted from the top within each rarity.",
     faqH: "About Limited card ratings",
     faq: [
@@ -390,6 +396,22 @@ ${head}
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  /* カードのティア表 */
+  .ctier input[type=radio]{position:absolute;opacity:0;pointer-events:none}
+  .ctier label{display:inline-block;font-size:12.5px;padding:6px 12px;margin:2px 4px 8px 0;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer}
+  .ctier input:checked + label{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
+  .ctier .tiers{display:none}
+  .ctier input:nth-of-type(1):checked ~ .t-mr,.ctier input:nth-of-type(2):checked ~ .t-u,.ctier input:nth-of-type(3):checked ~ .t-c{display:grid}
+  .tiers{display:grid;gap:5px}
+  .trow{display:grid;grid-template-columns:44px 1fr;gap:6px;align-items:stretch}
+  .tlab{display:flex;align-items:center;justify-content:center;border-radius:7px;font:800 20px/1 "Bricolage Grotesque",sans-serif;color:#fff}
+  .tlab.S{background:#C9472E}.tlab.A{background:#D98A1E}.tlab.B{background:#4F8A4A}.tlab.C{background:#6B7A8A}.tlab.D{background:#8C5E58}
+  .tcells{display:flex;flex-wrap:wrap;gap:5px;padding:5px;background:var(--paper-2);border-radius:7px;min-height:38px;align-items:center}
+  .tchip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--line);border-radius:7px;padding:3px 8px;font-size:13px}
+  .tchip b{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .tempty{font-size:12px;color:var(--muted);padding:0 4px}
+  .tavg{font-size:12px;color:var(--muted);margin:6px 0 0}
+  .prov{background:#FFFBEA;border:1px solid #F2C94C;border-left:6px solid #F2C94C;border-radius:10px;padding:10px 14px;margin:8px 0 14px;font-size:13.5px;line-height:1.7}
   .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
   .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#FFFFFF}.rar.mythic{background:#C4552C}
   .links ul{margin:6px 0 0;padding-left:1.2em}
@@ -452,7 +474,7 @@ function summaryText(lang, mode, d, setDisplay, cn, pairLabel, colorLabel){
   const speed = (d.speed || []).filter(x => x.wr != null);
   const fastest = speed.length ? speed.reduce((m, x) => x.wr > m.wr ? x : m) : null;
   const vk = (d.verdict && d.verdict.key) || "even";
-  const paceWord = ja ? ({ fast: "速く、軽いデッキが勝ちやすい", "lean-fast": "やや速く、軽いデッキのほうが勝ちやすい", even: "速さでは差がつきにくい", "lean-slow": "やや遅く、重いデッキのほうが勝ちやすい", slow: "遅く、重いデッキが勝ちやすい" })[vk]
+  const paceWord = d.provisional ? null : ja ? ({ fast: "速く、軽いデッキが勝ちやすい", "lean-fast": "やや速く、軽いデッキのほうが勝ちやすい", even: "速さでは差がつきにくい", "lean-slow": "やや遅く、重いデッキのほうが勝ちやすい", slow: "遅く、重いデッキが勝ちやすい" })[vk]
                       : ({ fast: "fast decks clearly win more", "lean-fast": "it leans fast — lighter decks win a little more", even: "speed makes little difference", "lean-slow": "it leans slow — heavier decks win a little more", slow: "slow, heavier decks clearly win more" })[vk];
   const top = r => ((d.top && d.top[r]) || [])[0];
   const c1 = top("common"), u1 = top("uncommon"), r1 = top("rare");
@@ -486,7 +508,8 @@ function modeSection(lang, code, mode, d, speedIndex, names, setDisplay, videos)
   let out = `<article class="mode">
   <h2>${esc(T.mode[mode])} <small>${esc(T.games((d.total_games || 0).toLocaleString(), pct(d.overall_win_rate)))}</small></h2>
   <p class="built">${esc(T.built((d.data_generated_at || d.generated_at || "").slice(0, 10)))}</p>
-  <p class="summary">${esc(summaryText(lang, mode, d, setDisplay, cn, pairLabel, colorLabel))}</p>
+${d.provisional ? `  <p class="prov"><b>${esc(T.provH)}</b>　${esc(T.provBody((d.data_generated_at || "").slice(0, 10)))}</p>
+` : ""}  <p class="summary">${esc(summaryText(lang, mode, d, setDisplay, cn, pairLabel, colorLabel))}</p>
 ${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoSection(lang, code, "early", setDisplay, videos) : ""}`;
 
   // 環境の速さ
@@ -535,6 +558,20 @@ ${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoS
     <table><thead><tr><th>${esc(T.col.cmc)}</th><th class="num">${esc(T.col.wr)}</th><th class="num">${esc(T.col.cards)}</th><th class="num">${esc(T.col.games)}</th></tr></thead><tbody>
     ${d.curve.map(c => `<tr><td>${c.cmc}${c.cmc >= 7 ? "+" : ""}</td><td class="num"><b>${pct(c.wr)}</b></td><td class="num">${c.cards ?? ""}</td><td class="num">${(c.games || 0).toLocaleString()}</td></tr>`).join("\n    ")}
     </tbody></table>
+  </section>`;
+  }
+  // カードのティア表（神話レア・レア／アンコモン／コモン）
+  if(d.tiers && d.tiers.groups){
+    // レアリティの切り替えは、JS を使わずにラジオボタンで（検索エンジンには3つとも読める）
+    const tabs = ["mr", "u", "c"].map((g, i) => `<input type="radio" name="ct-${mode}" id="ct-${mode}-${g}"${i ? "" : " checked"}><label for="ct-${mode}-${g}">${esc(T.ctierGroup[g])}</label>`).join("");
+    const groups = tabs + ["mr", "u", "c"].map(g => `
+    <div class="tiers t-${g}">${["S", "A", "B", "C", "D"].map(k => {
+      const list = d.tiers.groups[g][k] || [];
+      return `<div class="trow"><div class="tlab ${k}">${k}</div><div class="tcells">${list.length ? list.map(c => `<span class="tchip">${manaOf(c.color || "")}${esc(cn(c.name))}<b>${pct(c.gih)}</b></span>`).join("") : `<span class="tempty">—</span>`}</div></div>`;
+    }).join("")}</div>`).join("");
+    out += `
+  <section class="ctier"><h3>${esc(T.ctierH)}</h3><p class="lead">${esc(T.ctierLead((d.tiers.min_games || 500).toLocaleString()))}</p>${groups}
+    <p class="tavg">${esc(T.ctierAvg(pct(d.tiers.mean)))}</p>
   </section>`;
   }
   // レアリティ別
@@ -670,7 +707,7 @@ function indexPage(lang, rows, profileOnly = []){
     <p>${esc(T.lead)}</p>`;
   const main = `<p class="lead">${esc(T.indexLead)}</p>
 ${profileOnly.length ? `<ul class="setlist" style="margin-bottom:14px">
-${profileOnly.map(r => `  <li><a href="${r.code}.profile${lang === "en" ? ".en" : ""}.html">${esc(r.name[lang])}<small>${esc(r.code)}${r.released_at ? "　" + esc(r.released_at) : ""}　${lang === "ja" ? "下見（勝率データ待ち）" : "Preview (awaiting win-rate data)"}</small></a></li>`).join("\n")}
+${profileOnly.map(r => `  <li><a href="${r.code}.profile${lang === "en" ? ".en" : ""}.html">${esc(r.name[lang])}<small>${esc(r.code)}${r.released_at ? "　" + esc(r.released_at) : ""}　${r.prov ? (lang === "ja" ? "暫定版（カードのティア表・勝率）" : "Provisional (card tiers & win rates)") : (lang === "ja" ? "下見（勝率データ待ち）" : "Preview (awaiting win-rate data)")}</small></a></li>`).join("\n")}
 </ul>` : ""}
 <ul class="setlist">
 ${rows.map(r => `  <li><a href="${r.code}${lang === "en" ? ".en" : ""}.html">${esc(r.name[lang])}<small>${esc(r.code)}${r.released_at ? "　" + esc(r.released_at) : ""}　${esc((r.games || 0).toLocaleString())} ${lang === "ja" ? "試合" : "games"}</small></a></li>`).join("\n")}
@@ -721,7 +758,8 @@ async function main(){
       const code = f.replace(/\.json$/, "");
       if(codes.includes(code)) continue;
       const pr = await readJson(`data/profiles/${f}`, null);
-      if(pr) profileOnly.push({ code, name: { ja: pr.nameJa || pr.setName || code, en: pr.setName || code }, released_at: pr.released_at || "" });
+      if(pr) profileOnly.push({ code, name: { ja: pr.nameJa || pr.setName || code, en: pr.setName || code }, released_at: pr.released_at || "",
+        prov: existsSync(`data/provisional/${code}_draft.json`) || existsSync(`data/provisional/${code}_sealed.json`) });
     }
   }catch(e){}
   profileOnly.sort((a, b) => (b.released_at || "").localeCompare(a.released_at || ""));
@@ -730,7 +768,7 @@ async function main(){
   console.error(`セット別ページを生成: ${rows.length}セット × 2言語`);
 }
 
-export { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE, pretty, videoSection };
+export { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE, pretty, videoSection, modeSection };
 // 直接実行したときだけ動かす（build-set-profile.mjs から shell を借りるため）
 import { pathToFileURL } from "node:url";
 if(process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href){

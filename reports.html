@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
-<script src="./i18n.js?v=4"></script>
+<script src="./i18n.js?v=5"></script>
 <script src="./analytics.js"></script>
 <script src="./tip.js" defer></script>
 <script src="./trophies.js?v=10"></script>
@@ -209,6 +209,20 @@
   .tchip .slp{font-size:11px;font-weight:700;color:#fff;background:var(--gold);border-radius:4px;padding:0 6px}
   .tchip.sleeper{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
   .tavg{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+  .tlab.D{background:#8C5E58}
+  /* カードのティア表 */
+  .ctier .tcells{gap:5px}
+  .ctier .tchip{font-size:13px;padding:4px 9px;cursor:default}
+  .ctier .tchip b{font-size:12px;font-weight:700;color:var(--muted)}
+  .ctier .tempty{font-size:12px;color:var(--muted);padding:0 4px}
+  /* 暫定版の案内 */
+  .prov{background:#FFFBEA;border:1px solid #F2C94C;border-left:6px solid #F2C94C;border-radius:10px;padding:12px 16px;margin:0 0 22px;font-size:13.5px;line-height:1.7}
+  .prov b{color:#2A3B4C}
+  /* カード表の絞り込み */
+  .cfilter{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 14px}
+  .cfilter .chips{margin:0}
+  .cfilter select{font:inherit;font-size:12.5px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink)}
+  .chip .ms{margin:0}
   details.others{margin-top:12px} details.others summary{cursor:pointer;font-size:13px;color:var(--muted)}
   details.others .bars{margin-top:8px}
   /* 全勝デッキ */
@@ -433,6 +447,8 @@ let topN = 10;
 try{ const v = parseInt(localStorage.getItem("sw.reports.topn"), 10); if(v === 10 || v === 30 || v === 0) topN = v; }catch(e){}
 const fullCache = {};        // セット×形式ごとの全カード（上位30・すべてのときだけ読む）
 let mode = "draft";         // 表示中の形式（ドラフト／シールド）
+let ctierGroup = "mr";      // カードのティア表で見ているレアリティ（mr＝神話レア・レア／u＝アンコモン／c＝コモン）
+let cardColor = "all", cardType = "all", cardSort = "gih";   // カード表の絞り込み（色・種類・並べ方）
 const repCache = {};         // セット×形式ごとの記事。タブの切り替えを即時にする
 let mapsFor = null;          // 日本語名・画像の取得済みセット（言語つき）
 
@@ -504,7 +520,7 @@ function updateModeTabs(){
     b.disabled = modes.length > 0 && !modes.includes(b.dataset.mode);
     if(!b.disabled && first === null) first = b.dataset.mode;
   });
-  if(first && !modes.includes(mode)) mode = first;
+  if(first && modes.length && !modes.includes(mode)) mode = first;   // 確定版の無いセット（暫定版・下見）は、選んだ形式のまま
   syncModeTabs();
 }
 
@@ -631,7 +647,9 @@ async function load(){
   try{
     let r = repCache[key];
     if(!r){
-      const res = await fetch(`./data/articles/${key}.json`, {cache:"no-cache"});
+      let res = await fetch(`./data/articles/${key}.json`, {cache:"no-cache"});
+      // 確定版がまだ無いセットは、暫定版（17Lands の毎日の集計から。発売12日目から）を見る。それも無ければ下見
+      if(!res.ok) res = await fetch(`./data/provisional/${key}.json`, {cache:"no-cache"});
       if(!res.ok){ if(!(await showProfile(code))){ setStatus(t("reports.none"), true); } return; }
       r = await res.json();
       repCache[key] = r;
@@ -641,6 +659,7 @@ async function load(){
       await loadCardMaps(code);
       mapsFor = code + ":" + I18N.lang;
     }
+    if(topN !== 10 || filtering()){ try{ await loadFull(); }catch(e){} }   // 上位30・すべて・絞り込み中は、全カードを読んでから描く
     render();
   }catch(e){
     setStatus(t("reports.none"), true);
@@ -661,10 +680,16 @@ async function loadFull(){
   return list;
 }
 /* そのレアリティで出すカードの一覧 */
+const filtering = () => cardColor !== "all" || cardType !== "all" || cardSort !== "gih";
+const colorKey = c => (c.color || "").length === 1 ? c.color : ((c.color || "").length > 1 ? "M" : "C");
 function cardsOf(rarity){
-  if(topN === 10) return report.top?.[rarity] || [];
+  if(topN === 10 && !filtering()) return report.top?.[rarity] || [];
   const key = $("setSelect").value + "_" + mode;
-  const all = (fullCache[key] || []).filter(c => c.rarity === rarity);
+  const all = (fullCache[key] || []).filter(c => c.rarity === rarity
+    && (cardColor === "all" || colorKey(c) === cardColor)
+    && (cardType === "all" || isCreature(c.name) == null || isCreature(c.name) === (cardType === "creature")));
+  if(cardSort === "iwd") all.sort((a, b) => (b.iwd ?? -1) - (a.iwd ?? -1));
+  else if(cardSort === "games") all.sort((a, b) => (b.games || 0) - (a.games || 0));
   return topN === 0 ? all : all.slice(0, topN);
 }
 
@@ -873,6 +898,11 @@ function render(){
 
   const out = [];
 
+  // 暫定版（確定版のデータが出るまでの間）
+  if(d.provisional){
+    out.push(`<div class="prov"><b>${esc(t("reports.prov.h"))}</b>　${esc(t("reports.prov.body", {d: new Date(d.data_generated_at).toLocaleDateString(I18N.isJa() ? "ja-JP" : "en-US")}))}</div>`);
+  }
+
   // 環境の速さ（最も勝率の高い区分だけを書く）
   if(d.speed && d.speed.length){
     const best = d.speed.filter(s => s.wr != null).sort((a, b) => b.wr - a.wr)[0];
@@ -921,6 +951,24 @@ function render(){
     </section>`);
   }
 
+  // カードのティア表（神話レア・レア／アンコモン／コモン）。S〜D は全カード共通のものさし
+  if(d.tiers && d.tiers.groups){
+    const g = d.tiers.groups[ctierGroup] ? ctierGroup : "mr";
+    const tabs = ["mr", "u", "c"].map(k => `<button type="button" class="chip" data-ctier="${k}" aria-pressed="${k === g}">${esc(t("reports.ctier." + k))}</button>`).join("");
+    const rows = ["S", "A", "B", "C", "D"].map(k => {
+      const list = d.tiers.groups[g][k] || [];
+      return `<div class="trow"><div class="tlab ${k}">${k}</div><div class="tcells">${list.length ? list.map(c =>
+        `<span class="tchip" data-card="${esc(c.name)}" title="${esc(t("reports.ctier.tip", {p: pct(c.gih)}))}">${manaI(colorKey(c))}${esc(displayName(c.name))}<b>${pct(c.gih)}</b></span>`).join("") : `<span class="tempty">—</span>`}</div></div>`;
+    }).join("");
+    out.push(`<section class="ctier">
+      <h2>${t("reports.ctier.h")}</h2>
+      <p class="lead">${t("reports.ctier.lead", {n: (d.tiers.min_games || MIN_GAMES).toLocaleString()})}</p>
+      <div class="chips">${tabs}</div>
+      <div class="tiers">${rows}</div>
+      <p class="tavg">${esc(t("reports.ctier.avg", {p: pct(d.tiers.mean)}))}</p>
+    </section>`);
+  }
+
   // 全勝デッキのサンプル（trophies.js が中身を入れる）。マナ総量ごとの勝率の次に置く
   out.push(`<section class="trophy" id="trophySec" hidden></section>`);
 
@@ -954,11 +1002,18 @@ function render(){
 
     const chip = (n, key) =>
       `<button type="button" class="chip" data-n="${n}" aria-pressed="${topN === n}">${t(key)}</button>`;
+    const colorChip = k => `<button type="button" class="chip" data-ccolor="${k}" aria-pressed="${cardColor === k}" title="${esc(k === "all" ? t("reports.filter.all") : k === "M" ? t("reports.filter.multi") : k === "C" ? t("reports.filter.colorless") : t("color." + k))}">${k === "all" ? esc(t("reports.filter.all")) : manaI(k)}</button>`;
+    const sel = (id, cur, opts) => `<select id="${id}">${opts.map(([v, k]) => `<option value="${v}"${v === cur ? " selected" : ""}>${esc(t(k))}</option>`).join("")}</select>`;
     out.push(`<section>
       <h2>${t("reports.cards.h")}</h2>
       <p class="lead">${t("reports.cards.lead", {n: MIN_GAMES.toLocaleString()})}</p>
       <div class="chips"><span class="lbl">${t("reports.show")}</span>
         ${chip(10, "reports.show10")}${chip(30, "reports.show30")}${chip(0, "reports.showAll")}</div>
+      <div class="cfilter">
+        <div class="chips"><span class="lbl">${t("reports.filter.color")}</span>${["all", "W", "U", "B", "R", "G", "M", "C"].map(colorChip).join("")}</div>
+        ${sel("cardType", cardType, [["all", "reports.filter.typeAll"], ["creature", "reports.filter.creature"], ["other", "reports.filter.noncreature"]])}
+        ${sel("cardSort", cardSort, [["gih", "reports.sort.gih"], ["iwd", "reports.sort.iwd"], ["games", "reports.sort.games"]])}
+      </div>
       ${groups}
       ${d.notes?.cards ? `<div class="notes"><p>${esc(d.notes.cards[I18N.lang] || "")}</p></div>` : ""}
     </section>`);
@@ -992,8 +1047,21 @@ function render(){
     };
   });
 
+  // カードのティア表：レアリティの切り替え
+  $("body").querySelectorAll("[data-ctier]").forEach(b => b.onclick = () => { ctierGroup = b.dataset.ctier; render(); });
+  // カード表の絞り込み（色・種類・並べ方）。上位10のままでも、絞り込むときは全カードから選ぶ
+  const refilter = async () => {
+    if(filtering() && !fullCache[$("setSelect").value + "_" + mode]){
+      try{ await loadFull(); }catch(e){ setStatus(t("reports.none"), true); return; }
+    }
+    render();
+  };
+  $("body").querySelectorAll("[data-ccolor]").forEach(b => b.onclick = () => { cardColor = b.dataset.ccolor; refilter(); });
+  if($("cardType")) $("cardType").onchange = e => { cardType = e.target.value; refilter(); };
+  if($("cardSort")) $("cardSort").onchange = e => { cardSort = e.target.value; refilter(); };
+
   // カード名にカーソルを合わせたら画像を出す
-  $("body").querySelectorAll("tr[data-card]").forEach(tr => {
+  $("body").querySelectorAll("tr[data-card], .tchip[data-card]").forEach(tr => {
     const name = tr.dataset.card;
     if(TOUCH){ tr.onclick = () => { const u = imageUrls(name); if(u.length) tapPreview(u, displayName(name)); }; return; }
     tr.onmouseenter = ev => showPreview(name, ev.clientX, ev.clientY);
