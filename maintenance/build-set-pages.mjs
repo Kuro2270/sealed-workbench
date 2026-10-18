@@ -62,9 +62,10 @@ const L = {
     tipGih: "GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。",
     ctierH: "カードのティア表", ctierLead: n => `全カードの勝率（GIH勝率）の分布から、S〜Dの5段階に分けました。レアリティが違っても、同じランクなら同じくらいの強さです。${n}試合以上のカードに限っています。`,
     ctierGroup: { mr: "神話レア・レア", u: "アンコモン", c: "コモン" }, ctierAvg: p => `全カードの平均 ${p}`,
-    ctierCount: "{n}枚", ctierColors: "色（選んだ色だけで使えるカード）", ctierAll: "すべて",
+    ctierCount: "{n}枚", ctierColors: "色（選んだ色だけで使えるカード）", ctierAll: "すべて", ctierMulti: "多色", ctierColorless: "無色",
+    ctierNote: "勝率（GIH勝率）は、その試合でカードを引けたとき（初手か、引いて手札に来たとき）の勝率です。",
     provH: "暫定版", provBody: d => `17Lands の毎日の集計（${d} 時点）から作っています。データが固まり次第、確定版に切り替わります。`,
-    cardsH: "カード点数ランキング（レアリティ別）", cardsLead: "カードの「点数」は、実際の勝率（GIH勝率：そのカードが手札か戦場にあった試合の勝率）で見ます。高いほど強いカードです。レアリティごとに高い順に並べています。",
+    cardsH: "カードの勝率一覧（レアリティ別）", cardsLead: "ティア表のカードを、レアリティごとに勝率（GIH勝率）の高い順に並べ、試合数と一緒に載せています。",
     faqH: "リミテッドのカードの点数について",
     faq: [
       ["リミテッドのカードの点数（評価）とは？", "そのカードがどれだけ強いかを数字で表したものを、点数や評価と呼びます。人が付ける点数には好みが入りますが、このページでは実際の対戦結果の勝率で見ています。"],
@@ -115,9 +116,10 @@ const L = {
     tipGih: "GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data.",
     ctierH: "Card tier list", ctierLead: n => `Every card graded S to D from the spread of GIH win rates across the whole set. The scale is shared, so the same grade means similar strength at any rarity. Cards with at least ${n} games.`,
     ctierGroup: { mr: "Mythic & rare", u: "Uncommon", c: "Common" }, ctierAvg: p => `Average across all cards ${p}`,
-    ctierCount: "{n} cards", ctierColors: "Colours (cards castable with the ones you pick)", ctierAll: "All",
+    ctierCount: "{n} cards", ctierColors: "Colours (cards castable with the ones you pick)", ctierAll: "All", ctierMulti: "Multicolour", ctierColorless: "Colourless",
+    ctierNote: "Win rate (GIH) is the win rate of games where the card was drawn — in the opening hand or drawn later.",
     provH: "Provisional", provBody: d => `Built from 17Lands' daily figures (as of ${d}). It switches to the final version once the full data is out.`,
-    cardsH: "Card ratings by rarity", cardsLead: "A card's rating is its real win rate (GIH win rate: games where the card was in hand or on the battlefield). Higher is stronger. Sorted from the top within each rarity.",
+    cardsH: "Card win rates by rarity", cardsLead: "The tier list cards by rarity, sorted by GIH win rate, with the number of games.",
     faqH: "About Limited card ratings",
     faq: [
       ["What is a Limited card rating?", "A number that says how strong a card is. Ratings given by people include personal taste, so this page uses win rates from real games instead."],
@@ -409,6 +411,7 @@ ${head}
   .ctabs .rd{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
   .ctabs .rd.mr{background:linear-gradient(135deg,#E0A23B,#C4552C)}.ctabs .rd.u{background:#9AAAB4}.ctabs .rd.c{background:#2A3B4C;box-shadow:0 0 0 1px #fff inset}
   @media (max-width:520px){ .ctabs label{font-size:13px;padding:9px 4px} }
+  @media (max-width:420px){ .ctabs .rd{display:none} }
   .ccolors{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
   .ccolors .lbl{font-size:12px;color:var(--muted);margin-right:2px}
   .ccolors button{font:inherit;font-size:12.5px;line-height:1;padding:6px 10px;border-radius:999px;cursor:pointer;background:#fff;color:var(--ink);border:1px solid var(--line)}
@@ -581,7 +584,7 @@ ${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoS
     const G = ["mr", "u", "c"], cnt = g => ["S", "A", "B", "C", "D"].reduce((n, k) => n + (d.tiers.groups[g][k] || []).length, 0);
     const radios = G.map((g, i) => `<input type="radio" name="ct-${mode}" id="ct-${mode}-${g}"${i ? "" : " checked"}>`).join("");
     const tabs = `<div class="ctabs">${G.map(g => `<label for="ct-${mode}-${g}" data-g="${g}"><span><span class="rd ${g}"></span>${esc(T.ctierGroup[g])}</span><span class="n">${esc(T.ctierCount.replace("{n}", cnt(g)))}</span></label>`).join("")}</div>`;
-    const colors = `<div class="ccolors" data-fmt="${esc(T.ctierCount)}"><span class="lbl">${esc(T.ctierColors)}</span><button type="button" data-tc="" aria-pressed="true">${esc(T.ctierAll)}</button>${["W", "U", "B", "R", "G"].map(k => `<button type="button" data-tc="${k}" aria-pressed="false" title="${esc(T.colorName[k])}">${manaOf(k)}</button>`).join("")}</div>`;
+    const colors = `<div class="ccolors" data-fmt="${esc(T.ctierCount)}"><span class="lbl">${esc(T.ctierColors)}</span><button type="button" data-tc="" aria-pressed="true">${esc(T.ctierAll)}</button>${["W", "U", "B", "R", "G", "M", "C"].map(k => `<button type="button" data-tc="${k}" aria-pressed="false" title="${esc(k === "M" ? T.ctierMulti : k === "C" ? T.ctierColorless : T.colorName[k])}">${manaOf(k === "M" ? "WU" : k === "C" ? "" : k)}</button>`).join("")}</div>`;
     const groups = radios + tabs + colors + G.map(g => `
     <div class="tiers t-${g}" data-g="${g}">${["S", "A", "B", "C", "D"].map(k => {
       const list = d.tiers.groups[g][k] || [];
@@ -589,9 +592,9 @@ ${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoS
     }).join("")}</div>`).join("");
     out += `
   <section class="ctier"><h3>${esc(T.ctierH)}</h3><p class="lead">${esc(T.ctierLead((d.tiers.min_games || 500).toLocaleString()))}</p>${groups}
-    <p class="tavg">${esc(T.ctierAvg(pct(d.tiers.mean)))}</p>
+    <p class="tavg">${esc(T.ctierAvg(pct(d.tiers.mean)))}<br>${esc(T.ctierNote)}</p>
   </section>
-  <script>(function(){var s=document.currentScript.previousElementSibling,sel=[];function up(){s.querySelectorAll(".tchip").forEach(function(c){var k=c.getAttribute("data-c")||"";c.hidden=sel.length>0&&!k.split("").every(function(x){return sel.indexOf(x)>=0;});});s.querySelectorAll(".tcells").forEach(function(t){var e=t.querySelector(".tempty");if(e)e.hidden=[].some.call(t.querySelectorAll(".tchip"),function(c){return !c.hidden;});});var f=s.querySelector(".ccolors").getAttribute("data-fmt");s.querySelectorAll(".ctabs label").forEach(function(l){var n=s.querySelectorAll('.tiers[data-g="'+l.getAttribute("data-g")+'"] .tchip:not([hidden])').length;l.querySelector(".n").textContent=f.replace("{n}",n);});s.querySelectorAll("[data-tc]").forEach(function(b){var k=b.getAttribute("data-tc");b.setAttribute("aria-pressed",String(k?sel.indexOf(k)>=0:!sel.length));});}s.querySelectorAll("[data-tc]").forEach(function(b){b.addEventListener("click",function(){var k=b.getAttribute("data-tc");if(!k)sel=[];else if(sel.indexOf(k)>=0)sel=sel.filter(function(x){return x!==k;});else sel.push(k);up();});});})();</script>`;
+  <script>(function(){var s=document.currentScript.previousElementSibling,sel=[];function up(){s.querySelectorAll(".tchip").forEach(function(c){var k=c.getAttribute("data-c")||"";var cs=sel.filter(function(x){return "WUBRG".indexOf(x)>=0;}),m=sel.indexOf("M")>=0,n=sel.indexOf("C")>=0,ok;if(!m&&!n)ok=!cs.length||k.split("").every(function(x){return cs.indexOf(x)>=0;});else ok=(m&&k.length>1&&cs.every(function(x){return k.indexOf(x)>=0;}))||(n&&!k.length);c.hidden=!ok;});s.querySelectorAll(".tcells").forEach(function(t){var e=t.querySelector(".tempty");if(e)e.hidden=[].some.call(t.querySelectorAll(".tchip"),function(c){return !c.hidden;});});var f=s.querySelector(".ccolors").getAttribute("data-fmt");s.querySelectorAll(".ctabs label").forEach(function(l){var n=s.querySelectorAll('.tiers[data-g="'+l.getAttribute("data-g")+'"] .tchip:not([hidden])').length;l.querySelector(".n").textContent=f.replace("{n}",n);});s.querySelectorAll("[data-tc]").forEach(function(b){var k=b.getAttribute("data-tc");b.setAttribute("aria-pressed",String(k?sel.indexOf(k)>=0:!sel.length));});}s.querySelectorAll("[data-tc]").forEach(function(b){b.addEventListener("click",function(){var k=b.getAttribute("data-tc");if(!k)sel=[];else if(sel.indexOf(k)>=0)sel=sel.filter(function(x){return x!==k;});else sel.push(k);up();});});})();</script>`;
   }
   // レアリティ別
   if(d.top){

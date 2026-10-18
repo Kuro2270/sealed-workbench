@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
-<script src="./i18n.js?v=6"></script>
+<script src="./i18n.js?v=7"></script>
 <script src="./analytics.js"></script>
 <script src="./tip.js" defer></script>
 <script src="./trophies.js?v=10"></script>
@@ -226,6 +226,7 @@
   .ctabs .rd{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:0}
   .ctabs .rd.mr{background:linear-gradient(135deg,#E0A23B,#C4552C)}.ctabs .rd.u{background:#9AAAB4}.ctabs .rd.c{background:#2A3B4C;box-shadow:0 0 0 1px #fff inset}
   @media (max-width:520px){ .ctabs button{font-size:13px;padding:9px 4px} }
+  @media (max-width:420px){ .ctabs .rd{display:none} }
   .ccolors{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 12px}
   .ccolors .lbl{font-size:12.5px;color:var(--muted);margin-right:2px}
   .ccolors .chip{padding:6px 10px}
@@ -462,7 +463,7 @@ try{ const v = parseInt(localStorage.getItem("sw.reports.topn"), 10); if(v === 1
 const fullCache = {};        // セット×形式ごとの全カード（上位30・すべてのときだけ読む）
 let mode = "draft";         // 表示中の形式（ドラフト／シールド）
 let ctierGroup = "mr";      // カードのティア表で見ているレアリティ（mr＝神話レア・レア／u＝アンコモン／c＝コモン）
-let ctierColors = [];        // ティア表の色の絞り込み（選んだ色だけで使えるカード。空ならすべて）
+let ctierColors = [];        // ティア表の色の絞り込み（選んだ色だけで使えるカード。空ならすべて）。M＝多色だけ、C＝無色だけ
 let cardColor = "all", cardType = "all", cardSort = "gih";   // カード表の絞り込み（色・種類・並べ方）
 const repCache = {};         // セット×形式ごとの記事。タブの切り替えを即時にする
 let mapsFor = null;          // 日本語名・画像の取得済みセット（言語つき）
@@ -970,11 +971,16 @@ function render(){
   if(d.tiers && d.tiers.groups){
     const g = d.tiers.groups[ctierGroup] ? ctierGroup : "mr";
     // 色の絞り込み：選んだ色だけで使えるカード（多色は、その色がすべて選ばれているとき。無色はいつも出す）
-    const fits = c => !ctierColors.length || [...(c.color || "")].every(k => ctierColors.includes(k));
+    // 白〜緑だけ：その色だけで使えるカード（無色も含む）。
+    // 多色：多色のカードだけ（色も選ぶと、その色をすべて含む多色。例：青＋多色＝青の入った多色）。無色：無色のカードだけ
+    const cols = ctierColors.filter(k => "WUBRG".includes(k)), wantM = ctierColors.includes("M"), wantC = ctierColors.includes("C");
+    const fits = c => { const cc = c.color || "";
+      if(!wantM && !wantC) return !cols.length || [...cc].every(k => cols.includes(k));
+      return (wantM && cc.length > 1 && cols.every(k => cc.includes(k))) || (wantC && !cc.length); };
     const count = k => ["S", "A", "B", "C", "D"].reduce((n, x) => n + (d.tiers.groups[k][x] || []).filter(fits).length, 0);
     const tabs = ["mr", "u", "c"].map(k => `<button type="button" data-ctier="${k}" aria-pressed="${k === g}"><span><span class="rd ${k}"></span>${esc(t("reports.ctier." + k))}</span><span class="n">${esc(t("reports.ctier.count", {n: count(k)}))}</span></button>`).join("");
     const colorChips = `<button type="button" class="chip" data-tcolor="" aria-pressed="${!ctierColors.length}">${esc(t("reports.filter.all"))}</button>` +
-      ["W", "U", "B", "R", "G"].map(k => `<button type="button" class="chip" data-tcolor="${k}" aria-pressed="${ctierColors.includes(k)}" title="${esc(t("color." + k))}">${manaI(k)}</button>`).join("");
+      ["W", "U", "B", "R", "G", "M", "C"].map(k => `<button type="button" class="chip" data-tcolor="${k}" aria-pressed="${ctierColors.includes(k)}" title="${esc(k === "M" ? t("reports.filter.multi") : k === "C" ? t("reports.filter.colorless") : t("color." + k))}">${manaI(k)}</button>`).join("");
     const rows = ["S", "A", "B", "C", "D"].map(k => {
       const list = (d.tiers.groups[g][k] || []).filter(fits);
       return `<div class="trow"><div class="tlab ${k}">${k}</div><div class="tcells">${list.length ? list.map(c =>
@@ -986,7 +992,7 @@ function render(){
       <div class="ctabs" role="tablist">${tabs}</div>
       <div class="ccolors"><span class="lbl">${esc(t("reports.ctier.colors"))}</span>${colorChips}</div>
       <div class="tiers">${rows}</div>
-      <p class="tavg">${esc(t("reports.ctier.avg", {p: pct(d.tiers.mean)}))}</p>
+      <p class="tavg">${esc(t("reports.ctier.avg", {p: pct(d.tiers.mean)}))}<br>${esc(t("reports.ctier.note"))}</p>
     </section>`);
   }
 
@@ -1072,7 +1078,7 @@ function render(){
   $("body").querySelectorAll("[data-ctier]").forEach(b => b.onclick = () => { ctierGroup = b.dataset.ctier; render(); });
   $("body").querySelectorAll("[data-tcolor]").forEach(b => b.onclick = () => {
     const k = b.dataset.tcolor;
-    ctierColors = !k ? [] : ctierColors.includes(k) ? ctierColors.filter(x => x !== k) : [...ctierColors, k].sort((x, y) => "WUBRG".indexOf(x) - "WUBRG".indexOf(y));
+    ctierColors = !k ? [] : ctierColors.includes(k) ? ctierColors.filter(x => x !== k) : [...ctierColors, k].sort((x, y) => "WUBRGMC".indexOf(x) - "WUBRGMC".indexOf(y));
     render();
   });
   // カード表の絞り込み（色・種類・並べ方）。上位10のままでも、絞り込むときは全カードから選ぶ
