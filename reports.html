@@ -295,6 +295,15 @@
   tbody tr:hover{background:var(--paper-2)}
   .cname{display:flex;align-items:center;gap:7px}
   .cname .nm{border-bottom:1px dotted var(--line);cursor:default}
+  .cname .art{width:40px;height:30px;flex:none;display:block;border-radius:4px;object-fit:cover;background:var(--paper-2)}
+  .cname .pic{display:flex;align-items:center;gap:7px;flex:none}
+  /* スマホ：名前の幅を空けるため、色の記号は絵の右下に重ねる */
+  @media (max-width:720px){
+    .cname .art{width:34px;height:25px}
+    .cname .pic{position:relative;margin-right:4px}
+    .cname .pic > :last-child{position:absolute;right:-6px;bottom:-5px;transform:scale(.8)}
+    .rar-group td{padding:5px 5px}
+  }
   .wr.hot{color:var(--hot);font-weight:700}
   .wr.cold{color:var(--cold)}
   .thin{color:var(--muted);font-size:12px}
@@ -600,7 +609,7 @@ async function loadCardMaps(code){
         const k = c.set + "/" + c.collector_number;
         if(byKey[k]) return;
         const faces = Array.isArray(c.card_faces) ? c.card_faces.map(f => f.printed_name).filter(Boolean) : [];
-        byKey[k] = { name: c.printed_name || faces.join(" // "), front: faces[0] || c.printed_name || "", imgs: imgsOf(c) };
+        byKey[k] = { name: noRuby(c.printed_name || faces.join(" // ")), front: noRuby(faces[0] || c.printed_name || ""), imgs: imgsOf(c) };
       });
       url = d.has_more ? d.next_page : null;
       if(url) await sleep(120);
@@ -608,6 +617,57 @@ async function loadCardMaps(code){
 
     Object.entries(keyOf).forEach(([n, k]) => { if(byKey[k]) jaMap[n] = byKey[k]; });
   }catch(e){ jaMap = {}; }
+}
+
+/* セットの外から入っているカード（特別枠・ボーナスシート）は、セットの検索では出てこない。
+   集計に出てくる名前のうち足りないものだけ、名前で引き直す（英語版の画像）。日本語表示のときは、同じカードの日本語版も探す */
+async function fillMissing(names){
+  const miss = [...new Set(names)].filter(n => n && !nameMap[n]);
+  if(!miss.length) return;
+  const found = [];
+  for(let i = 0; i < miss.length; i += 75){
+    try{
+      const res = await fetch(SCRY + "/cards/collection", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifiers: miss.slice(i, i + 75).map(n => ({ name: n.split(" // ")[0] })) }) });
+      if(!res.ok) continue;
+      const d = await res.json();
+      (d.data || []).forEach(c => { found.push(c); namesOf(c).forEach(n => { if(!nameMap[n]) nameMap[n] = cardEntry(c); }); });
+    }catch(e){}
+    await sleep(120);
+  }
+  if(!I18N.isJa() || !found.length) return;
+  // 日本語版：同じカード（oracle_id）の日本語の印刷を、まとめて検索する
+  const byOracle = {};
+  found.forEach(c => { if(c.oracle_id) byOracle[c.oracle_id] = c; });
+  const ids = Object.keys(byOracle);
+  for(let i = 0; i < ids.length; i += 15){
+    try{
+      let url = SCRY + "/cards/search?q=" + encodeURIComponent("lang:ja (" + ids.slice(i, i + 15).map(x => "oracleid:" + x).join(" or ") + ")") + "&unique=prints&include_multilingual=true&order=released";
+      while(url){
+        const res = await fetch(url);
+        if(!res.ok) break;
+        const d = await res.json();
+        d.data.forEach(c => {
+          const en = byOracle[c.oracle_id]; if(!en || c.lang !== "ja") return;
+          const faces = Array.isArray(c.card_faces) ? c.card_faces.map(f => f.printed_name).filter(Boolean) : [];
+          const v = { name: noRuby(c.printed_name || faces.join(" // ")), front: noRuby(faces[0] || c.printed_name || ""), imgs: imgsOf(c) };
+          if(!v.name) return;
+          namesOf(en).forEach(n => { if(!jaMap[n]) jaMap[n] = v; });
+        });
+        url = d.has_more ? d.next_page : null;
+        if(url) await sleep(120);
+      }
+    }catch(e){}
+    await sleep(120);
+  }
+}
+/* 記事に出てくるカード名（ティア表・上位カード・全カード一覧） */
+function reportNames(r, full){
+  const out = [];
+  Object.values((r.tiers && r.tiers.groups) || {}).forEach(g => Object.values(g).forEach(list => list.forEach(c => out.push(c.name))));
+  Object.values(r.top || {}).forEach(list => (list || []).forEach(c => out.push(c.name)));
+  (full || []).forEach(c => out.push(c.name));
+  return out;
 }
 
 function namesOf(c){
@@ -622,6 +682,9 @@ function cardEntry(c){
   const tl = String(c.type_line || (c.card_faces && c.card_faces[0] && c.card_faces[0].type_line) || "").split("//")[0];
   return { imgs: imgsOf(c), creature: /Creature/.test(tl), cmc: Math.floor(c.cmc ?? 0), rarity: c.rarity || "" };
 }
+
+/* 日本語名に付いているふりがな（例：「量（りょう）子（し）の謎（なぞ）」）を外す。Scryfall の日本語版の名前に入っているセットがある */
+function noRuby(s){ return String(s || "").replace(/([\u4E00-\u9FFF々〆ヵヶ])[（(][\u3041-\u3096ー]+[）)]/g, "$1"); }
 
 function imgsOf(c){
   if(c.image_uris?.normal) return [c.image_uris.normal];
@@ -638,6 +701,12 @@ function displayName(name){
 /* クリーチャーかどうか（全勝デッキの並べ分けに使う）。分からなければ null */
 function isCreature(name){ return nameMap[name] ? nameMap[name].creature : null; }
 
+/* カードの絵（Scryfall の「絵だけの画像」）。カード表の名前の横に小さく出す。無いときは同じ幅の空きを置いて、名前の位置をそろえる */
+function artI(name){
+  const u = imageUrls(name)[0];
+  return u ? `<img class="art" src="${esc(u.replace("/normal/", "/art_crop/"))}" alt="" loading="lazy" width="40" height="30">` : `<span class="art"></span>`;
+}
+
 function imageUrls(name){
   const j = I18N.isJa() && jaMap[name];
   if(j && j.imgs && j.imgs.length) return j.imgs;
@@ -653,6 +722,7 @@ async function load(){
   // 一度読んだ組み合わせは覚えておき、タブの切り替えで待たせない
   if(repCache[key] && mapsFor === code + ":" + I18N.lang){
     report = repCache[key];
+    await fillMissing(reportNames(report, fullCache[key]));    // 形式を切り替えたとき、もう一方にしか無いカードの分
     render();
     return;
   }
@@ -676,6 +746,7 @@ async function load(){
       mapsFor = code + ":" + I18N.lang;
     }
     if(topN !== 10 || filtering()){ try{ await loadFull(); }catch(e){} }   // 上位30・すべて・絞り込み中は、全カードを読んでから描く
+    await fillMissing(reportNames(report, fullCache[key]));                  // セットの外から入っているカードの名前と画像
     render();
   }catch(e){
     setStatus(t("reports.none"), true);
@@ -1015,7 +1086,7 @@ function render(){
           const col = (c.color || "").length === 1 ? c.color : ((c.color || "").length > 1 ? "M" : "C");
           const def = COLORS.find(x => x.key === col);
           return `<tr data-card="${esc(c.name)}">
-            <td><span class="cname">${manaI(col)}
+            <td><span class="cname"><span class="pic">${artI(c.name)}${manaI(col)}</span>
               <span class="nm">${esc(displayName(c.name))}</span></span></td>
             <td>${c.cmc ?? "—"}</td>
             <td class="wr ${wrClass(c.gih, avg)}" data-tip="${esc(t("tip.gih", {p: (c.gih * 100).toFixed(1), n: (c.games || 0).toLocaleString()}) + "\n" + t("wr.gih.tip"))}">${pct(c.gih)}</td>

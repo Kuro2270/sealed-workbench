@@ -17,7 +17,7 @@
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 const manaI = k => `<i class="ms ms-cost ${k === "M" ? "ms-multicolor mfi-m" : "ms-" + (k === "L" ? "c" : k.toLowerCase())} mfi" aria-hidden="true"></i>`;   // 色の見出しはマナシンボルで（mana-font）
-import { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE, pretty, videoSection, modeSection } from "./build-set-pages.mjs";
+import { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE, pretty, videoSection, modeSection, fillMissingJa, namesInArticle } from "./build-set-pages.mjs";
 
 const ARG = (process.argv[2] || "").toUpperCase();
 if(!ARG){ console.error("使い方: node maintenance/build-set-profile.mjs <SET>　または --auto（発売前後で下見が無いセットを探して作る）"); process.exit(1); }
@@ -322,7 +322,7 @@ function page(lang, p, nameJa){
   // 先行版のショート（発売直後の速報）が公開になっていれば、下見の冒頭に出す（「動画を配信」が data/videos.json に記録する）。
   // 速報メモ（build-early.mjs が作る文章。表にはしない）も、動画が公開になってから一緒に出す
   const earlyVideo = isProv ? "" : videoSection(lang, SET, "early", name, VIDEOS);   // 暫定版のときは、ドラフトの欄に入る
-  const provHtml = isProv ? ["draft", "sealed"].filter(m => PROV[m]).map(m => modeSection(lang, SET, m, PROV[m], null, lang === "ja" ? JN : {}, name, VIDEOS)).join("\n") + "\n" : "";
+  const provHtml = isProv ? ["draft", "sealed"].filter(m => PROV[m]).map(m => modeSection(lang, SET, m, PROV[m], null, lang === "ja" ? JN : {}, name, VIDEOS, JI[lang] || {})).join("\n") + "\n" : "";
   // トップ3はカード名と画像だけ（勝率の数字は載せない）
   const topRow = r => {
     const cards = ((EARLY && EARLY.top) || {})[r] || [];
@@ -431,9 +431,11 @@ const nameJa = ja[SET.toLowerCase()] || p.setName;
 // 除去カードの日本語名と日本語版の画像（Scryfall に日本語版がまだ無いカードは英語のまま）。
 // 発売前は日本語データが不完全なことがあるので data/names/ には保存しない（勝率データ集計のときに改めて取る）
 let JN = {};                                       // 英語名 → 日本語名（暫定版の表で使う）
+let JI = { ja: {}, en: {} };                       // 英語名 → カード画像（暫定版の表の、名前の横の絵）
 try{
   const jn = await fetchJaNames(SET);
   JN = jn.names || {};
+  JI = { ja: jn.images || {}, en: jn.imagesEn || {} };
   let hit = 0;
   const rows = [...p.cards, ...Object.keys(p.byColor).flatMap(c => p.byColor[c].removalCards)];
   for(const r of rows){
@@ -448,6 +450,9 @@ try{
 const VIDEOS = await readJson("data/videos.json", {});
 const EARLY = await readJson(`data/early/${SET}.json`, null);
 const PROV = { draft: await readJson(`data/provisional/${SET}_draft.json`, null), sealed: await readJson(`data/provisional/${SET}_sealed.json`, null) };
+// 暫定版に出てくる、セットの外から入っているカード（特別枠）の日本語名
+try{ const n = await fillMissingJa(JN, [PROV.draft, PROV.sealed].filter(Boolean).flatMap(namesInArticle), JI.ja); if(n) console.error(`特別枠などの日本語名・画像を ${n} 件足しました`); }catch(e){}
+for(const k of Object.keys(JI.ja)) if(!JI.en[k]) JI.en[k] = JI.ja[k];   // 英語ページで足りない分（特別枠など）は日本語ページと同じ画像
 // 勝率データが出る日は書かない（元データの公開日は決まっておらず、発売から12日を過ぎても出ないことがある。2026年10月 FRA で確認）。表現は「データが固まり次第」
 await mkdir("data/profiles", { recursive: true });
 await mkdir("sets", { recursive: true });

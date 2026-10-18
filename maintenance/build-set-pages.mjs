@@ -187,13 +187,15 @@ async function scryAll(q){
 }
 /* カードの日本語名を作る。カード番号で英語版と日本語版を突き合わせ、名前でも補う。
    （日本語版の name が英語名と一致しないカードがあるため、番号照合を主にする） */
+/* 日本語名に付いているふりがな（例：「量（りょう）子（し）の謎（なぞ）」）を外す。Scryfall の日本語版の名前に入っているセットがある */
+const noRuby = s => String(s || "").replace(/([\u4E00-\u9FFF々〆ヵヶ])[（(][\u3041-\u3096ー]+[）)]/g, "$1");
 async function fetchJaNames(code){
   const en = await scryAll(`set:${code.toLowerCase()} unique:prints`);
   const ja = await scryAll(`set:${code.toLowerCase()} lang:ja unique:prints`);
   // 出来事・両面カードは「表 // 裏」の形なので、表の名前でも引けるようにする。
   // 日本語名も表の面のものを使う（「表 // 裏」のまま出さない）。
   const front = s => String(s || "").split(" // ")[0].trim();
-  const jaOf = c => (c.card_faces && c.card_faces[0] && c.card_faces[0].printed_name) || front(c.printed_name);
+  const jaOf = c => noRuby((c.card_faces && c.card_faces[0] && c.card_faces[0].printed_name) || front(c.printed_name));
   const jaByCn = {}, jaByName = {};
   ja.forEach(c => {
     const p = jaOf(c);
@@ -236,6 +238,44 @@ async function cardNamesJa(code){
 /* ---------- 「日本のサプライ」の小さな枠（セット別ページの下に）---------- */
 let GOODS = null;
 try{ GOODS = JSON.parse(readFileSync("data/products/current.json", "utf8")); }catch(e){}
+/* セットの外から入っているカード（特別枠・ボーナスシート）の日本語名。セットの検索では出てこないので、
+   記事に出てくる名前のうち足りないものだけを名前で引き、同じカード（oracle_id）の日本語版を探す。names に足して、足した数を返す */
+async function fillMissingJa(names, wanted, images = null){
+  const has = (m, n) => m[n] || m[String(n).split(" // ")[0]];
+  const miss = [...new Set(wanted)].filter(n => n && (!has(names, n) || (images && !has(images, n))));
+  if(!miss.length) return 0;
+  const byOracle = {};
+  let added = 0;
+  for(let i = 0; i < miss.length; i += 75){
+    try{
+      const r = await fetch(`${SCRY}/cards/collection`, { method: "POST", headers: { ...SCRY_HEADERS, "Content-Type": "application/json" },
+        body: JSON.stringify({ identifiers: miss.slice(i, i + 75).map(n => ({ name: String(n).split(" // ")[0] })) }) });
+      if(r.ok) for(const c of (await r.json()).data || []){
+        if(c.oracle_id) byOracle[c.oracle_id] = c.name;
+        const u = (c.image_uris && c.image_uris.normal) || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris && c.card_faces[0].image_uris.normal);
+        if(images && u) for(const k of [c.name, String(c.name).split(" // ")[0]]) if(!images[k]){ images[k] = u; added++; }   // 英語版の画像（絵は同じ）
+      }
+    }catch(e){}
+    await sleep(120);
+  }
+  const ids = Object.keys(byOracle);
+  for(let i = 0; i < ids.length; i += 15){
+    const q = "lang:ja (" + ids.slice(i, i + 15).map(x => "oracleid:" + x).join(" or ") + ")";
+    for(const c of await scryAll(q + " unique:prints")){
+      const en = byOracle[c.oracle_id]; if(!en || c.lang !== "ja") continue;
+      const ja = noRuby((c.card_faces && c.card_faces[0] && c.card_faces[0].printed_name) || String(c.printed_name || "").split(" // ")[0]);
+      for(const k of [en, String(en).split(" // ")[0]]) if(ja && !names[k]){ names[k] = ja; added++; }
+    }
+  }
+  return added;
+}
+/* Scryfall のカード画像の URL から、同じカードの「絵だけの画像」（art_crop）の URL にする */
+const artCrop = u => String(u).replace("/normal/", "/art_crop/");
+const namesInArticle = d => [
+  ...Object.values((d.tiers && d.tiers.groups) || {}).flatMap(g => Object.values(g).flat().map(c => c.name)),
+  ...Object.values(d.top || {}).flatMap(l => (l || []).map(c => c.name))
+];
+
 function goodsStrip(lang){
   if(!GOODS) return "";
   const rot = Object.values(GOODS.rotating || {}).flat(), fixed = GOODS.fixed || [];
@@ -400,6 +440,9 @@ ${head}
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .cname{display:flex;align-items:center;gap:6px}
+  .cname .art{width:40px;height:30px;flex:none;display:block;border-radius:4px;object-fit:cover;background:var(--paper-2)}
+  @media (max-width:520px){ .cname .art{width:32px;height:24px} }
   /* カードのティア表 */
   .ctier input[type=radio]{position:absolute;opacity:0;pointer-events:none}
   .ctabs{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--pine);border-radius:12px;overflow:hidden;margin:6px 0 10px;background:#fff}
@@ -514,9 +557,11 @@ function summaryText(lang, mode, d, setDisplay, cn, pairLabel, colorLabel){
   return parts.join(ja ? "" : " ").replace(/、$/, "。");
 }
 
-function modeSection(lang, code, mode, d, speedIndex, names, setDisplay, videos){
+function modeSection(lang, code, mode, d, speedIndex, names, setDisplay, videos, images = {}){
   const T = L[lang];
-  const cn = n => (lang === "ja" && names[n]) ? names[n] : n;
+  const cn = n => (lang === "ja" && names[n]) ? noRuby(names[n]) : n;   // 保存済みの名前にふりがなが残っていても外す
+  // カードの絵（Scryfall の「絵だけの画像」）。名前の横に小さく出す。無いときは同じ幅の空きを置いて、名前の位置をそろえる
+  const artOf = n => { const u = images[n] || images[String(n).split(" // ")[0]]; return u ? `<img class="art" src="${esc(artCrop(u))}" alt="" loading="lazy" width="40" height="30">` : `<span class="art"></span>`; };
   /* 色のマークは、色つきの丸ではなくマナシンボル（assets/mana/ の mana-font）で出す。1色は各色、2色以上は多色、無色は無色のシンボル */
   const manaOf = c => { const k = !c ? "C" : c.length > 1 ? "M" : c.toUpperCase(); return `<i class="ms ms-cost ${k === "M" ? "ms-multicolor mfi-m" : "ms-" + k.toLowerCase()} mfi" aria-hidden="true"></i>`; };
   const colorLabel = k => T.colorName[k] || k;
@@ -601,7 +646,7 @@ ${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoS
     const blocks = ["mythic","rare","uncommon","common"].filter(r => (d.top[r] || []).length).map(r => `
       <div><h3><span class="rar ${r}">${esc(T.rarity[r])}</span></h3>
       <table><thead><tr><th>${esc(T.col.card)}</th><th class="num"><span data-tip="${esc(T.tipGih)}" tabindex="0">${esc(T.col.score)}</span></th><th class="num">${esc(T.col.games)}</th></tr></thead><tbody>
-      ${d.top[r].map(c => `<tr><td>${manaOf(c.color || "")}${esc(cn(c.name))}</td><td class="num"><b>${pct(c.gih)}</b></td><td class="num">${(c.games || 0).toLocaleString()}</td></tr>`).join("\n      ")}
+      ${d.top[r].map(c => `<tr><td><span class="cname">${artOf(c.name)}${manaOf(c.color || "")}<span>${esc(cn(c.name))}</span></span></td><td class="num"><b>${pct(c.gih)}</b></td><td class="num">${(c.games || 0).toLocaleString()}</td></tr>`).join("\n      ")}
       </tbody></table></div>`).join("");
     out += `
   <section><h3>${esc(T.cardsH)}</h3><p class="lead">${esc(T.cardsLead)}</p>
@@ -614,7 +659,7 @@ ${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoS
   return out;
 }
 
-function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos, long){
+function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos, long, images){
   const T = L[lang];
   const modes = ["draft","sealed"].filter(m => arts[m]);
   const totalGames = modes.reduce((a, m) => a + (arts[m].total_games || 0), 0).toLocaleString();
@@ -633,7 +678,7 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos, 
   const header = `    <h1>${esc(T.h1(setDisplay))} <small class="code">${esc(code)}</small></h1>
     <p>${esc(T.lead)}${info.released_at ? `　${lang === "ja" ? "発売" : "Released"} ${esc(info.released_at)}` : ""}</p>`;
   const body = (modes.length ? longSection(lang, code, setDisplay, long) : "") + (modes.length
-    ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay, videos)).join("\n")
+    ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay, videos, images)).join("\n")
     : `<p>${esc(T.none)}</p>`);
   const faqLd = { "@context": "https://schema.org", "@type": "FAQPage", inLanguage: lang,
     mainEntity: T.faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) };
@@ -758,14 +803,17 @@ async function main(){
     }
     const cache = await cardNamesJa(code);
     const info = await setInfo(code, cache);
-    if(info.set !== cache.set || info.released_at !== cache.released_at){
+    cache.names = cache.names || {};
+    cache.images = cache.images || {};
+    const extra = await fillMissingJa(cache.names, Object.values(arts).flatMap(namesInArticle), cache.images);   // 特別枠のカードの日本語名と画像
+    if(extra || info.set !== cache.set || info.released_at !== cache.released_at){
       await writeFile(`${NAMES}/${code}.json`, JSON.stringify({ ...cache, set: info.set, released_at: info.released_at }), "utf8");
     }
     const name = { ja: ja[code.toLowerCase()] || info.set || code, en: info.set || code };
     const games = Object.values(arts).reduce((a, d) => a + (d.total_games || 0), 0);
     rows.push({ code, name, released_at: info.released_at || (index.articles.find(a => a.set === code) || {}).released_at || "", games });
     for(const lang of ["ja","en"]){
-      const html = setPage(lang, code, name[lang], info, arts, speedIndex, cache.names || {}, videos, long);
+      const html = setPage(lang, code, name[lang], info, arts, speedIndex, cache.names || {}, videos, long, cache.images || {});
       await writeFile(`${OUT}/${code}${lang === "en" ? ".en" : ""}.html`, html, "utf8");
     }
     await sleep(120);
@@ -790,7 +838,7 @@ async function main(){
   console.error(`セット別ページを生成: ${rows.length}セット × 2言語`);
 }
 
-export { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE, pretty, videoSection, modeSection };
+export { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE, pretty, videoSection, modeSection, fillMissingJa, namesInArticle, artCrop };
 // 直接実行したときだけ動かす（build-set-profile.mjs から shell を借りるため）
 import { pathToFileURL } from "node:url";
 if(process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href){
