@@ -15,7 +15,7 @@
  *   ・確定版（data/articles/<SET>_<mode>.json）があるセットは作らない（確定版のファイルを上書きしないため）。
  *     そのセットの暫定版が残っていれば消す（data/provisional/ だけ。data/ratings/ は確定版が上書き済み）。
  *   ・環境の速さ（デッキの平均マナ総量ごとの勝率）とゲームの長さは、試合ごとのデータが要るので暫定版には無い。
- *   ・17Lands への通信は、1セットにつき 24 回（形式ごとに色別勝率・カード勝率・2色10通りのカード勝率）。間を 1.5 秒あける。
+ *   ・17Lands への通信は、1セットにつき 26 回ほど（形式ごとに色別勝率・カード勝率2通り・2色10通りのカード勝率）。間を 1.5 秒あける。
  *
  * 環境変数: L17_API / SCRY_API（確認用に差し替えられる）、PROV_NOW（確認用。今日の日付 YYYY-MM-DD）
  */
@@ -77,9 +77,25 @@ async function cardMeta(set){
 /* 1つの形式（PremierDraft / Sealed）を作る */
 async function buildMode(set, mode, released, meta){
   const fmt = MODES[mode];
-  const q = `expansion=${encodeURIComponent(set)}&start_date=${iso(Date.parse(released) - 21 * DAY)}&end_date=${iso(NOW + DAY)}`;
-  const colorRows = await getJson(`${L17}/color_ratings/data?${q}&event_type=${fmt}&combine_splash=true`); await sleep(1500);
-  const cardRows = await getJson(`${L17}/card_ratings/data?${q}&format=${fmt}`); await sleep(1500);
+  /* 期間の指定は2通り試して、試合数の多いほうを使う。
+     17Lands のカード表の画面は「全期間（time_period=ALL_TIME）」で、日付（start_date / end_date）で取ると
+     ごく一部の試合しか返らないことがある（2026年10月 FRA で、日付指定では全期間の4%ほどしか返らなかった） */
+  const base = `expansion=${encodeURIComponent(set)}`;
+  const variants = [`${base}&time_period=ALL_TIME`, `${base}&start_date=${iso(Date.parse(released) - 21 * DAY)}&end_date=${iso(NOW + DAY)}`];
+  const sumGames = rows => (rows || []).reduce((n, r) => n + (+r.game_count || 0), 0);
+  let q = variants[0], cardRows = null, best = -1;
+  for(const v of variants){
+    try{
+      const rows = await getJson(`${L17}/card_ratings/data?${v}&format=${fmt}`);
+      const n = sumGames(rows);
+      console.error(`  ${set} ${fmt}: カード勝率（${v.includes("ALL_TIME") ? "全期間" : "日付指定"}）の試合数の合計 ${n.toLocaleString()}`);
+      if(n > best){ best = n; q = v; cardRows = rows; }
+    }catch(e){ console.error(`  ${e.message}`); }
+    await sleep(1500);
+  }
+  if(!cardRows) throw new Error("カード勝率を取れませんでした");
+  let colorRows = await getJson(`${L17}/color_ratings/data?${q}&event_type=${fmt}&combine_splash=true`).catch(() => null); await sleep(1500);
+  if(!colorRows || !colorRows.length){ colorRows = await getJson(`${L17}/color_ratings/data?${variants[1]}&event_type=${fmt}&combine_splash=true`); await sleep(1500); }
 
   /* 色の組み合わせと、全体の試合数・勝率 */
   const MONO = { White: "W", Blue: "U", Black: "B", Red: "R", Green: "G" };
@@ -115,8 +131,9 @@ async function buildMode(set, mode, released, meta){
     try{
       const rows = await getJson(`${L17}/card_ratings/data?${q}&format=${fmt}&colors=${p}`);
       // 色の指定が効いていない（全デッキと同じ数字が返ってきた）ときは、2色ごとの勝率は付けない
-      const same = (rows || []).filter(r => { const c = byName.get(r.name); return c && +r.ever_drawn_game_count === c.games; }).length;
-      if(rows && rows.length && same >= rows.length * 0.8){ console.error(`  2色ごとの勝率が取れない形でした（${p}）。付けずに進めます`); break; }
+      const matched = (rows || []).filter(r => byName.has(r.name) && +r.ever_drawn_game_count > 0);
+      const same = matched.filter(r => +r.ever_drawn_game_count === byName.get(r.name).games).length;
+      if(matched.length && same >= matched.length * 0.8){ console.error(`  2色ごとの勝率が取れない形でした（${p}）。付けずに進めます`); break; }
       for(const r of rows || []){
         const c = byName.get(r.name), g = +r.ever_drawn_game_count || 0;
         if(c && g >= 200 && r.ever_drawn_win_rate != null) c.by_pair[p] = [Math.round(r.ever_drawn_win_rate * 10000) / 10000, g];
