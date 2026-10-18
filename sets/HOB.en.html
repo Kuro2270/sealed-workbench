@@ -156,7 +156,6 @@
   .tchip .tpic > :last-child{position:absolute;right:-5px;bottom:-4px;transform:scale(.72)}
   .tempty{font-size:12px;color:var(--muted);padding:0 4px}
   .tavg{font-size:12px;color:var(--muted);margin:6px 0 0}
-  .prov{background:#FFFBEA;border:1px solid #F2C94C;border-left:6px solid #F2C94C;border-radius:10px;padding:10px 14px;margin:8px 0 14px;font-size:13.5px;line-height:1.7}
   .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
   .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#FFFFFF}.rar.mythic{background:#C4552C}
   .links ul{margin:6px 0 0;padding-left:1.2em}
@@ -205,7 +204,7 @@
       <div class="ng"><span class="ngl">Shop</span><span class="ngs">MTG supplies sold in Japan</span><a href="../goods/index.en.html">Japanese supplies</a></div>
     </nav>
     <h1>The Hobbit | Limited card ratings and format report <small class="code">HOB</small></h1>
-    <p>Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands public data. Use them as card ratings: the higher the win rate, the stronger the card.　Released 2026-08-14</p>
+    <p>Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands data. Use them as card ratings: the higher the win rate, the stronger the card.　Released 2026-08-14</p>
     <link rel="alternate" hreflang="ja" href="HOB.html">
   </div>
 </header>
@@ -235,6 +234,13 @@
 
   <section><h3>Format speed</h3>
     <div class="verdict"><b>A fast format. Decks weighted toward cheap spells clearly win more.</b><span class="gap">Decks averaging under 2.9 mana value have the highest win rate, at 57.8%. Games last 8.9 turns on average, on the short side of the last 8 sets.</span></div>
+    <p class="lead" style="margin-top:12px">Win rate by a deck's average mana value.</p>
+    <table><thead><tr><th>Avg. mana value</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+    <tr><td>under 2.9</td><td class="num"><b>57.8%</b></td><td class="num">197,453</td></tr>
+    <tr><td>2.9–3.2</td><td class="num">56.8%</td><td class="num">225,543</td></tr>
+    <tr><td>3.2–3.5</td><td class="num">55.4%</td><td class="num">94,832</td></tr>
+    <tr><td>3.5+</td><td class="num">53.4%</td><td class="num">16,783</td></tr>
+    </tbody></table>
   </section>
   <section><h3>Colour strength</h3><p class="lead">Win rate of games where the deck included cards of that colour.</p>
     <table><thead><tr><th>Colour</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
@@ -280,7 +286,7 @@
   <section><h3>Card win rates by rarity</h3><p class="lead">The tier list cards by rarity, sorted by GIH win rate, with the number of games.</p>
     <div class="grid">
       <div><h3><span class="rar mythic">Mythic</span></h3>
-      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/7/5/75c1f212-8593-491e-a894-4cdd57561099.jpg?1786553488" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>Beorn the Fierce</span></span></td><td class="num"><b>65.5%</b></td><td class="num">6,107</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/d/b/dbdaae9c-0541-4376-8bbb-2ae0a8a4464d.jpg?1786549411" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>Gollum, Riddle Master</span></span></td><td class="num"><b>64.6%</b></td><td class="num">7,370</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/a/d/ad4a0e95-b5ed-4e7f-8902-be4a5b65ec4a.jpg?1786553050" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i><span>Smaug the Magnificent</span></span></td><td class="num"><b>64.3%</b></td><td class="num">6,735</td></tr>
@@ -293,7 +299,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/f/2/f20f7af1-9665-4ad6-80d6-454c8fed9c39.jpg?1786554668" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i><span>Bard, King of Dale</span></span></td><td class="num"><b>53.0%</b></td><td class="num">4,214</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">Rare</span></h3>
-      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/0/b/0b479b1c-88d6-477d-b2cf-0984716d460a.jpg?1786547296" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i><span>Fíli the Pathfinder</span></span></td><td class="num"><b>66.7%</b></td><td class="num">15,685</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/a/f/af6e058e-1456-441f-a89c-2ac20cbf758f.jpg?1786547760" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i><span>An Unexpected Party</span></span></td><td class="num"><b>66.2%</b></td><td class="num">16,991</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/8/c/8c696063-65d3-4572-a1da-75edd35f77e3.jpg?1786554737" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i><span>Bard's Company</span></span></td><td class="num"><b>64.7%</b></td><td class="num">18,215</td></tr>
@@ -306,7 +312,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/5/e/5ea29229-c137-4b6a-862f-c5992ff92623.jpg?1786551217" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i><span>Dáin Ironfoot</span></span></td><td class="num"><b>62.1%</b></td><td class="num">14,218</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">Uncommon</span></h3>
-      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/e/2/e206ce39-25ee-4f2f-81f7-6b12cf086dfb.jpg?1786547094" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i><span>Celebrate the Mountain-king</span></span></td><td class="num"><b>62.4%</b></td><td class="num">48,700</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/a/6/a6a5f2ce-12da-4d0f-b816-1ed04174d216.jpg?1786549022" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>Desolation Prowler</span></span></td><td class="num"><b>62.1%</b></td><td class="num">48,948</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/d/9/d9a31631-94a2-4d44-b970-8ba76c1e8d04.jpg?1786550963" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i><span>Bothersome Noisemaker</span></span></td><td class="num"><b>61.9%</b></td><td class="num">45,534</td></tr>
@@ -319,7 +325,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/2/a/2a5161a5-95da-4bce-9105-c43c2bf2b2b6.jpg?1786552045" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i><span>Gandalf, Spark Starter</span></span></td><td class="num"><b>60.0%</b></td><td class="num">37,729</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">Common</span></h3>
-      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/3/7/37f8d377-37a7-46cd-880e-f4d3d1854a79.jpg?1786548963" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>Crude Bent Blade</span></span></td><td class="num"><b>61.3%</b></td><td class="num">99,189</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/c/4/c4e7438b-7717-443a-bd41-f9d7f0a25a8c.jpg?1786552902" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i><span>Pinecone Strike</span></span></td><td class="num"><b>60.1%</b></td><td class="num">91,857</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/b/3/b32bb421-7706-4ffb-8db0-d65a03f2aedc.jpg?1786549472" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>Gollum, Silent Slinker</span></span></td><td class="num"><b>60.0%</b></td><td class="num">89,336</td></tr>
@@ -351,6 +357,13 @@
 
   <section><h3>Format speed</h3>
     <div class="verdict"><b>A fast format. Decks weighted toward cheap spells clearly win more.</b><span class="gap">Decks averaging under 3.2 mana value have the highest win rate, at 58.1%. Games last 8.8 turns on average, on the short side of the last 8 sets.</span></div>
+    <p class="lead" style="margin-top:12px">Win rate by a deck's average mana value.</p>
+    <table><thead><tr><th>Avg. mana value</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
+    <tr><td>under 2.9</td><td class="num">57.7%</td><td class="num">17,900</td></tr>
+    <tr><td>2.9–3.2</td><td class="num"><b>58.1%</b></td><td class="num">28,360</td></tr>
+    <tr><td>3.2–3.5</td><td class="num">56.6%</td><td class="num">16,142</td></tr>
+    <tr><td>3.5+</td><td class="num">55.5%</td><td class="num">3,622</td></tr>
+    </tbody></table>
   </section>
   <section><h3>Colour strength</h3><p class="lead">Win rate of games where the deck included cards of that colour.</p>
     <table><thead><tr><th>Colour</th><th class="num">Win rate</th><th class="num">Games</th></tr></thead><tbody>
@@ -396,7 +409,7 @@
   <section><h3>Card win rates by rarity</h3><p class="lead">The tier list cards by rarity, sorted by GIH win rate, with the number of games.</p>
     <div class="grid">
       <div><h3><span class="rar mythic">Mythic</span></h3>
-      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/a/d/ad4a0e95-b5ed-4e7f-8902-be4a5b65ec4a.jpg?1786553050" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i><span>Smaug the Magnificent</span></span></td><td class="num"><b>66.6%</b></td><td class="num">1,640</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/7/5/75c1f212-8593-491e-a894-4cdd57561099.jpg?1786553488" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-g mfi" aria-hidden="true"></i><span>Beorn the Fierce</span></span></td><td class="num"><b>64.9%</b></td><td class="num">1,503</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/9/3/93eb9d5b-a3e4-4fef-9c0a-7b13122f226d.jpg?1786553250" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i><span>Thorin, Mountain-king</span></span></td><td class="num"><b>64.1%</b></td><td class="num">1,311</td></tr>
@@ -409,7 +422,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/9/0/902dc86f-8f3c-46c9-b837-bedd74e910ca.jpg?1786547878" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-u mfi" aria-hidden="true"></i><span>Bilbo, Thief in the Night</span></span></td><td class="num"><b>55.7%</b></td><td class="num">575</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar rare">Rare</span></h3>
-      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/a/f/af6e058e-1456-441f-a89c-2ac20cbf758f.jpg?1786547760" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i><span>An Unexpected Party</span></span></td><td class="num"><b>65.7%</b></td><td class="num">2,257</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/4/8/48eff655-2218-405f-8846-c204bc7ab168.jpg?1786549725" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>Head of the Hunt</span></span></td><td class="num"><b>64.8%</b></td><td class="num">2,821</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/4/1/4125dd9c-54c1-44b3-b569-b612da455771.jpg?1786550283" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>Rhovanion Rampager</span></span></td><td class="num"><b>64.5%</b></td><td class="num">2,933</td></tr>
@@ -422,7 +435,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/8/c/8c696063-65d3-4572-a1da-75edd35f77e3.jpg?1786554737" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-multicolor mfi-m mfi" aria-hidden="true"></i><span>Bard's Company</span></span></td><td class="num"><b>61.9%</b></td><td class="num">1,376</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar uncommon">Uncommon</span></h3>
-      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/d/9/d9a31631-94a2-4d44-b970-8ba76c1e8d04.jpg?1786550963" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i><span>Bothersome Noisemaker</span></span></td><td class="num"><b>63.5%</b></td><td class="num">5,852</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/e/2/e206ce39-25ee-4f2f-81f7-6b12cf086dfb.jpg?1786547094" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-w mfi" aria-hidden="true"></i><span>Celebrate the Mountain-king</span></span></td><td class="num"><b>63.4%</b></td><td class="num">4,031</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/6/d/6d5b9610-428e-42bd-8688-9b6be61b86f6.jpg?1786551094" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i><span>Burn, Burn, Tree and Fern</span></span></td><td class="num"><b>63.1%</b></td><td class="num">6,341</td></tr>
@@ -435,7 +448,7 @@
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/f/2/f2b38576-0aff-4740-a683-8a5ce869e95e.jpg?1786549652" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>Great Ugly-Looking Goblin</span></span></td><td class="num"><b>60.2%</b></td><td class="num">5,959</td></tr>
       </tbody></table></div>
       <div><h3><span class="rar common">Common</span></h3>
-      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
+      <table><thead><tr><th>Card</th><th class="num"><span data-tip="GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands data." tabindex="0">Rating (GIH WR)</span></th><th class="num">Games</th></tr></thead><tbody>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/3/7/37f8d377-37a7-46cd-880e-f4d3d1854a79.jpg?1786548963" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>Crude Bent Blade</span></span></td><td class="num"><b>61.9%</b></td><td class="num">14,035</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/b/3/b32bb421-7706-4ffb-8db0-d65a03f2aedc.jpg?1786549472" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-b mfi" aria-hidden="true"></i><span>Gollum, Silent Slinker</span></span></td><td class="num"><b>61.1%</b></td><td class="num">11,335</td></tr>
       <tr><td><span class="cname"><img class="art" src="https://cards.scryfall.io/art_crop/front/c/4/c4e7438b-7717-443a-bd41-f9d7f0a25a8c.jpg?1786552902" alt="" loading="lazy" width="40" height="30"><i class="ms ms-cost ms-r mfi" aria-hidden="true"></i><span>Pinecone Strike</span></span></td><td class="num"><b>61.0%</b></td><td class="num">12,959</td></tr>
