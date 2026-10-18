@@ -163,13 +163,13 @@ const P = {
     desc: s => `マジック：ザ・ギャザリング アリーナ「${s}」のリミテッドを、勝率データが出る前にカードの枚数から読む。色ごとの除去・飛行・クリーチャーの数、マナ総量の分布。`,
     h1: s => `${s}｜リミテッド下見（データ前）`,
     lead: "勝率は、データが固まってから載せます。それまでは、セットの全カードを数えて「環境の形」を見ます。",
-    when: "このセットの環境レポートは、発売12日目から出ます。",
+    when: "このセットの環境レポートは、MTGアリーナの配信から12日目に出ます。",
     earlyH: d => `速報（${d} 時点・17Lands のデータより）`, earlyTop: { common: "コモンのトップ3", uncommon: "アンコモンのトップ3" },
     earlyTitle: s => `${s} リミテッド速報版｜発売直後の傾向と、セットの形`,
     earlyDesc: s => `マジック：ザ・ギャザリング アリーナ「${s}」のリミテッド速報。発売直後の勝っている色・組み合わせと、カードの枚数から見たセットの形。`,
     earlyH1: s => `${s}｜リミテッド速報版`,
     earlyLead: "発売直後の速報です。順位はこの後のデータで動きます。あわせて、セットの全カードを数えた「環境の形」も載せています。",
-    earlyWhen: "全カードの勝率と環境レポートは、発売12日目から出ます。",
+    earlyWhen: "全カードの勝率と環境レポートは、MTGアリーナの配信から12日目に出ます。",
     sumH: "ひと目でわかる",
     sum: p => `コモン・アンコモンの除去は ${p.counts.removal} 枚、飛行持ちは ${p.counts.flyers} 枚。コモン・アンコモンの平均マナ総量は ${p.avgCmcAll.toFixed(2)}。`,
     colorsH: "色ごとの中身（コモン・アンコモン）", colorsLead: "単色のコモン・アンコモンだけを数えています。除去と飛行が多い色は、序盤から主導権を取りやすい色です。",
@@ -201,7 +201,7 @@ const P = {
     earlyDesc: s => `An early look at Magic: The Gathering Arena Limited for ${s}: the colours and pairs winning in the first days, plus the shape of the set by card counts.`,
     earlyH1: s => `${s} — Limited early look`,
     earlyLead: "An early look from the first days of the format. Rankings will move. The card-count shape of the set is below as well.",
-    earlyWhen: "Every card's win rate and the full set report arrive from day 12 after release.",
+    earlyWhen: "Every card's win rate and the full set report arrive on day 12 after the MTG Arena release.",
     sumH: "At a glance",
     sum: p => `${p.counts.removal} removal spells and ${p.counts.flyers} flyers at common and uncommon. Average mana value of commons and uncommons: ${p.avgCmcAll.toFixed(2)}.`,
     colorsH: "What each colour has (commons & uncommons)", colorsLead: "Mono-coloured commons and uncommons only. Colours with more removal and flyers tend to take the initiative early.",
@@ -434,7 +434,7 @@ try{
 // 先行版のショート（「動画を配信」が public にしたものだけ載る）
 const VIDEOS = await readJson("data/videos.json", {});
 const EARLY = await readJson(`data/early/${SET}.json`, null);
-// 勝率は発売12日目から（17Lands の利用ガイドラインで、サイトへの掲載は12日目から。公開データセットを待たず、毎日の集計で出す）
+// 勝率は MTGアリーナの配信から12日目（17Lands の利用ガイドラインで、サイトへの掲載は12日目から。公開データセットを待たず、毎日の集計で出す）
 await mkdir("data/profiles", { recursive: true });
 await mkdir("sets", { recursive: true });
 await writeFile(`data/profiles/${SET}.json`, JSON.stringify({ ...p, nameJa, generated_at: new Date().toISOString() }, null, 1), "utf8");

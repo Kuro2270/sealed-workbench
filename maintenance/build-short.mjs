@@ -75,7 +75,7 @@ const UI = JA ? {
   surpriseH: "意外な事実", nobody: "誰も組んでいない", strongerTogether: "組むと強くなる", weakerTogether: "組むと弱くなる",
   wrRank: (v, r) => `勝率 ${v}%（${r}位）`, wr: v => `勝率 ${v}%`, usedOnly: (g, p) => `使われた試合は ${g}。全体の${p}%だけ`, vsAvg2: (sign, n) => `2色それぞれの平均より ${sign}${n}pt`,
   outroA: "チャンネル登録を", outroB: "お願いします", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん",
-  earlyBadge: "速報", earlyHookC: "リミテッド速報", earlyH: "まだ序盤のデータです", early1: "順位はこれから動きます", early2: "全カードの勝率は発売12日目から", earlyAsOf: d => `${d} 時点`
+  earlyBadge: "速報", earlyHookC: "リミテッド速報", earlyH: "まだ序盤のデータです", early1: "順位はこれから動きます", early2: "全カードの勝率は配信12日目から", earlyAsOf: d => `${d} 時点`
 } : {
   analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute", hookA: "Limited in 1 minute", hookC: m => m ? "SEALED" : "DRAFT", hookD1: g => `${g} games analyzed`, hookD2: "Best colors & cards",
   tierH: "Colour-pair tier list", targetTag: "AIM FOR", bombsH: (a, b) => `Top 6 rare & mythic bombs (#${a}–${b})`, bombsTag: { mythic: "Mythic", rare: "Rare" },

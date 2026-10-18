@@ -3,15 +3,21 @@
  * 暫定版の環境レポートを、17Lands の毎日の集計（カード勝率・色別勝率）から作る。
  *   公開データセット（CSV）が出るまでの間だけ使う。出たら確定版（build-ratings → build-articles）に切り替わり、暫定版は消す。
  *
- *   node maintenance/build-provisional.mjs FRA      … セットを決めて作る
- *   node maintenance/build-provisional.mjs --auto   … 対象のセットを探して作る（紙の発売から12〜60日で、確定版が無いもの）
+ *   node maintenance/build-provisional.mjs FRA      … セットを決めて作り直す（段階はそのまま）
+ *   node maintenance/build-provisional.mjs --auto   … 作る日が来たセットだけ作る（下の「作る日」）
  *
  * 出力: data/provisional/<SET>_<mode>.json … 環境レポートと同じ形（provisional: true）。環境レポートの画面と下見ページが読む
  *       data/ratings/<SET>_<mode>.json     … 全カードの勝率（provisional: true）。勝率一覧・練習ツールの勝率表示が読む
  *   <mode> は draft（PremierDraft）と sealed（Sealed）。
  *
+ * 作る日（毎日は作り直さない。2回だけ）
+ *   ・1回目（stage: "first"）：MTGアリーナの配信から12日目。17Lands の利用ガイドラインでは、第三者サイトでのデータの掲載は12日目から
+ *     （配信日は Scryfall に無いので、arena-days.mjs が 17Lands の試合データで確かめる）
+ *   ・2回目（stage: "refined"）：1回目の7日後。1週間分増えたデータで作り直す（精査）
+ *   ・そのあとは、公開データセットが出て確定版になるまで、作り直さない（確定版で「環境の速さ」が加わる）
+ *   SNS の告知（data-news.mjs）は、この stage と first_at を見て出す。
+ *
  * 決まりごと
- *   ・17Lands の利用ガイドラインでは、第三者サイトでのデータの掲載は発売12日目から。それより前のセットは作らない。
  *   ・確定版（data/articles/<SET>_<mode>.json）があるセットは作らない（確定版のファイルを上書きしないため）。
  *     そのセットの暫定版が残っていれば消す（data/provisional/ だけ。data/ratings/ は確定版が上書き済み）。
  *   ・環境の速さ（デッキの平均マナ総量ごとの勝率）とゲームの長さは、試合ごとのデータが要るので暫定版には無い。
@@ -22,13 +28,14 @@
 import { readFile, writeFile, mkdir, readdir, unlink } from "node:fs/promises";
 import { cardTiers } from "./card-tier.mjs";
 import { fetchCardRows, listOf } from "./l17-cards.mjs";
+import { arenaDays } from "./arena-days.mjs";
 import { MIN_GAMES, topByRarity, colorStrength } from "./build-articles.mjs";
 
 const UA = "sealed-workbench/1.0 (https://sealed-workbench.com)";
 const L17 = process.env.L17_API || "https://www.17lands.com";
 const SCRY = process.env.SCRY_API || "https://api.scryfall.com";
 const NOW = process.env.PROV_NOW ? Date.parse(process.env.PROV_NOW + "T12:00:00Z") : Date.now();
-const DAY = 86400000, FROM_DAYS = 12, UNTIL_DAYS = 60;
+const DAY = 86400000, FROM_DAYS = 12, REFINE_DAYS = 7, BEFORE_DAYS = 10, UNTIL_DAYS = 60;   // 配信12日目に1回目、その7日後に2回目。候補は紙の発売の10日前〜60日後
 const MODES = { draft: "PremierDraft", sealed: "Sealed" };
 const PAIRS = ["WU", "WB", "WR", "WG", "UB", "UR", "UG", "BR", "BG", "RG"];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -164,10 +171,26 @@ async function buildMode(set, mode, released, meta){
   return { article, ratings };
 }
 
-async function buildSet(set){
+/* いまの段階と、今日作るべき段階。null なら今日は作らない */
+async function stageDue(set, force){
+  const prev = await readJson(`data/provisional/${set}_draft.json`, null) || await readJson(`data/provisional/${set}_sealed.json`, null);
+  const stage = prev ? (prev.stage || "first") : null;
+  const firstAt = prev ? (prev.first_at || String(prev.generated_at || "").slice(0, 10)) : null;   // 段階の記録が無い古いもの（2026年10月の FRA）は、作った日を1回目とみなす
+  if(!prev){
+    if(!(await arenaDays(set, FROM_DAYS))){ console.error(`${set}: アリーナの配信から${FROM_DAYS}日たっていないので、まだ載せません`); return null; }   // 手で押したときも守る
+    return { stage: "first", firstAt: iso(NOW) };
+  }
+  if(force) return { stage, firstAt };                 // 手で押したとき：段階はそのままで、数字だけ作り直す
+  if(stage === "first" && NOW >= Date.parse(firstAt + "T00:00:00Z") + REFINE_DAYS * DAY) return { stage: "refined", firstAt };
+  console.error(`${set}: ${stage === "first" ? `1回目（${firstAt}）から${REFINE_DAYS}日たっていないので、作り直しません` : "2回目まで済んでいるので、作り直しません（確定版を待つ）"}`);
+  return null;
+}
+
+async function buildSet(set, force){
   const info = await getJson(`${SCRY}/sets/${set.toLowerCase()}`);
-  const days = (NOW - Date.parse(info.released_at)) / DAY;
-  if(days < FROM_DAYS){ console.error(`${set}: 紙の発売から ${Math.floor(days)} 日。12日目まではサイトに載せない決まりなので作りません`); return 0; }
+  const due = await stageDue(set, force);
+  if(!due) return 0;
+  console.error(`${set}: ${due.stage === "first" ? "1回目" : "2回目（精査）"}を作ります`);
   const meta = await cardMeta(set);
   let made = 0;
   for(const mode of Object.keys(MODES)){
@@ -175,6 +198,7 @@ async function buildSet(set){
     let r = null;
     try{ r = await buildMode(set, mode, info.released_at, meta); }catch(e){ console.error(`${set} ${mode}: ${e.message}`); process.exitCode = 1; }
     if(!r) continue;
+    if(!r.skip) for(const o of [r.article, r.ratings]){ o.stage = due.stage; o.first_at = due.firstAt; }
     if(r.skip){                                   // 数字が当てにならないときは、前に作った暫定版も下げる（下見・速報に戻る）
       for(const f of [`data/provisional/${set}_${mode}.json`, `data/ratings/${set}_${mode}.json`]) await unlink(f).catch(() => {});
       process.exitCode = 1;
@@ -189,11 +213,11 @@ async function buildSet(set){
   return made;
 }
 
-/* --auto：紙の発売から12〜60日で、確定版がまだ無いセット */
+/* --auto の候補：紙の発売の10日前〜60日後のセット（アリーナは紙より先に出るので、前から見る）。作る日かどうかは stageDue で決める */
 async function autoTargets(){
   const d = await getJson(`${SCRY}/sets`);
   return (d.data || []).filter(s => ["expansion", "core"].includes(s.set_type) && s.released_at && s.card_count > 150
-    && NOW - Date.parse(s.released_at) >= FROM_DAYS * DAY && NOW - Date.parse(s.released_at) <= UNTIL_DAYS * DAY).map(s => s.code.toUpperCase());
+    && NOW - Date.parse(s.released_at) >= -BEFORE_DAYS * DAY && NOW - Date.parse(s.released_at) <= UNTIL_DAYS * DAY).map(s => s.code.toUpperCase());
 }
 
 const arg = String(process.argv[2] || "").toUpperCase();
@@ -203,7 +227,7 @@ const sets = arg === "--AUTO" ? await autoTargets() : [arg];
 const made = [];
 for(const s of sets){
   if(arg === "--AUTO" && await hasFinal(s, "draft") && await hasFinal(s, "sealed")) continue;
-  if((await buildSet(s)) > 0) made.push(s);
+  if((await buildSet(s, arg !== "--AUTO")) > 0) made.push(s);
 }
 console.error(made.length ? `暫定版を作りました: ${made.join(" ")}` : "暫定版を作るセットはありませんでした。");
 for(const s of made) console.log(s);       // 下見ページを作り直すセット（ワークフローが読む）

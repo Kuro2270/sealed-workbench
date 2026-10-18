@@ -1,8 +1,10 @@
 name: データ｜暫定版の勝率（自動・毎日）
 
 # 公開データセットがまだ出ていない新セットについて、17Lands の毎日の集計から「暫定版」の環境レポートを作る。
-#   ・対象：紙の発売から12〜60日で、確定版（data/articles/<SET>_<mode>.json）がまだ無いセット
-#     （17Lands の利用ガイドラインで、サイトへの掲載は発売12日目から）
+#   ・毎日見に行くが、作るのは2回だけ（build-provisional.mjs が決める）：
+#       1回目 … MTGアリーナの配信から12日目（17Lands の利用ガイドラインで、サイトへの掲載は12日目から）
+#       2回目 … その7日後（1週間分増えたデータで作り直す）
+#     そのあとは、確定版（data/articles/<SET>_<mode>.json）ができるまで作り直さない
 #   ・作るもの：data/provisional/<SET>_<mode>.json（環境レポートの画面・セット別ページが読む）、data/ratings/<SET>_<mode>.json（勝率一覧・練習ツール・補助）、
 #     セット別ページ（sets/<SET>.html。公開データのセットと同じ作り）と、下見の一覧（data/profiles/index.json）の印
 #   ・確定版ができたセットの暫定版は、ここで消す。確定版のファイルには触らない
@@ -14,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       set:
-        description: "セットコード（例: FRA）。空なら対象のセットを自動で探す"
+        description: "セットコード（例: FRA）。空なら作る日のセットを自動で探す。入れると、そのセットの数字を今の段階のまま作り直す"
         required: false
 
 permissions:

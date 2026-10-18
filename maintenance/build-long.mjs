@@ -227,8 +227,8 @@ function buildScript(ctx){
   // 速さのデータ（試合ごとのデータから作る）は確定版にしか無い。暫定版では「環境の速さ」の章を入れず、組み合わせごとはマナカーブだけにする
   const hasPace = (dd.speed || []).some(x => x.wr != null && x.games), hasDeckSpeed = Object.keys(rd.pair_speed || {}).length > 0;
   const pairLabel = hasDeckSpeed ? L("色の組み合わせと速さ", "Pair speed & mana curve") : L("色の組み合わせ", "Colour pairs");
-  scenes.push({ kind: "agenda", say: EN ? `Here's the plan: ${hasPace ? "format speed, " : ""}colour pairs${hasDeckSpeed ? " and deck speed" : ""}, sleeper pairs, bombs, trap rares, the best cards for each colour, and finally a summary.` : `順番に、${hasPace ? "環境の速さ、" : ""}色の組み合わせ${hasDeckSpeed ? "とデッキの速さ" : ""}、ボム、罠なレアカード、色別のおすすめを見て、最後にまとめます。${WITH_REMOVAL ? "除去も紹介します。" : ""}`,
-    items: (EN ? [...(hasPace ? ["Format speed"] : []), "Colour strength", pairLabel, "Sleeper pairs", ...(WITH_DVS ? ["Draft vs Sealed"] : []), "Top 10 bomb rares", "Trap rares", "Top commons & uncommons", ...(WITH_REMOVAL ? ["Removal"] : []), "Summary"] : [...(hasPace ? ["環境の速さ"] : []), "色の強さ", pairLabel, "狙い目の色", ...(WITH_DVS ? ["ドラフトとシールドの違い"] : []), "ボムのレア10枚", "罠なレアカード", "色別のコモン・アンコモン", ...(WITH_REMOVAL ? ["除去（コモン・アンコモン）"] : []), "まとめ"]), tail: 0.4 });
+  scenes.push({ kind: "agenda", say: EN ? `Here's the plan: ${hasPace ? "format speed, " : ""}single colours, colour pairs${hasDeckSpeed ? " and deck speed" : ""}, sleeper pairs, bombs, trap rares, the best cards for each colour, and finally a summary.` : `順番に、${hasPace ? "環境の速さ、" : ""}単色の強さ、色の組み合わせ${hasDeckSpeed ? "とデッキの速さ" : ""}、狙い目の色、ボム、罠なレアカード、色別のおすすめを見て、最後にまとめます。${WITH_REMOVAL ? "除去も紹介します。" : ""}`,
+    items: (EN ? [...(hasPace ? ["Format speed"] : []), "Single colours", pairLabel, "Sleeper pairs", ...(WITH_DVS ? ["Draft vs Sealed"] : []), "Top 10 bomb rares", "Trap rares", "Top commons & uncommons", ...(WITH_REMOVAL ? ["Removal"] : []), "Summary"] : [...(hasPace ? ["環境の速さ"] : []), "単色の強さ", pairLabel, "狙い目の色", ...(WITH_DVS ? ["ドラフトとシールドの違い"] : []), "ボムのレア10枚", "罠なレアカード", "色別のコモン・アンコモン", ...(WITH_REMOVAL ? ["除去（コモン・アンコモン）"] : []), "まとめ"]), tail: 0.4 });
 
   /* --- 速さ --- */
   const paceRows = d => (d.speed || []).filter(s => s.wr != null && s.games).map((s, i, a) => ({
@@ -269,8 +269,10 @@ function buildScript(ctx){
   /* --- 色の強さ --- */
   if(monoD.length){
     const a = monoD[0], b = monoD[1], last = monoD[monoD.length - 1];
-    scenes.push({ kind: "colors", chapter: L("色の強さ", "Colour strength"), colors: monoD, monoS,
-      say: EN ? `Next, single colours. In Draft, ${CJ[a.color]} wins the most at ${pt(a.wr)} percent, followed by ${CJ[b.color]} at ${pt(b.wr)} percent. ${CJ[last.color]} is the lowest at ${pt(last.wr)} percent. But the gaps between colours are small, so prioritize the colour pairs and card quality we're about to see.` : `次に、単色の強さ。ドラフトで一番勝っているのは${CJ[a.color]}の${pt(a.wr)}パーセント、次が${CJ[b.color]}の${pt(b.wr)}パーセントです。一番低いのは${CJ[last.color]}で${pt(last.wr)}パーセント。ただ、色の差は小さいので、色よりも、これから見る色の組み合わせとカードの質を優先してください。`,
+    // 最初の章が「環境の速さ」でないとき（公開データが出る前のデータで作るとき）は、ここが最初の章なので「まず」で始める
+    const lead = rowsD.length ? L("次に", "Next") : L("まず", "First");
+    scenes.push({ kind: "colors", chapter: L("単色の強さ", "Single colours"), colors: monoD, monoS,
+      say: EN ? `${lead}, single colours. In Draft, ${CJ[a.color]} wins the most at ${pt(a.wr)} percent, followed by ${CJ[b.color]} at ${pt(b.wr)} percent. ${CJ[last.color]} is the lowest at ${pt(last.wr)} percent. But the gaps between colours are small, so prioritize the colour pairs and card quality we're about to see.` : `${lead}、単色の強さ。ドラフトで一番勝っているのは${CJ[a.color]}の${pt(a.wr)}パーセント、次が${CJ[b.color]}の${pt(b.wr)}パーセントです。一番低いのは${CJ[last.color]}で${pt(last.wr)}パーセント。ただ、色の差は小さいので、色よりも、これから見る色の組み合わせとカードの質を優先してください。`,
       tail: 0.6 });
   }
 

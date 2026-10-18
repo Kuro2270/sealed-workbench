@@ -1,0 +1,61 @@
+name: SNS｜データ更新の告知（自動・毎日）
+
+# サイトのデータが段階的に新しくなったときに、Bluesky に英語で1回ずつ告知する。役割はこれだけ。
+#   ・速報メモの更新（アリーナの配信から7日目）／全カードの勝率の公開（12日目）／1週間後の更新（19日目）／環境の速さの追加（17Lands の公開データが出たとき）
+#   ・どれが起きたかは data-news.mjs がサイトのファイルから決める。告知したものは data/social/data-posted.json に記録し、2回は出さない
+#   ・はじめて動いたときは、いまある分を「告知済み」として記録するだけで、投稿はしない
+#   ・X（日本語・手で投稿）の文案は、同じ出来事から「SNS｜X の文案を作る」（12:32）が作る
+# 手で押すときは「文面の確認だけ」にすると、投稿も記録もせずに文面だけ見られる。
+
+on:
+  schedule:
+    - cron: "22 3 * * *"       # 毎日 12:22（日本時間）。データの更新（3:30・4:23）のあと、X の文案（12:32）の前
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "文面の確認だけ（投稿も記録もしない）"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write        # 告知の記録を戻すため
+
+concurrency:
+  group: social-data
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 告知する
+        env:
+          SITE_URL: https://sealed-workbench.com
+          DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
+          BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+        run: node maintenance/post-data-news.mjs
+
+      - name: 告知の記録を戻す
+        if: always() && inputs.dry_run != true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/social || true
+          if git diff --staged --quiet; then
+            echo "告知はありませんでした。"
+            exit 0
+          fi
+          git commit -m "データ更新の告知を記録"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push origin main && exit 0
+            sleep 5
+          done
+          echo "押し戻せませんでした" && exit 1

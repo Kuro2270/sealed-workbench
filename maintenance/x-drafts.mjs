@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 /*
  * X に手で投稿する告知の文案を作り、data/social/x-queue/<id>.json に置く（知らせるのは「SNS｜X 投稿の催促」）。
- * X の告知は、次の3つのときだけ（毎日の投稿はしない）。
+ * X の告知は、次のときだけ（毎日の投稿はしない）。
  *   1. 新セットで練習（ドラフト・シールド）ができるようになったとき … 「SNS｜新セット発売の告知」の記録（data/social/release-posted.json）
  *   2. 速報のショート（日本語）を公開したとき                       … data/videos.json の <SET>.ja.early が公開（public）になったもの
  *   3. 環境まとめの長尺（日本語）を公開したとき                     … data/long.json の <SET>.ja（サイトに載った＝公開済み）
+ *   4. サイトのデータが段階的に新しくなったとき（速報メモの更新・全カードの勝率の公開・1週間後の更新・環境の速さの追加）… data-news.mjs
+ *      4 の記録は、はじめて加わったときに、いまある分を「作成済み」として記録するだけにする（Bluesky の告知 post-data-news.mjs と同じ）
  * 文案を作ったものは data/social/x-drafted.json に記録し、2回は作らない。
  * はじめて動かしたとき（記録が無いとき）は、過去の分をまとめて出さないよう、いまあるものを「作成済み」として記録するだけにする。
  * 14日より前の出来事は、時機を逃しているので作らない。
@@ -23,6 +25,7 @@ import { execFileSync } from "node:child_process";
 import { releaseTexts } from "./release-text.mjs";
 import { setName } from "./set-name.mjs";
 import { makeReleaseImage } from "./x-release-image.mjs";
+import { dataEvents, newsText } from "./data-news.mjs";
 
 const DRY = process.env.DRY_RUN === "1";
 const PREVIEW = (process.env.PREVIEW_SET || "").trim().toUpperCase();
@@ -47,6 +50,7 @@ async function events(){
     const l = v && v.ja;
     if(l && l.id) out.push({ id: `${SET}-long`, kind: "long", set: SET, at: l.publishedAt || l.uploadedAt, url: `https://www.youtube.com/watch?v=${l.id}`, videoId: l.id });
   }
+  for(const e of await dataEvents()) out.push({ ...e, data: true });
   return out;
 }
 
@@ -63,13 +67,17 @@ function videoText(e){
 async function draft(e){
   const nm = await setName(e.set);
   const ja = nm.ja === e.set && e.fallbackName ? e.fallbackName : nm.ja;
-  const text = e.kind === "release" ? releaseTexts({ ja, en: nm.en }).x : videoText(e);
-  const title = `${ja}（${e.set}）の${{ release: "発売告知", early: "速報動画の告知", long: "環境まとめ動画の告知" }[e.kind]}`;
+  const text = e.data ? (await newsText(e, "x")).text : e.kind === "release" ? releaseTexts({ ja, en: nm.en }).x : videoText(e);
+  const title = `${ja}（${e.set}）の${{ release: "発売告知", early: "速報動画の告知", long: "環境まとめ動画の告知", memo: "速報メモ更新の告知", first: "勝率公開の告知", refined: "勝率更新の告知", final: "環境の速さ追加の告知" }[e.kind]}`;
   return { title, text, ja };
 }
 
 /* 投稿に添える画像の URL（発売告知は画像を作る。dir は書き出す場所） */
 async function imageFor(e, ja, dir){
+  if(e.data){       // データの告知：セットの共有画像（build-set-ogp.mjs が作る）があれば
+    const path = `sets/og/${e.set}-ja.png`;
+    return existsSync(path) ? { url: `${SITE}/${path}` } : null;
+  }
   if(e.kind === "release"){
     const path = `${dir}/${e.set}-release.jpg`;
     await makeReleaseImage(e.set, ja, path);
@@ -101,10 +109,14 @@ async function main(){
   if(PREVIEW) return preview();
   const first = !existsSync(LOG);
   const done = await readJson(LOG, {});
+  const all = await events();
+  // データの告知（4）がはじめて加わったときは、いまある分を記録するだけ（Bluesky と同じく、過去の分を流さない）
+  const firstData = !all.some(e => e.data && done[e.id]) && !done["data-news"];
+  if(firstData && !first) done["data-news"] = { at: new Date().toISOString(), seeded: true };
   let n = 0;
-  for(const e of await events()){
+  for(const e of all){
     if(done[e.id]) continue;
-    if(first){ done[e.id] = { at: new Date().toISOString(), seeded: true }; continue; }
+    if(first || (e.data && firstData)){ done[e.id] = { at: new Date().toISOString(), seeded: true }; continue; }
     if(e.at && Date.now() - Date.parse(e.at) > FRESH_MS){ console.log(`${e.id}: 古いので作りません（${e.at}）`); done[e.id] = { at: new Date().toISOString(), skipped: "old" }; continue; }
     const { title, text, ja } = await draft(e);
     const img = await imageFor(e, ja, DRY ? PREVIEW_DIR : IMG_DIR);

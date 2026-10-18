@@ -11,6 +11,8 @@
  * 17Lands の利用ガイドラインでは、第三者サイトでのデータの掲載（別の形での可視化）は発売12日目まで控えるよう求められている一方、
  * 記事での個別の数字の引用は初日から差し支えないとされている。そこで、数字を3〜4個だけ含む文章にして載せる。表やグラフにはしない。
  * 17Lands の名前は添える（出どころの明記）が、リンクは置かない。
+ * 速報メモは2回作る：速報ショートと同じ日（アリーナの配信から3日目）と、その4日後（7日目。check-new-data.mjs が起こす）。
+ * 2回目は round: 2 として記録し、「発売から1週間の〇試合では」の書き出しにする。
  * コモン・アンコモンのトップ3は、カード名と画像だけ（勝率の数字は載せない。数字つきの一覧は「データの掲載」に近づくため）。
  */
 
@@ -40,21 +42,23 @@ const asOfDate = d.as_of || iso(Date.now());
 const gamesJa = total >= 10000 ? `約${Math.round(total / 10000)}万` : total.toLocaleString("ja-JP");
 const gamesEn = total >= 1000 ? `${Math.round(total / 1000)}K` : String(total);
 
+const prev = await readJson(`data/early/${SET}.json`, null);
+const round = prev && prev.as_of !== asOfDate ? (prev.round || 1) + 1 : (prev && prev.round) || 1;   // 同じ日に作り直したときは回数を増やさない
 const ja = [
-  `発売直後の${gamesJa}試合（ドラフト＋シールド）では、` + (best ? `最も勝っている組み合わせは${pairName(best.colors, true)}（${pct(best.wr)}%）` : "まだ組み合わせの傾向は出ていません") + (second ? `、次いで${pairName(second.colors, true)}（${pct(second.wr)}%）。` : "。"),
+  `${round >= 2 ? "発売から1週間の" : "発売直後の"}${gamesJa}試合（ドラフト＋シールド）では、` + (best ? `最も勝っている組み合わせは${pairName(best.colors, true)}（${pct(best.wr)}%）` : "まだ組み合わせの傾向は出ていません") + (second ? `、次いで${pairName(second.colors, true)}（${pct(second.wr)}%）。` : "。"),
   mono ? `単色では${CJ[mono.color]}が最も安定しています。` : "",
   c1 ? `コモンでは《${namesJa[c1.name] || c1.name}》の勝率が頭ひとつ抜けています。` : "",
   `順位はこの後のデータで動きます。`
 ].filter(Boolean).join("");
 const en = [
-  `Across the first ${gamesEn} games (Draft and Sealed combined), ` + (best ? `the best-performing pair is ${pairName(best.colors)} (${pct(best.wr)}%)` : "no pair has pulled ahead yet") + (second ? `, followed by ${pairName(second.colors)} (${pct(second.wr)}%).` : "."),
+  `Across ${round >= 2 ? "the first week's" : "the first"} ${gamesEn} games (Draft and Sealed combined), ` + (best ? `the best-performing pair is ${pairName(best.colors)} (${pct(best.wr)}%)` : "no pair has pulled ahead yet") + (second ? `, followed by ${pairName(second.colors)} (${pct(second.wr)}%).` : "."),
   mono ? ` ${CE[mono.color]} is the most reliable single colour so far.` : "",
   c1 ? ` Among commons, ${c1.name} is clearly ahead.` : "",
   ` Rankings will move as more games come in.`
 ].filter(Boolean).join("");
 
 const top3 = r => (((d.top || {})[r]) || []).slice(0, 3).map(c => ({ name: c.name, ja: namesJa[c.name] || c.name, imgJa: imagesJa[c.name] || c.imgEn || "", imgEn: c.imgEn || imagesJa[c.name] || "" }));
-const note = { set: SET, as_of: asOfDate, as_of_label: monthDay(asOfDate), ja, en, top: { common: top3("common"), uncommon: top3("uncommon") }, source: "17Lands" };
+const note = { set: SET, round, as_of: asOfDate, as_of_label: monthDay(asOfDate), ja, en, top: { common: top3("common"), uncommon: top3("uncommon") }, source: "17Lands" };
 await mkdir("data/early", { recursive: true });
 await writeFile(`data/early/${SET}.json`, JSON.stringify(note, null, 2) + "\n", "utf8");
 console.error(`${SET}: 速報メモを保存（data/early/${SET}.json）`);

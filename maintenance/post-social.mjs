@@ -286,7 +286,7 @@ function videoPost(ctx, lang, track, withVideo = !!VIDEO_FILE){
     const lines = [
       L ? `【${nm}】速報！発売直後のリミテッド環境を1分で${withVideo ? "" : "（動画）"}` : `${nm} Limited: early look in 60 seconds${withVideo ? "" : " (video)"}`,
       "",
-      L ? `17Lands の発売直後のデータ（ドラフト＋シールド）から、強い色・2色の組み合わせ・コモン／アンコモンのトップを速報でまとめました。全カードの勝率は発売12日目からサイトで見られます。` : `Strongest colours, best pairs and top commons/uncommons from the first days of 17Lands data. Every card's win rate goes up on the site from day 12.`,
+      L ? `17Lands の発売直後のデータ（ドラフト＋シールド）から、強い色・2色の組み合わせ・コモン／アンコモンのトップを速報でまとめました。全カードの勝率は、アリーナ配信の12日目からサイトで見られます。` : `Strongest colours, best pairs and top commons/uncommons from the first days of 17Lands data. Every card's win rate goes up on the site on day 12 after the Arena release.`,
       "",
       withVideo ? null : `https://www.youtube.com/shorts/${id}`,
       L ? `シールド／ドラフトの構築練習 ${SITE}/?from=${track}` : `Sealed / Draft practice: ${SITE}/?from=${track}`,

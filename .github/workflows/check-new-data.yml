@@ -3,8 +3,9 @@ name: データ｜1 新データの点検（自動・毎日）
 # 毎日1回、17Lands に新しいセットの勝率データが出ていないか軽く調べる（数十秒）。
 # 出ていれば「勝率データ集計」をそのまま起こす。集計のあとは、環境レポート・r/lrcast の下書き・
 # 動画4本（日英 × ドラフト/シールド）まで自動で進む。動画の公開と「動画を配信」は手動。
-# 先行版：MTGアリーナの発売から3日たったセット（17Lands に3日前までの試合がある）は、先行版のショート（日英）を
+# 先行版：MTGアリーナの配信から3日たったセット（17Lands に3日前までの試合がある）は、先行版のショート（日英）を
 # 「環境まとめ動画を作る」（速報）で起こす。数字の表はサイトに載せず、動画だけ（17Lands の決まり）。
+# 速報メモの更新：配信から7日たったら（速報ショートの4日後）、「サイトに速報メモを載せる」をもう一度起こし、速報メモをその日の数字で書き直す（1回だけ）。
 # 17Lands のデータは紙の発売から12日後に出るので、新セットのたびに日付を覚えておく必要はない。
 
 on:
@@ -31,8 +32,9 @@ jobs:
         id: check
         run: |
           node maintenance/check-new-data.mjs > ready.txt
-          echo "sets=$(grep -v '^EARLY ' ready.txt | tr '\n' ' ' | sed 's/ *$//')" >> "$GITHUB_OUTPUT"
+          echo "sets=$(grep -v '^\(EARLY\|NOTE\) ' ready.txt | tr '\n' ' ' | sed 's/ *$//')" >> "$GITHUB_OUTPUT"
           echo "early=$(grep '^EARLY ' ready.txt | sed 's/^EARLY //' | tr '\n' ' ' | sed 's/ *$//')" >> "$GITHUB_OUTPUT"
+          echo "notes=$(grep '^NOTE ' ready.txt | sed 's/^NOTE //' | tr '\n' ' ' | sed 's/ *$//')" >> "$GITHUB_OUTPUT"
 
       - name: 勝率データ集計を起こす
         if: steps.check.outputs.sets != ''
@@ -59,6 +61,18 @@ jobs:
           echo "## 先行版を作り始めました: $EARLY" >> "$GITHUB_STEP_SUMMARY"
           echo "「環境まとめ動画を作る」（速報）と「サイトに速報メモを載せる」を起こしました。終わると先行版のショートが日英2本、非公開で YouTube に上がり、下見ページが速報版になります。" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: 速報メモの更新を起こす
+        if: steps.check.outputs.notes != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTES: ${{ steps.check.outputs.notes }}
+        run: |
+          for S in $NOTES; do
+            gh workflow run early-web.yml --ref main -f set="$S" \
+              && echo "速報メモの更新を開始: $S" || echo "::warning::速報メモの更新を始められませんでした: $S"
+          done
+          echo "## 速報メモを最新の数字で書き直します: $NOTES" >> "$GITHUB_STEP_SUMMARY"
+
       # 発売前後のセットに、勝率データが出るまでの「下見」ページを作る（2日ごとに作り直し、カードと日本語名が増えたら反映する）
       - name: セットの下見を作る
         run: |
@@ -73,5 +87,5 @@ jobs:
           fi
 
       - name: 新しいデータが無いとき
-        if: steps.check.outputs.sets == '' && steps.check.outputs.early == ''
+        if: steps.check.outputs.sets == '' && steps.check.outputs.early == '' && steps.check.outputs.notes == ''
         run: echo "新しいデータはありませんでした。" >> "$GITHUB_STEP_SUMMARY"
