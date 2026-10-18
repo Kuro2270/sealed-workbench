@@ -296,6 +296,10 @@
   .cname{display:flex;align-items:center;gap:7px}
   .cname .nm{border-bottom:1px dotted var(--line);cursor:default}
   .cname .art{width:40px;height:30px;flex:none;display:block;border-radius:4px;object-fit:cover;background:var(--paper-2)}
+  .tchip .tpic{position:relative;flex:none;display:block}
+  .tchip .tpic .art{width:30px;height:22px;display:block;border-radius:3px;object-fit:cover;background:var(--paper-2)}
+  .tchip .tpic > :last-child{position:absolute;right:-5px;bottom:-4px;transform:scale(.72)}
+  .ctier .tchip{padding:3px 9px 3px 4px}
   .cname .pic{display:flex;align-items:center;gap:7px;flex:none}
   /* スマホ：名前の幅を空けるため、色の記号は絵の右下に重ねる */
   @media (max-width:720px){
@@ -1055,7 +1059,7 @@ function render(){
     const rows = ["S", "A", "B", "C", "D"].map(k => {
       const list = (d.tiers.groups[g][k] || []).filter(fits);
       return `<div class="trow"><div class="tlab ${k}">${k}</div><div class="tcells">${list.length ? list.map(c =>
-        `<span class="tchip" data-card="${esc(c.name)}" title="${esc(t("reports.ctier.tip", {p: pct(c.gih)}))}">${manaI(colorKey(c))}${esc(displayName(c.name))}<b>${pct(c.gih)}</b></span>`).join("") : `<span class="tempty">—</span>`}</div></div>`;
+        `<span class="tchip" data-card="${esc(c.name)}" title="${esc(t("reports.ctier.tip", {p: pct(c.gih)}))}"><span class="tpic">${artI(c.name)}${manaI(colorKey(c))}</span>${esc(displayName(c.name))}<b>${pct(c.gih)}</b></span>`).join("") : `<span class="tempty">—</span>`}</div></div>`;
     }).join("");
     out.push(`<section class="ctier">
       <h2>${t("reports.ctier.h")}</h2>

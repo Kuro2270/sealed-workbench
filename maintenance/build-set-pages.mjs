@@ -469,6 +469,10 @@ ${head}
   .tcells{display:flex;flex-wrap:wrap;gap:5px;padding:5px;background:var(--paper-2);border-radius:7px;min-height:38px;align-items:center}
   .tchip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--line);border-radius:7px;padding:3px 8px;font-size:13px}
   .tchip b{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .ctier .tchip{padding:3px 8px 3px 4px}
+  .tchip .tpic{position:relative;flex:none;display:block}
+  .tchip .tpic .art{width:30px;height:22px;display:block;border-radius:3px;object-fit:cover;background:var(--paper-2)}
+  .tchip .tpic > :last-child{position:absolute;right:-5px;bottom:-4px;transform:scale(.72)}
   .tempty{font-size:12px;color:var(--muted);padding:0 4px}
   .tavg{font-size:12px;color:var(--muted);margin:6px 0 0}
   .prov{background:#FFFBEA;border:1px solid #F2C94C;border-left:6px solid #F2C94C;border-radius:10px;padding:10px 14px;margin:8px 0 14px;font-size:13.5px;line-height:1.7}
@@ -633,7 +637,7 @@ ${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoS
     const groups = radios + tabs + colors + G.map(g => `
     <div class="tiers t-${g}" data-g="${g}">${["S", "A", "B", "C", "D"].map(k => {
       const list = d.tiers.groups[g][k] || [];
-      return `<div class="trow"><div class="tlab ${k}">${k}</div><div class="tcells">${list.map(c => `<span class="tchip" data-c="${esc(c.color || "")}">${manaOf(c.color || "")}${esc(cn(c.name))}<b>${pct(c.gih)}</b></span>`).join("")}<span class="tempty"${list.length ? " hidden" : ""}>—</span></div></div>`;
+      return `<div class="trow"><div class="tlab ${k}">${k}</div><div class="tcells">${list.map(c => `<span class="tchip" data-c="${esc(c.color || "")}"><span class="tpic">${artOf(c.name)}${manaOf(c.color || "")}</span>${esc(cn(c.name))}<b>${pct(c.gih)}</b></span>`).join("")}<span class="tempty"${list.length ? " hidden" : ""}>—</span></div></div>`;
     }).join("")}</div>`).join("");
     out += `
   <section class="ctier"><h3>${esc(T.ctierH)}</h3><p class="lead">${esc(T.ctierLead((d.tiers.min_games || 500).toLocaleString()))}</p>${groups}
