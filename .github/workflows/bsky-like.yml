@@ -7,6 +7,7 @@ name: SNS｜Bluesky のいいね（自動・毎日・テスト運用）
 # いいねとの間は「75 秒 ＋ 10 秒〜3 分のランダム」あける（10 件で 25 分ほど）。付けたいいねは、実行結果の Summary に一覧で出る。
 # 止めるとき：Actions の画面でこのワークフローを開き、右上の「…」→「Disable workflow」。
 # 手で押すときは「候補を見るだけ」にすると、いいねを付けずに候補だけ見られる。
+# 手で押して付けるときは、今日すでに付けた数に関係なく、指定の件数（空なら設定の値）まで付ける。毎日の自動実行だけが1日の上限を守る。
 
 on:
   schedule:
@@ -18,7 +19,7 @@ on:
         type: boolean
         default: true
       limit:
-        description: "1日の上限（件）。空なら設定（BSKY_LIKE_LIMIT）の値"
+        description: "今回付ける件数（最大50。今日の件数に関係なく付ける）。空なら設定（BSKY_LIKE_LIMIT）の値"
         default: ""
 
 permissions:
@@ -43,6 +44,7 @@ jobs:
         env:
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
           LIKE_LIMIT: ${{ inputs.limit || vars.BSKY_LIKE_LIMIT || '10' }}
+          MANUAL: ${{ github.event_name == 'workflow_dispatch' && '1' || '' }}
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: node maintenance/bsky-like.mjs

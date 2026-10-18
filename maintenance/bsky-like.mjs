@@ -7,7 +7,8 @@
  *   DRY_RUN=1 node maintenance/bsky-like.mjs       … 付ける候補を見るだけ（いいねはしない）
  *
  * 環境変数：BSKY_HANDLE, BSKY_APP_PASSWORD（無ければ何もしない）
- *           LIKE_LIMIT … 1日（日本時間）に付ける上限。既定 10。今日すでに付けた数（手で付けたものも含む）を引いた分だけ付ける
+ *           LIKE_LIMIT … 1日（日本時間）に付ける上限。既定 10、最大 50。今日すでに付けた数（手で付けたものも含む）を引いた分だけ付ける
+ *           MANUAL     … 1 なら手で押した実行。今日の数は見ずに、LIKE_LIMIT の件数をそのまま付ける（最大 50）
  *           BSKY_BASE  … 確認用（作り物のサーバーに向ける）
  *
  * 付けない投稿：自分の投稿、もう付けた投稿、返信、ラベル（成人向け・スパムなど）の付いた投稿や人、
@@ -19,6 +20,7 @@ import { appendFile } from "node:fs/promises";
 
 const BASE = process.env.BSKY_BASE || "https://bsky.social/xrpc";
 const DRY = process.env.DRY_RUN === "1";
+const MANUAL = process.env.MANUAL === "1";
 const LIMIT = Math.max(0, Math.min(50, parseInt(process.env.LIKE_LIMIT || "10", 10) || 10));
 const WAIT_MS = +(process.env.LIKE_WAIT_MS ?? 75000);
 const JITTER_MIN = +(process.env.LIKE_JITTER_MIN_MS ?? 10000), JITTER_MAX = +(process.env.LIKE_JITTER_MAX_MS ?? 180000);
@@ -84,8 +86,8 @@ async function main(){
   const auth = { Authorization: `Bearer ${session.accessJwt}` };
 
   const done = await likedToday(auth, session.did);
-  const room = Math.max(0, LIMIT - done);
-  console.log(`今日のいいね：${done} 件（上限 ${LIMIT}）。あと ${room} 件まで`);
+  const room = MANUAL ? LIMIT : Math.max(0, LIMIT - done);   // 手で押したときは、今日の数に関係なく付ける
+  console.log(MANUAL ? `手で押した実行：今日のいいね ${done} 件に関係なく、${room} 件まで付けます` : `今日のいいね：${done} 件（上限 ${LIMIT}）。あと ${room} 件まで`);
   if(!room && !DRY){ await summary(`今日はもう上限（${LIMIT}件）まで付けています。`); return; }
 
   /* 言葉ごとに探して、交互に並べる */
@@ -93,7 +95,7 @@ async function main(){
   const lists = [];
   for(const { q, lang } of QUERIES){
     try{
-      const d = await api(`app.bsky.feed.searchPosts?q=${encodeURIComponent(q)}&sort=latest&limit=50&since=${encodeURIComponent(since)}${lang ? "&lang=" + lang : ""}`, auth);
+      const d = await api(`app.bsky.feed.searchPosts?q=${encodeURIComponent(q)}&sort=latest&limit=100&since=${encodeURIComponent(since)}${lang ? "&lang=" + lang : ""}`, auth);
       lists.push((d.posts || []).filter(p => suitable(p, session.did)));
     }catch(e){ console.log(`「${q}」を探せませんでした: ${e.message}`); lists.push([]); }
   }
@@ -119,7 +121,7 @@ async function main(){
       console.log("いいね " + line); rows.push(`| いいね | [${line.replace(/\|/g, "／")}](${postUrl(p)}) |`);
     }catch(e){ console.log(`いいねに失敗（${line}）: ${e.message}`); rows.push(`| 失敗 | ${line.replace(/\|/g, "／")} |`); process.exitCode = 1; }
   }
-  await summary(`## Bluesky のいいね${DRY ? "（候補を見るだけ）" : ""}\n\n今日のいいね：実行前 ${done} 件 / 上限 ${LIMIT} 件\n\n| | 投稿 |\n|---|---|\n${rows.join("\n")}\n`);
+  await summary(`## Bluesky のいいね${DRY ? "（候補を見るだけ）" : ""}\n\n今日のいいね：実行前 ${done} 件 / ${MANUAL ? "今回付ける上限" : "1日の上限"} ${LIMIT} 件\n\n| | 投稿 |\n|---|---|\n${rows.join("\n")}\n`);
 }
 
 main().catch(e => { console.error("いいねに失敗しました:", e.message); process.exit(1); });
