@@ -976,6 +976,8 @@
     "reports.ctier.c": { ja:"コモン", en:"Common" },
     "reports.ctier.avg": { ja:"全カードの平均 {p}", en:"Average across all cards {p}" },
     "reports.ctier.tip": { ja:"GIH勝率 {p}", en:"GIH win rate {p}" },
+    "reports.ctier.count": { ja:"{n}枚", en:"{n} cards" },
+    "reports.ctier.colors": { ja:"色（選んだ色だけで使えるカード）", en:"Colours (cards castable with the ones you pick)" },
     "reports.prov.h": { ja:"暫定版", en:"Provisional" },
     "reports.prov.body": { ja:"17Lands の毎日の集計（{d} 時点）から作っています。データが固まり次第、確定版に切り替わります。", en:"Built from 17Lands' daily figures (as of {d}). It switches to the final version once the full data is out." },
     "reports.filter.color": { ja:"色", en:"Colour" },

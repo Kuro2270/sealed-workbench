@@ -62,6 +62,7 @@ const L = {
     tipGih: "GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsの公開データを集計しています。",
     ctierH: "カードのティア表", ctierLead: n => `全カードの勝率（GIH勝率）の分布から、S〜Dの5段階に分けました。レアリティが違っても、同じランクなら同じくらいの強さです。${n}試合以上のカードに限っています。`,
     ctierGroup: { mr: "神話レア・レア", u: "アンコモン", c: "コモン" }, ctierAvg: p => `全カードの平均 ${p}`,
+    ctierCount: "{n}枚", ctierColors: "色（選んだ色だけで使えるカード）", ctierAll: "すべて",
     provH: "暫定版", provBody: d => `17Lands の毎日の集計（${d} 時点）から作っています。データが固まり次第、確定版に切り替わります。`,
     cardsH: "カード点数ランキング（レアリティ別）", cardsLead: "カードの「点数」は、実際の勝率（GIH勝率：そのカードが手札か戦場にあった試合の勝率）で見ます。高いほど強いカードです。レアリティごとに高い順に並べています。",
     faqH: "リミテッドのカードの点数について",
@@ -114,6 +115,7 @@ const L = {
     tipGih: "GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands public data.",
     ctierH: "Card tier list", ctierLead: n => `Every card graded S to D from the spread of GIH win rates across the whole set. The scale is shared, so the same grade means similar strength at any rarity. Cards with at least ${n} games.`,
     ctierGroup: { mr: "Mythic & rare", u: "Uncommon", c: "Common" }, ctierAvg: p => `Average across all cards ${p}`,
+    ctierCount: "{n} cards", ctierColors: "Colours (cards castable with the ones you pick)", ctierAll: "All",
     provH: "Provisional", provBody: d => `Built from 17Lands' daily figures (as of ${d}). It switches to the final version once the full data is out.`,
     cardsH: "Card ratings by rarity", cardsLead: "A card's rating is its real win rate (GIH win rate: games where the card was in hand or on the battlefield). Higher is stronger. Sorted from the top within each rarity.",
     faqH: "About Limited card ratings",
@@ -398,8 +400,20 @@ ${head}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
   /* カードのティア表 */
   .ctier input[type=radio]{position:absolute;opacity:0;pointer-events:none}
-  .ctier label{display:inline-block;font-size:12.5px;padding:6px 12px;margin:2px 4px 8px 0;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer}
-  .ctier input:checked + label{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
+  .ctabs{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--pine);border-radius:12px;overflow:hidden;margin:6px 0 10px;background:#fff}
+  .ctabs label{font-size:15px;font-weight:700;padding:10px 6px;color:var(--pine);border-left:1px solid var(--line);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.25;text-align:center}
+  .ctabs label:first-child{border-left:0}
+  .ctabs label .n{font-size:11.5px;font-weight:500;color:var(--muted)}
+  .ctier input:nth-of-type(1):checked ~ .ctabs label:nth-child(1),.ctier input:nth-of-type(2):checked ~ .ctabs label:nth-child(2),.ctier input:nth-of-type(3):checked ~ .ctabs label:nth-child(3){background:var(--pine);color:#fff}
+  .ctier input:nth-of-type(1):checked ~ .ctabs label:nth-child(1) .n,.ctier input:nth-of-type(2):checked ~ .ctabs label:nth-child(2) .n,.ctier input:nth-of-type(3):checked ~ .ctabs label:nth-child(3) .n{color:#BFD3EA}
+  .ctabs .rd{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+  .ctabs .rd.mr{background:linear-gradient(135deg,#E0A23B,#C4552C)}.ctabs .rd.u{background:#9AAAB4}.ctabs .rd.c{background:#2A3B4C;box-shadow:0 0 0 1px #fff inset}
+  @media (max-width:520px){ .ctabs label{font-size:13px;padding:9px 4px} }
+  .ccolors{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
+  .ccolors .lbl{font-size:12px;color:var(--muted);margin-right:2px}
+  .ccolors button{font:inherit;font-size:12.5px;line-height:1;padding:6px 10px;border-radius:999px;cursor:pointer;background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .ccolors button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
+  .tchip[hidden],.tempty[hidden]{display:none}
   .ctier .tiers{display:none}
   .ctier input:nth-of-type(1):checked ~ .t-mr,.ctier input:nth-of-type(2):checked ~ .t-u,.ctier input:nth-of-type(3):checked ~ .t-c{display:grid}
   .tiers{display:grid;gap:5px}
@@ -563,16 +577,21 @@ ${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoS
   // カードのティア表（神話レア・レア／アンコモン／コモン）
   if(d.tiers && d.tiers.groups){
     // レアリティの切り替えは、JS を使わずにラジオボタンで（検索エンジンには3つとも読める）
-    const tabs = ["mr", "u", "c"].map((g, i) => `<input type="radio" name="ct-${mode}" id="ct-${mode}-${g}"${i ? "" : " checked"}><label for="ct-${mode}-${g}">${esc(T.ctierGroup[g])}</label>`).join("");
-    const groups = tabs + ["mr", "u", "c"].map(g => `
-    <div class="tiers t-${g}">${["S", "A", "B", "C", "D"].map(k => {
+    // 色の絞り込みは、ページ下の小さなスクリプトで（選んだ色だけで使えるカードを残す）。JS が無くても全カードは読める
+    const G = ["mr", "u", "c"], cnt = g => ["S", "A", "B", "C", "D"].reduce((n, k) => n + (d.tiers.groups[g][k] || []).length, 0);
+    const radios = G.map((g, i) => `<input type="radio" name="ct-${mode}" id="ct-${mode}-${g}"${i ? "" : " checked"}>`).join("");
+    const tabs = `<div class="ctabs">${G.map(g => `<label for="ct-${mode}-${g}" data-g="${g}"><span><span class="rd ${g}"></span>${esc(T.ctierGroup[g])}</span><span class="n">${esc(T.ctierCount.replace("{n}", cnt(g)))}</span></label>`).join("")}</div>`;
+    const colors = `<div class="ccolors" data-fmt="${esc(T.ctierCount)}"><span class="lbl">${esc(T.ctierColors)}</span><button type="button" data-tc="" aria-pressed="true">${esc(T.ctierAll)}</button>${["W", "U", "B", "R", "G"].map(k => `<button type="button" data-tc="${k}" aria-pressed="false" title="${esc(T.colorName[k])}">${manaOf(k)}</button>`).join("")}</div>`;
+    const groups = radios + tabs + colors + G.map(g => `
+    <div class="tiers t-${g}" data-g="${g}">${["S", "A", "B", "C", "D"].map(k => {
       const list = d.tiers.groups[g][k] || [];
-      return `<div class="trow"><div class="tlab ${k}">${k}</div><div class="tcells">${list.length ? list.map(c => `<span class="tchip">${manaOf(c.color || "")}${esc(cn(c.name))}<b>${pct(c.gih)}</b></span>`).join("") : `<span class="tempty">—</span>`}</div></div>`;
+      return `<div class="trow"><div class="tlab ${k}">${k}</div><div class="tcells">${list.map(c => `<span class="tchip" data-c="${esc(c.color || "")}">${manaOf(c.color || "")}${esc(cn(c.name))}<b>${pct(c.gih)}</b></span>`).join("")}<span class="tempty"${list.length ? " hidden" : ""}>—</span></div></div>`;
     }).join("")}</div>`).join("");
     out += `
   <section class="ctier"><h3>${esc(T.ctierH)}</h3><p class="lead">${esc(T.ctierLead((d.tiers.min_games || 500).toLocaleString()))}</p>${groups}
     <p class="tavg">${esc(T.ctierAvg(pct(d.tiers.mean)))}</p>
-  </section>`;
+  </section>
+  <script>(function(){var s=document.currentScript.previousElementSibling,sel=[];function up(){s.querySelectorAll(".tchip").forEach(function(c){var k=c.getAttribute("data-c")||"";c.hidden=sel.length>0&&!k.split("").every(function(x){return sel.indexOf(x)>=0;});});s.querySelectorAll(".tcells").forEach(function(t){var e=t.querySelector(".tempty");if(e)e.hidden=[].some.call(t.querySelectorAll(".tchip"),function(c){return !c.hidden;});});var f=s.querySelector(".ccolors").getAttribute("data-fmt");s.querySelectorAll(".ctabs label").forEach(function(l){var n=s.querySelectorAll('.tiers[data-g="'+l.getAttribute("data-g")+'"] .tchip:not([hidden])').length;l.querySelector(".n").textContent=f.replace("{n}",n);});s.querySelectorAll("[data-tc]").forEach(function(b){var k=b.getAttribute("data-tc");b.setAttribute("aria-pressed",String(k?sel.indexOf(k)>=0:!sel.length));});}s.querySelectorAll("[data-tc]").forEach(function(b){b.addEventListener("click",function(){var k=b.getAttribute("data-tc");if(!k)sel=[];else if(sel.indexOf(k)>=0)sel=sel.filter(function(x){return x!==k;});else sel.push(k);up();});});})();</script>`;
   }
   // レアリティ別
   if(d.top){
