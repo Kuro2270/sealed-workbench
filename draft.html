@@ -17,6 +17,8 @@
 <script src="/navmenu.js" defer></script>
 <script src="/poolsave.js?v=2"></script>
 <script src="./draft-core.js?v=1"></script>
+<script src="./draft-view.js?v=1"></script>
+<link rel="stylesheet" href="/assets/mana/mana.min.css">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
@@ -163,7 +165,13 @@
   .crow .track{height:7px;background:var(--paper-2);border-radius:4px;overflow:hidden}
   .crow .track i{display:block;height:100%;border-radius:4px}
   .crow .n{text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22)}
+  /* マナシンボル（draft-view.js） */
+  .mcost{display:inline-flex;align-items:center;gap:1px;white-space:nowrap}
+  .mcost .ms{font-size:12px;margin:0}
+  .mcost .msep{font-size:11px;color:var(--muted);margin:0 2px}
+  .crow .mfi{font-size:15px;vertical-align:-2px;margin:0}
+  .sec h4 .mfi{margin-right:5px}
+  .land-item .mfi{font-size:15px;margin-right:6px;vertical-align:-2px}
 
   .sec{display:flex;align-items:baseline;justify-content:space-between;margin:10px 0 3px;padding-bottom:3px;border-bottom:1px solid var(--line)}
   .sec:first-child{margin-top:0}
@@ -741,7 +749,7 @@ function render(){
       if(!list.length) return;
       const h = document.createElement("div");
       h.className = "sec";
-      h.innerHTML = `<h4><span class="dot" style="background:var(${col.var})"></span> ${colorLabel(col.key)}</h4><span>${t("unit.cards", {n: list.length})}</span>`;
+      h.innerHTML = `<h4>${manaIcon(col.key)}${colorLabel(col.key)}</h4><span>${t("unit.cards", {n: list.length})}</span>`;
       board.appendChild(h);
       const ul = document.createElement("ul");
       ul.className = "grid";
@@ -769,15 +777,7 @@ function colorKey(c){
   return ci[0];
 }
 
-const SECTIONS = [{key:"creature"}, {key:"spell"}, {key:"land"}];
-const secLabel = k => t("sec." + k);
-
-function cardSection(c){
-  const front = (c.type_line || "").split("//")[0];
-  if(front.includes("Creature")) return "creature";
-  if(front.includes("Land")) return "land";
-  return "spell";
-}
+/* クリーチャー／スペル／土地の区分け、色の内訳、マナシンボルは draft-view.js（友達とドラフトと共通） */
 
 function renderSide(){
   persistDraft();
@@ -798,19 +798,7 @@ function renderSide(){
   if(!list.length){
     body.innerHTML = '<div class="empty">' + t(phase === "build" ? "deck.empty" : "draft.pickedEmpty") + '</div>';
   }else{
-    SECTIONS.forEach(sec => {
-      const sub = list.filter(c => cardSection(c) === sec.key);
-      if(!sub.length) return;
-      const h = document.createElement("div");
-      h.className = "sec";
-      h.innerHTML = `<h4>${secLabel(sec.key)}</h4><span>${t("unit.cards", {n: sub.length})}</span>`;
-      body.appendChild(h);
-      const ul = document.createElement("ul");
-      sub.slice().sort((a,b) => (a.cmc ?? 0) - (b.cmc ?? 0)
-                             || displayName(a).localeCompare(displayName(b), "ja"))
-        .forEach(c => ul.appendChild(sideRow(c, phase === "build" ? "main" : "pick")));
-      body.appendChild(ul);
-    });
+    renderSections(body, list, c => sideRow(c, phase === "build" ? "main" : "pick"));
   }
 
   // サイドボード（構築画面のみ）
@@ -844,7 +832,7 @@ function sideRow(c, where){
     `<span class="rar ${c.rarity}"></span>` +
     `<span class="name">${esc(displayName(c))}</span>` +
     `<span class="wr${isBomb(w) ? " bomb" : ""}"${w ? ` title="${t("wr.gih.tip")}${isBomb(w) ? "\n" + t("tip.bomb") : ""}"` : ""}>${w ? (w.gih*100).toFixed(1) + "%" : ""}</span>` +
-    `<span style="font-size:12px;color:var(--muted)">${esc(c.mana_cost || "")}</span>`;
+    manaCostHtml(c);
   li.onmouseenter = ev => showPreview(c, ev.clientX, ev.clientY);
   li.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
   li.onmouseleave = hidePreview;
@@ -877,22 +865,7 @@ function sideRow(c, where){
 }
 
 function renderColors(){
-  const rows = $("colorRows");
-  rows.innerHTML = "";
-  const src = phase === "build" ? deck : pool;
-  const counts = {W:0,U:0,B:0,R:0,G:0};
-  src.forEach(c => cardColors(c).forEach(k => counts[k]++));
-  const max = Math.max(1, ...Object.values(counts));
-  COLORS.filter(c => "WUBRG".includes(c.key)).forEach(col => {
-    const n = counts[col.key];
-    const d = document.createElement("div");
-    d.className = "crow";
-    d.innerHTML =
-      `<span><span class="dot" style="background:var(${col.var})"></span></span>` +
-      `<span class="track"><i style="width:${n/max*100}%;background:var(${col.var})"></i></span>` +
-      `<span class="n">${n}</span>`;
-    rows.appendChild(d);
-  });
+  renderColorRows($("colorRows"), phase === "build" ? deck : pool);
 }
 
 function renderLands(){
@@ -912,7 +885,7 @@ function renderLands(){
     plus.className = "step"; plus.textContent = "＋";
     plus.setAttribute("aria-label", t("deck.plus", {c: ja}));
     plus.onclick = () => { landCount[en] = n+1; renderSide(); };
-    const name = document.createElement("span"); name.textContent = ja;
+    const name = document.createElement("span"); name.innerHTML = manaIcon("WUBRG"[BASICS.indexOf(en)]) + esc(ja);
     const num = document.createElement("span"); num.className = "l-num"; num.textContent = n;
     row.append(name, minus, num, plus);
     lw.appendChild(row);

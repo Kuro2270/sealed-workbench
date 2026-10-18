@@ -1,7 +1,7 @@
 /* 友達とドラフト（draftroom.html）の画面
  * ・部屋を作る／招待リンクで入る → 主催者が開始 → 全員同時にピック → 終わったら構築画面（draft.html?from=room。CPU戦とは保存場所が別）へ
  * ・ドラフトの正本はサーバー（worker-draft/）が持つ。この画面は「見せる」と「選んだカードを送る」だけ。
- * ・カードの読み込み・パック作り・名前と画像は draft-core.js（ドラフト練習と共通）を使う。
+ * ・カードの読み込み・パック作り・名前と画像は draft-core.js、取ったカードの区分け・色の内訳・マナシンボルは draft-view.js（どちらもドラフト練習と共通）を使う。
  */
 (function(){
 const SERVER = new URLSearchParams(location.search).get("server") || "wss://sealed-workbench-draft.kuro2270.workers.dev";
@@ -269,7 +269,7 @@ function row(c, latest){
   const w = wrOn() ? wrEntry(c) : null;
   li.innerHTML = `<span class="rar ${c.rarity}"></span><span class="name">${esc(displayName(c))}</span>${latest ? `<b class="now">${esc(t("room.justPicked"))}</b>` : ""}` +
     `<span class="wr${isBomb(w) ? " bomb" : ""}">${w ? (w.gih * 100).toFixed(1) + "%" : ""}</span>` +
-    `<span style="font-size:12px;color:var(--muted)">${esc(c.mana_cost || "")}</span>`;
+    manaCostHtml(c);
   li.onmouseenter = ev => showPreview(c, ev.clientX, ev.clientY);
   li.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
   li.onmouseleave = hidePreview;
@@ -337,20 +337,17 @@ function renderDraft(){
     const slow = view.seats.filter(s => !s.cpu && !s.me && s.waiting).map(s => s.name);
     setStatus(slow.length ? t("room.waitFor", {names: slow.join("・")}) : t("room.waitPass"), false, true);
   }
-  /* 取ったカード */
+  /* 取ったカード：クリーチャー／呪文／土地に分け、色の内訳も出す（ドラフト練習と同じ） */
   const mine = cards(view.picks);
   $("sideCount").textContent = mine.length;
   const sb = $("sideBody");
+  $("colors").hidden = !mine.length;
   if(!mine.length){ sb.innerHTML = `<div class="empty">${esc(t("draft.pickedEmpty"))}</div>`; return; }
   sb.innerHTML = "";
-  const ul = document.createElement("ul");
   /* いま取った1枚に印を付ける（同じカードが複数あっても印は1つ） */
   let latestId = view.picks[view.picks.length - 1];
-  mine.slice().sort((a, b) => (a.cmc ?? 0) - (b.cmc ?? 0) || displayName(a).localeCompare(displayName(b), "ja")).forEach(c => {
-    const latest = c.id === latestId; if(latest) latestId = null;
-    ul.appendChild(row(c, latest));
-  });
-  sb.appendChild(ul);
+  renderSections(sb, mine, c => { const latest = c.id === latestId; if(latest) latestId = null; return row(c, latest); });
+  renderColorRows($("colorRows"), mine);
 }
 
 /* ---------- 終わったら構築画面へ（ドラフト練習と同じ画面で、デッキを組んで書き出す） ---------- */
@@ -381,5 +378,16 @@ async function finish(){
   if(room && store.get(KEY("name"))) connect(store.get(KEY("name")), asHost);   // 名前が分かっていれば、そのまま入る
   else showEntry();
 })();
+/* 指で長押ししたら、カードを画面いっぱいに出す（パックのカードも、取ったカードも。ドラフト練習と同じ cardzoom.js）。
+   勝率は、主催者が「表示する」にした部屋だけ出す */
+CardZoom.setup({
+  images: imageUrls,
+  name: displayName,
+  sub: c => {
+    const w = wrOn() ? wrEntry(c) : null;
+    return [c.type_line || "", w ? "GIH " + (w.gih * 100).toFixed(1) + "%" : ""].filter(Boolean).join("　");
+  }
+});
+CardZoom.hint();
 I18N.onChange(() => { hidePreview(); render(); });
 })();
