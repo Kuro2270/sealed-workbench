@@ -406,5 +406,89 @@
       ],
       "comment2": true
     }
+  },
+  "FRA": {
+    "ja": {
+      "id": "N96YvEQVE_Y",
+      "title": "【リアリティ・フラクチャー】リミテッド環境まとめ｜強い色・狙い目の色・ボム10枚・罠なレアカード・色別おすすめ【MTGアリーナ】",
+      "uploadedAt": "2026-10-18",
+      "duration": "PT9M45S",
+      "chapters": [
+        {
+          "at": 0,
+          "title": "はじめに"
+        },
+        {
+          "at": 32,
+          "title": "単色の強さ"
+        },
+        {
+          "at": 52,
+          "title": "色の組み合わせ"
+        },
+        {
+          "at": 172,
+          "title": "狙い目の色"
+        },
+        {
+          "at": 248,
+          "title": "ボムのレア10枚"
+        },
+        {
+          "at": 315,
+          "title": "罠なレアカード"
+        },
+        {
+          "at": 350,
+          "title": "色別のコモン・アンコモン"
+        },
+        {
+          "at": 509,
+          "title": "まとめ"
+        }
+      ],
+      "comment2": true
+    },
+    "en": {
+      "id": "1u3NbIFLAro",
+      "title": "[MTG Arena] Reality Fracture Limited Review | Best Colours, Sleeper Pairs, Top 10 Bombs & Trap Rares",
+      "uploadedAt": "2026-10-18",
+      "duration": "PT9M19S",
+      "chapters": [
+        {
+          "at": 0,
+          "title": "Intro"
+        },
+        {
+          "at": 30,
+          "title": "Single colours"
+        },
+        {
+          "at": 49,
+          "title": "Colour pairs"
+        },
+        {
+          "at": 161,
+          "title": "Sleeper pairs"
+        },
+        {
+          "at": 227,
+          "title": "Top 10 bomb rares"
+        },
+        {
+          "at": 292,
+          "title": "Trap rares"
+        },
+        {
+          "at": 323,
+          "title": "Top commons & uncommons"
+        },
+        {
+          "at": 489,
+          "title": "Summary"
+        }
+      ],
+      "comment2": true
+    }
   }
 }
