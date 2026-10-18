@@ -63,7 +63,9 @@ jobs:
           fi
           git commit -m "暫定版の勝率を更新（${{ steps.prov.outputs.sets }}）"
           for i in 1 2 3; do
-            git pull --rebase --autostash origin main && git push origin main && exit 0
+            # 作り直したファイル（暫定版・下見）は毎回まるごと作るので、ぶつかったときはこの実行で作ったほうを残す（-X theirs は rebase では「こちら側」）
+            git pull --rebase -X theirs --autostash origin main && git push origin main && exit 0
+            git rebase --abort 2>/dev/null || true
             sleep 5
           done
           echo "押し戻せませんでした" && exit 1

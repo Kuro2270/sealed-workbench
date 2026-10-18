@@ -81,14 +81,20 @@ async function buildMode(set, mode, released, meta){
      17Lands のカード表の画面は「全期間（time_period=ALL_TIME）」で、日付（start_date / end_date）で取ると
      ごく一部の試合しか返らないことがある（2026年10月 FRA で、日付指定では全期間の4%ほどしか返らなかった） */
   const base = `expansion=${encodeURIComponent(set)}`;
-  const variants = [`${base}&time_period=ALL_TIME`, `${base}&start_date=${iso(Date.parse(released) - 21 * DAY)}&end_date=${iso(NOW + DAY)}`];
+  const variants = [
+    `${base}&time_period=ALL_TIME`,
+    base,                                                                                   // 期間の指定なし
+    `${base}&start_date=${iso(Date.parse(released) - 3 * DAY)}&end_date=${iso(NOW)}`,       // アリーナの発売日（紙の3日前）から今日まで
+    `${base}&start_date=${iso(Date.parse(released) - 21 * DAY)}&end_date=${iso(NOW + DAY)}`
+  ];
+  const label = v => v.includes("ALL_TIME") ? "全期間" : !v.includes("start_date") ? "期間の指定なし" : v.includes(iso(Date.parse(released) - 3 * DAY)) ? "アリーナ発売日から" : "日付指定（広め）";
   const sumGames = rows => (rows || []).reduce((n, r) => n + (+r.game_count || 0), 0);
   let q = variants[0], cardRows = null, best = -1;
   for(const v of variants){
     try{
       const rows = await getJson(`${L17}/card_ratings/data?${v}&format=${fmt}`);
       const n = sumGames(rows);
-      console.error(`  ${set} ${fmt}: カード勝率（${v.includes("ALL_TIME") ? "全期間" : "日付指定"}）の試合数の合計 ${n.toLocaleString()}`);
+      console.error(`  ${set} ${fmt}: カード勝率（${label(v)}）の試合数の合計 ${n.toLocaleString()}／カード ${(rows || []).length} 種`);
       if(n > best){ best = n; q = v; cardRows = rows; }
     }catch(e){ console.error(`  ${e.message}`); }
     await sleep(1500);
@@ -111,6 +117,12 @@ async function buildMode(set, mode, released, meta){
   }
   if(!total){ total = sum; wins = arche.reduce((n, a) => n + a.wr * a.games, 0); }
   if(!total){ console.error(`  ${set} ${fmt}: まだ試合がありません`); return null; }
+  /* 試合数の確かめ：1試合で使われるカード（デッキの23枚前後）を考えると、カードの試合数の合計は全体の試合数の10倍以上になる。
+     3倍に届かないときは、カード勝率がごく一部の試合からしか取れていないので、載せない（間違った印象を与えないため） */
+  if(best < total * 3){
+    console.error(`::warning::${set} ${fmt}: カード勝率の試合数（合計 ${best.toLocaleString()}）が、全体の試合数（${total.toLocaleString()}）に比べて少なすぎます。17Lands の取り方が合っていないため、暫定版を載せません`);
+    return { skip: true };
+  }
 
   /* カード */
   const cards = [];
@@ -183,6 +195,12 @@ async function buildSet(set){
     let r = null;
     try{ r = await buildMode(set, mode, info.released_at, meta); }catch(e){ console.error(`${set} ${mode}: ${e.message}`); process.exitCode = 1; }
     if(!r) continue;
+    if(r.skip){                                   // 数字が当てにならないときは、前に作った暫定版も下げる（下見・速報に戻る）
+      for(const f of [`data/provisional/${set}_${mode}.json`, `data/ratings/${set}_${mode}.json`]) await unlink(f).catch(() => {});
+      process.exitCode = 1;
+      made++;                                     // 下見ページを作り直す（暫定版の欄を外す）ため、変わったものとして数える
+      continue;
+    }
     await mkdir("data/provisional", { recursive: true });
     await writeFile(`data/provisional/${set}_${mode}.json`, JSON.stringify(r.article), "utf8");
     await writeFile(`data/ratings/${set}_${mode}.json`, JSON.stringify(r.ratings), "utf8");
