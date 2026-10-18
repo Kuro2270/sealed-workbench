@@ -18,13 +18,15 @@
      ・trick（巨大化）：インスタントで、クリーチャーに +N/+M（合わせて3以上か X）や、先制攻撃・接死・破壊不能を与えるもの。
        戦闘で相手のクリーチャーを討ち取れるので、疑似的な除去になる
      ・shrink（縮小）：クリーチャーの基本のパワー・タフネスを 1/1 などにするもの。戦闘で大きいクリーチャーを討ち取れる
+     ・blunt（パワーを下げる）：インスタントで、クリーチャーに −3/−0 以上（か −X/−0）を与えるもの。戦闘で相手の攻撃・ブロックを空振りさせる。
+       巨大化・縮小より使いどころが限られる
      ・bounce（バウンス）：相手のクリーチャーなどを手札（またはライブラリーの上）に戻すもの。トークンには除去、それ以外にもテンポを取れる
    クリーチャーを出す呪文：自分でクリーチャー・トークンを生み出すもの（「Create two 1/1 ... creature tokens」）。
      クリーチャー枠として数える。相手が生み出すもの（「Its controller creates ...」）は含めない
 
    CardRole.removal(text)        … 文面（両面・出来事などは各面をつないだもの）が除去なら true
    CardRole.narrow(text)         … 色限定の除去なら true（removal は false になる）
-   CardRole.soft(text, type)     … 半除去なら "trick"・"shrink"・"bounce"、そうでなければ ""（type はタイプ行。巨大化はインスタントに限る）
+   CardRole.soft(text, type)     … 半除去なら "trick"・"shrink"・"blunt"・"bounce"、そうでなければ ""（type はタイプ行。巨大化はインスタントに限る）
    CardRole.makesCreatures(text) … 自分でクリーチャー・トークンを生み出すなら true
    CardRole.textOf(c)            … Scryfall のカードから、各面の文面をつないで返す */
 const CardRole = (() => {
@@ -82,6 +84,8 @@ const CardRole = (() => {
     /\b(?:target|enchanted) creature(?! you control)[^.]*?\b(?:has|have|with) base power and toughness [01]\/[01]\b/i,
     /\btarget creature(?! you control)[^.]*?\bbecomes? an? (?:[\w-]+ )*?[01]\/[01]\b/i
   ];
+  /* パワーを下げる：−N/−0（N は3以上か X）。タフネスも下がるものは除去の側で見る */
+  const BLUNT = /\btarget creature(?! you control)[^.]*?\bgets? -(?:[3-9]|\d{2,}|x)\/-?0\b/i;
   function soft(text, type){
     const s = String(text || "").replace(/\u2212/g, "-");
     if(anyRemoval(s)) return "";       // 除去・色限定の除去は半除去ではない
@@ -89,6 +93,7 @@ const CardRole = (() => {
       const m = s.match(PUMP);
       if(m && (/x/i.test(m[1] + m[2]) || (+m[1] + +m[2]) >= 3)) return "trick";
       if(GRANT.test(s)) return "trick";
+      if(BLUNT.test(s)) return "blunt";
     }
     if(SHRINK.some(re => re.test(s))) return "shrink";
     if(BOUNCE.test(s)) return "bounce";

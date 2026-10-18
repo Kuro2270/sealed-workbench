@@ -11,10 +11,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
-<script src="./i18n.js?v=12"></script>
+<script src="./i18n.js?v=13"></script>
 <script src="./analytics.js"></script>
 <script src="./arena-ids.js?v=1"></script>
-<script src="./card-role.js?v=2"></script>
+<script src="./card-role.js?v=3"></script>
 <script src="./deck-tune.js?v=1"></script>
 <script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
@@ -169,10 +169,6 @@
   ul.dl li{display:grid;grid-template-columns:18px 26px 1fr auto;gap:8px;align-items:center;padding:3px 4px;border-bottom:1px solid var(--paper-2);font-size:13.5px}
   ul.dl li .cmc{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
   ul.dl li .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  ul.dl li .rmtag{display:inline-block;margin-left:4px;padding:0 5px;border-radius:5px;font-size:10.5px;font-weight:700;line-height:16px;vertical-align:1px;background:#FBE3DF;color:#A3321F}
-  ul.dl li .rmtag.tk{background:#E2EEFB;color:#1F4E86}
-  ul.dl li .rmtag.sf{background:#FDF0DC;color:#8A5300}
-  ul.dl li .rmtag.nr{background:#ECEFF3;color:#4A5868}
   ul.dl li .wr{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
   ul.dl li .qty{color:var(--gold);margin-left:4px}
   .deck-alt{margin-top:10px;font-size:12.5px;color:var(--muted)}
@@ -1033,7 +1029,7 @@ const CURVE_WEIGHT = 2;
 const REMOVAL_GOAL = DeckTune.REMOVAL_MIN + 1;
 const REMOVAL_WEIGHT = 3;
 /* 半除去（巨大化・縮小・バウンス）は、除去の何枚分として見るか。巨大化・縮小のほうが除去に近い（戦闘で討ち取れる） */
-const SOFT_SHARE = { trick: 0.5, shrink: 0.45, bounce: 0.35 };
+const SOFT_SHARE = { trick: 0.5, shrink: 0.45, bounce: 0.35, blunt: 0.3 };
 /* 色限定の除去（「緑か青のクリーチャー」だけ）は、1本勝負では相手の色次第で何もできないので、ピックでもデッキ案でも少し下げる */
 const NARROW_PENALTY = 2;
 function removalNeed(n){
@@ -1162,8 +1158,7 @@ function reasonFor(e){
   }
   if(e.adjLegend < 0) extra.push(t("assist.reasonLegend", {n: e.owned}));
   if(e.adjSlot >= 1) extra.push(t(e.kind === "creature" ? "assist.reasonNeedCreature" : "assist.reasonNeedSpell"));
-  if(e.c && e.c.narrow && e.adjRemoval < 0) extra.push(t("assist.reasonNarrow"));
-  if(e.adjRemoval >= 1) extra.push(t(e.c && e.c.removal ? "assist.reasonRemoval" : "assist.reasonSoft", {h: e.remHave, s: e.remSoft}));
+  // 除去・半除去・色限定の判定は、理由には書かない（判定は内部だけで使う。文面から読むので、例外的なカードもあるため）
   if(e.curve){
     const m = e.curve.mv >= MV_MAX ? t("assist.mv6") : t("assist.mv", {n: e.curve.mv});
     const g = e.curve.goal.toFixed(1);
@@ -1176,7 +1171,6 @@ function reasonFor(e){
 function breakdown(e){
   const f = v => (v >= 0 ? "+" : "") + v.toFixed(1);
   return t("assist.breakdown", {b: e.base.toFixed(1), c: f(e.adjColor), s: f(e.adjSlot), p: f(e.adjPace)})
-    + (e.adjRemoval ? "　" + t("assist.breakdownRemoval", {v: f(e.adjRemoval)}) : "")
     + (e.adjSyn ? "　" + t("assist.breakdownSyn", {v: f(e.adjSyn)}) : "")
     + (e.adjLegend ? "　" + t("assist.breakdownLegend", {v: f(e.adjLegend)}) : "");
 }
@@ -1197,7 +1191,7 @@ function fitsPair(c, pair){
 }
 
 const REMOVAL_FLOOR = 50;     // スペル枠に優先して入れる除去の、勝率の下限
-const SOFT_SLOT_BONUS = { trick: 2, shrink: 1.5, bounce: 1 };   // スペル枠を選ぶときに、半除去に上乗せする評価（勝率ポイント）
+const SOFT_SLOT_BONUS = { trick: 2, shrink: 1.5, bounce: 1, blunt: 0.8 };   // スペル枠を選ぶときに、半除去に上乗せする評価（勝率ポイント）
 function buildDeck(pair){
   const pool = D.picked.map(id => ({ id, c: cards[id] })).filter(x => x.c);
   const spells = pool.filter(x => kindOf(x.c) !== "land" && fitsPair(x.c, pair)).map(x => ({ ...x, r: ratingOf(x.id, pair), kind: kindOf(x.c) }));
@@ -1215,7 +1209,7 @@ function buildDeck(pair){
   const creatures = spells.filter(x => x.kind === "creature").sort(byR);
   // スペル枠は除去を先に入れる（勝率が REMOVAL_FLOOR 未満の、明らかに弱いものは除く）。残りは勝率の高い順（ドロー・装備など）
   const remFirst = x => x.c.removal && x.r >= REMOVAL_FLOOR ? 1 : 0;
-  // 除去のあとは、半除去を少し上乗せした評価の順（巨大化 +2、縮小 +1.5、バウンス +1）。ドロー・装備などと比べて、差が小さければ半除去を選ぶ
+  // 除去のあとは、半除去を少し上乗せした評価の順（巨大化 +2、縮小 +1.5、バウンス +1、パワーを下げる +0.8）。ドロー・装備などと比べて、差が小さければ半除去を選ぶ
   const spellKey = x => x.r + (SOFT_SLOT_BONUS[x.c.soft] || 0) - (x.c.narrow ? NARROW_PENALTY : 0);   // 色限定の除去は下げる
   const others    = spells.filter(x => x.kind === "spell").sort((a, b) => remFirst(b) - remFirst(a) || spellKey(b) - spellKey(a));
   take(creatures, DECK_TARGET.creature, 2);
@@ -1473,7 +1467,7 @@ function renderDeck(){
   const row = x => {
     const cols = x.c.colors, dot = cols.length === 0 ? "var(--c)" : cols.length > 1 ? "var(--m)" : `var(--${cols[0].toLowerCase()})`;
     return `<li><span class="dot" style="background:${dot}"></span><span class="cmc">${x.c.cmc ?? 0}</span>` +
-           `<span class="nm">${esc(displayName(x.c))}${x.n > 1 ? ` <b class="qty">×${x.n}</b>` : ""}${x.c.removal ? ` <b class="rmtag">${esc(t("assist.removalTag"))}</b>` : ""}${x.c.soft ? ` <b class="rmtag sf">${esc(t("assist.softTag"))}</b>` : ""}${x.c.narrow ? ` <b class="rmtag nr">${esc(t("assist.narrowTag"))}</b>` : ""}${x.c.makesCreatures && !(x.c.type || "").includes("Creature") ? ` <b class="rmtag tk">${esc(t("assist.tokenTag"))}</b>` : ""}</span><span class="wr">${pct(x)}</span></li>`;
+           `<span class="nm">${esc(displayName(x.c))}${x.n > 1 ? ` <b class="qty">×${x.n}</b>` : ""}</span><span class="wr">${pct(x)}</span></li>`;
   };
   const byCmc = (a, b) => (a.c.cmc || 0) - (b.c.cmc || 0) || b.r - a.r;
   const cre = group(d.deck.filter(x => x.kind === "creature")).sort(byCmc);
@@ -1489,7 +1483,6 @@ function renderDeck(){
       `<span class="cb main">${esc(pairName(d.pair))}</span>` +
       `<span class="cb">${esc(t("assist.deckCount", {n: d.deck.length, c: creN, s: splN}))}</span>` +
       `<span class="cb">${esc(t("assist.deckAvg", {v: d.avgCmc.toFixed(2)}))}</span>` +
-      `<span class="cb">${esc(t("assist.deckRemoval", {n: d.removal}))}${d.soft ? esc(t("assist.deckSoft", {n: d.soft})) : ""}</span>` +
     `</div>` +
     (d.short > 0 ? `<p class="deck-note">${esc(t("assist.deckShort", {n: d.short}))}</p>` : "") +
     `<div class="deck-sec"><b>${esc(t("assist.deckCreatures"))}</b><span>${creN}</span></div><ul class="dl">${cre.map(row).join("")}</ul>` +
