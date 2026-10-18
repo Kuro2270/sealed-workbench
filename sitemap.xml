@@ -47,6 +47,15 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/assistant"/>
   </url>
   <url>
+    <loc>https://sealed-workbench.com/draftroom</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/draftroom"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/draftroom"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/draftroom"/>
+  </url>
+  <url>
     <loc>https://sealed-workbench.com/sealed-assist</loc>
     <lastmod>2026-10-14</lastmod>
     <changefreq>monthly</changefreq>
@@ -83,6 +92,24 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/faq"/>
   </url>
   <url>
+    <loc>https://sealed-workbench.com/arena</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/arena"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/arena"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/arena"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/begin</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/begin"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/begin"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/begin"/>
+  </url>
+  <url>
     <loc>https://sealed-workbench.com/guide</loc>
     <lastmod>2026-10-14</lastmod>
     <changefreq>monthly</changefreq>
@@ -90,6 +117,24 @@
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/guide"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/guide"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/guide"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/play</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/play"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/play"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/play"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/practice</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/practice"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/practice"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/practice"/>
   </url>
   <url>
     <loc>https://sealed-workbench.com/about</loc>
