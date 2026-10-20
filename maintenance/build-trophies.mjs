@@ -10,6 +10,8 @@
  *
  * 出力: data/trophies/<SET>_draft.json（プレミア／クイック／トラディショナル・ドラフト）
  *       data/trophies/<SET>_sealed.json（シールド）
+ *   card_trophies … カードごとに、そのカードが入っていた全勝デッキの数（デッキの色ごと。土地は除く）。
+ *                   { "カード名": { "UB": 31, "U": 2, … } }。「その色を使った全勝デッキの何%に入っていたか」を出すのに使う（長尺動画）
  *
  * 全勝の決め方
  *   game data にはイベントの最終成績の列が無いので、draft_id（1回のイベント）ごとに、記録された試合の勝ち数を数える。
@@ -142,6 +144,7 @@ function record(ev, fmt){
 
 async function buildMode(set, mode, meta){
   const by = new Map();          // 色 → { drafts, trophies, samples: [] }
+  const perCard = {};            // カード名 → { デッキの色: 全勝デッキの数 }
   let drafts = 0, trophies = 0, read = 0;
   const events = [];
   for(const fmt of FORMATS[mode]){
@@ -158,6 +161,7 @@ async function buildMode(set, mode, meta){
       if(!rec.trophy) continue;
       trophies++; g.trophies++;
       const cards = ev.deck.split(",").filter(Boolean).map(p => { const [k, n] = p.split(":"); const name = r.cardName[+k]; return [name, +n, (meta.get(name) || {}).cmc ?? null]; });
+      for(const [name] of cards){ const m = perCard[name] || (perCard[name] = {}); m[ev.colors] = (m[ev.colors] || 0) + 1; }
       const landCards = (ev.landDeck || "").split(",").filter(Boolean).map(p => { const [k, n] = p.split(":"); return [r.cardName[+k], +n]; }).sort((a, b) => b[1] - a[1]);
       const rares = [...cards, ...landCards].reduce((m, [name, n]) => m + ((meta.get(name) || {}).rare ? n : 0), 0);
       g.samples.push({
@@ -182,7 +186,7 @@ async function buildMode(set, mode, meta){
     total_events: drafts, total_trophies: trophies,
     rule: "Premier/Quick/Sealed: 7 wins, Traditional: 3 match wins (counted from recorded games)",
     source: "17Lands Public Data (CC BY 4.0)", source_url: "https://www.17lands.com/public_datasets",
-    colors
+    colors, card_trophies: perCard
   };
 }
 

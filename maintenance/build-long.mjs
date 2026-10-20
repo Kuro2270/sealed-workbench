@@ -192,7 +192,7 @@ async function loadRemovalNames(){
 /* ------------------------------------------------------------ 台本 */
 
 function buildScript(ctx){
-  const { dd, ds, rd, rs, nm, nameJa } = ctx;                       // dd/ds: 記事（ドラフト/シールド）、rd/rs: 勝率一覧
+  const { dd, ds, rd, rs, nm, nameJa, trophies } = ctx;                       // dd/ds: 記事（ドラフト/シールド）、rd/rs: 勝率一覧
   const J = n => EN ? String(n).split(" // ")[0] : ((nm.names || {})[n] || n);
   const scenes = [];
   const gamesD = dd.total_games, gamesS = ds.total_games;
@@ -597,8 +597,8 @@ function buildScript(ctx){
     // 差（ポイント）で言うと、画面の「引くと +○pt」と別の数字が並んで分かりにくいので、勝率の幅で言う
     const p2 = bombs.slice(5, 10), lo = pt(p2[p2.length - 1].gih), hi = pt(p2[0].gih);
     scenes.push({ kind: "bombs", chapter: null, cards: p2, avgD, part: 2,
-      say: EN ? `Numbers 6 to 10 are on screen. The average rare wins ${pt(rareAvg)} percent when drawn, and these win ${lo} to ${hi} percent, well above it. If you open one, it's worth moving your colours to fit.`
-         : `6位から10位は、画面のとおりです。レア全体の平均は${pt(rareAvg)}パーセントですが、どれも${lo}から${hi}パーセントと、大きく上回っています。引けたら、色を合わせに行く価値が十分にあります。`, tail: 0.6 });
+      say: EN ? `Numbers 6 to 10 are on screen. Across all rares, the average win rate when drawn is ${pt(rareAvg)} percent, and these win ${lo} to ${hi} percent, well above it. If you open one, it's worth moving your colours to fit.`
+         : `6位から10位は、画面のとおりです。レア全体の、引けた試合の勝率の平均は${pt(rareAvg)}パーセントですが、どれも${lo}から${hi}パーセントと、大きく上回っています。引けたら、色を合わせに行く価値が十分にあります。`, tail: 0.6 });
   }
 
   if(bombs.length >= 3) scenes[0].cards = bombs.slice(0, 3);     // 冒頭の画面に並べるボム
@@ -611,8 +611,8 @@ function buildScript(ctx){
     });
   if(traps.length >= 3){
     scenes.push({ kind: "traps", chapter: L("罠なレアカード", "Trap rares"), cards: traps, avgD, rareAvg, highlight: rowBoxes(traps),
-      say: EN ? `Next, trap rares. These are rares that win less than the average rare when drawn. The rare average is ${pt(rareAvg)} percent. ` + traps.map(c => `${c.label} wins ${pt(c.gih)} percent. `).join("") +
-           `That doesn't mean they're weak cards, just that they often don't work well in decks. If you have better options, don't force them in.` : `次は、罠なレアカード。レアなのに、引いた試合の勝率がレア全体の平均より低いものです。レアの平均は${pt(rareAvg)}パーセント。` +
+      say: EN ? `Next, trap rares. These are rares that win less than the average rare when drawn. Across all rares, the average win rate when drawn is ${pt(rareAvg)} percent. ` + traps.map(c => `${c.label} wins ${pt(c.gih)} percent. `).join("") +
+           `That doesn't mean they're weak cards, just that they often don't work well in decks. If you have better options, don't force them in.` : `次は、罠なレアカード。レアなのに、引いた試合の勝率がレア全体の平均より低いものです。レア全体の、引けた試合の勝率の平均は${pt(rareAvg)}パーセント。` +
            traps.map((c, i) => `${c.label}は${pt(c.gih)}パーセント。`).join("") +
            `弱いカードという意味ではなく、デッキに入れて、うまく使えていないことが多い、ということです。ほかに強いカードがあるなら、無理に使わなくていいです。`, tail: 0.6 });
   }
@@ -629,18 +629,41 @@ function buildScript(ctx){
     const KJ = { ...CJ, M: L("マルチカラー", "Multicolour"), C: L("無色", "Colourless") };
     const list = [];
     for(const col of order){ const com = topIn(col, "common"), unc = topIn(col, "uncommon"); if((col === "M" || col === "C") ? com.length + unc.length >= 3 : (com.length >= 3 && unc.length >= 3)) list.push({ col, com, unc }); }   // 多色・無色は、枚数が少ない（コモンが無い）環境もあるので、合わせて3枚以上あれば出す
+    // ボム級：上位3枚のうち、引けた試合の勝率がレア全体の平均（rareAvg）を大きく（BOMB_LEVEL 以上）上回るコモン・アンコモンは、取り立てて言う
+    //   （読み上げにめりはりをつける）。平均の数字は最初の1回だけ言う（くり返すとくどい）。勝率順なので、当てはまるのは必ず上から何枚か。
+    //   全勝デッキのデータがあれば、「その色を使った全勝デッキの何%に入っていたか」も添える（どれくらい使われて勝っているかが分かる）
+    let rareSaid = false;
+    const bombLevel = arr => rl.length ? arr.slice(0, 3).filter(c => isBombLevel(c.gih, rareAvg)) : [];
+    const deckWord = col => !col ? L("全勝デッキ", "all trophy decks") : EN ? `trophy decks playing ${pairName(col)}` : `${pairName(col)}を使った全勝デッキ`;
+    const bombNote = (jp, en, arr) => {
+      const r = bombLevel(arr);
+      if(!r.length) return "";
+      const avg = rareSaid ? "" : pt(rareAvg);
+      rareSaid = true;
+      const NUMJ = ["", "一", "二", "三"], NUME = ["", "one", "two", "three"];
+      let t = EN ? `${r.length === 1 ? `${r[0].label} beats` : `The top ${NUME[r.length]} ${r.length === 2 ? "both" : "all"} beat`} the rare average${avg ? ` of ${avg} percent` : ""} by a wide margin. Bomb-level ${en}${r.length > 1 ? "s" : ""}. `
+                 : `${r.length === 1 ? `${r[0].label}は、` : `上位${NUMJ[r.length]}枚は、${r.length === 2 ? "どちらも" : "どれも"}`}レア全体の平均${avg ? avg + "パーセント" : ""}を大きく上回る、ボム級の${jp}です。`;
+      // 全勝デッキの採用率は、いちばん高い1枚だけ言う（何枚も言うと長い）
+      const tr = r.map(c => ({ c, t: trophyShare(trophies, c) })).filter(x => x.t).sort((a, b) => b.t.share - a.t.share)[0];
+      if(tr){
+        const p = Math.round(tr.t.share * 100);
+        t += EN ? `${r.length > 1 ? `${tr.c.label} was` : "It was"} in ${p} percent of ${deckWord(tr.t.col)}. `
+                : `${r.length > 1 ? `なかでも${tr.c.label}は、` : ""}${deckWord(tr.t.col)}の${p}パーセントに入っていました。`;
+      }
+      return t;
+    };
     list.forEach((e, i) => {
       const rep3E = (en, arr) => arr.length
-        ? `The top ${en} is ${arr[0].label}, at ${pt(arr[0].gih)} percent. ${arr.length > 1 ? "Also good: " + andList(arr.slice(1, 3).map(c => c.label)) + ". " : ""}`
+        ? `The top ${en} is ${arr[0].label}, at ${pt(arr[0].gih)} percent. ${arr.length > 1 ? "Also good: " + andList(arr.slice(1, 3).map(c => c.label)) + ". " : ""}` + bombNote("", en, arr)
         : `There are no ${en}s in ${KJ[e.col]} in this format. `;
       const rep3 = (jp, arr) => arr.length
-        ? `${jp}の代表は、${arr[0].label}、${pt(arr[0].gih)}パーセント。${arr.length > 1 ? "ほかに、" + arr.slice(1, 3).map(c => c.label).join("、") + "。" : ""}`
+        ? `${jp}の代表は、${arr[0].label}、${pt(arr[0].gih)}パーセント。${arr.length > 1 ? "ほかに、" + arr.slice(1, 3).map(c => c.label).join("、") + "。" : ""}` + bombNote(jp, "", arr)
         : `${jp}の${KJ[e.col]}は、この環境にありません。`;
-      scenes.push({ kind: "colortop", chapter: i === 0 ? L("色別のコモン・アンコモン", "Top commons & uncommons") : null, color: e.col, com: e.com, unc: e.unc, comAvg, uncAvg, cards: [...e.com.slice(0, 3), ...e.unc.slice(0, 3)], highlight: colortopBoxes(e.com, e.unc),
-        say: EN ? (i === 0 ? `Next, the best cards by colour. Besides the five colours, I'll also cover multicolour and colourless cards. Commons and uncommons are ranked by win rate when drawn, five each. ` : "") +
+      scenes.push({ kind: "colortop", chapter: i === 0 ? L("色別のコモン・アンコモン", "Top commons & uncommons") : null, color: e.col, com: e.com, unc: e.unc, comAvg, uncAvg, rareAvg, cards: [...e.com.slice(0, 3), ...e.unc.slice(0, 3)], highlight: colortopBoxes(e.com, e.unc),
+        say: EN ? (i === 0 ? `Next, the best cards by colour. Besides the five colours, I'll also cover multicolour and colourless cards. For each colour, five commons and five uncommons, ranked by win rate when drawn. ` : "") +
                   `${KJ[e.col]}. ` + (e.col === "M" ? `One note: this follows 17Lands' grouping, so it also includes cards that look mono-coloured but use a second colour in their abilities, such as hybrid or activation costs. ` : "") +
                   rep3E("common", e.com) + rep3E("uncommon", e.unc) + `The rest are shown here.`
-        : (i === 0 ? `次は、色別のおすすめです。五色に加えて、マルチカラーと無色も紹介します。コモンとアンコモンを、引いた試合の勝率が高い順に、五枚ずつ並べました。` : "") +
+        : (i === 0 ? `次は、色別のおすすめです。五色に加えて、マルチカラーと無色も紹介します。コモンとアンコモン、それぞれ五枚ずつを、引いた試合の勝率が高い順に並べました。` : "") +
              `${KJ[e.col]}です。` + (e.col === "M" ? `ひとつ補足です。ここは17Landsの分け方に合わせているので、カード自体は単色でも、能力のコストなどに別の色を使うカードも入っています。` : "") +
              rep3("コモン", e.com) + rep3("アンコモン", e.unc) + `そのほかは、こちらになっています。`, tail: 0.5 });
     });
@@ -760,6 +783,23 @@ function cardImg(c, x, y, w, h){
 function rowBoxes(cards, y0 = 250){
   const n = cards.length, CW = 270, CH = 376, gap = 54, total = n * CW + (n - 1) * gap, x0 = (W - total) / 2;
   return cards.map((c, i) => ({ label: c.label, x: x0 + i * (CW + gap) - 14, y: y0 - 64, w: CW + 28, h: 690 }));
+}
+/* コモン・アンコモンが「ボム級」か：引けた試合の勝率が、レア全体の平均を BOMB_LEVEL（1pt）以上上回る。
+   わずかに上回るだけ（59.8% に対して 60.0% など）では「ボム級」と呼ばない（言い過ぎになる） */
+const BOMB_LEVEL = 0.01;
+const isBombLevel = (gih, rareAvg) => rareAvg != null && rareAvg > 0 && gih - rareAvg >= BOMB_LEVEL;
+/* 全勝デッキの採用率：そのカードの色を全部含む色で組まれた全勝デッキのうち、そのカードが入っていた割合。
+   全勝デッキが TROPHY_MIN 件より少ないときは言わない（数字がぶれる）。返り値 { share, col（デッキの色。無色のカードは ""）} */
+const TROPHY_MIN = 100;
+function trophyShare(tr, card){
+  if(!tr || !tr.card_trophies) return null;
+  const col = "WUBRG".split("").filter(x => String(card.color || "").includes(x)).join("");
+  const has = k => [...col].every(x => k.includes(x));
+  const decks = (tr.colors || []).filter(c => has(c.colors)).reduce((n, c) => n + c.trophies, 0);
+  if(decks < TROPHY_MIN) return null;
+  const m = tr.card_trophies[card.name] || {};
+  const inn = Object.entries(m).filter(([k]) => has(k)).reduce((n, [, v]) => n + v, 0);
+  return { share: inn / decks, col };
 }
 function colortopBoxes(com, unc){
   const one = (x, list) => { const top = list.slice(0, 3), CW = 172, gap = 36, x0 = x + (860 - (top.length * CW + (top.length - 1) * gap)) / 2;
@@ -1013,7 +1053,7 @@ function sceneSvg(sc){
       return frame(s, sc);
     }
     case "traps": {
-      let s = T(80, 175, L(`罠なレアカード（レア全体の平均 ${pt(sc.rareAvg)}% より低いレア）`, `Trap rares (below the rare average of ${pt(sc.rareAvg)}%)`), { size: 38, fill: MUTED });
+      let s = T(80, 175, L(`罠なレアカード（引けた試合の勝率が、レア全体の平均 ${pt(sc.rareAvg)}% より低いレア）`, `Trap rares (win rate when drawn below the rare average of ${pt(sc.rareAvg)}%)`), { size: 38, fill: MUTED });
       s += cardRow(sc.cards.map((c, i) => ({ ...c, rank: i + 1 })), c => [
         { t: `${L("ドラフト", "Draft")} ${pt(c.gih)}%`, size: 40, w: 900, fill: DOWN },
         { t: L(`レア平均より ${sgn(c.gih - sc.rareAvg)}pt`, `${sgn(c.gih - sc.rareAvg)}pt vs rare avg`), size: 30, fill: DOWN },
@@ -1090,11 +1130,16 @@ function sceneSvg(sc){
           t += cardImg(c, cx, 322, CW, CH) + T(cx + CW / 2, 590, L(`${c.rank}位`, `#${c.rank}`), { size: 28, weight: 900, anchor: "middle", fill: accent });
           wrapName(c.label, 8).slice(0, 2).forEach((l, j) => { t += T(cx + CW / 2, 618 + j * 25, l, { size: 21, weight: 900, anchor: "middle" }); });
           t += T(cx + CW / 2, 690, pt(c.gih) + "%", { size: 36, weight: 900, anchor: "middle", fill: c.gih > avg ? UP : PAPER });
+          // ボム級なら「ボム級」の札をカードの下端に重ねる（読み上げで取り立てて言うカード）
+          if(isBombLevel(c.gih, sc.rareAvg)) t += `<rect x="${cx + CW / 2 - 66}" y="${322 + CH - 50}" width="132" height="40" rx="20" fill="${GOLD}" stroke="${PAPER}" stroke-width="3"/>` +
+            T(cx + CW / 2, 322 + CH - 21, L("ボム級", "Bomb-level"), { size: L(26, 20), weight: 900, anchor: "middle", fill: DEEP });
         });
         list.slice(3).forEach((c, i) => {
           const y = 745 + i * 47;
           t += `<circle cx="${x + 70}" cy="${y - 10}" r="20" fill="${DEEP}" stroke="${accent}" stroke-width="3"/>` + T(x + 70, y, String(c.rank), { size: 24, weight: 900, anchor: "middle", fill: accent });
-          t += T(x + 112, y, c.label, { size: Math.min(30, Math.floor(520 / (Math.max([...c.label].length, 1) * L(1, 0.58)))), weight: 700 }) + T(x + 810, y + 2, pt(c.gih) + "%", { size: 32, weight: 900, anchor: "end", fill: c.gih > avg ? UP : PAPER });
+          const rare = isBombLevel(c.gih, sc.rareAvg);   // ボム級なら、勝率の手前に小さな札（名前の幅はその分だけ詰める）
+          t += T(x + 112, y, c.label, { size: Math.min(30, Math.floor((rare ? L(470, 440) : 520) / (Math.max([...c.label].length, 1) * L(1, 0.58)))), weight: 700 }) + T(x + 810, y + 2, pt(c.gih) + "%", { size: 32, weight: 900, anchor: "end", fill: c.gih > avg ? UP : PAPER });
+          if(rare) t += `<rect x="${x + L(598, 570)}" y="${y - 30}" width="${L(98, 120)}" height="36" rx="18" fill="${GOLD}"/>` + T(x + L(598 + 49, 570 + 60), y - 3, L("ボム級", "Bomb-level"), { size: L(22, 18), weight: 900, anchor: "middle", fill: DEEP });
         });
         return t;
       };
@@ -1487,7 +1532,9 @@ async function main(){
   const removal = await loadRemovalNames();
   console.error(removal ? `除去の判定: ${removal.names.length} 枚（${removal.from}）` : "除去の判定: 取れなかったので、除去の場面は入れない");
   const commonRem = removal ? rd.cards.filter(c => c.rarity === "common" && removal.names.includes(c.name) && c.games >= 1500).sort((a, b) => b.gih - a.gih)[0] : null;
-  const ctx = { dd, ds, rd, rs, nm, nameJa, removal, topRemoval: commonRem ? { ...commonRem, label: EN ? String(commonRem.name).split(" // ")[0] : ((nm.names || {})[commonRem.name] || commonRem.name) } : null };
+  const trophies = await readJson(`data/trophies/${SET}_draft.json`, null);   // 全勝デッキ（build-trophies.mjs）。カードごとの数が無い古いファイルは使わない
+  console.error(trophies && trophies.card_trophies ? `全勝デッキ: ${trophies.total_trophies} 件（ドラフト）` : "全勝デッキ: カードごとのデータが無いので、採用率は言わない");
+  const ctx = { dd, ds, rd, rs, nm, nameJa, removal, trophies: trophies && trophies.card_trophies ? trophies : null, topRemoval: commonRem ? { ...commonRem, label: EN ? String(commonRem.name).split(" // ")[0] : ((nm.names || {})[commonRem.name] || commonRem.name) } : null };
   let scenes = buildScript(ctx);
   if(process.env.LONG_ONLY_KIND) scenes = scenes.filter(sc => process.env.LONG_ONLY_KIND.split(",").includes(sc.kind));   // 確認用：この種類の場面だけ作る（例 LONG_ONLY_KIND=outro）
   {  // セット名のロゴ（ショートと同じ short/logo/<SET>.png。置いてあれば、セット名の文字の代わりに使う）
