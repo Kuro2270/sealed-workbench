@@ -232,9 +232,12 @@ async function fetchJaNames(code){
 async function cardNamesJa(code){
   const path = `${NAMES}/${code}.json`;
   const cached = await readJson(path, null);
-  if(cached && cached.names && Object.keys(cached.names).length && cached.v === 4) return cached;   // 空や古い形式のものは取り直す
-  const { names, images } = await fetchJaNames(code);
-  const out = { v: 4, set: (cached && cached.set) || "", released_at: (cached && cached.released_at) || "", names, images, fetched_at: new Date().toISOString() };
+  // 空や古い形式のもの、英語版の画像（英語のページで拡大表示に使う）が無いものは取り直す
+  const filled = m => !!(m && Object.keys(m).length);
+  if(cached && filled(cached.names) && cached.v === 4 && filled(cached.imagesEn)) return cached;
+  const { names, images, imagesEn } = await fetchJaNames(code);
+  if(cached && filled(cached.names) && !filled(names)) return cached;   // 取り直しに失敗したら、前の中身のまま
+  const out = { v: 4, set: (cached && cached.set) || "", released_at: (cached && cached.released_at) || "", names, images, imagesEn, fetched_at: new Date().toISOString() };
   await mkdir(NAMES, { recursive: true });
   await writeFile(path, JSON.stringify(out), "utf8");
   return out;
@@ -245,9 +248,9 @@ let GOODS = null;
 try{ GOODS = JSON.parse(readFileSync("data/products/current.json", "utf8")); }catch(e){}
 /* セットの外から入っているカード（特別枠・ボーナスシート）の日本語名。セットの検索では出てこないので、
    記事に出てくる名前のうち足りないものだけを名前で引き、同じカード（oracle_id）の日本語版を探す。names に足して、足した数を返す */
-async function fillMissingJa(names, wanted, images = null){
+async function fillMissingJa(names, wanted, images = null, imagesEn = null){
   const has = (m, n) => m[n] || m[String(n).split(" // ")[0]];
-  const miss = [...new Set(wanted)].filter(n => n && (!has(names, n) || (images && !has(images, n))));
+  const miss = [...new Set(wanted)].filter(n => n && (!has(names, n) || (images && !has(images, n)) || (imagesEn && !has(imagesEn, n))));
   if(!miss.length) return 0;
   const byOracle = {};
   let added = 0;
@@ -259,6 +262,7 @@ async function fillMissingJa(names, wanted, images = null){
         if(c.oracle_id) byOracle[c.oracle_id] = c.name;
         const u = (c.image_uris && c.image_uris.normal) || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris && c.card_faces[0].image_uris.normal);
         if(images && u) for(const k of [c.name, String(c.name).split(" // ")[0]]) if(!images[k]){ images[k] = u; added++; }   // 英語版の画像（絵は同じ）
+        if(imagesEn && u) for(const k of [c.name, String(c.name).split(" // ")[0]]) if(!imagesEn[k]){ imagesEn[k] = u; added++; }
       }
     }catch(e){}
     await sleep(120);
@@ -350,6 +354,7 @@ ${head}
 <script src="../analytics.js"></script>
 <script src="/navmenu.js" defer></script>
 <script src="/tip.js" defer></script>
+<script src="/card-preview.js?v=1" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
@@ -565,10 +570,12 @@ function summaryText(lang, mode, d, setDisplay, cn, pairLabel, colorLabel){
   return parts.join(ja ? "" : " ").replace(/、$/, "。");
 }
 
-function modeSection(lang, code, mode, d, speedIndex, names, setDisplay, videos, images = {}){
+function modeSection(lang, code, mode, d, speedIndex, names, setDisplay, videos, images = {}, full = images){
   const T = L[lang];
   const cn = n => (lang === "ja" && names[n]) ? noRuby(names[n]) : n;   // 保存済みの名前にふりがなが残っていても外す
   // カードの絵（Scryfall の「絵だけの画像」）。名前の横に小さく出す。無いときは同じ幅の空きを置いて、名前の位置をそろえる
+  // 拡大表示（card-preview.js）のための、カード全体の画像。data-img に入れる
+  const imgAttr = n => { const u = full[n] || full[String(n).split(" // ")[0]]; return u ? ` data-img="${esc(u)}" data-alt="${esc(cn(n))}"` : ""; };
   const artOf = n => { const u = images[n] || images[String(n).split(" // ")[0]]; return u ? `<img class="art" src="${esc(artCrop(u))}" alt="" loading="lazy" width="40" height="30">` : `<span class="art"></span>`; };
   /* 色のマークは、色つきの丸ではなくマナシンボル（assets/mana/ の mana-font）で出す。1色は各色、2色以上は多色、無色は無色のシンボル */
   const manaOf = c => { const k = !c ? "C" : c.length > 1 ? "M" : c.toUpperCase(); return `<i class="ms ms-cost ${k === "M" ? "ms-multicolor mfi-m" : "ms-" + k.toLowerCase()} mfi" aria-hidden="true"></i>`; };
@@ -646,7 +653,7 @@ ${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoS
     const groups = radios + tabs + colors + G.map(g => `
     <div class="tiers t-${g}" data-g="${g}">${["S", "A", "B", "C", "D"].map(k => {
       const list = d.tiers.groups[g][k] || [];
-      return `<div class="trow"><div class="tlab ${k}">${k}</div><div class="tcells">${list.map(c => `<span class="tchip" data-c="${esc(c.color || "")}"><span class="tpic">${artOf(c.name)}${manaOf(c.color || "")}</span>${esc(cn(c.name))}<b>${pct(c.gih)}</b></span>`).join("")}<span class="tempty"${list.length ? " hidden" : ""}>—</span></div></div>`;
+      return `<div class="trow"><div class="tlab ${k}">${k}</div><div class="tcells">${list.map(c => `<span class="tchip" data-c="${esc(c.color || "")}"${imgAttr(c.name)}><span class="tpic">${artOf(c.name)}${manaOf(c.color || "")}</span>${esc(cn(c.name))}<b>${pct(c.gih)}</b></span>`).join("")}<span class="tempty"${list.length ? " hidden" : ""}>—</span></div></div>`;
     }).join("")}</div>`).join("");
     out += `
   <section class="ctier"><h3>${esc(T.ctierH)}</h3><p class="lead">${esc(T.ctierLead((d.tiers.min_games || 500).toLocaleString()))}</p>${groups}
@@ -659,7 +666,7 @@ ${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoS
     const blocks = ["mythic","rare","uncommon","common"].filter(r => (d.top[r] || []).length).map(r => `
       <div><h3><span class="rar ${r}">${esc(T.rarity[r])}</span></h3>
       <table><thead><tr><th>${esc(T.col.card)}</th><th class="num"><span data-tip="${esc(T.tipGih)}" tabindex="0">${esc(T.col.score)}</span></th><th class="num">${esc(T.col.games)}</th></tr></thead><tbody>
-      ${d.top[r].map(c => `<tr><td><span class="cname">${artOf(c.name)}${manaOf(c.color || "")}<span>${esc(cn(c.name))}</span></span></td><td class="num"><b>${pct(c.gih)}</b></td><td class="num">${(c.games || 0).toLocaleString()}</td></tr>`).join("\n      ")}
+      ${d.top[r].map(c => `<tr${imgAttr(c.name)}><td><span class="cname">${artOf(c.name)}${manaOf(c.color || "")}<span>${esc(cn(c.name))}</span></span></td><td class="num"><b>${pct(c.gih)}</b></td><td class="num">${(c.games || 0).toLocaleString()}</td></tr>`).join("\n      ")}
       </tbody></table></div>`).join("");
     out += `
   <section><h3>${esc(T.cardsH)}</h3><p class="lead">${esc(T.cardsLead)}</p>
@@ -672,7 +679,7 @@ ${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoS
   return out;
 }
 
-function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos, long, images){
+function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos, long, images, full = images){
   const T = L[lang];
   const modes = ["draft","sealed"].filter(m => arts[m]);
   const totalGames = modes.reduce((a, m) => a + (arts[m].total_games || 0), 0).toLocaleString();
@@ -692,7 +699,7 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos, 
   const header = `    <h1>${esc(T.h1(setDisplay))} <small class="code">${esc(code)}</small></h1>
     <p>${esc(T.lead)}${info.released_at ? `　${lang === "ja" ? "発売" : "Released"} ${esc(info.released_at)}` : ""}</p>`;
   const body = (modes.length ? longSection(lang, code, setDisplay, long) : "") + (modes.length
-    ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay, videos, images)).join("\n")
+    ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay, videos, images, full)).join("\n")
     : `<p>${esc(T.none)}</p>`);
   const faqLd = { "@context": "https://schema.org", "@type": "FAQPage", inLanguage: lang,
     mainEntity: T.faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) };
@@ -824,7 +831,8 @@ async function main(){
     const info = await setInfo(code, cache);
     cache.names = cache.names || {};
     cache.images = cache.images || {};
-    const extra = await fillMissingJa(cache.names, Object.values(arts).flatMap(namesInArticle), cache.images);   // 特別枠のカードの日本語名と画像
+    cache.imagesEn = cache.imagesEn || {};
+    const extra = await fillMissingJa(cache.names, Object.values(arts).flatMap(namesInArticle), cache.images, cache.imagesEn);   // 特別枠のカードの日本語名と画像
     if(extra || info.set !== cache.set || info.released_at !== cache.released_at){
       await writeFile(`${NAMES}/${code}.json`, JSON.stringify({ ...cache, set: info.set, released_at: info.released_at }), "utf8");
     }
@@ -832,7 +840,9 @@ async function main(){
     const games = Object.values(arts).reduce((a, d) => a + (d.total_games || 0), 0);
     rows.push({ code, name, released_at: info.released_at || (index.articles.find(a => a.set === code) || {}).released_at || "", games });
     for(const lang of ["ja","en"]){
-      const html = setPage(lang, code, name[lang], info, arts, speedIndex, cache.names || {}, videos, long, cache.images || {});
+      // 拡大表示の画像は、日本語のページは日本語版、英語のページは英語版（無ければ日本語版）
+      const full = lang === "en" ? { ...(cache.images || {}), ...(cache.imagesEn || {}) } : (cache.images || {});
+      const html = setPage(lang, code, name[lang], info, arts, speedIndex, cache.names || {}, videos, long, cache.images || {}, full);
       await writeFile(`${OUT}/${code}${lang === "en" ? ".en" : ""}.html`, html, "utf8");
     }
     await sleep(120);
