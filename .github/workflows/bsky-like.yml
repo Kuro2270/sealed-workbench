@@ -44,6 +44,7 @@ jobs:
         env:
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
           LIKE_LIMIT: ${{ inputs.limit || vars.BSKY_LIKE_LIMIT || '10' }}
+          LIKE_LIMIT_SRC: ${{ inputs.limit && 'input' || vars.BSKY_LIKE_LIMIT && 'var' || 'default' }}
           MANUAL: ${{ github.event_name == 'workflow_dispatch' && '1' || '' }}
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
