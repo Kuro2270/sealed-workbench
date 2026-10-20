@@ -22,6 +22,45 @@
       "say": "In Limited, you play with only the cards you open on the spot. You don't need a collection, so you can start right away."
     },
     {
+      "chapter": "What is Magic",
+      "layout": "about",
+      "view": {
+        "title": "Magic: The Gathering (MTG)",
+        "tag": "The world's first trading card game, born in 1993",
+        "stats": [
+          [
+            "1993",
+            "Designed by mathematician Richard Garfield"
+          ],
+          [
+            "The first",
+            "trading card game"
+          ],
+          [
+            "50 million+",
+            "players to date"
+          ],
+          [
+            "150+ countries",
+            "where it's sold"
+          ]
+        ],
+        "focus": null
+      },
+      "say": "Magic: The Gathering, or MTG, came out in 1993 as the world's first trading card game. It was designed by mathematician Richard Garfield. Over 50 million people have played it, and it's sold in more than 150 countries."
+    },
+    {
+      "layout": "about",
+      "nofade": true,
+      "view": {
+        "focus": [
+          0,
+          1
+        ]
+      },
+      "say": "More than 30 years later, several new sets still come out every year, and there's a World Championship too."
+    },
+    {
       "chapter": "What is MTG Arena",
       "layout": "arena",
       "view": {
@@ -33,11 +72,11 @@
         ],
         "chips": [
           "Free to play",
-          "Many languages",
+          "17 million+ registered players",
           "Rules handled for you"
         ]
       },
-      "say": "MTG Arena is the official digital version of Magic. You can play on PC or on your phone, and it's free to play. The app handles the tricky rules for you, so you can learn as you play."
+      "say": "MTG Arena is the official digital version, for PC and phones. It's free to play, with over 17 million registered players. The app handles the tricky rules for you, so you can learn as you play."
     },
     {
       "chapter": "The basics",
@@ -45,7 +84,7 @@
       "view": {
         "focus": "life"
       },
-      "say": "First, the basics. Games are one on one. You both start at 20 life, and you win by bringing your opponent to zero."
+      "say": "First, the basic rules. Games are one on one. You both start at 20 life, and you win by bringing your opponent to zero."
     },
     {
       "layout": "basics",
@@ -53,7 +92,7 @@
       "view": {
         "focus": "flow"
       },
-      "say": "Each turn goes in this order: untap, draw, play, attack, and end."
+      "say": "Each turn goes in this order: untap, draw, first main phase, combat, second main phase, and end. You get two main phases, before and after combat, so you can see how your attack goes before casting more."
     },
     {
       "layout": "basics",
@@ -88,6 +127,28 @@
         "focus": "pt"
       },
       "say": "The four slash four at the bottom right is power and toughness. It deals four damage, and it dies when it takes four damage."
+    },
+    {
+      "chapter": "Spell types",
+      "layout": "types",
+      "view": {
+        "focus": [
+          0,
+          1
+        ]
+      },
+      "say": "Let's look at spells other than creatures. Instants can be cast any time, even on your opponent's turn or during combat. Sorceries can only be cast during your own main phase. Both go to the graveyard after use."
+    },
+    {
+      "layout": "types",
+      "nofade": true,
+      "view": {
+        "focus": [
+          2,
+          3
+        ]
+      },
+      "say": "Enchantments stay on the battlefield with a lasting effect. Artifacts are like tools, and Equipment can be attached to a creature to make it stronger."
     },
     {
       "chapter": "What is Limited",
@@ -271,6 +332,21 @@
       "chapter": "Event schedule"
     },
     {
+      "layout": "cycle",
+      "view": {
+        "title": "How often new sets come out",
+        "sets": [
+          "New set",
+          "Next set",
+          "The one after"
+        ],
+        "gap": "About 6–8 weeks",
+        "events": "Premier Draft & Sealed",
+        "note": "* The gap varies from set to set"
+      },
+      "say": "New sets come out roughly every six to eight weeks. Each time, that set's Premier Draft and Sealed start. The gap varies from set to set, so check the official event schedule for details."
+    },
+    {
       "chapter": "Building a 40-card deck",
       "layout": "deck",
       "view": {
@@ -284,7 +360,7 @@
       "view": {
         "focus": "curve"
       },
-      "say": "For the 23 non-land cards, lean towards cheap ones. Around six two-drops help you avoid hands where you can't do anything early."
+      "say": "If you only play big, powerful cards, you'll have nothing to cast in the early and middle game, and you'll lose. Spreading out your cards' mana costs is called the mana curve. For the 23 non-land cards, lean towards cheap ones. Around six two-drops is a safe start."
     },
     {
       "layout": "deck",
@@ -292,7 +368,7 @@
       "view": {
         "focus": "colors"
       },
-      "say": "Stick to two colours, and split your lands to match, like nine and eight."
+      "say": "Stick to two colours, and split your lands to match, like nine Plains and eight Islands."
     },
     {
       "chapter": "Why removal matters",
@@ -324,12 +400,12 @@
       "view": {
         "focus": "rate"
       },
-      "say": "When in doubt, check the win rate when drawn. If a card is about three points above its set's average, it's a strong card. You can find the numbers for each set in this channel's format reviews and in the format reports on our site."
+      "say": "When in doubt, check the win rate when drawn. If a card is about three points above its set's average, it's a strong card. You can find the numbers for each set in this channel's format reviews and in the format reports on our site, linked in the description."
     },
     {
       "chapter": "Practise",
       "layout": "practice",
-      "say": "If you're nervous about jumping straight in, you can practise on our site. Sealed and Draft practice are free, as often as you like. You can open virtual packs and go all the way to building a deck. And when you play on Arena on PC, you can also use the Sealed and Draft assistants."
+      "say": "If you're nervous about jumping straight in, you can practise on our site, Limited Workbench, linked in the description. Sealed and Draft practice are free, as often as you like. You can open virtual packs and go all the way to building a deck. And when you play on Arena on PC, you can also use the Sealed and Draft assistants."
     },
     {
       "chapter": "Summary",
@@ -358,12 +434,16 @@
           "Draw a card"
         ],
         [
-          "Play",
+          "Main 1",
           "Play a land, cast spells"
         ],
         [
-          "Attack",
+          "Combat",
           "Attack with creatures"
+        ],
+        [
+          "Main 2",
+          "Cast more after combat"
         ],
         [
           "End",
@@ -372,7 +452,11 @@
       ],
       "mana": "Land",
       "manaTo": "Mana",
-      "manaNote": "One land per turn → bigger spells as the game goes on"
+      "manaNote": "One land per turn → bigger spells as the game goes on",
+      "main": [
+        2,
+        4
+      ]
     },
     "colors": [
       [
@@ -467,15 +551,17 @@
       "colorTitle": "Two colours",
       "colorLands": [
         [
-          "W",
-          9
+          "Plains",
+          9,
+          "Plains"
         ],
         [
-          "U",
-          8
+          "Island",
+          8,
+          "Island"
         ]
       ],
-      "colorNote": "Split your lands to match, e.g. 9 + 8"
+      "colorNote": "Split your lands to match, e.g. 9 Plains + 8 Islands"
     },
     "removal": {
       "title": "Removal",
@@ -524,7 +610,7 @@
       "note": "Rarity ≠ strength",
       "rateTitle": "Judge strength by win rate when drawn",
       "rateRule": "About +3 points above the set average → a strong card",
-      "where": "Numbers for each set: our format reviews and the site's format reports"
+      "where": "Numbers for each set: our format reviews and the format reports on the site in the description"
     },
     "practice": {
       "title": "Practise on Limited Workbench",
@@ -550,7 +636,8 @@
           "Reads your Arena log and helps you pick",
           "PC"
         ]
-      ]
+      ],
+      "where": "(link in the description)"
     },
     "summary": {
       "title": "Summary",
@@ -565,6 +652,34 @@
       "l1": "A format review for every set",
       "l2": "Please subscribe!",
       "button": "▶ Subscribe"
+    },
+    "types": {
+      "cards": [
+        [
+          "Giant Growth",
+          "Instant",
+          "Any time, even on their turn",
+          ""
+        ],
+        [
+          "Divination",
+          "Sorcery",
+          "Only in your main phase",
+          ""
+        ],
+        [
+          "Pacifism",
+          "Enchantment",
+          "Stays on the battlefield",
+          ""
+        ],
+        [
+          "Bonesplitter",
+          "Equipment",
+          "Attach to a creature",
+          ""
+        ]
+      ]
     }
   }
 }

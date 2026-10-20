@@ -133,11 +133,13 @@ function sceneSvg(sc, ui){
           TS(cx + 40, 300, u.life, { size: 80, anchor: "middle", fill: "#FFD23F" }); }).join("") +
         TS(W / 2, 290, u.vs, { size: 76, anchor: "middle" }) + T(W / 2, 360, u.lifeNote, { size: 36, anchor: "middle", weight: 700, fill: MUTED }));
       s += panel(80, 420, 1760, 230, f === "flow" ? GOLD : null, f !== "flow");
+      // 段階の箱は数に合わせて幅を決める（メインが2回あるので6つ）。main に入っている番号の箱を金色の枠に
+      const n = u.steps.length, gap = 44, bw = Math.floor((1660 - gap * (n - 1)) / n), mains = u.main || [];
       s += dimG(f === "flow", u.steps.map(([a, b], i) => {
-        const x = 130 + i * 340;
-        return `<rect x="${x}" y="460" width="290" height="150" rx="18" fill="${DEEP}" fill-opacity="0.85" stroke="${i === 2 ? GOLD : MUTED}" stroke-width="4"/>` +
-          badge(x + 30, 460, i + 1) + T(x + 145, 530, a, { size: fit(a, 260, 50), weight: 900, anchor: "middle" }) + T(x + 145, 580, b, { size: fit(b, 270, 26), anchor: "middle", fill: MUTED }) +
-          (i < 4 ? `<path d="M${x + 298} 535 l30 0 m-12 -12 l12 12 l-12 12" stroke="${PAPER}" stroke-width="6" fill="none"/>` : "");
+        const x = 130 + i * (bw + gap), cxm = x + bw / 2;
+        return `<rect x="${x}" y="460" width="${bw}" height="150" rx="18" fill="${DEEP}" fill-opacity="0.85" stroke="${mains.includes(i) ? GOLD : MUTED}" stroke-width="4"/>` +
+          badge(x + 30, 460, i + 1) + T(cxm, 530, a, { size: fit(a, bw - 30, 48), weight: 900, anchor: "middle" }) + T(cxm, 580, b, { size: fit(b, bw - 20, 26), anchor: "middle", fill: MUTED }) +
+          (i < n - 1 ? `<path d="M${x + bw + 6} 535 l${gap - 12} 0 m-12 -12 l12 12 l-12 12" stroke="${PAPER}" stroke-width="6" fill="none"/>` : "");
       }).join(""));
       s += panel(80, 680, 1760, 200, f === "mana" ? GOLD : null, f !== "mana");
       s += dimG(f === "mana",
@@ -160,10 +162,14 @@ function sceneSvg(sc, ui){
       return frame(s, sc);
     }
     case "anatomy": {
-      const u = ui.anatomy, cw = 500, ch = Math.round(cw * 680 / 488), cx = 230, cy = 140;
-      // 番号の位置（カードの中の割合）：名前・マナコスト・イラスト・タイプ・テキスト・パワー／タフネス
-      const spots = [[0.12, 0.06], [0.86, 0.06], [0.5, 0.3], [0.14, 0.57], [0.5, 0.75], [0.86, 0.93]];
-      let s = cardImg(u.card, cx, cy, cw, u.jaName || u.card) + spots.map(([fx, fy], i) => badge(cx + fx * cw, cy + fy * ch, i + 1, i === 5 && v.focus === "pt" ? ORANGE : GOLD, 28)).join("");
+      const u = ui.anatomy, cw = 500, ch = Math.round(cw * 680 / 488), cx = 230, cy = 140;   // 番号を外に置くので、左右に余白を取ってある
+      // 番号はカードの外に置き、細い線で指す（カードの名前や数字に重ならないように）
+      //   [指す場所（カードの中の割合）, 番号を置く側（-1 左 / 1 右）]：名前・マナコスト・イラスト・タイプ・テキスト・パワー／タフネス
+      const spots = [[[0.04, 0.055], -1], [[0.94, 0.055], 1], [[0.7, 0.3], 1], [[0.04, 0.565], -1], [[0.04, 0.75], -1], [[0.96, 0.935], 1]];
+      let s = cardImg(u.card, cx, cy, cw, u.jaName || u.card) + spots.map(([[fx, fy], side], i) => {
+        const px = cx + fx * cw, py = cy + fy * ch, bx = side < 0 ? cx - 46 : cx + cw + 46, col = i === 5 && v.focus === "pt" ? ORANGE : GOLD;
+        return `<line x1="${bx}" y1="${py}" x2="${px}" y2="${py}" stroke="${col}" stroke-width="4"/><circle cx="${px}" cy="${py}" r="7" fill="${col}" stroke="${DEEP}" stroke-width="2"/>` + badge(bx, py, i + 1, col, 28);
+      }).join("");
       s += panel(850, 140, 990, 740, null);
       u.parts.forEach((p, i) => {
         const y = 215 + i * 78, on = !v.focus || (v.focus === "pt" ? i === 5 : true);
@@ -171,6 +177,42 @@ function sceneSvg(sc, ui){
       });
       s += dimG(v.focus !== "pt", T(890, 735, u.cost, { size: fit(u.cost, 920, 40), weight: 900, fill: "#FFD23F" }));
       s += dimG(v.focus === "pt", T(890, 815, u.pt, { size: fit(u.pt, 920, 40), weight: 900, fill: v.focus === "pt" ? "#FFB27A" : MUTED }));
+      return frame(s, sc);
+    }
+    case "about": {
+      // MTG とはどんなゲームか：数字の札を並べる（2×2）
+      let s = TS(W / 2, 220, v.title, { size: fit(v.title, 1700, 80), anchor: "middle", fill: "#FFD23F" }) + T(W / 2, 290, v.tag, { size: fit(v.tag, 1600, 40), weight: 700, anchor: "middle" });
+      v.stats.forEach(([big, small], i) => {
+        const x = 150 + (i % 2) * 830, y = 340 + Math.floor(i / 2) * 260, on = v.focus == null || v.focus.includes(i);
+        s += panel(x, y, 790, 230, on && v.focus ? GOLD : null, !on) + dimG(on, TS(x + 395, y + 125, big, { size: fit(big, 720, 90), anchor: "middle", fill: "#FFD23F" }) + T(x + 395, y + 190, small, { size: fit(small, 720, 36), weight: 700, anchor: "middle" }));
+      });
+      return frame(s, sc);
+    }
+    case "types": {
+      // 呪文の種類：カードを横に並べ、話している種類だけ明るくする
+      const list = ui.types.cards, n = list.length, cw = 340, gap = Math.floor((1760 - n * cw) / (n - 1)), x0 = 80;
+      let s = "";
+      list.forEach(([name, kind, desc, label], i) => {
+        const x = x0 + i * (cw + gap), on = !v.focus || v.focus.includes(i);
+        s += dimG(on, cardImg(name, x, 150, cw, label || name) + `<rect x="${x - 10}" y="${150 + Math.round(cw * 680 / 488) + 18}" width="${cw + 20}" height="72" rx="36" fill="${on && v.focus ? GOLD : BLUE}"/>` +
+          T(x + cw / 2, 150 + Math.round(cw * 680 / 488) + 66, kind, { size: fit(kind, cw - 10, 38), weight: 900, anchor: "middle", fill: on && v.focus ? DEEP : PAPER }) +
+          T(x + cw / 2, 150 + Math.round(cw * 680 / 488) + 140, desc, { size: fit(desc, cw + 30, 30), weight: 700, anchor: "middle" }));
+      });
+      return frame(s, sc);
+    }
+    case "cycle": {
+      // セットの発売の周期：時間の矢印の上に、発売の印を3つ。間に「約〇か月」。下に小さく補足
+      const x0 = 260, x1 = 1500, y = 520, n = v.sets.length, step = (x1 - x0) / (n - 1), xEnd = W - 150;
+      let s = T(W / 2, 205, v.title, { size: 52, weight: 900, anchor: "middle", fill: "#FFD23F" }) + panel(80, 240, W - 160, 600, null) +
+        `<line x1="${x0 - 100}" x2="${xEnd}" y1="${y}" y2="${y}" stroke="${PAPER}" stroke-width="6"/><path d="M${xEnd - 20} ${y - 16} l20 16 l-20 16" stroke="${PAPER}" stroke-width="6" fill="none"/>`;
+      v.sets.forEach((name, i) => {
+        const x = x0 + i * step;
+        s += `<g transform="translate(${x - 60} ${y - 230})"><rect width="120" height="170" rx="12" fill="url(#pack)" stroke="${PAPER}" stroke-width="5"/><rect y="16" width="120" height="10" fill="${PAPER}" opacity="0.6"/><circle cx="60" cy="96" r="28" fill="${i === 0 ? GOLD : "#9CC4FF"}"/></g>` +
+             `<circle cx="${x}" cy="${y}" r="16" fill="${GOLD}" stroke="${DEEP}" stroke-width="4"/>` + T(x, y + 70, name, { size: fit(name, step - 40, 40), weight: 900, anchor: "middle" }) +
+             `<rect x="${x}" y="${y + 110}" width="${Math.min(step - 30, xEnd - 20 - x)}" height="70" rx="14" fill="${GOLD}" opacity="${i === 0 ? 1 : 0.75}"/>` + (i === n - 1 ? "" : T(x + 20, y + 158, v.events, { size: fit(v.events, Math.min(step - 70, xEnd - 60 - x), 30), weight: 900, fill: DEEP }));   // 最後の帯は「続く」だけなので文字は入れない
+        if(i < n - 1) s += T(x + step / 2, y - 30, v.gap, { size: 40, weight: 900, anchor: "middle", fill: "#FFD23F" });
+      });
+      if(v.note) s += T(W / 2, 815, v.note, { size: 30, weight: 700, anchor: "middle", fill: MUTED });
       return frame(s, sc);
     }
     case "compare": {
@@ -258,7 +300,8 @@ function sceneSvg(sc, ui){
       // 色（右下）
       s += panel(1170, 430, 670, 450, f === "colors" ? GOLD : null, f !== "colors");
       s += dimG(f === "colors", T(1505, 500, u.colorTitle, { size: 44, weight: 900, anchor: "middle" }) +
-        u.colorLands.map(([c, n], i) => symbol(c, 1340 + i * 330, 615, 120) + TS(1340 + i * 330, 770, `×${n}`, { size: 80, anchor: "middle", fill: "#FFD23F" })).join("") +
+        // 土地のカード画像（平地・島など）と枚数。色の記号だと、その色の呪文と見分けにくいため
+        u.colorLands.map(([name, n, label], i) => cardImg(name, 1215 + i * 315, 530, 130, label) + TS(1360 + i * 315, 680, `×${n}`, { size: 68, fill: "#FFD23F" })).join("") +
         T(1505, 845, u.colorNote, { size: fit(u.colorNote, 620, 30), weight: 700, anchor: "middle", fill: MUTED }));
       return frame(s, sc);
     }
@@ -292,7 +335,7 @@ function sceneSvg(sc, ui){
     }
     case "practice": {
       const u = ui.practice;
-      let s = TS(W / 2, 220, u.title, { size: fit(u.title, 1700, 72), anchor: "middle" }) + T(W / 2, 290, u.url, { size: 44, weight: 900, anchor: "middle", fill: "#FFD23F" });
+      let s = TS(W / 2, 220, u.title, { size: fit(u.title, 1700, 72), anchor: "middle" }) + T(W / 2, 290, u.url + (u.where ? `　${u.where}` : ""), { size: 44, weight: 900, anchor: "middle", fill: "#FFD23F" });
       u.tools.forEach(([n, d, tag], i) => {
         const x = 110 + (i % 2) * 860, y = 340 + Math.floor(i / 2) * 270;
         s += panel(x, y, 820, 240, tag === "PC" ? null : GREEN) + T(x + 50, y + 100, n, { size: fit(n, 560, 56), weight: 900 }) + T(x + 50, y + 170, d, { size: fit(d, 720, 32), weight: 700, fill: MUTED }) +
@@ -542,6 +585,8 @@ async function main(){
   const cardNames = new Set();
   if(ui.anatomy && ui.anatomy.card) cardNames.add(ui.anatomy.card);
   for(const c of ((ui.removal && ui.removal.cards) || [])) cardNames.add(c[0]);
+  for(const c of ((ui.types && ui.types.cards) || [])) cardNames.add(c[0]);
+  for(const c of ((ui.deck && ui.deck.colorLands) || [])) cardNames.add(c[0]);
   for(const n of cardNames) await loadCard(n);
   const arenaBuf = await readFile("short/logo/arena.png").catch(() => null);
   if(arenaBuf) scenes.filter(sc => sc.layout === "title").forEach(sc => { sc.arenaLogo = "data:image/png;base64," + arenaBuf.toString("base64"); });
