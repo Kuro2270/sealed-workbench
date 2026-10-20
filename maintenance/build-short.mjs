@@ -35,6 +35,7 @@ import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import { existsSync } from "node:fs";
 import { splitSay } from "./highlight-split.mjs";
+import { lookupOutside } from "./outside-cards.mjs";
 
 const SET = process.argv[2];
 const LANG = (process.argv[3] || "ja").toLowerCase();
@@ -190,7 +191,7 @@ function buildScript(d, nameJa, names){
     if(!target) pick(pairs.filter(p => p !== best && p !== worst && p.games >= 1500 * MINP && p.games / totalPairGames < avgShare));
   }
   const top3 = list => (list || []).slice(0, 3)
-    .map(c => ({ ...c, label: JA ? ((names.names || {})[c.name] || c.name) : c.name, img: JA ? (names.images || {})[c.name] : (c.imgEn || null) }));
+    .map(c => ({ ...c, label: JA ? ((names.names || {})[c.name] || c.name) : c.name, img: JA ? (names.images || {})[c.name] : (c.imgEn || null), outside: (names.outside || {})[c.name] || null }));
   const commons = top3(d.top && d.top.common), uncommons = top3(d.top && d.top.uncommon);
   // ティア表：試合数が少なすぎる組み合わせ（全体の 1% 未満）は除き、最強〜最弱の幅のどこにいるかで S/A/B/C に分ける
   //（上から 15% 以内が S、45% 以内が A、75% 以内が B、残りが C。幅が 2pt 未満の環境では 2pt として見る）
@@ -204,9 +205,17 @@ function buildScript(d, nameJa, names){
   const bombs = [...(d.top && d.top.rare || []), ...(d.top && d.top.mythic || [])]
     .map(c => ({ ...c, rarity: c.rarity || ((d.top.mythic || []).some(m => m.name === c.name) ? "mythic" : "rare") }))
     .sort((a, b) => b.gih - a.gih).slice(0, 6)
-    .map(c => ({ ...c, label: JA ? ((names.names || {})[c.name] || c.name) : c.name, img: JA ? (names.images || {})[c.name] : (c.imgEn || null) }));
+    .map(c => ({ ...c, label: JA ? ((names.names || {})[c.name] || c.name) : c.name, img: JA ? (names.images || {})[c.name] : (c.imgEn || null), outside: (names.outside || {})[c.name] || null }));
   // 「意外な事実」（surprise）は 2026年10月から使っていない
   const games = man(d.total_games);
+  // セットの外から入る特別枠（スペシャルゲストなど）のカードが画面に出るときは、一言添える（めったに出ないカードなので）
+  const outsideNote = (cards, from = 1) => {
+    const o = cards.map((c, i) => ({ ...c, rank: from + i })).filter(c => c.outside);
+    if(!o.length) return "";
+    const spg = o.every(c => c.outside === "spg");
+    return JA ? `${o.map(c => `${c.rank}位の${c.label}`).join("と")}は、${spg ? "スペシャルゲストという" : "セットの外から入る"}特別枠のカードで、パックからはめったに出ません。`
+              : ` ${o.map(c => `No. ${c.rank}, ${c.name},`).join(" and ")} ${o.length > 1 ? "are" : "is"} ${spg ? (o.length > 1 ? "Special Guests" : "a Special Guest") : "from a bonus slot outside the main set"}, so you'll rarely open ${o.length > 1 ? "them" : "it"}.`;
+  };
 
   const scenes = [];
   const gamesEn = d.total_games >= 10000 ? Math.round(d.total_games / 1000) + " thousand" : manSay(d.total_games);
@@ -268,10 +277,10 @@ function buildScript(d, nameJa, names){
       const three = pg.slice(0, 3);
       scenes.push({ kind: "bombs", page: i, from, to, cards: pg, label: `bombs${i + 1}`, tail: 0.8, minDur: 6,   // 3 枚を見る時間として、短くても 6 秒は置く
         // 1〜5 位は順位と数字を読む。6〜10 位は数字を読み上げず、「これも中心に据えていい」と言う（棒読みにしない）
-        say: i === 0 ? (JA ? `レアと神話レアのボム、トップ6です。1位は${three[0].label}、引けた試合の勝率${pt(three[0].gih)}パーセントです。${three.slice(1).map(c => c.label).join("、")}も、迷わずピックです。`
+        say: (i === 0 ? (JA ? `レアと神話レアのボム、トップ6です。1位は${three[0].label}、引けた試合の勝率${pt(three[0].gih)}パーセントです。${three.slice(1).map(c => c.label).join("、")}も、迷わずピックです。`
                            : `Top six rare and mythic bombs. Number one: ${three[0].name}, winning ${pt(three[0].gih)} percent of games when drawn. ${three.slice(1).map(c => c.name).join(" and ")} are first-picks too.`)
                      : (JA ? `${from}位から${to}位も十分なボムです。引いたら、これを中心にデッキを組みましょう。`
-                           : `Numbers ${from} to ${to} are still bombs. Open one, and build your deck around it.`) });
+                           : `Numbers ${from} to ${to} are still bombs. Open one, and build your deck around it.`)) + outsideNote(pg, from) });
     });
   }
 
@@ -294,7 +303,7 @@ function buildScript(d, nameJa, names){
            : (prevTop.col === col ? `${CN[col]} is strong here too.` : `${CN[col]} leads here.`);
     }
     prevTop = { col };
-    scenes.push({ kind: "top", label, say: JA ? `${label}のトップ3はこちらです。${brief ? "" : lead}` : `Top three ${label}s. ${brief ? "" : lead}`, cards, tail: opt.tail || 1.0,
+    scenes.push({ kind: "top", label, say: (JA ? `${label}のトップ3はこちらです。${brief ? "" : lead}` : `Top three ${label}s. ${brief ? "" : lead}`.trim()) + outsideNote(cards), cards, tail: opt.tail || 1.0,
       strong: !brief && same ? col : null });   // 「〇が強いです」と言った色（読み上げに合わせて、その色のカードを光らせる）
   };
   // ボム（レア・神話レア）→ アンコモン → コモンの順（レアリティの高い順。2026年10月に入れ替え）
@@ -765,7 +774,9 @@ function highlightsOf(sc){
     const capTop = captionTop(sc.say, BOMB_CAP_BOTTOM), Y0 = 244;
     const ROW = Math.min(372, Math.floor((capTop - 16 - Y0) / 3)), CH = Math.round(224 * ROW / 236);
     const row = i => ({ x: 66, y: Y0 + i * ROW - 10, w: rowW, h: CH + 20 });
-    return sc.page === 0 ? sc.cards.slice(0, 3).map((c, i) => ({ label: JA ? c.label : c.name, boxes: [row(i)] })) : [];
+    // 2 画面目は、特別枠のカードの話をするときだけ、そのカードを光らせる
+    return sc.page === 0 ? sc.cards.slice(0, 3).map((c, i) => ({ label: JA ? c.label : c.name, boxes: [row(i)] }))
+                         : sc.cards.map((c, i) => c.outside ? { label: JA ? c.label : c.name, boxes: [row(i)] } : null).filter(Boolean);
   }
   if(sc.kind === "top"){
     const capTop = captionTop(sc.say), Y0 = 236;
@@ -862,6 +873,28 @@ async function speak(text, wavPath, opt = {}){
   return { kana, dur };
 }
 
+/* ------------------------------------------------------------ 特別枠のカード */
+
+/* 記事データの上位カードのうち、セットのカード一覧（data/names）に無いもの＝セットの外から入る特別枠のカード。
+   日本語名・画像を Scryfall で引いて names に足し、names.outside に枠の種類（"spg" | "other"）を入れる（このファイルは保存しない） */
+async function addOutsideCards(d, names){
+  names.names = names.names || {}; names.images = names.images || {}; names.outside = {};
+  const front = n => String(n).split(" // ")[0];
+  const cards = Object.values(d.top || {}).flat().filter(Boolean);
+  const miss = [...new Set(cards.map(c => c.name).filter(n => !names.images[n] && !names.images[front(n)]))];
+  if(!miss.length) return;
+  const info = await lookupOutside(miss, SET).catch(() => ({}));
+  for(const n of miss){
+    const o = info[front(n)];
+    if(!o) continue;
+    if(o.ja && !names.names[n]) names.names[n] = o.ja;
+    if(o.img) names.images[n] = o.img;
+    if(o.slot) names.outside[n] = o.slot;
+    for(const c of cards) if(c.name === n && !c.imgEn) c.imgEn = o.imgEn;
+  }
+  console.error(`特別枠のカード: ${miss.map(n => `${n}（${info[front(n)] ? (names.outside[n] || "セット内") : "引けず"}）`).join("、")}`);
+}
+
 /* ------------------------------------------------------------ 実行 */
 
 async function main(){
@@ -889,6 +922,7 @@ async function main(){
     }
   }
   console.error(Object.keys(SYM).length ? `マナ・シンボル: ${Object.keys(SYM).join(" ")}` : "マナ・シンボル: 取得できず、丸に文字で代用");
+  await addOutsideCards(d, names);
   const scenes = buildScript(d, nameJa, names);
 
   // セット名のロゴ画像（置いてあれば使う）
