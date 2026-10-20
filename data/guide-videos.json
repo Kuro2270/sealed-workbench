@@ -1,0 +1,155 @@
+{
+  "_note": "入門ページ（start/limited.html・limited.en.html）に載せる解説動画。id が入っている言語だけ載る。目次は YouTube の概要欄と同じ（秒で書く）。直したら maintenance/build-start.mjs を動かす",
+  "limited": {
+    "ja": {
+      "id": "8D1YZTf8I_g",
+      "title": "【MTGアリーナ】リミテッド入門｜遊び方・シールドとドラフト・40枚デッキの組み方【初心者向け】",
+      "uploadedAt": "2026-10-21",
+      "chapters": [
+        [
+          0,
+          "はじめに"
+        ],
+        [
+          15,
+          "MTGとは"
+        ],
+        [
+          44,
+          "MTGアリーナとは"
+        ],
+        [
+          63,
+          "ゲームの基本"
+        ],
+        [
+          100,
+          "5つの色"
+        ],
+        [
+          121,
+          "カードの見方"
+        ],
+        [
+          141,
+          "呪文の種類"
+        ],
+        [
+          166,
+          "リミテッドとは"
+        ],
+        [
+          184,
+          "シールド"
+        ],
+        [
+          197,
+          "ドラフト"
+        ],
+        [
+          206,
+          "クイックとプレミア"
+        ],
+        [
+          242,
+          "開催スケジュール"
+        ],
+        [
+          282,
+          "40枚デッキの組み方"
+        ],
+        [
+          317,
+          "除去が強い理由"
+        ],
+        [
+          341,
+          "強いカードの見分け方"
+        ],
+        [
+          364,
+          "練習する"
+        ],
+        [
+          384,
+          "まとめ"
+        ]
+      ]
+    },
+    "en": {
+      "id": "lltt0z1xKa4",
+      "title": "MTG Arena Limited for Beginners | How to Play, Sealed vs Draft, Building a 40-Card Deck",
+      "uploadedAt": "2026-10-21",
+      "chapters": [
+        [
+          0,
+          "Intro"
+        ],
+        [
+          12,
+          "What is Magic"
+        ],
+        [
+          36,
+          "What is MTG Arena"
+        ],
+        [
+          50,
+          "The basics"
+        ],
+        [
+          83,
+          "The five colours"
+        ],
+        [
+          103,
+          "Reading a card"
+        ],
+        [
+          123,
+          "Spell types"
+        ],
+        [
+          146,
+          "What is Limited"
+        ],
+        [
+          163,
+          "Sealed"
+        ],
+        [
+          175,
+          "Draft"
+        ],
+        [
+          183,
+          "Quick vs Premier"
+        ],
+        [
+          213,
+          "Event schedule"
+        ],
+        [
+          243,
+          "Building a 40-card deck"
+        ],
+        [
+          274,
+          "Why removal matters"
+        ],
+        [
+          296,
+          "Spotting strong cards"
+        ],
+        [
+          316,
+          "Practise"
+        ],
+        [
+          337,
+          "Summary"
+        ]
+      ]
+    }
+  }
+}

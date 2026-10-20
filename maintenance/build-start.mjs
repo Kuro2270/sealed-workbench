@@ -8,9 +8,11 @@
  * 画像は Scryfall の公式カード画像とマナシンボルを、ブラウザから直接読み込む（Wizards の Fan Content Policy の範囲）。
  * ページの枠（ナビ・言語切り替え・フッター）は他のセット別ページと同じ shell() を使う。
  * 文章は参考にした入門記事の要点を、このサイト向けにかみ砕いて書き直したもの。
+ * 「リミテッドとは」のページの先頭には、解説動画（data/guide-videos.json。id がある言語だけ）を目次つきで載せる。
  */
 
 import { mkdir, writeFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { shell, L, esc, SITE, pretty } from "./build-set-pages.mjs";
 
 const SYM = k => `<img class="ms" src="https://svgs.scryfall.io/card-symbols/${k}.svg" alt="${k}" width="22" height="22" loading="lazy">`;
@@ -27,6 +29,27 @@ const ICON = {
   play: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00A0FF" d="M3.6 2.5 13.4 12l-9.8 9.5c-.4-.3-.6-.8-.6-1.4V3.9c0-.6.2-1.1.6-1.4z"/><path fill="#00D95F" d="M3.6 2.5 13.4 12l3.4-3.3L5.2 2.1c-.6-.3-1.2-.2-1.6.4z"/><path fill="#FF3A44" d="M3.6 21.5 13.4 12l3.4 3.3L5.2 21.9c-.6.3-1.2.2-1.6-.4z"/><path fill="#FFC800" d="m16.8 8.7 4 2.3c.8.5.8 1.5 0 2l-4 2.3-3.4-3.3z"/></svg>`
 };
 const chips = keys => keys.map(k => `<span class="chip">${ICON[k]}</span>`).join("");
+
+/* 解説動画（YouTube）。押すまで YouTube を読み込まない軽い埋め込みと、目次（押すとその場面から再生）。セット別ページの長尺と同じ作り */
+let GUIDE = {};
+try{ GUIDE = JSON.parse(readFileSync("data/guide-videos.json", "utf8")); }catch(e){}
+const VT = {
+  ja: { h: "動画で見る", lead: "MTGの基本から、リミテッドの遊び方・40枚デッキの組み方まで、動画で解説しています。目次を押すと、その場面から再生します。", play: "再生", toc: "動画で見る" },
+  en: { h: "Watch the video", lead: "From the basics of Magic to how Limited works and how to build a 40-card deck, explained in a video. Press a chapter to jump to that part.", play: "Play", toc: "Video" }
+};
+function videoSection(lang, kind){
+  const v = GUIDE[kind] && GUIDE[kind][lang];
+  if(!v || !v.id) return "";
+  const id = String(v.id), t = VT[lang];
+  const ts = n => `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, "0")}`;
+  const chap = (v.chapters || []).map(([at, title]) => `<li><a href="https://youtu.be/${esc(id)}?t=${at}" data-t="${at}" target="_blank" rel="noopener"><time>${ts(at)}</time><span>${esc(title)}</span></a></li>`).join("");
+  const ld = { "@context": "https://schema.org", "@type": "VideoObject", name: v.title, description: t.lead, thumbnailUrl: [`https://i.ytimg.com/vi/${id}/hqdefault.jpg`],
+    uploadDate: v.uploadedAt || undefined, contentUrl: `https://www.youtube.com/watch?v=${id}`, embedUrl: `https://www.youtube-nocookie.com/embed/${id}`, inLanguage: lang };
+  return `<section class="blk longvideo" id="video"><h2>${t.h}</h2><p class="lead">${t.lead}</p>
+<div class="lv"><div class="yt" data-id="${esc(id)}"><img src="https://i.ytimg.com/vi/${esc(id)}/hqdefault.jpg" alt="${esc(v.title)}" loading="lazy" width="640" height="360"><button type="button" aria-label="${t.play}"><span></span></button></div>${chap ? `<ul class="chap">${chap}</ul>` : ""}</div>
+<script type="application/ld+json">${JSON.stringify(ld)}</script>
+<script>(function(){var box=document.querySelector(".longvideo .yt");if(!box)return;function play(t){var f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+box.dataset.id+"?autoplay=1&playsinline=1"+(t?"&start="+t:"");f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title=${JSON.stringify(v.title)};box.innerHTML="";box.appendChild(f);}box.querySelector("button").addEventListener("click",function(){play(0);});document.querySelectorAll(".longvideo .chap a").forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();play(+a.dataset.t);box.scrollIntoView({block:"nearest",behavior:"smooth"});});});})();</script></section>`;
+}
 
 /* ------------------------------------------------------------------ 文面 */
 
@@ -531,6 +554,20 @@ const css = `<style>
     .cmp tbody th{width:28%}
     .types{grid-template-columns:repeat(2,1fr);gap:16px 10px}
   }
+  .blk.longvideo{padding:20px 22px;border-radius:12px;margin:0 0 22px}   /* セット別ページの .longvideo の枠より、このページの .blk に合わせる */
+  .blk.longvideo > h2{font-size:22px;margin:0 0 6px}.blk.longvideo > .lead{margin:0 0 14px;font-size:14px;opacity:1;color:var(--muted)}
+  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0A2038}
+  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .longvideo .yt button span{width:68px;height:68px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .longvideo .yt button span::after{content:"";border-left:23px solid #0B1E33;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
+  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px;max-height:420px;overflow-y:auto}
+  .longvideo .chap li{margin:0 0 2px}
+  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
+  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
+  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
 </style>`;
 
 function page(lang, kind){
@@ -622,11 +659,13 @@ ${f.rows.map(x => `<tr><th>${x[0]}</th><td>${x[1]}</td><td>${x[2]}</td></tr>`).j
 
   const order = kind === "mtg"
     ? ["what", "colors", "types", "read", "formats", "arena", "official", "next"]
-    : ["limited", "deck", "removal", "next"];
+    : ["video", "limited", "deck", "removal", "next"];
+  S.video = kind === "limited" ? videoSection(lang, kind) : "";
 
   const gloss = `<details class="gl"><summary>${T.glossH}</summary><dl>${T.gloss.map(x => `<dt>${x[0]}</dt><dd>${x[1]}</dd>`).join("")}</dl></details>`;
-  const toc = `<ul class="toc">${P.toc.map(x => `<li><a href="#${x[0]}">${x[1]}</a></li>`).join("")}</ul>`;
-  const main = `${toc}\n${order.map(k => S[k]).join("\n")}\n${kind === "mtg" ? gloss : ""}${en ? "" : JS_JA}`;
+  const tocItems = (S.video ? [["video", VT[lang].toc]] : []).concat(P.toc);   // 動画を載せたページだけ、目次の先頭に「動画で見る」
+  const toc = `<ul class="toc">${tocItems.map(x => `<li><a href="#${x[0]}">${x[1]}</a></li>`).join("")}</ul>`;
+  const main = `${toc}\n${order.map(k => S[k]).filter(Boolean).join("\n")}\n${kind === "mtg" ? gloss : ""}${en ? "" : JS_JA}`;
 
   return shell(lang, base, head, { header, main });
 }
