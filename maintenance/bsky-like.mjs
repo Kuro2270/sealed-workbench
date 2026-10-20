@@ -31,6 +31,9 @@ const WAIT_MS = +(process.env.LIKE_WAIT_MS ?? 75000);
 const JITTER_MIN = +(process.env.LIKE_JITTER_MIN_MS ?? 10000), JITTER_MAX = +(process.env.LIKE_JITTER_MAX_MS ?? 180000);
 const waitMs = () => WAIT_MS + JITTER_MIN + Math.random() * Math.max(0, JITTER_MAX - JITTER_MIN);
 const MAX_AGE_H = 48, MIN_TEXT = 20;
+const REFRESH_MS = 60 * 60000;   // ログインの鍵を取り直す間隔（1時間。鍵は2時間ほどで切れる）
+/* MTG の話をしている投稿か（本文に MTG らしい言葉があるか）。検索は「magic」だけで当たる投稿や、宣伝のついでにタグを付けた投稿も返すため */
+const ON_TOPIC = /\bmtg|magic[:\s]+the gathering|magic arena|マジック|ギャザリング/i;
 
 /* 探す言葉。英語と日本語。上から順に1件ずつ交互に選ぶ */
 const QUERIES = [
@@ -78,6 +81,7 @@ function suitable(p, me){
   const v = p.author.viewer || {};
   if(v.muted || v.blockedBy || v.blocking) return false;
   if(String(rec.text || "").trim().length < MIN_TEXT) return false;
+  if(!ON_TOPIC.test(String(rec.text || ""))) return false;
   if(Date.now() - Date.parse(p.indexedAt || rec.createdAt) > MAX_AGE_H * 3600000) return false;
   return true;
 }
@@ -89,6 +93,17 @@ async function main(){
   if(!s.ok) throw new Error(`Bluesky のログインに失敗 HTTP ${s.status}: ${(await s.text()).slice(0, 200)}`);
   const session = await s.json();
   const auth = { Authorization: `Bearer ${session.accessJwt}` };
+  /* ログインの鍵（accessJwt）は2時間ほどで切れる。50件付けると間をあけるので2時間を超え、途中から「ExpiredToken」で落ちた（2026年10月）。
+     そこで、前に取ってから REFRESH_MS たったら、いいねを付ける前に取り直す（refreshJwt を使う。パスワードでログインし直さない） */
+  let fresh = Date.now();
+  const refresh = async () => {
+    const r = await fetch(`${BASE}/com.atproto.server.refreshSession`, { method: "POST", headers: { Authorization: `Bearer ${session.refreshJwt}` } });
+    if(!r.ok) throw new Error(`Bluesky の鍵の取り直しに失敗 HTTP ${r.status}: ${(await r.text()).slice(0, 200)}`);
+    const n = await r.json();
+    session.accessJwt = n.accessJwt; session.refreshJwt = n.refreshJwt;
+    auth.Authorization = `Bearer ${n.accessJwt}`; fresh = Date.now();
+    console.log("（ログインの鍵を取り直しました）");
+  };
 
   const done = await likedToday(auth, session.did);
   const room = MANUAL ? LIMIT : Math.max(0, LIMIT - done);   // 手で押したときは、今日の数に関係なく付ける
@@ -121,8 +136,11 @@ async function main(){
     const line = `@${p.author.handle}：${oneLine(p.record.text)}`;
     if(DRY){ console.log("候補 " + line); rows.push(`| 候補 | [${line.replace(/\|/g, "／")}](${postUrl(p)}) |`); continue; }
     try{
-      await api("com.atproto.repo.createRecord", auth, { method: "POST", headers: { "Content-Type": "application/json" },
+      if(!DRY && Date.now() - fresh > REFRESH_MS) await refresh();
+      const like = () => api("com.atproto.repo.createRecord", auth, { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ repo: session.did, collection: "app.bsky.feed.like", record: { $type: "app.bsky.feed.like", subject: { uri: p.uri, cid: p.cid }, createdAt: new Date().toISOString() } }) });
+      // それでも鍵が切れていたら（ExpiredToken）、1回だけ取り直して付け直す
+      try{ await like(); }catch(e){ if(!/ExpiredToken/.test(e.message)) throw e; await refresh(); await like(); }
       console.log("いいね " + line); rows.push(`| いいね | [${line.replace(/\|/g, "／")}](${postUrl(p)}) |`);
     }catch(e){ console.log(`いいねに失敗（${line}）: ${e.message}`); rows.push(`| 失敗 | ${line.replace(/\|/g, "／")} |`); process.exitCode = 1; }
   }
