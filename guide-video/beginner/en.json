@@ -2,7 +2,19 @@
   "lang": "en",
   "header": "MTG Arena Limited for Beginners",
   "title": "MTG Arena Limited for Beginners | How to Play, Sealed vs Draft, Building a 40-Card Deck",
-  "description": "New to Limited on MTG Arena? This video explains how to play from scratch.\nWhat MTG Arena is, the basics of the game, the five colours, how to read a card, Sealed and Draft (Quick Draft vs Premier Draft), how to build a 40-card deck, and why removal matters.\n\n▼ Chapters\n{chapters}\n\n▼ Free Sealed / Draft practice, the basics of Magic and Limited, and format reports\nhttps://sealed-workbench.com/start/limited.en.html\n\nVoice: Kokoro TTS\nCharacter: Shikoku Metan (VOICEVOX / Tohoku Zunko project; illustration by Sakamoto Ahiru, recoloured)\n{bgm}Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.\n\n#MTGArena #MTGA #MTGLimited #MTGBeginner",
+  "description": "New to Limited on MTG Arena? This video explains how to play from scratch.\nWhat Magic is, MTG Arena, the basic rules, the five colours, how to read a card and spell types, Sealed and Draft (Quick Draft vs Premier Draft), the event schedule, how to build a 40-card deck, and why removal matters.\n\n▼ Chapters\n{chapters}\n\n▼ Free Sealed / Draft practice, the basics of Magic and Limited, and format reports\nhttps://sealed-workbench.com/start/limited.en.html\n\nVoice: Kokoro TTS\nCharacter: Shikoku Metan (VOICEVOX / Tohoku Zunko project; illustration by Sakamoto Ahiru, recoloured)\n{bgm}Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.\n\n#MTGArena #MTGA #MTGLimited #MTGBeginner",
+  "tags": [
+    "MTG Arena",
+    "MTGA",
+    "Magic: The Gathering",
+    "Limited",
+    "beginner",
+    "how to play",
+    "Draft",
+    "Sealed",
+    "Quick Draft",
+    "Premier Draft"
+  ],
   "scenes": [
     {
       "chapter": "Intro",

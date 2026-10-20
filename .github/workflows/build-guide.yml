@@ -3,7 +3,9 @@ name: 解説｜解説動画を作る（手動）
 # 定期的には作らない解説動画（例：リミテッド入門）を、台本 guide-video/<名前>/ja.json・en.json から作る。役割はこれだけ。
 #   ・自動では動かない。押したときだけ動く
 #   ・日本語: ナレーションは VOICEVOX（ずんだもん）。英語: ナレーションは Kokoro（英語の音声）、立ち絵は四国めたん
-#   ・YouTube には上げない。できた動画・目次・概要欄の下書き・題・サムネイルを、この実行ページの「Artifacts」から落として、YouTube Studio で手で上げる（30日で消える）
+#   ・「YouTube に非公開で上げる」にチェック（既定）すると、できた動画を YouTube に**非公開**で上げる（長尺と同じ許可。日本語は日本語チャンネル、英語は英語チャンネル）。
+#     内容を確認して、YouTube Studio で手で「公開」にする。チェックを外すと上げない
+#   ・できた動画・目次・概要欄・題・サムネイルは、この実行ページの「Artifacts」からも落とせる（30日で消える）
 #     Artifacts の名前: guide-<名前>-ja ／ guide-<名前>-en
 #   ・台本を直したいときは guide-video/<名前>/ja.json・en.json を直して、もう一度押す
 
@@ -24,6 +26,11 @@ on:
         description: "日本語の読み上げの速さ（1.15 が既定。速くしたいときは上げる）"
         required: false
         default: "1.15"
+      upload:
+        description: "できたら YouTube に非公開で上げる（公開は YouTube Studio で手で）"
+        type: boolean
+        required: false
+        default: true
 
 permissions:
   contents: read
@@ -97,6 +104,27 @@ jobs:
             echo "読み違いがあれば、台本の \"speak\"（読み上げだけの文）に読みを書くか、short/yomi.json に「表記: 読み（カタカナ）」を足して、もう一度実行してください。"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: YouTube に非公開で上げる
+        if: inputs.upload == true
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN_JA: ${{ secrets.YT_REFRESH_TOKEN_JA }}
+        run: |
+          set -eo pipefail   # 上げるのに失敗したら、この手順を赤くして止める
+          node maintenance/youtube-upload-guide.mjs "$GUIDE_NAME" ja | tee yt.log
+          if [ -f "guide-video/${GUIDE_NAME}/out/ja/youtube.json" ]; then
+            URL=$(node -e 'console.log(require("./guide-video/"+process.env.GUIDE_NAME+"/out/ja/youtube.json").url)')
+            {
+              echo
+              echo "### YouTube（日本語版・非公開）"
+              echo
+              echo "$URL"
+              echo
+              echo "内容を確認して、YouTube Studio で「公開」にしてください。サムネイルが付かなかった場合は、Artifacts の thumbnail.jpg を Studio で付けてください。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: 動画を保存する
         if: always()
         uses: actions/upload-artifact@v4
@@ -109,6 +137,7 @@ jobs:
             guide-video/${{ env.GUIDE_NAME }}/out/ja/title.txt
             guide-video/${{ env.GUIDE_NAME }}/out/ja/thumbnail.jpg
             guide-video/${{ env.GUIDE_NAME }}/out/ja/script.json
+            guide-video/${{ env.GUIDE_NAME }}/out/ja/youtube.json
           retention-days: 30
           if-no-files-found: warn
 
@@ -174,6 +203,27 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: YouTube に非公開で上げる
+        if: inputs.upload == true
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN_EN: ${{ secrets.YT_REFRESH_TOKEN_EN }}
+        run: |
+          set -eo pipefail   # 上げるのに失敗したら、この手順を赤くして止める
+          node maintenance/youtube-upload-guide.mjs "$GUIDE_NAME" en | tee yt.log
+          if [ -f "guide-video/${GUIDE_NAME}/out/en/youtube.json" ]; then
+            URL=$(node -e 'console.log(require("./guide-video/"+process.env.GUIDE_NAME+"/out/en/youtube.json").url)')
+            {
+              echo
+              echo "### YouTube（英語版・非公開）"
+              echo
+              echo "$URL"
+              echo
+              echo "内容を確認して、YouTube Studio で「公開」にしてください。サムネイルが付かなかった場合は、Artifacts の thumbnail.jpg を Studio で付けてください。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: 動画を保存する
         if: always()
         uses: actions/upload-artifact@v4
@@ -186,5 +236,6 @@ jobs:
             guide-video/${{ env.GUIDE_NAME }}/out/en/title.txt
             guide-video/${{ env.GUIDE_NAME }}/out/en/thumbnail.jpg
             guide-video/${{ env.GUIDE_NAME }}/out/en/script.json
+            guide-video/${{ env.GUIDE_NAME }}/out/en/youtube.json
           retention-days: 30
           if-no-files-found: warn
