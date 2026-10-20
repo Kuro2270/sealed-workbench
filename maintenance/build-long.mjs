@@ -225,7 +225,9 @@ function buildScript(ctx){
 
   /* --- 冒頭 --- */
   scenes.push({ kind: "hook", art: true, chapter: L("はじめに", "Intro"),
-    say: EN ? `This is a ${nameJa} format analysis for Magic: The Gathering Limited players. Using ${man(gamesD + gamesS)} games of MTG Arena data, we'll cover the strongest colour pairs, ten bomb rares you can pick without hesitation, ${WITH_TRAPS ? "trap rares that look great but win less than you'd expect, " : ""}and the best commons and uncommons for every colour, in both Draft and Sealed.` : `マジック：ザ・ギャザリングのリミテッドプレイヤーのための、${nameJa}環境分析動画です。MTGアリーナ${man(gamesD + gamesS)}試合のデータで、最強の色の組み合わせ、迷わず取っていいボムのレア十枚、${WITH_TRAPS ? "見た目に反して勝てない罠なレアカード、" : ""}そして、色別のおすすめのコモンとアンコモンまで、ドラフトとシールドの両方から見ていきます。`,
+    // 最初の一言は「誰のための、何の動画か」だけを短く（2026年10月：見る内容は次の「順番に、〜」で言うので、ここで並べると重なってもたつく）
+    say: EN ? `Want to know ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} Limited format on MTG Arena? We break it all down with ${man(gamesD + gamesS)} games of Draft and Sealed data.`
+            : `MTGアリーナ、${nameJa}のリミテッド環境を知りたい方に。${man(gamesD + gamesS)}試合のデータで、ドラフトとシールドをまるごと解説します。`,
     title: nameJa, gamesD, gamesS, tail: 0.6 });
   // 速さのデータ（試合ごとのデータから作る）は確定版にしか無い。暫定版では「環境の速さ」の章を入れず、組み合わせごとはマナカーブだけにする
   const hasPace = (dd.speed || []).some(x => x.wr != null && x.games), hasDeckSpeed = Object.keys(rd.pair_speed || {}).length > 0;
