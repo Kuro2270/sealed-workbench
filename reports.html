@@ -344,6 +344,8 @@
   #preview.tap img{width:min(300px, 78vw)}
   /* パソコンで全勝デッキのカードをクリックしたときは、さらに大きく出す */
   @media (hover: hover){ #preview.tap img{width:min(460px, 42vw, calc((100vh - 40px) * 488 / 680))} #preview.tap{cursor:zoom-out} }
+  /* スマホ：長押しで文字の選択やメニューが出ないようにする（長押しでカード画像を出すため） */
+  @media (hover: none){ tr[data-card], .tchip[data-card]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none} }
   #tapdim{display:none;position:fixed;inset:0;z-index:49;background:rgba(15,28,23,.55)}
   #tapdim.on{display:block}
   /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
@@ -1166,7 +1168,12 @@ function render(){
   // カード名にカーソルを合わせたら画像を出す
   $("body").querySelectorAll("tr[data-card], .tchip[data-card]").forEach(tr => {
     const name = tr.dataset.card;
-    if(TOUCH){ tr.onclick = () => { const u = imageUrls(name); if(u.length) tapPreview(u, displayName(name)); }; return; }
+    if(TOUCH){
+      const open = () => { const u = imageUrls(name); if(u.length) tapPreview(u, displayName(name)); };
+      tr.onclick = open;          // タップで開く
+      longPress(tr, open);        // 長押しでも開く
+      return;
+    }
     tr.onmouseenter = ev => showPreview(name, ev.clientX, ev.clientY);
     tr.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
     tr.onmouseleave = hidePreview;
@@ -1184,12 +1191,21 @@ function tapPreview(urls, alt){
   box.classList.add("tap"); box.style.display = "block"; box.style.left = ""; box.style.top = "";
   dim.classList.add("on");
 }
+/* 長押し（約0.45秒）で fn を呼ぶ。長押しのあとに続くタップ（click）は打ち消す。指が動いたら（スクロール）取りやめる */
+function longPress(el, fn){
+  let timer = null, fired = false;
+  el.addEventListener("touchstart", () => { fired = false; clearTimeout(timer); timer = setTimeout(() => { fired = true; fn(); }, 450); }, { passive: true });
+  el.addEventListener("touchmove", () => clearTimeout(timer), { passive: true });
+  el.addEventListener("touchcancel", () => clearTimeout(timer), { passive: true });
+  el.addEventListener("touchend", ev => { clearTimeout(timer); if(fired){ ev.preventDefault(); fired = false; } });
+  el.addEventListener("contextmenu", ev => ev.preventDefault());
+}
 function closeTap(){
   const box = $("preview"), dim = $("tapdim");
   box.classList.remove("tap"); box.style.display = "none"; box.innerHTML = "";
   dim.classList.remove("on");
 }
-document.addEventListener("click", ev => { if($("preview").classList.contains("tap") && !ev.target.closest("tr[data-card], tr[data-img], .tcard[data-img]")) closeTap(); });
+document.addEventListener("click", ev => { if($("preview").classList.contains("tap") && !ev.target.closest("tr[data-card], .tchip[data-card], tr[data-img], .tcard[data-img]")) closeTap(); });
 $("tapdim").addEventListener("click", closeTap);
 
 function showPreview(name, x, y){
