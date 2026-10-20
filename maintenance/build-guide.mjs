@@ -192,9 +192,10 @@ function sceneSvg(sc, ui){
       return frame(s, sc);
     }
     case "schedule": {
-      const x0 = 520, x1 = 1780, y0 = 290, lh = 200;
+      // 段の高さは段の数で決める（3段でも枠に収まるように）
+      const x0 = 520, x1 = 1780, y0 = 270, lh = v.lanes.length > 2 ? 150 : 200;
       const X = p => x0 + (x1 - x0) * p / 100;
-      let s = T(W / 2, 205, v.title, { size: 52, weight: 900, anchor: "middle", fill: "#FFD23F" }) + panel(80, 240, W - 160, 600, null);
+      let s = T(W / 2, 205, v.title, { size: 52, weight: 900, anchor: "middle", fill: "#FFD23F" }) + panel(80, 240, W - 160, v.lanes.length * lh + 160, null);
       v.lanes.forEach((ln, i) => {
         const y = y0 + i * lh + 30;
         s += T(x0 - 40, y + 62, ln.name, { size: fit(ln.name, 380, 42), weight: 900, anchor: "end" });

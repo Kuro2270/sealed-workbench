@@ -4,97 +4,567 @@
   "title": "MTG Arena Limited for Beginners | How to Play, Sealed vs Draft, Building a 40-Card Deck",
   "description": "New to Limited on MTG Arena? This video explains how to play from scratch.\nWhat MTG Arena is, the basics of the game, the five colours, how to read a card, Sealed and Draft (Quick Draft vs Premier Draft), how to build a 40-card deck, and why removal matters.\n\n▼ Chapters\n{chapters}\n\n▼ Free Sealed / Draft practice, the basics of Magic and Limited, and format reports\nhttps://sealed-workbench.com/start/limited.en.html\n\nVoice: Kokoro TTS\nCharacter: Shikoku Metan (VOICEVOX / Tohoku Zunko project; illustration by Sakamoto Ahiru, recoloured)\n{bgm}Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.\n\n#MTGArena #MTGA #MTGLimited #MTGBeginner",
   "scenes": [
-    { "chapter": "Intro", "layout": "title", "view": { "big": "Limited for Beginners", "sub": "How to play on MTG Arena, from scratch" },
-      "say": "New to Limited on MTG Arena? Let's go through how to play, from scratch." },
-    { "layout": "title", "nofade": true, "view": { "sub": "Play with only the cards you open" },
-      "say": "In Limited, you play with only the cards you open on the spot. You don't need a collection, so you can start right away." },
-
-    { "chapter": "What is MTG Arena", "layout": "arena",
-      "view": { "name": "MTG Arena", "tag": "The official digital version of Magic: The Gathering", "devices": ["PC", "Phone"], "chips": ["Free to play", "Many languages", "Rules handled for you"] },
-      "say": "MTG Arena is the official digital version of Magic. You can play on PC or on your phone, and it's free to play. The app handles the tricky rules for you, so you can learn as you play." },
-
-    { "chapter": "The basics", "layout": "basics", "view": { "focus": "life" },
-      "say": "First, the basics. Games are one on one. You both start at 20 life, and you win by bringing your opponent to zero." },
-    { "layout": "basics", "nofade": true, "view": { "focus": "flow" },
-      "say": "Each turn goes in this order: untap, draw, play, attack, and end." },
-    { "layout": "basics", "nofade": true, "view": { "focus": "mana" },
-      "say": "Mana is the energy you use to cast spells, and it comes from lands. You can play only one land per turn, so the longer the game goes, the bigger the cards you can cast." },
-
-    { "chapter": "The five colours", "layout": "colors",
-      "say": "Cards come in five colours, and each colour is good at different things. White protects with lots of small creatures. Blue draws cards and counters spells. Black destroys creatures. Red deals damage. And green has big creatures." },
-    { "layout": "colors", "nofade": true, "view": { "note": true },
-      "say": "In Limited, you usually build a two-colour deck." },
-
-    { "chapter": "Reading a card", "layout": "anatomy",
-      "say": "Here's how to read a card. The name is at the top left, and the mana cost is at the top right. Serra Angel costs two white mana plus three mana of any colour, so five mana in total." },
-    { "layout": "anatomy", "nofade": true, "view": { "focus": "pt" },
-      "say": "The four slash four at the bottom right is power and toughness. It deals four damage, and it dies when it takes four damage." },
-
-    { "chapter": "What is Limited", "layout": "compare",
-      "view": { "cols": ["Constructed", "Limited"], "rows": [["Cards", "From your collection", "Only the packs you open"], ["Deck size", "60 or more", "40 or more"], ["To start", "Collect cards first", "Just an entry fee, same start for all"], ["On Arena", "Standard and more", "Sealed, Draft"]], "focus": 1 },
-      "say": "There are two main ways to play: Constructed and Limited. In Constructed, you build a 60-card deck from your collection. In Limited, you build a 40-card deck from only the packs you open. Everyone starts on equal terms, so your collection doesn't matter." },
-    { "layout": "schedule",
-      "view": { "title": "The official event schedule", "lanes": [
-        { "name": "Draft & Sealed", "bars": [[0, 100, "Starts as soon as a new set comes out", "new"]] },
-        { "name": "Quick Draft", "bars": [[0, 28, "Older set", "old"], [30, 62, "New set", "new"], [64, 100, "Another older set", "old"]] }
-      ], "axis": ["Release", "Time →"] },
-      "say": "Limited on Arena isn't always the same set. Events follow the official event schedule, and the sets rotate in and out. When a new set comes out, its Draft and Sealed events start first." },
-
-    { "chapter": "Sealed", "layout": "sealed",
-      "view": { "packs": 6, "result": "A 40-card deck", "note": "Build at your own pace" },
-      "say": "Limited has two formats: Sealed and Draft. In Sealed, you open six packs at once and build your deck from them. You can take your time on your own, so it's a good way to get used to deckbuilding." },
-
-    { "chapter": "Draft", "layout": "draft",
-      "view": { "seats": 8, "steps": ["Open a pack", "Take one card", "Pass the rest"], "total": "3 packs, 42 picks" },
-      "say": "In Draft, eight players each open a pack, take one card, and pass the rest along. Over three packs, you pick 42 cards." },
-    { "layout": "compare", "chapter": "Quick vs Premier",
-      "view": { "cols": ["Quick Draft", "Premier Draft"], "rows": [["You draft with", "Computer players", "7 other real players"], ["Pick timer", "None", "Yes, for each pick"], ["Entry fee", "About half of Premier", "Higher, but bigger prizes"], ["When", "Sets rotate by period", "Right after a new set's release"], ["You play against", "Real players", "Real players"]], "focus": null },
-      "say": "On Arena, there are two kinds of Draft: Quick Draft and Premier Draft." },
-    { "layout": "compare", "nofade": true, "view": { "focus": 0 },
-      "say": "In Quick Draft, you draft with computer players. There's no pick timer, so you can go at your own pace. It costs about half as much as Premier Draft. It runs for set periods, and older sets come around too, not just the newest one." },
-    { "layout": "compare", "nofade": true, "view": { "focus": 1 },
-      "say": "In Premier Draft, you sit at a table with seven other real players. Each pick has a timer, and the entry fee is higher, but so are the prizes. This is also the one you can play right after a new set comes out." },
-    { "layout": "compare", "nofade": true, "view": { "focus": 0, "pick": "Start here" },
-      "say": "Either way, your opponents in games are real players. If you're new to Draft, start with Quick Draft." },
-
-    { "chapter": "Building a 40-card deck", "layout": "deck", "view": { "focus": "split" },
-      "say": "Your deck is 40 cards. If you're not sure, start with 17 lands, 17 creatures, and 6 other spells." },
-    { "layout": "deck", "nofade": true, "view": { "focus": "curve" },
-      "say": "For the 23 non-land cards, lean towards cheap ones. Around six two-drops help you avoid hands where you can't do anything early." },
-    { "layout": "deck", "nofade": true, "view": { "focus": "colors" },
-      "say": "Stick to two colours, and split your lands to match, like nine and eight." },
-
-    { "chapter": "Why removal matters", "layout": "removal", "view": { "focus": "what" },
-      "say": "Among your spells, removal comes first. Removal means cards that destroy your opponent's creatures, or stop them from attacking and blocking." },
-    { "layout": "removal", "nofade": true, "view": { "focus": "why" },
-      "say": "In Limited, your opponent will play big creatures and flyers too. One removal spell can stop them. And there are only a few removal spells in each pack, so in Draft, taking them early makes a difference." },
-
-    { "chapter": "Spotting strong cards", "layout": "rarity", "view": { "focus": "rarity" },
-      "say": "Rarity and strength are different things. There are plenty of strong commons." },
-    { "layout": "rarity", "nofade": true, "view": { "focus": "rate" },
-      "say": "When in doubt, check the win rate when drawn. If a card is about three points above its set's average, it's a strong card. You can find the numbers for each set in this channel's format reviews and in the format reports on our site." },
-
-    { "chapter": "Practise", "layout": "practice",
-      "say": "If you're nervous about jumping straight in, you can practise on our site. Sealed and Draft practice are free, as often as you like. You can open virtual packs and go all the way to building a deck. And when you play on Arena on PC, you can also use the Sealed and Draft assistants." },
-
-    { "chapter": "Summary", "layout": "summary",
-      "say": "To sum up: in Limited, you build a 40-card deck from the packs you open. Aim for 17 lands, 17 creatures, and 6 spells, play two colours, and don't forget removal. For Draft, start with Quick Draft." },
-    { "layout": "outro", "subscribe": true, "tail": 8,
-      "say": "We also make a format review for every set, so please subscribe!" }
+    {
+      "chapter": "Intro",
+      "layout": "title",
+      "view": {
+        "big": "Limited for Beginners",
+        "sub": "How to play on MTG Arena, from scratch"
+      },
+      "say": "New to Limited on MTG Arena? Let's go through how to play, from scratch."
+    },
+    {
+      "layout": "title",
+      "nofade": true,
+      "view": {
+        "sub": "Play with only the cards you open"
+      },
+      "say": "In Limited, you play with only the cards you open on the spot. You don't need a collection, so you can start right away."
+    },
+    {
+      "chapter": "What is MTG Arena",
+      "layout": "arena",
+      "view": {
+        "name": "MTG Arena",
+        "tag": "The official digital version of Magic: The Gathering",
+        "devices": [
+          "PC",
+          "Phone"
+        ],
+        "chips": [
+          "Free to play",
+          "Many languages",
+          "Rules handled for you"
+        ]
+      },
+      "say": "MTG Arena is the official digital version of Magic. You can play on PC or on your phone, and it's free to play. The app handles the tricky rules for you, so you can learn as you play."
+    },
+    {
+      "chapter": "The basics",
+      "layout": "basics",
+      "view": {
+        "focus": "life"
+      },
+      "say": "First, the basics. Games are one on one. You both start at 20 life, and you win by bringing your opponent to zero."
+    },
+    {
+      "layout": "basics",
+      "nofade": true,
+      "view": {
+        "focus": "flow"
+      },
+      "say": "Each turn goes in this order: untap, draw, play, attack, and end."
+    },
+    {
+      "layout": "basics",
+      "nofade": true,
+      "view": {
+        "focus": "mana"
+      },
+      "say": "Mana is the energy you use to cast spells, and it comes from lands. You can play only one land per turn, so the longer the game goes, the bigger the cards you can cast."
+    },
+    {
+      "chapter": "The five colours",
+      "layout": "colors",
+      "say": "Cards come in five colours, and each colour is good at different things. White protects with lots of small creatures. Blue draws cards and counters spells. Black destroys creatures. Red deals damage. And green has big creatures."
+    },
+    {
+      "layout": "colors",
+      "nofade": true,
+      "view": {
+        "note": true
+      },
+      "say": "In Limited, you usually build a two-colour deck."
+    },
+    {
+      "chapter": "Reading a card",
+      "layout": "anatomy",
+      "say": "Here's how to read a card. The name is at the top left, and the mana cost is at the top right. Serra Angel costs two white mana plus three mana of any colour, so five mana in total."
+    },
+    {
+      "layout": "anatomy",
+      "nofade": true,
+      "view": {
+        "focus": "pt"
+      },
+      "say": "The four slash four at the bottom right is power and toughness. It deals four damage, and it dies when it takes four damage."
+    },
+    {
+      "chapter": "What is Limited",
+      "layout": "compare",
+      "view": {
+        "cols": [
+          "Constructed",
+          "Limited"
+        ],
+        "rows": [
+          [
+            "Cards",
+            "From your collection",
+            "Only the packs you open"
+          ],
+          [
+            "Deck size",
+            "60 or more",
+            "40 or more"
+          ],
+          [
+            "To start",
+            "Collect cards first",
+            "Just an entry fee, same start for all"
+          ],
+          [
+            "On Arena",
+            "Standard and more",
+            "Sealed, Draft"
+          ]
+        ],
+        "focus": 1
+      },
+      "say": "There are two main ways to play: Constructed and Limited. In Constructed, you build a 60-card deck from your collection. In Limited, you build a 40-card deck from only the packs you open. Everyone starts on equal terms, so your collection doesn't matter."
+    },
+    {
+      "chapter": "Sealed",
+      "layout": "sealed",
+      "view": {
+        "packs": 6,
+        "result": "A 40-card deck",
+        "note": "Build at your own pace"
+      },
+      "say": "Limited has two formats: Sealed and Draft. In Sealed, you open six packs at once and build your deck from them. You can take your time on your own, so it's a good way to get used to deckbuilding."
+    },
+    {
+      "chapter": "Draft",
+      "layout": "draft",
+      "view": {
+        "seats": 8,
+        "steps": [
+          "Open a pack",
+          "Take one card",
+          "Pass the rest"
+        ],
+        "total": "3 packs, 42 picks"
+      },
+      "say": "In Draft, eight players each open a pack, take one card, and pass the rest along. Over three packs, you pick 42 cards."
+    },
+    {
+      "layout": "compare",
+      "chapter": "Quick vs Premier",
+      "view": {
+        "cols": [
+          "Quick Draft",
+          "Premier Draft"
+        ],
+        "rows": [
+          [
+            "You draft with",
+            "Computer players",
+            "7 other real players"
+          ],
+          [
+            "Pick timer",
+            "None",
+            "Yes, for each pick"
+          ],
+          [
+            "Entry fee",
+            "About half of Premier",
+            "Higher, but bigger prizes"
+          ],
+          [
+            "When",
+            "Sets rotate by period",
+            "Right after a new set's release"
+          ],
+          [
+            "You play against",
+            "Real players",
+            "Real players"
+          ]
+        ],
+        "focus": null
+      },
+      "say": "On Arena, there are two kinds of Draft: Quick Draft and Premier Draft."
+    },
+    {
+      "layout": "compare",
+      "nofade": true,
+      "view": {
+        "focus": 0
+      },
+      "say": "In Quick Draft, you draft with computer players. There's no pick timer, so you can go at your own pace. It costs about half as much as Premier Draft."
+    },
+    {
+      "layout": "compare",
+      "nofade": true,
+      "view": {
+        "focus": 1
+      },
+      "say": "In Premier Draft, you sit at a table with seven other real players. Each pick has a timer, and the entry fee is higher, but so are the prizes."
+    },
+    {
+      "layout": "compare",
+      "nofade": true,
+      "view": {
+        "focus": 0,
+        "pick": "Start here"
+      },
+      "say": "Either way, your opponents in games are real players. If you're new to Draft, start with Quick Draft."
+    },
+    {
+      "layout": "schedule",
+      "view": {
+        "title": "The official event schedule",
+        "lanes": [
+          {
+            "name": "Premier Draft",
+            "bars": [
+              [
+                0,
+                100,
+                "Starts as soon as a new set comes out",
+                "new"
+              ]
+            ]
+          },
+          {
+            "name": "Sealed",
+            "bars": [
+              [
+                0,
+                100,
+                "Starts as soon as a new set comes out",
+                "new"
+              ]
+            ]
+          },
+          {
+            "name": "Quick Draft",
+            "bars": [
+              [
+                0,
+                28,
+                "Older set",
+                "old"
+              ],
+              [
+                30,
+                62,
+                "New set",
+                "new"
+              ],
+              [
+                64,
+                100,
+                "Another older set",
+                "old"
+              ]
+            ]
+          }
+        ],
+        "axis": [
+          "Release",
+          "Time →"
+        ]
+      },
+      "say": "Limited on Arena isn't always the same set. Events follow the official event schedule. When a new set comes out, its Premier Draft and Sealed start first. Quick Draft rotates through sets by period, so older sets come around too, not just the newest one.",
+      "chapter": "Event schedule"
+    },
+    {
+      "chapter": "Building a 40-card deck",
+      "layout": "deck",
+      "view": {
+        "focus": "split"
+      },
+      "say": "Your deck is 40 cards. If you're not sure, start with 17 lands, 17 creatures, and 6 other spells."
+    },
+    {
+      "layout": "deck",
+      "nofade": true,
+      "view": {
+        "focus": "curve"
+      },
+      "say": "For the 23 non-land cards, lean towards cheap ones. Around six two-drops help you avoid hands where you can't do anything early."
+    },
+    {
+      "layout": "deck",
+      "nofade": true,
+      "view": {
+        "focus": "colors"
+      },
+      "say": "Stick to two colours, and split your lands to match, like nine and eight."
+    },
+    {
+      "chapter": "Why removal matters",
+      "layout": "removal",
+      "view": {
+        "focus": "what"
+      },
+      "say": "Among your spells, removal comes first. Removal means cards that destroy your opponent's creatures, or stop them from attacking and blocking."
+    },
+    {
+      "layout": "removal",
+      "nofade": true,
+      "view": {
+        "focus": "why"
+      },
+      "say": "In Limited, your opponent will play big creatures and flyers too. One removal spell can stop them. And there are only a few removal spells in each pack, so in Draft, taking them early makes a difference."
+    },
+    {
+      "chapter": "Spotting strong cards",
+      "layout": "rarity",
+      "view": {
+        "focus": "rarity"
+      },
+      "say": "Rarity and strength are different things. There are plenty of strong commons."
+    },
+    {
+      "layout": "rarity",
+      "nofade": true,
+      "view": {
+        "focus": "rate"
+      },
+      "say": "When in doubt, check the win rate when drawn. If a card is about three points above its set's average, it's a strong card. You can find the numbers for each set in this channel's format reviews and in the format reports on our site."
+    },
+    {
+      "chapter": "Practise",
+      "layout": "practice",
+      "say": "If you're nervous about jumping straight in, you can practise on our site. Sealed and Draft practice are free, as often as you like. You can open virtual packs and go all the way to building a deck. And when you play on Arena on PC, you can also use the Sealed and Draft assistants."
+    },
+    {
+      "chapter": "Summary",
+      "layout": "summary",
+      "say": "To sum up: in Limited, you build a 40-card deck from the packs you open. Aim for 17 lands, 17 creatures, and 6 spells, play two colours, and don't forget removal. For Draft, start with Quick Draft."
+    },
+    {
+      "layout": "outro",
+      "subscribe": true,
+      "tail": 8,
+      "say": "We also make a format review for every set, so please subscribe!"
+    }
   ],
   "ui": {
-    "basics": { "life": "20 life", "lifeNote": "Bring your opponent to 0 to win", "vs": "1 vs 1", "steps": [["Untap", "Ready your cards"], ["Draw", "Draw a card"], ["Play", "Play a land, cast spells"], ["Attack", "Attack with creatures"], ["End", "Pass the turn"]], "mana": "Land", "manaTo": "Mana", "manaNote": "One land per turn → bigger spells as the game goes on" },
-    "colors": [["W", "White", "Protection", "Lots of small creatures"], ["U", "Blue", "Cunning", "Draw cards, counter spells"], ["B", "Black", "Removal", "Destroy creatures"], ["R", "Red", "Damage", "Burn spells"], ["G", "Green", "Size", "Big creatures"]],
+    "basics": {
+      "life": "20 life",
+      "lifeNote": "Bring your opponent to 0 to win",
+      "vs": "1 vs 1",
+      "steps": [
+        [
+          "Untap",
+          "Ready your cards"
+        ],
+        [
+          "Draw",
+          "Draw a card"
+        ],
+        [
+          "Play",
+          "Play a land, cast spells"
+        ],
+        [
+          "Attack",
+          "Attack with creatures"
+        ],
+        [
+          "End",
+          "Pass the turn"
+        ]
+      ],
+      "mana": "Land",
+      "manaTo": "Mana",
+      "manaNote": "One land per turn → bigger spells as the game goes on"
+    },
+    "colors": [
+      [
+        "W",
+        "White",
+        "Protection",
+        "Lots of small creatures"
+      ],
+      [
+        "U",
+        "Blue",
+        "Cunning",
+        "Draw cards, counter spells"
+      ],
+      [
+        "B",
+        "Black",
+        "Removal",
+        "Destroy creatures"
+      ],
+      [
+        "R",
+        "Red",
+        "Damage",
+        "Burn spells"
+      ],
+      [
+        "G",
+        "Green",
+        "Size",
+        "Big creatures"
+      ]
+    ],
     "colorsNote": "In Limited, build a 2-colour deck",
-    "anatomy": { "card": "Serra Angel", "jaName": "", "parts": ["Name", "Mana cost", "Art", "Type", "Rules text", "Power / Toughness"], "cost": "2 white + 3 of any colour = 5 mana", "pt": "4/4 … deals 4 / dies to 4 damage" },
+    "anatomy": {
+      "card": "Serra Angel",
+      "jaName": "",
+      "parts": [
+        "Name",
+        "Mana cost",
+        "Art",
+        "Type",
+        "Rules text",
+        "Power / Toughness"
+      ],
+      "cost": "2 white + 3 of any colour = 5 mana",
+      "pt": "4/4 … deals 4 / dies to 4 damage"
+    },
     "compareTitle": "",
-    "sealed": { "title": "Sealed", "packs": "6 packs", "arrow": "Open them all" },
-    "draft": { "title": "Draft", "you": "You" },
-    "deck": { "title": "A 40-card deck", "split": [["Lands", 17], ["Creatures", 17], ["Other spells", 6]], "curveTitle": "Mana curve of the 23 non-land cards", "curve": [2, 6, 5, 4, 3, 3], "curveLabels": ["1", "2", "3", "4", "5", "6+"], "colorTitle": "Two colours", "colorLands": [["W", 9], ["U", 8]], "colorNote": "Split your lands to match, e.g. 9 + 8" },
-    "removal": { "title": "Removal", "def": "Cards that destroy or stop your opponent's creatures", "cards": [["Lightning Bolt", "", "Deals damage"], ["Pacifism", "", "Can't attack or block"]], "reasons": ["One card stops their best threat", "Only a few in each pack", "In Draft, take them early"] },
-    "rarity": { "tiers": [["Common", "Most common, the core of your deck", "#C9D3E0"], ["Uncommon", "Less common", "#BFD3E6"], ["Rare", "Often powerful", "#F2C94C"], ["Mythic rare", "The rarest", "#F08A3E"]], "note": "Rarity ≠ strength", "rateTitle": "Judge strength by win rate when drawn", "rateRule": "About +3 points above the set average → a strong card", "where": "Numbers for each set: our format reviews and the site's format reports" },
-    "practice": { "title": "Practise on Limited Workbench", "url": "sealed-workbench.com", "tools": [["Sealed practice", "Build 40 cards from 6 virtual packs", "Free"], ["Draft practice", "Practise picks at a simulated 8-player table", "Free"], ["Sealed assistant", "Reads your Arena log and helps you build", "PC"], ["Draft assistant", "Reads your Arena log and helps you pick", "PC"]] },
-    "summary": { "title": "Summary", "points": ["Build a 40-card deck from the packs you open", "Aim for 17 lands, 17 creatures, 6 spells", "Play 2 colours, and don't forget removal", "For Draft, start with Quick Draft"] },
-    "outro": { "l1": "A format review for every set", "l2": "Please subscribe!", "button": "▶ Subscribe" }
+    "sealed": {
+      "title": "Sealed",
+      "packs": "6 packs",
+      "arrow": "Open them all"
+    },
+    "draft": {
+      "title": "Draft",
+      "you": "You"
+    },
+    "deck": {
+      "title": "A 40-card deck",
+      "split": [
+        [
+          "Lands",
+          17
+        ],
+        [
+          "Creatures",
+          17
+        ],
+        [
+          "Other spells",
+          6
+        ]
+      ],
+      "curveTitle": "Mana curve of the 23 non-land cards",
+      "curve": [
+        2,
+        6,
+        5,
+        4,
+        3,
+        3
+      ],
+      "curveLabels": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6+"
+      ],
+      "colorTitle": "Two colours",
+      "colorLands": [
+        [
+          "W",
+          9
+        ],
+        [
+          "U",
+          8
+        ]
+      ],
+      "colorNote": "Split your lands to match, e.g. 9 + 8"
+    },
+    "removal": {
+      "title": "Removal",
+      "def": "Cards that destroy or stop your opponent's creatures",
+      "cards": [
+        [
+          "Lightning Bolt",
+          "",
+          "Deals damage"
+        ],
+        [
+          "Pacifism",
+          "",
+          "Can't attack or block"
+        ]
+      ],
+      "reasons": [
+        "One card stops their best threat",
+        "Only a few in each pack",
+        "In Draft, take them early"
+      ]
+    },
+    "rarity": {
+      "tiers": [
+        [
+          "Common",
+          "Most common, the core of your deck",
+          "#C9D3E0"
+        ],
+        [
+          "Uncommon",
+          "Less common",
+          "#BFD3E6"
+        ],
+        [
+          "Rare",
+          "Often powerful",
+          "#F2C94C"
+        ],
+        [
+          "Mythic rare",
+          "The rarest",
+          "#F08A3E"
+        ]
+      ],
+      "note": "Rarity ≠ strength",
+      "rateTitle": "Judge strength by win rate when drawn",
+      "rateRule": "About +3 points above the set average → a strong card",
+      "where": "Numbers for each set: our format reviews and the site's format reports"
+    },
+    "practice": {
+      "title": "Practise on Limited Workbench",
+      "url": "sealed-workbench.com",
+      "tools": [
+        [
+          "Sealed practice",
+          "Build 40 cards from 6 virtual packs",
+          "Free"
+        ],
+        [
+          "Draft practice",
+          "Practise picks at a simulated 8-player table",
+          "Free"
+        ],
+        [
+          "Sealed assistant",
+          "Reads your Arena log and helps you build",
+          "PC"
+        ],
+        [
+          "Draft assistant",
+          "Reads your Arena log and helps you pick",
+          "PC"
+        ]
+      ]
+    },
+    "summary": {
+      "title": "Summary",
+      "points": [
+        "Build a 40-card deck from the packs you open",
+        "Aim for 17 lands, 17 creatures, 6 spells",
+        "Play 2 colours, and don't forget removal",
+        "For Draft, start with Quick Draft"
+      ]
+    },
+    "outro": {
+      "l1": "A format review for every set",
+      "l2": "Please subscribe!",
+      "button": "▶ Subscribe"
+    }
   }
 }
