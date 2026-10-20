@@ -35,6 +35,7 @@ const readJson = async (p, f) => { try { return JSON.parse(await readFile(p, "ut
 const esc = s => String(s ?? "").replace(/[&<>]/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[m]));
 const pt = v => (v * 100).toFixed(1);                       // 勝率を「56.7」の形に
 const num = n => Number(n || 0).toLocaleString("en-US");
+const ORD = ["zeroth", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth"];
 
 /* ------------------------------------------------------------------ 集計 */
 
@@ -139,7 +140,7 @@ function chartSvg(set, name, d, g){
   /* 上段：平均マナ総量ごとの勝率 */
   /* 差が小さいセットで「安いデッキが勝つ」と言い切らない */
   s += t(PAD, y += 54, g.spread < 2 ? "Curve barely moves the win rate here"
-                     : g.faster ? "Cheaper decks win more" : "Bigger decks win more",
+                     : g.faster ? "Cheaper decks win more" : "Heavier decks win more",
     { size: 17, fill: INK, weight: 700 });
   s += t(PAD, y += 22, "Win rate by the deck's average mana value across its nonland cards (decks with 15+ spells).", { size: 13 });
   s += t(PAD, y += 18, `The dashed line is the format's overall ${pt(d.overall_win_rate)}%.`, { size: 13 });
@@ -212,8 +213,10 @@ function titles(set, name, d, g){
       + `${pt(g.best.wr)}% vs ${pt(g.worst.wr)}% by deck average mana value, over ${num(d.total_games)} games`);
   }
   if(g.over && g.under){
-    out.push(`[${set}] ${g.over.pair} is the pairing that actually adds something; `
-      + `${g.under.pair} is worse than its two colours apart (17Lands data)`);
+    // 一番低い組み合わせの差がプラスなら「2色より悪い」とは言わない（本文の表と食い違うため）
+    out.push(`[${set}] ${g.over.pair} is the pairing that actually adds something` + (g.under.gap < 0
+      ? `; ${g.under.pair} is worse than its two colours apart (17Lands data)`
+      : `, gaining ${(g.over.gap * 100).toFixed(1)} pt over its two colours (17Lands data)`));
   }
   out.push(`[${set}] I ran the 17Lands public data on ${num(d.total_games)} games — curve and colour pair numbers inside`);
   return out;
@@ -232,7 +235,7 @@ function body(set, name, d, g){
 
   /* 1つめ：カーブ */
   L.push("## 1. " + (g.spread < 2 ? "Curve barely moves the win rate in this format"
-    : g.faster ? "Cheaper decks win more, and the gradient is steep" : "Bigger decks win more here"));
+    : g.faster ? "Cheaper decks win more, and the gradient is steep" : "Heavier decks win more here"));
   L.push("");
   L.push("Win rate by the deck's **average mana value** across its nonland cards, for decks with 15 or more spells:");
   L.push("");
@@ -242,16 +245,19 @@ function body(set, name, d, g){
   L.push("");
   if(g.best && g.worst && g.spread >= 2){
     L.push(`That is a **${g.spread.toFixed(1)} point** spread between the ${g.faster ? "cheapest" : "most expensive"} `
-      + `bucket and the ${g.faster ? "most expensive" : "cheapest"} one. For comparison, the gap between the best and `
-      + `worst colour pair below is ${g.pairs.length ? ((g.pairs[0].wr - g.pairs[g.pairs.length - 1].wr) * 100).toFixed(1) : "—"} points. `
+      + `bucket and the ${g.faster ? "most expensive" : "cheapest"} one. For comparison, the gap between the best `
+      // 表に出る組み合わせが全部（10組）でないときは「最下位」と言わない（上位だけの表で「worst」と書くと誤り）
+      + `colour pair and the ${g.pairs.length >= 10 ? "worst" : ORD[g.pairs.length] + "-best"} one below is `
+      + `${g.pairs.length ? ((g.pairs[0].wr - g.pairs[g.pairs.length - 1].wr) * 100).toFixed(1) : "—"} points. `
       + `${g.faster ? "Trimming the top of your curve looks like it matters more than which two colours you end up in."
                     : "This is unusual — most recent formats reward the cheaper deck."}`);
   } else {
     L.push("The spread here is small, so curve looks like a weaker lever in this format than it usually is.");
   }
   L.push("");
-  L.push("Caveat worth stating up front: this is a correlation in deck lists, not an experiment. Decks with a low "
-    + "average mana value are also, on average, decks that opened better commons and had a cleaner curve to begin with.");
+  // 断り書きは、結果の向き（軽いほうが勝つ／重いほうが勝つ）に関係なく成り立つ言い方にする
+  L.push("Caveat worth stating up front: this is a correlation in deck lists, not an experiment. A deck's average "
+    + "mana value also depends on what was opened and which colours were open, so this is not a clean read of the curve on its own.");
   L.push("");
 
   /* 2つめ：2色 */
@@ -272,10 +278,17 @@ function body(set, name, d, g){
   L.push("");
   if(g.over && g.under && g.over.pair !== g.under.pair){
     const sgn = v => (v > 0 ? "+" : "−") + Math.abs(v * 100).toFixed(1);
-    L.push(`**${g.over.pair}** beats its parts by the most (${sgn(g.over.gap)} pt), and **${g.under.pair}** `
-      + `gives the most away (${sgn(g.under.gap)} pt). If you find yourself in ${g.under.pair}, the reading here `
-      + `is that the two colours are fine and the pairing is not — a splash out of it may be worth more `
-      + `than leaning further in.`);
+    // 一番低い組み合わせの差がプラスなら「損している」とは言わない（表の数字と言い回しが逆になるため）。
+    // 差だけでタッチなどの具体的な助言はしない（このデータからは言えない）
+    if(g.under.gap < 0){
+      L.push(`**${g.over.pair}** gets the most out of the pairing (${sgn(g.over.gap)} pt), and **${g.under.pair}** `
+        + `does worse than its two colours do on their own (${sgn(g.under.gap)} pt). In ${g.under.pair}, the individual colours `
+        + `seem to be carrying more of the deck than the pairing is.`);
+    }else{
+      L.push(`**${g.over.pair}** gets the most out of the pairing (${sgn(g.over.gap)} pt). Every pair listed does at least `
+        + `a little better than its two colours on their own; **${g.under.pair}** gains the least (${sgn(g.under.gap)} pt), `
+        + `so most of its edge comes from the colours themselves rather than from the pairing.`);
+    }
     L.push("");
   }
   L.push("This measure has a real flaw and I would rather say it than have it found in the comments: a colour's win rate "
