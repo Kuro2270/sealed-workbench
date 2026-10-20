@@ -8,7 +8,9 @@
  *
  * ・data/articles/<SET>_draft.json（無ければ sealed。公開データがまだ無いセットは data/provisional の記事）から数字を取り、
  *   data/names/<SET>.json のカード画像（日本語版／英語版）を右側に3枚並べる
- * ・文字は SVG で描き、カード画像と一緒に sharp で PNG にする
+ * ・背景はセットの絵：short/bg/<SET>.jpg（公式のキーアート。動画と同じもの）があればそれを、無ければ勝率トップのカードの絵（Scryfall の art_crop）。
+ *   文字が読めるよう、左側ほど濃い紺を重ねる。どちらも取れなければ、これまでどおりの紺一色
+ * ・文字は SVG で描き、背景・カード画像と一緒に sharp で PNG にする
  * ・sharp が無い環境では SVG だけを残して終了する（Actions では sharp を入れてから実行する）
  */
 
@@ -57,14 +59,14 @@ async function setNamesJa(){
   return {};
 }
 
-/* 文字の長さに応じて見出しの大きさを変える */
+/* 見出しの大きさ：右のカード（x=720 から）に掛からない幅（650px）に収まる大きさにする。最大は日本語 56・英語 60。
+   字の幅のめやすは、日本語（全角）1 文字＝字の大きさ、英語 1 文字＝0.6 倍 */
 function titleSize(name, lang){
-  const n = [...name].length;
-  if(lang === "ja") return n <= 12 ? 56 : n <= 18 ? 44 : n <= 26 ? 34 : 28;
-  return n <= 18 ? 60 : n <= 30 ? 46 : 36;
+  const units = [...name].reduce((n, ch) => n + (/[\x00-\x7F]/.test(ch) ? 0.6 : 1), 0) || 1;
+  return Math.max(26, Math.min(lang === "ja" ? 56 : 60, Math.floor(650 / units)));
 }
 
-function svgFor(lang, name, d, topCards){
+function svgFor(lang, name, d, topCards, hasBg = false){
   const t = L[lang];
   const fontJa = "'Noto Sans CJK JP','Noto Sans JP','IPAGothic','Hiragino Sans','Yu Gothic',sans-serif";
   const fontEn = "'DejaVu Sans','Noto Sans','Helvetica Neue',Arial,sans-serif";
@@ -82,7 +84,10 @@ function svgFor(lang, name, d, topCards){
   const body = lines.map((s, i) => `<text x="70" y="${352 + i * 40}" font-family="${font}" font-size="${lineSize}" fill="${PAPER}" opacity="0.92">${esc(s)}</text>`).join("\n");
   const topLabel = topCards.length ? `<text x="740" y="118" font-family="${font}" font-size="18" fill="${MUTED}">${esc(t.top)}</text>` : "";
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-  <rect width="${W}" height="${H}" fill="${PINE}"/>
+  ${hasBg
+    // 背景の絵の上に、左ほど濃い紺を重ねる（左の文字は読みやすく、右のカードの後ろは絵が見える）
+    ? `<defs><linearGradient id="shade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${PINE_DEEP}" stop-opacity="0.94"/><stop offset="0.5" stop-color="${PINE_DEEP}" stop-opacity="0.82"/><stop offset="1" stop-color="${PINE_DEEP}" stop-opacity="0.35"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#shade)"/>`
+    : `<rect width="${W}" height="${H}" fill="${PINE}"/>`}
   <rect x="0" y="${H - 8}" width="${W}" height="8" fill="${GOLD}"/>
   <text x="70" y="96" font-family="${font}" font-size="22" font-weight="700" letter-spacing="1" fill="${GOLD}">${esc(t.brand)}</text>
   <text x="70" y="${170 + (56 - tsize) * 0.5}" font-family="${font}" font-size="${tsize}" font-weight="800" fill="${PAPER}">${esc(name)}</text>
@@ -92,6 +97,24 @@ function svgFor(lang, name, d, topCards){
   ${topLabel}
   <text x="70" y="${H - 44}" font-family="${fontEn}" font-size="24" font-weight="700" fill="${GOLD}" letter-spacing="0.5">sealed-workbench.com</text>
 </svg>`;
+}
+
+/* 背景の絵（1200×630 に切り抜いたもの）。キーアート → トップのカードの絵、の順に探す。無ければ null */
+async function background(sharp, code, topUrl){
+  for(const ext of ["jpg", "png", "webp"]){
+    const buf = await readFile(`short/bg/${code}.${ext}`).catch(() => null);
+    if(buf) return sharp(buf).resize(W, H, { fit: "cover" }).png().toBuffer();
+  }
+  if(topUrl){
+    try{
+      const r = await fetch(String(topUrl).replace("/normal/", "/art_crop/"), { headers: SCRY_HEADERS });
+      if(r.ok){
+        // カードの絵は小さいので、少しぼかして粗さを目立たなくする
+        return sharp(Buffer.from(await r.arrayBuffer())).resize(W, H, { fit: "cover" }).blur(2).png().toBuffer();
+      }
+    }catch(e){}
+  }
+  return null;
 }
 
 async function cardLayers(sharp, urls){
@@ -136,11 +159,14 @@ async function main(){
       const name = lang === "ja" ? (ja[code.toLowerCase()] || names.set || code) : (names.set || code);
       const bank = lang === "ja" ? (names.images || {}) : (names.imagesEn || names.images || {});
       const urls = top.map(c => bank[c.name] || bank[String(c.name).split(" // ")[0]]).filter(Boolean);
-      const svg = svgFor(lang, name, d, urls);
       const out = `${OUT}/${code}-${lang}`;
-      if(!sharp){ await writeFile(out + ".svg", svg, "utf8"); continue; }
+      if(!sharp){ await writeFile(out + ".svg", svgFor(lang, name, d, urls), "utf8"); continue; }
+      const bg = await background(sharp, code, urls[0]);
+      const svg = svgFor(lang, name, d, urls, !!bg);
       const layers = await cardLayers(sharp, urls);
-      const png = await sharp(Buffer.from(svg)).composite(layers).png({ compressionLevel: 9 }).toBuffer();
+      const png = bg
+        ? await sharp(bg).composite([{ input: Buffer.from(svg) }, ...layers]).png({ compressionLevel: 9 }).toBuffer()
+        : await sharp(Buffer.from(svg)).composite(layers).png({ compressionLevel: 9 }).toBuffer();
       await writeFile(out + ".png", png);
       made++;
     }

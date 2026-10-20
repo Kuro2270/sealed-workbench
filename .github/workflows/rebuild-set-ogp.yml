@@ -1,0 +1,57 @@
+name: サイト｜セット別ページの共有画像を作り直す（push時）
+
+# セット別ページ（sets/）を X・Bluesky などで共有したときに出る画像（sets/og/<SET>-ja.png・-en.png）を作り直す。役割はこれだけ。
+#   ・ふだんは「データ｜2 勝率データ集計」の中で作られる。画像の作り方（build-set-ogp.mjs）や、
+#     背景に使うセットの絵（short/bg/<SET>.jpg）を差し替えたときに、データの集計を待たずに反映するためのもの
+#   ・すぐ作り直したいときは「Run workflow」を押す（入力は不要）
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "maintenance/build-set-ogp.mjs"
+      - "short/bg/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rebuild-set-ogp
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 日本語フォントを入れる
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk
+
+      - name: 画像合成ライブラリを入れる
+        run: npm install --no-save sharp
+
+      - name: セット別の共有画像を作る
+        run: node maintenance/build-set-ogp.mjs
+
+      - name: 変わっていればコミットする
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- sets/og
+          if git diff --staged --quiet; then
+            echo "変更はありません。"; exit 0
+          fi
+          git commit -m "セット別ページの共有画像を作り直す"
+          ok=0
+          for i in 1 2 3; do
+            if git pull --rebase --autostash origin main && git push origin main; then ok=1; break; fi
+            echo "再試行 $i"; sleep 5
+          done
+          if [ "$ok" != 1 ]; then echo "::error::GitHub に反映（push）できませんでした。もう一度実行してください。"; exit 1; fi

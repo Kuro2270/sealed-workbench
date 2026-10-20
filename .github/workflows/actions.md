@@ -68,6 +68,7 @@ SNS｜データ更新の告知（Bluesky・英語）／SNS｜X の文案を作�
 | 名前 | 動く条件 |
 |---|---|
 | サイト｜セット別ページを作り直す | `data/long.json`・`data/videos.json`・`maintenance/build-set-pages.mjs` を上げたとき |
+| サイト｜セット別ページの共有画像を作り直す | `maintenance/build-set-ogp.mjs`・`short/bg/` の絵を上げたとき |
 | サイト｜ロゴを軽くする | `short/logo/` の画像か `maintenance/build-logos.mjs` を上げたとき |
 | サイト｜対戦卓サーバーを配置 | `worker/` を上げたとき |
 | サイト｜ドラフト部屋サーバーを配置 | `worker-draft/` を上げたとき |
