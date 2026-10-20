@@ -224,11 +224,9 @@ function buildScript(d, nameJa, names, avgs = {}){
   const scenes = [];
   const gamesEn = d.total_games >= 10000 ? Math.round(d.total_games / 1000) + " thousand" : manSay(d.total_games);
   scenes.push({ kind: "hook", art: true,
-    // 最初の一言で「誰のための、何の動画か」を言う（例：リミテッドプレイヤーのための〇〇環境速報）
-    say: EARLY ? (JA ? `マジック：ザ・ギャザリングのリミテッドプレイヤーのための、${nameJa}環境速報です。MTGアリーナのデータを、1分でまとめました。`
-                     : `For Magic: The Gathering Limited players: the early report on ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} format. MTG Arena data, in one minute.`)
-       : JA ? `マジック：ザ・ギャザリングのリミテッドプレイヤーのための、${nameJa}の${d.mode === "sealed" ? "シールド" : "ドラフト"}環境まとめです。MTGアリーナ${games}試合のデータが、1分でわかります。`
-            : `For Magic: The Gathering Limited players: ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} ${d.mode === "sealed" ? "Sealed" : "Draft"} format, summed up. ${gamesEn} games of MTG Arena data, in one minute.`,
+    // 最初の一言で「誰のための、何の動画か」を短く言う（2026年10月：「マジック：ザ・ギャザリングの〜」から始めると長く、冒頭がもたつくため短くした）
+    say: JA ? `MTGアリーナ、${nameJa}の${EARLY ? "リミテッド" : d.mode === "sealed" ? "シールド" : "ドラフト"}環境を知りたい方に。1分でまとめました。`
+            : `Want to know ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} ${EARLY ? "Limited" : d.mode === "sealed" ? "Sealed" : "Draft"} format on MTG Arena? Here it is in one minute.`,
     title: nameJa, games, isSealed: d.mode === "sealed", early: EARLY });
 
   if(fast && slow){
@@ -314,15 +312,17 @@ function buildScript(d, nameJa, names, avgs = {}){
     const bombHl = !bombs.length ? null : bombs.length === 1
       ? { label: JA ? `1位の${bombs[0].label}` : `No. 1, ${bombs[0].name}`, idx: [0] }
       : { label: JA ? `上位${NUMJ[bombs.length]}枚` : `The top ${NUME[bombs.length]}`, idx: bombs.map((c, i) => i) };
-    let bombSay = !bombHl ? "" : JA ? `${bombHl.label}は、${bombs.length === 2 ? "どちらも" : bombs.length > 2 ? "どれも" : ""}レアの平均勝率を超える、ボム級です。`
-                                    : ` ${bombHl.label}${bombs.length > 1 ? (bombs.length === 2 ? " both beat" : " all beat") : ", beats"} the average rare. Bomb-level.`;
+    // 最後に「色が合うならピック必須」と一言（勝率の数字だけだと、どうすればいいかが残らないため）
+    let bombSay = !bombHl ? "" : JA ? `${bombHl.label}は、${bombs.length === 2 ? "どちらも" : bombs.length > 2 ? "どれも" : ""}レアの平均勝率を超える、ボム級です。色が合うなら、ピック必須です！`
+                                    : ` ${bombHl.label}${bombs.length > 1 ? (bombs.length === 2 ? " both beat" : " all beat") : ", beats"} the average rare. Bomb-level. If you're in the colour, take ${bombs.length > 1 ? "them" : "it"}!`;
     // ボム級が無ければ、1位が同じレア度の平均より何ポイント高いかを言う（差が LEAD_GAP 以上のときだけ。抑揚をつけるため）
     let gapHl = null;
     const own = avgs[opt.rarity];
     if(!bombHl && own && cards[0].gih - own >= LEAD_GAP){
       const gap = ((cards[0].gih - own) * 100).toFixed(1);
       gapHl = { label: JA ? `1位の${cards[0].label}` : `No. 1, ${cards[0].name}`, idx: [0] };
-      bombSay = JA ? `${gapHl.label}は、${label}の平均より${gap}ポイント高い勝率です。` : ` ${gapHl.label}, wins ${gap} points more than the average ${label}.`;
+      bombSay = JA ? `${gapHl.label}は、${label}の平均より、${gap}ポイントも高い勝率。色が合うなら、ピック必須です！`
+                   : ` ${gapHl.label}, wins ${gap} points more than the average ${label}. If you're in the colour, take it!`;
     }
     scenes.push({ kind: "top", label, say: (JA ? `${label}のトップ3はこちらです。${brief ? "" : lead}` : `Top three ${label}s. ${brief ? "" : lead}`.trim()) + bombSay + outsideNote(cards), cards, tail: opt.tail || 1.0, bombHl: bombHl || gapHl,
       strong: !brief && same ? col : null });   // 「〇が強いです」と言った色（読み上げに合わせて、その色のカードを光らせる）
@@ -810,7 +810,8 @@ function highlightsOf(sc){
     const out = sc.strong ? [{ label: CN[sc.strong], boxes: sc.cards.map((c, i) => c.color === sc.strong ? row(i) : null).filter(Boolean) }] : [];
     // ボム級の一言のあいだは、そのカードを光らせる
     if(sc.bombHl) out.push({ label: sc.bombHl.label, boxes: sc.bombHl.idx.map(row) });
-    return out;
+    // 画面の全部のカードを指すとき（3枚とも同じ色、3枚ともボム級など）は光らせない。全部光ると、かえってどこを見ればいいか分からない
+    return out.filter(h => h.boxes.length < sc.cards.length);
   }
   return [];
 }
