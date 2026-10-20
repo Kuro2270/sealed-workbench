@@ -9,7 +9,8 @@
  *       途中生成物（台本 script.json、場面ごとの png / wav）
  *
  * 中身: 環境の速さ → 色の強さ → 2色の組み合わせ（上位3つを深堀り＋最弱）→（ドラフトとシールドの違い：WITH_DVS のときだけ）
- *       → 神話レア・レアのボム上位10枚 → 罠カード → コモン・アンコモンの除去（平均より強いものだけ） → まとめ
+ *       → 神話レア・レアのボム上位10枚（6〜10位は1枚ずつ読まず、レアの平均よりどれだけ強いかだけ言う）
+ *       →（罠カード：WITH_TRAPS のときだけ）→（コモン・アンコモンの除去：WITH_REMOVAL のときだけ）→ まとめ
  *       （色の組み合わせの深堀りでは、コモン・アンコモンだけで鍵カードを選ぶ。勝率がそこそこ高く使用率が低い色は「狙い目」として特設）
  *       ドラフトとシールドの両方のデータ（data/articles と data/ratings）を使う。
  *
@@ -55,6 +56,7 @@ const UP = "#5B9BFF", DOWN = "#F08A3E", GOLD = "#F2C94C", GREEN = "#4CC38A";
 const COLOR = { W: "#F3EAC6", U: "#4A90E2", B: "#6B5E7A", R: "#E1553E", G: "#3E9B5B" };
 const WITH_DVS = false;       // 「ドラフトとシールドの違い」の章。2026年10月に割愛（戻すときは true）
 const WITH_REMOVAL = false;   // コモン・アンコモンの除去一覧の章。いったん割愛中（戻すときは true）
+const WITH_TRAPS = false;     // 「罠なレアカード」の章。2026年10月に割愛（FRA の長尺で離脱が多かった。視聴者は強いカードを知りたい。戻すときは true）
 const CJ = EN ? { W: "White", U: "Blue", B: "Black", R: "Red", G: "Green" } : { W: "白", U: "青", B: "黒", R: "赤", G: "緑" };
 const ZONES = EN ? ["2 mana or less", "3 mana", "4 mana", "5+ mana"] : ["2マナ以下", "3マナ", "4マナ", "5マナ以上"];     // マナカーブの区切り（組み合わせ別のマナ域）
 const ORDER = "WUBRG";
@@ -222,13 +224,13 @@ function buildScript(ctx){
 
   /* --- 冒頭 --- */
   scenes.push({ kind: "hook", art: true, chapter: L("はじめに", "Intro"),
-    say: EN ? `Here's the complete ${nameJa} Limited format for MTG Arena, based on ${man(gamesD + gamesS)} games of data. The strongest colour pairs, ten bomb rares you can pick without hesitation, trap rares that look great but win less than you'd expect, and the best commons and uncommons for every colour. We'll look at both Draft and Sealed data.` : `MTGアリーナ、リミテッドの${nameJa}環境を、${man(gamesD + gamesS)}試合のデータでまるごと解説します。最強の色の組み合わせ、迷わず取っていいボムのレア十枚、見た目に反して勝てない罠なレアカード、そして、色別のおすすめのコモンとアンコモンまで。ドラフトとシールドの両方のデータで見ていきます。`,
+    say: EN ? `Here's the complete ${nameJa} Limited format for MTG Arena, based on ${man(gamesD + gamesS)} games of data. The strongest colour pairs, ten bomb rares you can pick without hesitation, ${WITH_TRAPS ? "trap rares that look great but win less than you'd expect, " : ""}and the best commons and uncommons for every colour. We'll look at both Draft and Sealed data.` : `MTGアリーナ、リミテッドの${nameJa}環境を、${man(gamesD + gamesS)}試合のデータでまるごと解説します。最強の色の組み合わせ、迷わず取っていいボムのレア十枚、${WITH_TRAPS ? "見た目に反して勝てない罠なレアカード、" : ""}そして、色別のおすすめのコモンとアンコモンまで。ドラフトとシールドの両方のデータで見ていきます。`,
     title: nameJa, gamesD, gamesS, tail: 0.6 });
   // 速さのデータ（試合ごとのデータから作る）は確定版にしか無い。暫定版では「環境の速さ」の章を入れず、組み合わせごとはマナカーブだけにする
   const hasPace = (dd.speed || []).some(x => x.wr != null && x.games), hasDeckSpeed = Object.keys(rd.pair_speed || {}).length > 0;
   const pairLabel = hasDeckSpeed ? L("色の組み合わせと速さ", "Pair speed & mana curve") : L("色の組み合わせ", "Colour pairs");
-  scenes.push({ kind: "agenda", say: EN ? `Here's the plan: ${hasPace ? "format speed, " : ""}single colours, colour pairs${hasDeckSpeed ? " and deck speed" : ""}, sleeper pairs, bombs, trap rares, the best cards for each colour, and finally a summary.` : `順番に、${hasPace ? "環境の速さ、" : ""}単色の強さ、色の組み合わせ${hasDeckSpeed ? "とデッキの速さ" : ""}、狙い目の色、ボム、罠なレアカード、色別のおすすめを見て、最後にまとめます。${WITH_REMOVAL ? "除去も紹介します。" : ""}`,
-    items: (EN ? [...(hasPace ? ["Format speed"] : []), "Single colours", pairLabel, "Sleeper pairs", ...(WITH_DVS ? ["Draft vs Sealed"] : []), "Top 10 bomb rares", "Trap rares", "Top commons & uncommons", ...(WITH_REMOVAL ? ["Removal"] : []), "Summary"] : [...(hasPace ? ["環境の速さ"] : []), "単色の強さ", pairLabel, "狙い目の色", ...(WITH_DVS ? ["ドラフトとシールドの違い"] : []), "ボムのレア10枚", "罠なレアカード", "色別のコモン・アンコモン", ...(WITH_REMOVAL ? ["除去（コモン・アンコモン）"] : []), "まとめ"]), tail: 0.4 });
+  scenes.push({ kind: "agenda", say: EN ? `Here's the plan: ${hasPace ? "format speed, " : ""}single colours, colour pairs${hasDeckSpeed ? " and deck speed" : ""}, sleeper pairs, bombs, ${WITH_TRAPS ? "trap rares, " : ""}the best cards for each colour, and finally a summary.` : `順番に、${hasPace ? "環境の速さ、" : ""}単色の強さ、色の組み合わせ${hasDeckSpeed ? "とデッキの速さ" : ""}、狙い目の色、ボム、${WITH_TRAPS ? "罠なレアカード、" : ""}色別のおすすめを見て、最後にまとめます。${WITH_REMOVAL ? "除去も紹介します。" : ""}`,
+    items: (EN ? [...(hasPace ? ["Format speed"] : []), "Single colours", pairLabel, "Sleeper pairs", ...(WITH_DVS ? ["Draft vs Sealed"] : []), "Top 10 bomb rares", ...(WITH_TRAPS ? ["Trap rares"] : []), "Top commons & uncommons", ...(WITH_REMOVAL ? ["Removal"] : []), "Summary"] : [...(hasPace ? ["環境の速さ"] : []), "単色の強さ", pairLabel, "狙い目の色", ...(WITH_DVS ? ["ドラフトとシールドの違い"] : []), "ボムのレア10枚", ...(WITH_TRAPS ? ["罠なレアカード"] : []), "色別のコモン・アンコモン", ...(WITH_REMOVAL ? ["除去（コモン・アンコモン）"] : []), "まとめ"]), tail: 0.4 });
 
   /* --- 速さ --- */
   const paceRows = d => (d.speed || []).filter(s => s.wr != null && s.games).map((s, i, a) => ({
@@ -579,6 +581,9 @@ function buildScript(ctx){
   }
 
   /* --- ボム10枚 --- */
+  // レア全体の平均（引けた試合の勝率。試合数で重みづけ）。ボムの6〜10位の説明と、罠カードに使う
+  const rl = rd.cards.filter(c => !c.land && (c.rarity === "rare" || c.rarity === "mythic") && c.games >= 1500);
+  const rareAvg = rl.reduce((n, c) => n + c.gih * c.games, 0) / (rl.reduce((n, c) => n + c.games, 0) || 1);
   const rareD = rd.cards.filter(c => !c.land && (c.rarity === "rare" || c.rarity === "mythic") && c.games >= 1500).sort((a, b) => b.gih - a.gih);
   const bombs = rareD.slice(0, 10).map((c, i) => {
     const s = cardOf(rs.cards, c.name);
@@ -588,18 +593,18 @@ function buildScript(ctx){
     scenes.push({ kind: "bombs", chapter: L("ボムのレア10枚", "Top 10 bomb rares"), cards: bombs.slice(0, 5), avgD, part: 1, highlight: rowBoxes(bombs.slice(0, 5)),
       say: EN ? `Now the bombs: the top ten. They're ranked by win rate in games where you drew the card, among mythics and rares, counting only cards with at least 1,500 games. ` + bombs.slice(0, 5).map(c => `Number ${c.rank}, ${c.label}, ${pt(c.gih)} percent. `).join("") : `ここからがボム、十枚です。引けた試合での勝率が高い順で、神話レアとレアから選びました。試合数が少ないカードは数字がぶれるので、千五百試合以上のカードに限っています。` +
            bombs.slice(0, 5).map(c => `${c.rank}位、${c.label}、${pt(c.gih)}パーセント。`).join(""), tail: 0.6 });
-    scenes.push({ kind: "bombs", chapter: null, cards: bombs.slice(5, 10), avgD, part: 2, highlight: rowBoxes(bombs.slice(5, 10)),
-      say: EN ? bombs.slice(5, 10).map(c => `Number ${c.rank}, ${c.label}, ${pt(c.gih)} percent. `).join("") + `If you open any of these, they're worth moving your colours to fit. The format average is ${pt(avgD)} percent, and every one of these is well above it.`
-         : bombs.slice(5, 10).map(c => `${c.rank}位、${c.label}、${pt(c.gih)}パーセント。`).join("")
-         + `これらは、引けたら、色を合わせに行く価値が十分にあるカードです。全体の平均勝率は${pt(avgD)}パーセントなので、どれも大きく上回っています。`, tail: 0.6 });
+    // 6〜10位は1枚ずつ読み上げない（棒読みになり、離脱が多かった）。画面に並べたうえで、レアの平均よりどれだけ強いかだけを言う
+    // 差（ポイント）で言うと、画面の「引くと +○pt」と別の数字が並んで分かりにくいので、勝率の幅で言う
+    const p2 = bombs.slice(5, 10), lo = pt(p2[p2.length - 1].gih), hi = pt(p2[0].gih);
+    scenes.push({ kind: "bombs", chapter: null, cards: p2, avgD, part: 2,
+      say: EN ? `Numbers 6 to 10 are on screen. The average rare wins ${pt(rareAvg)} percent when drawn, and these win ${lo} to ${hi} percent, well above it. If you open one, it's worth moving your colours to fit.`
+         : `6位から10位は、画面のとおりです。レア全体の平均は${pt(rareAvg)}パーセントですが、どれも${lo}から${hi}パーセントと、大きく上回っています。引けたら、色を合わせに行く価値が十分にあります。`, tail: 0.6 });
   }
 
   if(bombs.length >= 3) scenes[0].cards = bombs.slice(0, 3);     // 冒頭の画面に並べるボム
 
-  /* --- 罠カード --- */
-  const rl = rd.cards.filter(c => !c.land && (c.rarity === "rare" || c.rarity === "mythic") && c.games >= 1500);
-  const rareAvg = rl.reduce((n, c) => n + c.gih * c.games, 0) / (rl.reduce((n, c) => n + c.games, 0) || 1);
-  const traps = rd.cards.filter(c => !c.land && (c.rarity === "rare" || c.rarity === "mythic") && c.games >= 2500 && c.gih <= rareAvg - 0.015)
+  /* --- 罠カード（WITH_TRAPS のときだけ） --- */
+  const traps = !WITH_TRAPS ? [] : rd.cards.filter(c => !c.land && (c.rarity === "rare" || c.rarity === "mythic") && c.games >= 2500 && c.gih <= rareAvg - 0.015)
     .sort((a, b) => a.gih - b.gih).slice(0, 5).map(c => {
       const s = cardOf(rs.cards, c.name);
       return { ...c, label: J(c.name), sGih: s && s.games >= 300 ? s.gih : null };
@@ -671,7 +676,7 @@ function buildScript(ctx){
     const paceSc = scenes.find(x => x.kind === "pace");
     const bestMono = monoD[0];
     const sealedBest = bestD ? (pairsS.find(x => x.pair === bestD.pair) || {}).wr : null;
-    const b3 = bombs.slice(0, 3), t3 = traps.slice(0, 3);
+    const b3 = bombs.slice(0, 3), t3 = WITH_TRAPS ? traps.slice(0, 3) : [];
     const remSc = WITH_REMOVAL ? scenes.find(x => x.kind === "removal") : null, r3 = remSc ? remSc.cards.slice(0, 3) : [];
     const sum = {
       kind: "summary", chapter: L("まとめ", "Summary"),
@@ -773,6 +778,11 @@ function summaryBoxes(sc){
   const n = Math.max(top.length, 1), PG = 20, PW = Math.floor((1820 - PG * (n - 1)) / n);
   const out = top.map((label, i) => ({ label, x: 50 + i * (PW + PG) - 6, y: 119, w: PW + 12, h: 247 }));
   const cols = [sc.b3, sc.t3, sc.r3].filter(c => c && c.length), CG = 25, CWd = Math.floor((1820 - CG * (cols.length - 1)) / cols.length);
+  if(cols.length === 1){      // 枠が1つだけのときは、カードを横に並べる（renderer の summary と同じ配置）
+    const SW = Math.floor((1820 - 48) / cols[0].length);
+    cols[0].forEach((c, j) => out.push({ label: c.label, x: 50 + 24 + j * SW - 10, y: 375 + 125 - 10, w: SW - 20, h: 326 }));
+    return out;
+  }
   cols.forEach((cards, i) => cards.forEach((c, j) => out.push({ label: c.label, x: 50 + i * (CWd + CG) + 12, y: 375 + 56 + j * 150, w: CWd - 24, h: 142 })));
   return out;
 }
@@ -1160,7 +1170,21 @@ function sceneSvg(sc){
         });
         return o;
       };
-      colsDef.forEach((d, i) => { s += col(i, d[0], d[1], d[2], d[3], c => L(`引けた試合の勝率 ${pt(c.gih)}%`, `Win rate when drawn ${pt(c.gih)}%`)); });
+      const rateOf = c => L(`引けた試合の勝率 ${pt(c.gih)}%`, `Win rate when drawn ${pt(c.gih)}%`);
+      if(colsDef.length === 1){
+        // 枠が1つだけ（ボムだけ）のときは、カードを横に並べて大きく出す（縦に3枚だと右側が空いてしまう）
+        const [label, cards, fill, accent] = colsDef[0], SW = Math.floor((1820 - 48) / cards.length);
+        s += panel(CX, CY, 1820, 515, accent) + T(CX + 24, CY + 46, label, { size: 34, weight: 900, fill: accent });
+        cards.forEach((c, j) => {
+          const x = CX + 24 + j * SW, ry = CY + 125;
+          s += cardImg(c, x, ry, 220, 306);
+          wrapName(c.label, 9).forEach((l, k) => { s += T(x + 240, ry + 60 + k * 44, l, { size: 36, weight: 900 }); });
+          s += T(x + 240, ry + 240, L("引けた試合の勝率", "Win rate when drawn"), { size: 26, fill: MUTED });
+          s += T(x + 240, ry + 288, `${pt(c.gih)}%`, { size: 44, weight: 900, fill });
+        });
+        return frame(s, sc);
+      }
+      colsDef.forEach((d, i) => { s += col(i, d[0], d[1], d[2], d[3], rateOf); });
       return frame(s, sc);
     }
     case "outro": {
@@ -1347,6 +1371,67 @@ for job in json.load(sys.stdin):
     durs.set(j.out, +execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", j.out]).toString().trim());
   }
   return durs;
+}
+/* ---------- 字幕の時間合わせ ----------
+   字幕は読み上げの文を2行ずつのページに分けて出す。ページを出す時刻は、以前は「字幕の文字数」の割合で決めていたが、
+   字幕では「パーセント」を「%」に縮めるなど、表示の文字数と読む長さが合わず、字幕が遅れて出る（または早く消える）ことがあった。
+   そこで、ページが読み上げの本文のどこから始まるかを探し、そこまでを「読むのにかかる長さの見積もり」の割合で時刻にする。
+   見積もりは、日本語は VOICEVOX の audio_query（合成はしない）のモーラの長さの合計、英語は読む文字数（数字は長めに読むので重く数える） */
+const estCache = new Map();
+async function speechLen(text){
+  const t = String(text || "").trim();
+  if(!t) return 0;
+  if(estCache.has(t)) return estCache.get(t);
+  let v = 0;
+  if(EN || STILLS || process.env.LONG_FAKE_AUDIO){
+    for(const ch of t) v += /[0-9]/.test(ch) ? 4 : /[,.;:!?]/.test(ch) ? 3 : /\s/.test(ch) ? 0.6 : 1;
+  }else{
+    try{
+      const q = await fetch(`${VV}/audio_query?speaker=${SPEAKER}&text=${encodeURIComponent(toSpeech(t))}`, { method: "POST" });
+      if(!q.ok) throw new Error(String(q.status));
+      for(const ap of (await q.json()).accent_phrases || []){
+        for(const m of ap.moras || []) v += (m.consonant_length || 0) + (m.vowel_length || 0);
+        if(ap.pause_mora) v += (ap.pause_mora.consonant_length || 0) + (ap.pause_mora.vowel_length || 0);
+      }
+    }catch(e){ v = [...t].length * 0.12; }   // 取れなければ文字数で代用
+  }
+  estCache.set(t, v);
+  return v;
+}
+/* 字幕のページが、読み上げの本文（say）の何文字目から始まるか。字幕だけの言い換え（「パーセント」→「%」など）と空白は読み飛ばして突き合わせる。
+   合わなければ null（そのときは、これまでどおり文字数の割合で時間を決める） */
+function capStarts(pages, say){
+  const out = []; let i = 0;
+  const skipWs = () => { while(i < say.length && /\s/.test(say[i])) i++; };
+  for(const pg of pages){
+    skipWs(); out.push(i);
+    for(const ch of pg){
+      if(/\s/.test(ch)) continue;
+      skipWs();
+      if(ch === "%" && say.startsWith("パーセント", i)){ i += 5; continue; }
+      if(ch === "%" && say.startsWith("percent", i)){ i += 7; continue; }
+      if(say[i] !== ch) return null;
+      i++;
+    }
+  }
+  return out;
+}
+/* 本文の位置 pos を、音声の中の時刻にする。区切って読み上げた場面（chunkDurs）は、区切りごとの実際の長さの中で見積もりの割合を使う */
+async function speechTimer(sc){
+  const LEAD = EN ? 0.05 : 0.1, TAIL = 0.25;   // 読み上げの前後の無音（VOICEVOX の前後の無音・英語は後ろに足した無音）
+  if(sc.chunkDurs && sc.spans){
+    const { chunks } = splitForHighlight(sc), t0 = [0];
+    sc.chunkDurs.forEach(d => t0.push(t0[t0.length - 1] + d));
+    return async pos => {
+      const k = chunks.findIndex(c => pos < c.end);
+      if(k < 0) return sc.dur;
+      const c = chunks[k], whole = await speechLen(c.text), part = await speechLen(sc.say.slice(c.at, pos));
+      const lead = k === 0 ? LEAD : 0.04, tail = k === chunks.length - 1 ? TAIL : 0.06, d = sc.chunkDurs[k];
+      return t0[k] + lead + (whole ? Math.min(1, part / whole) : 0) * Math.max(0, d - lead - tail);
+    };
+  }
+  const whole = await speechLen(sc.say);
+  return async pos => LEAD + (whole ? Math.min(1, (await speechLen(sc.say.slice(0, pos))) / whole) : 0) * Math.max(0, sc.dur - LEAD - TAIL);
 }
 /* 光らせる場面のセリフを、カード（項目）ごとの区切りで分ける（区切り方は highlight-split.mjs。ショートと共通） */
 const splitForHighlight = sc => splitSay(sc.say, sc.highlight, EN);
@@ -1601,15 +1686,22 @@ async function main(){
       return frac => { const pos = frac * total; const k = chunks.findIndex(c => pos < c.end); if(k < 0) return sc.dur;
         const c = chunks[k]; return t0[k] + Math.min(1, Math.max(0, (pos - c.at) / Math.max(1, c.end - c.at))) * (t0[k + 1] - t0[k]); };
     })() : null;
+    // 読み上げの本文の中で、各ページがどこから始まるか（字幕だけの別の文 sc.cap のときは使えないので、文字数の割合にする）
+    const starts = sc.cap ? null : capStarts(pages, sc.say);
+    const at = starts ? await speechTimer(sc) : null;
     let charsDone = 0;
     for(const [k, pg] of pages.entries()){
       const n0 = charsDone; charsDone += [...pg].length;
-      // 字幕ページが読み上げのどこから始まるかを、文字数の割合ではなく本文の位置で探す（ずれ防止）
-      const posOf = j => { if(j >= pages.length) return 1; const key = pages[j].replace(/\s/g, "").slice(0, 6); const at = key ? sc.say.indexOf(key) : -1; return at < 0 ? null : at / (sc.say.length || 1); };
-      const fa = k === 0 ? 0 : posOf(k), fb = posOf(k + 1);
-      const d = timeAt ? (fa != null && fb != null ? timeAt(fb) - timeAt(fa) : timeAt(charsDone / nChars) - timeAt(n0 / nChars)) : sc.dur * [...pg].length / nChars, f = `${base}-cap${k}.png`;
+      let a, b;
+      if(at){
+        a = k === 0 ? 0 : await at(starts[k]);
+        b = k === pages.length - 1 ? len : await at(starts[k + 1]);
+      }else{
+        a = t; b = k === pages.length - 1 ? len : t + (timeAt ? timeAt(charsDone / nChars) - timeAt(n0 / nChars) : sc.dur * [...pg].length / nChars);
+      }
+      const f = `${base}-cap${k}.png`;
       capJobs.push(sharp(Buffer.from(capSvg(pg)), { density: 72 }).resize(W, H - CAP_Y).png().toFile(f));
-      caps.push({ f, a: t, b: k === pages.length - 1 ? len : t + d }); t += d;
+      caps.push({ f, a, b: Math.max(b, a + 0.3) }); t = b;
     }
     await Promise.all(capJobs);
     if(sc.chapter) chapters.push({ at: total, title: sc.chapter });
@@ -1672,13 +1764,13 @@ async function main(){
     : isNaN(asOf) ? (EN ? "Data: 17Lands (https://www.17lands.com)" : "データ: 17Lands（https://www.17lands.com）")
     : EN ? `Data: 17Lands, as of ${asOf.toLocaleDateString("en-US", { timeZone: "UTC", year: "numeric", month: "short", day: "numeric" })} (https://www.17lands.com)`
     : `データ: 17Lands（${asOf.getUTCFullYear()}年${asOf.getUTCMonth() + 1}月${asOf.getUTCDate()}日時点の集計。https://www.17lands.com）`;
-  await writeFile(`${OUT}/title.txt`, EN ? `[MTG Arena] ${nameJa} Limited Review | Best Colours, Sleeper Pairs, Top 10 Bombs & Trap Rares` : `【${nameJa}】リミテッド環境まとめ｜強い色・狙い目の色・ボム10枚・罠なレアカード・色別おすすめ【MTGアリーナ】`, "utf8");   // YouTube に上げるときの題
+  await writeFile(`${OUT}/title.txt`, EN ? `[MTG Arena] ${nameJa} Limited Review | Best Colours, Sleeper Pairs, Top 10 Bombs${WITH_TRAPS ? " & Trap Rares" : " & Top Commons"}` : `【${nameJa}】リミテッド環境まとめ｜強い色・狙い目の色・ボム10枚・${WITH_TRAPS ? "罠なレアカード・" : ""}色別おすすめ【MTGアリーナ】`, "utf8");   // YouTube に上げるときの題
   const credit = EN ? `${dataLine}
 Voice: Kokoro TTS
 ${ZUNDA ? "Character: Shikoku Metan (VOICEVOX / Tohoku Zunko project; illustration by Sakamoto Ahiru, recoloured)\n" : ""}${bgmCredit ? `BGM: ${bgmCredit}\n` : ""}Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.` : "";
   if(EN) await writeFile(`${OUT}/description.txt`,
 `A complete MTG Arena Limited review of ${nameJa}, based on 17Lands data (${gD} Draft games and ${gS} Sealed games).
-The strongest colour pairs${hasDeckSpeed ? " and deck speed" : ""}, sleeper pairs, the top 10 bomb rares, trap rares, and the best commons and uncommons for every colour.
+The strongest colour pairs${hasDeckSpeed ? " and deck speed" : ""}, sleeper pairs, the top 10 bomb rares, ${WITH_TRAPS ? "trap rares, " : ""}and the best commons and uncommons for every colour.
 
 ▼ Chapters
 ${chapters.map(c => `${ts(c.at)} ${c.title}`).join("\n")}
@@ -1692,7 +1784,7 @@ ${credit}
 `, "utf8");
   else await writeFile(`${OUT}/description.txt`,
 `MTGアリーナ、リミテッドの${nameJa}環境を、17Landsの実戦データ（ドラフト${gD}試合・シールド${gS}試合）でまるごと解説します。
-最強の色の組み合わせ${hasDeckSpeed ? "とデッキの速さ" : ""}、狙い目の色、ボムのレア10枚、罠なレアカード、色別のおすすめコモン・アンコモンまで。
+最強の色の組み合わせ${hasDeckSpeed ? "とデッキの速さ" : ""}、狙い目の色、ボムのレア10枚、${WITH_TRAPS ? "罠なレアカード、" : ""}色別のおすすめコモン・アンコモンまで。
 
 ▼ 目次
 ${chapters.map(c => `${ts(c.at)} ${c.title}`).join("\n")}
