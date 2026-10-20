@@ -534,8 +534,10 @@ const css = `<style>
   .cimg img{width:100%;height:100%;display:block;object-fit:cover}
   .cimg i{display:none;position:absolute;inset:0;padding:12px;font-style:normal;font-weight:700;font-size:13px;color:var(--muted);align-items:center;justify-content:center;text-align:center}
   .cimg.miss img{display:none}.cimg.miss i{display:flex}
-  .anat{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:24px;align-items:start}
+  .anat{display:grid;grid-template-columns:minmax(260px,360px) 1fr;gap:24px;align-items:start}
   .anat .cardwrap{position:relative}
+  .anat .lead-line{position:absolute;height:2px;margin-top:-1px;background:var(--gold);box-shadow:0 0 0 1px rgba(255,255,255,.7)}
+  .anat .lead-dot{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--gold);border:1.5px solid #fff;transform:translate(-50%,-50%)}
   .badge{position:absolute;width:24px;height:24px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.45);transform:translate(-50%,-50%);border:2px solid #fff}
   .anat ol{list-style:none;margin:0 0 14px;padding:0}
   .anat ol li{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--paper-2);font-size:14px}
@@ -596,7 +598,7 @@ const css = `<style>
   details.gl dt{font-weight:700}details.gl dd{margin:0;color:var(--muted)}
   .credit{font-size:11.5px;color:var(--muted);margin:8px 0 0}
   @media (max-width:720px){
-    .blk{padding:16px 14px}.anat{grid-template-columns:1fr}.anat .cardwrap{width:100%;max-width:280px;margin:0 auto}
+    .blk{padding:16px 14px}.anat{grid-template-columns:1fr}.anat .cardwrap{width:100%;max-width:340px;margin:0 auto}
     .toc{position:static;flex-wrap:nowrap;overflow-x:auto}
     .cmp tbody th{width:28%}
     .types{grid-template-columns:repeat(2,1fr);gap:16px 10px}
@@ -657,9 +659,17 @@ ${css}`;
   S.types = `<section class="blk" id="types"><h2>${ty.h}</h2><p class="lead">${ty.lead}</p>
 <div class="types">${ty.list.map(x => `<div class="ty">${card(x[0])}<div class="tn">${x[2]}<small>${en ? x[1] : x[1] + "（" + x[0] + "）"}</small></div><p>${x[3]}</p></div>`).join("")}</div></section>`;
 
-  const badges = [[11, 5.8], [88, 5.8], [50, 30], [11, 57.5], [50, 74], [89, 92.5]];
+  // 番号はカードの外（左右の余白）に置き、細い線でカードの中の場所を指す（カードの名前や数字に重ならないように。動画と同じ）
+  //   [置く側（-1 左 / 1 右）, 高さ（%）, 指す場所の横位置（カードの幅に対する割合）]
+  const badges = [[-1, 5.6, 0.05], [1, 5.6, 0.93], [1, 30, 0.7], [-1, 56.8, 0.05], [-1, 75, 0.05], [1, 93, 0.95]];
+  const PAD = 34;   // カードの左右の余白（px）。番号はこの中に置く
+  const px = f => `calc(${PAD}px + ${f} * (100% - ${PAD * 2}px))`;
   S.read = `<section class="blk" id="read"><h2>${r.h}</h2><p class="lead">${r.lead}</p>
-<div class="anat"><div class="cardwrap">${card("Serra Angel")}${badges.map((b, i) => `<span class="badge" style="left:${b[0]}%;top:${b[1]}%">${i + 1}</span>`).join("")}</div>
+<div class="anat"><div class="cardwrap" style="padding:0 ${PAD}px">${card("Serra Angel")}${badges.map(([side, top, f], i) => {
+    const bx = side < 0 ? `${PAD / 2}px` : `calc(100% - ${PAD / 2}px)`;
+    const line = side < 0 ? `left:${PAD / 2}px;width:calc(${px(f)} - ${PAD / 2}px)` : `left:${px(f)};width:calc(100% - ${PAD / 2}px - ${px(f)})`;
+    return `<span class="lead-line" style="${line};top:${top}%"></span><span class="lead-dot" style="left:${px(f)};top:${top}%"></span><span class="badge" style="left:${bx};top:${top}%">${i + 1}</span>`;
+  }).join("")}</div>
 <div><ol>${r.items.map(x => `<li><span>${x[0]}</span>${x[1]}</li>`).join("")}</ol>
 <h3 class="sub" style="margin-top:6px">${r.costH}</h3><p style="margin:0 0 8px">${r.costBody}</p><p style="margin:0">${r.ptBody}</p></div></div></section>`;
 
