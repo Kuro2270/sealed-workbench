@@ -129,6 +129,11 @@
   .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
   .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
   .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
+  .modebar{margin:0 0 18px}
+  .tabs{display:inline-flex;gap:3px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .tab{border-radius:999px;padding:8px 22px;font-size:14px;font-weight:600;color:var(--muted);text-decoration:none;line-height:1.4}
+  .tab:hover:not(.on){color:var(--ink);background:#fff}
+  .tab.on{background:var(--pine);color:var(--paper)}
 </style>
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
@@ -140,8 +145,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/mana/mana.min.css">
 <script src="../analytics.js"></script>
 <script src="/navmenu.js" defer></script>
+<script src="/tip.js" defer></script>
+<script src="/card-preview.js?v=1" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
@@ -203,6 +211,21 @@
   .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
   section{margin-top:18px}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
+  .longvideo h2{margin:0 0 4px;font-size:18px}
+  .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
+  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0A2038}
+  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .longvideo .yt button span{width:68px;height:68px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .longvideo .yt button span::after{content:"";border-left:23px solid #0B1E33;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
+  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px}
+  .longvideo .chap li{margin:0 0 2px}
+  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
+  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
+  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
   .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
   .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
   .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -222,6 +245,41 @@
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .cname{display:flex;align-items:center;gap:6px}
+  .cname .art{width:40px;height:30px;flex:none;display:block;border-radius:4px;object-fit:cover;background:var(--paper-2)}
+  @media (max-width:520px){ .cname .art{width:32px;height:24px} }
+  /* カードのティア表 */
+  .ctier input[type=radio]{position:absolute;opacity:0;pointer-events:none}
+  .ctabs{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--pine);border-radius:12px;overflow:hidden;margin:6px 0 10px;background:#fff}
+  .ctabs label{font-size:15px;font-weight:700;padding:10px 6px;color:var(--pine);border-left:1px solid var(--line);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.25;text-align:center}
+  .ctabs label:first-child{border-left:0}
+  .ctabs label .n{font-size:11.5px;font-weight:500;color:var(--muted)}
+  .ctier input:nth-of-type(1):checked ~ .ctabs label:nth-child(1),.ctier input:nth-of-type(2):checked ~ .ctabs label:nth-child(2),.ctier input:nth-of-type(3):checked ~ .ctabs label:nth-child(3){background:var(--pine);color:#fff}
+  .ctier input:nth-of-type(1):checked ~ .ctabs label:nth-child(1) .n,.ctier input:nth-of-type(2):checked ~ .ctabs label:nth-child(2) .n,.ctier input:nth-of-type(3):checked ~ .ctabs label:nth-child(3) .n{color:#BFD3EA}
+  .ctabs .rd{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+  .ctabs .rd.mr{background:linear-gradient(135deg,#E0A23B,#C4552C)}.ctabs .rd.u{background:#9AAAB4}.ctabs .rd.c{background:#2A3B4C;box-shadow:0 0 0 1px #fff inset}
+  @media (max-width:520px){ .ctabs label{font-size:13px;padding:9px 4px} }
+  @media (max-width:420px){ .ctabs .rd{display:none} }
+  .ccolors{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
+  .ccolors .lbl{font-size:12px;color:var(--muted);margin-right:2px}
+  .ccolors button{font:inherit;font-size:12.5px;line-height:1;padding:6px 10px;border-radius:999px;cursor:pointer;background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .ccolors button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
+  .tchip[hidden],.tempty[hidden]{display:none}
+  .ctier .tiers{display:none}
+  .ctier input:nth-of-type(1):checked ~ .t-mr,.ctier input:nth-of-type(2):checked ~ .t-u,.ctier input:nth-of-type(3):checked ~ .t-c{display:grid}
+  .tiers{display:grid;gap:5px}
+  .trow{display:grid;grid-template-columns:44px 1fr;gap:6px;align-items:stretch}
+  .tlab{display:flex;align-items:center;justify-content:center;border-radius:7px;font:800 20px/1 "Bricolage Grotesque",sans-serif;color:#fff}
+  .tlab.S{background:#C9472E}.tlab.A{background:#D98A1E}.tlab.B{background:#4F8A4A}.tlab.C{background:#6B7A8A}.tlab.D{background:#8C5E58}
+  .tcells{display:flex;flex-wrap:wrap;gap:5px;padding:5px;background:var(--paper-2);border-radius:7px;min-height:38px;align-items:center}
+  .tchip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--line);border-radius:7px;padding:3px 8px;font-size:13px}
+  .tchip b{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .ctier .tchip{padding:3px 8px 3px 4px}
+  .tchip .tpic{position:relative;flex:none;display:block}
+  .tchip .tpic .art{width:30px;height:22px;display:block;border-radius:3px;object-fit:cover;background:var(--paper-2)}
+  .tchip .tpic > :last-child{position:absolute;right:-5px;bottom:-4px;transform:scale(.72)}
+  .tempty{font-size:12px;color:var(--muted);padding:0 4px}
+  .tavg{font-size:12px;color:var(--muted);margin:6px 0 0}
   .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
   .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#FFFFFF}.rar.mythic{background:#C4552C}
   .links ul{margin:6px 0 0;padding-left:1.2em}
@@ -246,6 +304,9 @@
   .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}
   footer a{color:var(--muted)}
+  .faq details{border-bottom:1px solid var(--line,#D7E2EE);padding:10px 2px}
+  .faq summary{cursor:pointer;font-weight:700;font-size:14.5px}
+  .faq p{margin:8px 0 2px;font-size:14px;line-height:1.8}
   @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
@@ -260,34 +321,44 @@
       </select></div>
     <nav>
       <div class="ng"><span class="ngl">Start</span><span class="ngs">MTG basics &amp; how to use this site</span><a href="../start/index.en.html">What is MTG?</a><a href="../start/limited.en.html">What is Limited?</a></div>
-      <div class="ng"><span class="ngl">Practice</span><span class="ngs">Virtual packs</span><a href="../sealed.html">Sealed practice</a><a href="../draft.html">Draft practice</a><a href="../draftroom.html">Draft practice (vs players)</a></div>
+      <div class="ng"><span class="ngl">Practice</span><span class="ngs">Virtual packs</span><a href="../sealed.html">Sealed practice</a><a href="../draft.html">Draft practice (vs CPU)</a><a href="../draftroom.html">Draft practice (vs players)</a></div>
       <div class="ng"><span class="ngl">Use with MTG Arena</span><span class="ngs">Reads your log in real play · PC only</span><a href="../sealed-assist.html">Sealed assistant<b class="pcb">PC</b></a><a href="../assistant.html">Draft assistant<b class="pcb">PC</b></a></div>
       <div class="ng"><span class="ngl">Data</span><span class="ngs">How strong and fast each set is</span><a href="../reports.html">Set reports</a></div>
       <div class="ng"><span class="ngl">Play</span><span class="ngs">Play friends or run a tournament</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
       <div class="ng"><span class="ngl">Shop</span><span class="ngs">MTG supplies sold in Japan</span><a href="../goods/index.en.html">Japanese supplies</a></div>
     </nav>
     <h1>What is Limited?</h1>
-    <p>Limited means playing with only the cards from packs you open. Sealed vs Draft, how to build 40 cards, and why removal is strong — on one page.</p>
+    <p>Limited means playing with only the cards from packs you open. Sealed vs Draft (Quick and Premier), the event schedule, how to build 40 cards, and why removal is strong — on one page.</p>
     <link rel="alternate" hreflang="ja" href="limited.html">
   </div>
 </header>
 <main>
-<ul class="toc"><li><a href="#video">Video</a></li><li><a href="#limited">What is Limited</a></li><li><a href="#deck">40-card deck</a></li><li><a href="#removal">Why removal</a></li><li><a href="#next">Next steps</a></li></ul>
+<div class="modebar"><div class="tabs" role="navigation" aria-label="Getting started"><a class="tab" href="index.en.html">What is MTG?</a><a class="tab on" href="limited.en.html" aria-current="page">What is Limited?</a></div></div>
 <section class="blk longvideo" id="video"><h2>Watch the video</h2><p class="lead">From the basics of Magic to how Limited works and how to build a 40-card deck, explained in a video. Press a chapter to jump to that part.</p>
 <div class="lv"><div class="yt" data-id="lltt0z1xKa4"><img src="https://i.ytimg.com/vi/lltt0z1xKa4/hqdefault.jpg" alt="MTG Arena Limited for Beginners | How to Play, Sealed vs Draft, Building a 40-Card Deck" loading="lazy" width="640" height="360"><button type="button" aria-label="Play"><span></span></button></div><ul class="chap"><li><a href="https://youtu.be/lltt0z1xKa4?t=0" data-t="0" target="_blank" rel="noopener"><time>0:00</time><span>Intro</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=12" data-t="12" target="_blank" rel="noopener"><time>0:12</time><span>What is Magic</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=36" data-t="36" target="_blank" rel="noopener"><time>0:36</time><span>What is MTG Arena</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=50" data-t="50" target="_blank" rel="noopener"><time>0:50</time><span>The basics</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=83" data-t="83" target="_blank" rel="noopener"><time>1:23</time><span>The five colours</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=103" data-t="103" target="_blank" rel="noopener"><time>1:43</time><span>Reading a card</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=123" data-t="123" target="_blank" rel="noopener"><time>2:03</time><span>Spell types</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=146" data-t="146" target="_blank" rel="noopener"><time>2:26</time><span>What is Limited</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=163" data-t="163" target="_blank" rel="noopener"><time>2:43</time><span>Sealed</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=175" data-t="175" target="_blank" rel="noopener"><time>2:55</time><span>Draft</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=183" data-t="183" target="_blank" rel="noopener"><time>3:03</time><span>Quick vs Premier</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=213" data-t="213" target="_blank" rel="noopener"><time>3:33</time><span>Event schedule</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=243" data-t="243" target="_blank" rel="noopener"><time>4:03</time><span>Building a 40-card deck</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=274" data-t="274" target="_blank" rel="noopener"><time>4:34</time><span>Why removal matters</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=296" data-t="296" target="_blank" rel="noopener"><time>4:56</time><span>Spotting strong cards</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=316" data-t="316" target="_blank" rel="noopener"><time>5:16</time><span>Practise</span></a></li><li><a href="https://youtu.be/lltt0z1xKa4?t=337" data-t="337" target="_blank" rel="noopener"><time>5:37</time><span>Summary</span></a></li></ul></div>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoObject","name":"MTG Arena Limited for Beginners | How to Play, Sealed vs Draft, Building a 40-Card Deck","description":"From the basics of Magic to how Limited works and how to build a 40-card deck, explained in a video. Press a chapter to jump to that part.","thumbnailUrl":["https://i.ytimg.com/vi/lltt0z1xKa4/hqdefault.jpg"],"uploadDate":"2026-10-21","contentUrl":"https://www.youtube.com/watch?v=lltt0z1xKa4","embedUrl":"https://www.youtube-nocookie.com/embed/lltt0z1xKa4","inLanguage":"en"}</script>
 <script>(function(){var box=document.querySelector(".longvideo .yt");if(!box)return;function play(t){var f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+box.dataset.id+"?autoplay=1&playsinline=1"+(t?"&start="+t:"");f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title="MTG Arena Limited for Beginners | How to Play, Sealed vs Draft, Building a 40-Card Deck";box.innerHTML="";box.appendChild(f);}box.querySelector("button").addEventListener("click",function(){play(0);});document.querySelectorAll(".longvideo .chap a").forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();play(+a.dataset.t);box.scrollIntoView({block:"nearest",behavior:"smooth"});});});})();</script></section>
+<ul class="toc"><li><a href="#limited">What is Limited</a></li><li><a href="#draft">Quick vs Premier</a></li><li><a href="#schedule">Event schedule</a></li><li><a href="#deck">40-card deck</a></li><li><a href="#removal">Why removal</a></li><li><a href="#next">Next steps</a></li></ul>
 <section class="blk" id="limited"><h2>What is Limited?</h2><p class="lead">You build a deck on the spot, using only the cards from packs you open. Everyone starts on equal footing, so a bigger collection does not decide the game.</p>
 <div class="two"><div class="box"><h3>Sealed</h3><p style="margin:0;font-size:13.5px">Open six packs at once and build a 40-card deck from that pool.</p><ul><li>Build calmly, on your own</li><li>Deck-building is the skill</li><li>An easier way to start than Draft</li></ul></div><div class="box"><h3>Draft</h3><p style="margin:0;font-size:13.5px">Eight players sit in a pod, take one card from a pack and pass it on (three packs, 42 picks).</p><ul><li>Tests what you choose to take</li><li>Reading the others is half the fun</li><li>Includes building the deck too</li></ul></div></div>
 <p class="note"><b>What matters in Limited</b>　It is not only about collecting strong cards; the <b>balance of all 40</b> decides games. The guide below keeps you from guessing.</p></section>
+<section class="blk" id="draft"><h2>Quick Draft and Premier Draft</h2><p class="lead">MTG Arena has two kinds of Draft. Either way, your opponents in games are real players.</p>
+<table class="cmp"><thead><tr><th></th><th>Quick Draft</th><th>Premier Draft</th></tr></thead><tbody>
+<tr><th>You draft with</th><td>Computer players</td><td>Real players (8 including you)</td></tr>
+<tr><th>Pick timer</th><td>None (go at your own pace)</td><td>Yes, for each pick</td></tr>
+<tr><th>Entry fee</th><td>About half of Premier Draft</td><td>Higher (bigger prizes too)</td></tr>
+<tr><th>When</th><td>Sets rotate by period</td><td>Right after a new set's release</td></tr></tbody></table>
+<p class="note">If you're new to Draft, start with <b>Quick Draft</b>.</p></section>
+<section class="blk" id="schedule"><h2>Event schedule</h2><p class="lead">Limited on Arena isn't always the same set. Events follow the official event schedule.</p>
+<div class="cards3"><div class="pt"><span class="ic">📦</span><b>Premier Draft and Sealed</b><p>Start with the new set as soon as it comes out.</p></div><div class="pt"><span class="ic">🔄</span><b>Quick Draft</b><p>Rotates through sets by period, so older sets come around too, not just the newest one.</p></div><div class="pt"><span class="ic">📅</span><b>How often new sets come out</b><p>Roughly every six to eight weeks. The gap varies from set to set, so check the official event schedule for details.</p></div></div></section>
 <section class="blk" id="deck"><h2>A 40-card deck, at a glance</h2><p class="lead">When unsure, start from this shape.</p>
 <div class="stack"><div class="s0" style="width:42.5%"><b>17</b>Lands</div><div class="s1" style="width:42.5%"><b>17</b>Creatures</div><div class="s2" style="width:15.0%"><b>6</b>Other spells</div></div>
 <p style="font-size:13px;color:var(--muted);margin:8px 0 18px">A rough guide: 16–17 lands, 15–17 creatures, and 6–8 spells such as removal and tricks. Many current guides use 17 lands, 17 creatures and 6 spells as the baseline (aggressive decks may drop to 16 lands).</p>
 <h3 class="sub">Mana curve (a guide for the 23 non-land cards)</h3>
 <div class="curve"><div style="height:33%"><b>2</b></div><div style="height:100%"><b>6</b></div><div style="height:83%"><b>5</b></div><div style="height:67%"><b>4</b></div><div style="height:50%"><b>3</b></div><div style="height:50%"><b>3</b></div></div>
 <div class="curvelab"><span>1 mana</span><span>2 mana</span><span>3 mana</span><span>4 mana</span><span>5 mana</span><span>6+ mana</span></div>
-<p style="font-size:13px;color:var(--muted);margin:8px 0 14px">Lots of cheap cards, fewer expensive ones. You avoid hands that do nothing early.</p>
-<div class="cards3"><div class="pt"><span class="ic">🎨</span><b>Two colors at most</b><p>Split your lands to match, for example 9 and 8.</p></div><div class="pt"><span class="ic">⚖️</span><b>Enough creatures</b><p>Too few and you struggle both to attack and to defend.</p></div><div class="pt"><span class="ic">🎯</span><b>Don't forget removal</b><p>With few spell slots, choose your removal carefully. Creatures that act as removal count too.</p></div></div></section>
+<p style="font-size:13px;color:var(--muted);margin:8px 0 14px">If you only play big, powerful cards, you'll have nothing to cast in the early and middle game, and you'll lose. Spreading out your cards' mana costs is called the <b>mana curve</b>: lots of cheap cards, fewer expensive ones.</p>
+<div class="cards3"><div class="pt"><span class="ic">🎨</span><b>Two colors at most</b><p>Split your lands to match, for example 9 Plains and 8 Islands.</p></div><div class="pt"><span class="ic">⚖️</span><b>Enough creatures</b><p>Too few and you struggle both to attack and to defend.</p></div><div class="pt"><span class="ic">🎯</span><b>Don't forget removal</b><p>With few spell slots, choose your removal carefully. Creatures that act as removal count too.</p></div></div></section>
 <section class="blk" id="removal"><h2>Why removal is so strong in Limited</h2><p class="lead">Removal is any card that destroys a creature or stops it from fighting.</p>
 <h3 class="sub" style="margin-top:6px">Why it is strong</h3>
 <div class="cards3"><div class="pt"><span class="ic">①</span><b>One card answers their best</b><p>Opponents will play big or flying creatures. Removal deals with them with one card.</p></div><div class="pt"><span class="ic">②</span><b>There is only a little of it</b><p>A pack has just a few removal spells. In Draft, taking them early makes a difference.</p></div><div class="pt"><span class="ic">③</span><b>It is a good trade</b><p>One card of yours for one strong card of theirs swings the board your way.</p></div></div>
@@ -295,9 +366,9 @@
 <div class="exs"><figure><span class="cimg " data-name="Lightning Bolt"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Lightning%20Bolt" alt="Lightning Bolt" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Lightning Bolt</i></span><figcaption><b>Lightning Bolt</b>Deals damage to destroy a creature (burn)</figcaption></figure><figure><span class="cimg " data-name="Pacifism"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Pacifism" alt="Pacifism" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Pacifism</i></span><figcaption><b>Pacifism</b>Stops a creature from attacking or blocking</figcaption></figure></div>
 <h3 class="sub">Rarity</h3><p style="margin:0 0 8px;font-size:13.5px">Rarity is not the same as strength. Plenty of commons are very strong.</p>
 <div class="rarg"><div class="c"><b>Common</b>Most plentiful; the backbone of a deck</div><div class="u"><b>Uncommon</b>Less frequent</div><div class="r"><b>Rare</b>Often powerful</div><div class="m"><b>Mythic rare</b>The rarest</div></div>
-<h3 class="sub">Checking which cards are strong</h3><p style="margin:0;font-size:14px">The <a href="../reports.html">set reports</a> on this site show card win rates by color and rarity from 17Lands data. Look at <b>GIH WR</b> (win rate in games where the card was in hand or on the battlefield); about 3 points above the set average is a strong card.</p></section>
+<h3 class="sub">Checking which cards are strong</h3><p style="margin:0;font-size:14px">The <a href="../reports.html">set reports</a> on this site show card win rates by color and rarity from real game data. Look at <b>GIH WR</b> (win rate in games where the card was in hand or on the battlefield); about 3 points above the set average is a strong card.</p></section>
 <section class="blk" id="next"><h2>Next steps</h2><p class="lead">You now have enough to get started.</p>
-<div class="cta"><a class="main" href="index.en.html#arena"><b>Install MTG Arena</b><small>Free to start, on PC or your phone.</small></a><a class="" href="../"><b>Practice Sealed</b><small>Build a 40-card deck from six virtual packs.</small></a><a class="" href="../draft.html"><b>Practice Draft</b><small>Practice picking in a simulated eight-player pod.</small></a><a class="" href="../reports.html"><b>Read the set reports</b><small>See the strong colors and cards for each set.</small></a></div>
+<div class="cta"><a class="main" href="index.en.html#arena"><b>Install MTG Arena</b><small>Free to start, on PC or your phone.</small></a><a class="" href="../sealed.html"><b>Practice Sealed</b><small>Build a 40-card deck from six virtual packs.</small></a><a class="" href="../draft.html"><b>Practice Draft</b><small>Practice picking in a simulated eight-player pod.</small></a><a class="" href="../reports.html"><b>Read the set reports</b><small>See the strong colors and cards for each set.</small></a></div>
 <p class="credit">Card images and mana symbols are loaded from Scryfall. Magic: The Gathering is a trademark of Wizards of the Coast LLC. This is an unofficial fan site.</p></section>
 
 <div id="goodsStrip"></div>

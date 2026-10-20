@@ -8,7 +8,8 @@
  * 画像は Scryfall の公式カード画像とマナシンボルを、ブラウザから直接読み込む（Wizards の Fan Content Policy の範囲）。
  * ページの枠（ナビ・言語切り替え・フッター）は他のセット別ページと同じ shell() を使う。
  * 文章は参考にした入門記事の要点を、このサイト向けにかみ砕いて書き直したもの。
- * 「リミテッドとは」のページの先頭には、解説動画（data/guide-videos.json。id がある言語だけ）を目次つきで載せる。
+ * 2つのページの先頭には、切り替えのタブ（MTGとは／リミテッドとは。環境レポートのドラフト／シールドと同じ見た目）と、
+ * 共通の解説動画（data/guide-videos.json の start。id がある言語だけ）を目次つきで置く。
  */
 
 import { mkdir, writeFile } from "node:fs/promises";
@@ -34,11 +35,11 @@ const chips = keys => keys.map(k => `<span class="chip">${ICON[k]}</span>`).join
 let GUIDE = {};
 try{ GUIDE = JSON.parse(readFileSync("data/guide-videos.json", "utf8")); }catch(e){}
 const VT = {
-  ja: { h: "動画で見る", lead: "MTGの基本から、リミテッドの遊び方・40枚デッキの組み方まで、動画で解説しています。目次を押すと、その場面から再生します。", play: "再生", toc: "動画で見る" },
-  en: { h: "Watch the video", lead: "From the basics of Magic to how Limited works and how to build a 40-card deck, explained in a video. Press a chapter to jump to that part.", play: "Play", toc: "Video" }
+  ja: { h: "動画で見る", lead: "MTGの基本から、リミテッドの遊び方・40枚デッキの組み方まで、動画で解説しています。目次を押すと、その場面から再生します。", play: "再生" },
+  en: { h: "Watch the video", lead: "From the basics of Magic to how Limited works and how to build a 40-card deck, explained in a video. Press a chapter to jump to that part.", play: "Play" }
 };
-function videoSection(lang, kind){
-  const v = GUIDE[kind] && GUIDE[kind][lang];
+function videoSection(lang){
+  const v = GUIDE.start && GUIDE.start[lang];   // 「MTGとは」「リミテッドとは」で共通の1本
   if(!v || !v.id) return "";
   const id = String(v.id), t = VT[lang];
   const ts = n => `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, "0")}`;
@@ -66,8 +67,8 @@ const JA = {
       title: "リミテッドとは｜シールドとドラフト、40枚デッキの組み方と除去が強い理由（MTG初心者向け）",
       desc: "MTGのリミテッド（シールド・ドラフト）とは何か。開けたパックだけでデッキを作る遊び方、40枚デッキの配分の目安、マナカーブ、リミテッドで除去が強い理由、カードの強さの調べ方を、初心者向けにまとめました。",
       h1: "リミテッドとは",
-      lead: "開けたパックのカードだけで戦う「リミテッド」。シールドとドラフトの違い、40枚デッキの組み方、除去が強い理由を、1ページでまとめました。",
-      toc: [["limited", "リミテッドとは"], ["deck", "40枚の配分"], ["removal", "除去が強い理由"], ["next", "次の一歩"]]
+      lead: "開けたパックのカードだけで戦う「リミテッド」。シールドとドラフト（クイック・プレミア）の違い、開催スケジュール、40枚デッキの組み方、除去が強い理由を、1ページでまとめました。",
+      toc: [["limited", "リミテッドとは"], ["draft", "クイックとプレミア"], ["schedule", "開催スケジュール"], ["deck", "40枚の配分"], ["removal", "除去が強い理由"], ["next", "次の一歩"]]
     }
   },
 
@@ -77,11 +78,11 @@ const JA = {
     points: [
       ["⚔️", "基本は1対1", "おたがいにライフ20から始め、相手のライフを0にすれば勝ち。2人1組で戦う形式や、3人以上で遊ぶ形式もあります。"],
       ["🃏", "デッキは自分で作る", "好きなカードを選んで、自分だけのデッキを組み立てます。"],
-      ["🌍", "30年以上続く定番のTCG", "1993年に生まれたカードゲーム。大会も世界中で開かれています。"]
+      ["🌍", "世界で最初のトレーディングカードゲーム", "1993年に、数学者リチャード・ガーフィールドが考えたゲーム。これまでに5,000万人以上が遊び、150以上の国で発売されています。世界大会も開かれています。"]
     ],
     flowH: "1ターンの流れ",
-    flow: [["起こす", "前のターンに使ったカードを元に戻す"], ["引く", "デッキの上から1枚引く"], ["出す", "土地を1枚置き、マナで呪文やクリーチャーを出す"], ["攻撃", "クリーチャーで相手を攻撃する"], ["終わり", "ターンを相手に渡す"]],
-    flowNote: "<b>土地</b>がマナ（呪文を使うためのエネルギー）の源です。土地は1ターンに1枚だけ置けるので、ターンが進むほど大きなカードを出せるようになります。"
+    flow: [["起こす", "前のターンに使ったカードを元に戻す"], ["引く", "デッキの上から1枚引く"], ["第1メイン", "土地を1枚置き、マナで呪文やクリーチャーを出す"], ["攻撃", "クリーチャーで相手を攻撃する"], ["第2メイン", "攻撃のあとにも、土地や呪文を出せる"], ["終わり", "ターンを相手に渡す"]],
+    flowNote: "カードを出せる<b>メイン</b>は、攻撃の前と後の2回あります。攻撃の様子を見てから、あとでカードを出すこともできます。<br><b>土地</b>がマナ（呪文を使うためのエネルギー）の源です。土地は1ターンに1枚だけ置けるので、ターンが進むほど大きなカードを出せるようになります。"
   },
 
   colors: {
@@ -105,7 +106,7 @@ const JA = {
       ["Lightning Bolt", "稲妻", "インスタント", "好きなタイミングで使える呪文。相手のターン中にも使えて、使うと墓地に行きます。"],
       ["Wrath of God", "神の怒り", "ソーサリー", "自分のターンの途中にしか使えない呪文。大きな効果が多く、使い切りです。"],
       ["Pacifism", "平和な心", "エンチャント", "戦場に残り続ける効果。これは「相手のクリーチャーを動けなくする」タイプです。"],
-      ["Sol Ring", "太陽の指輪", "アーティファクト", "道具のような永続物。多くは色を持たず、どのデッキにも入ります。"],
+      ["Bonesplitter", "骨断ちの矛", "アーティファクト", "道具のような永続物。多くは色を持たず、どのデッキにも入ります。これは<b>装備品</b>で、クリーチャーに付けて強くできます。"],
       ["Chandra, Torch of Defiance", "反逆の先導者、チャンドラ", "プレインズウォーカー", "味方になってくれる強力な魔道士。毎ターン能力を使い、相手に攻撃されると減っていきます。"],
       ["Forest", "森", "土地", "マナを生み出す、ゲームの土台。デッキの約4割は土地です。"]
     ]
@@ -129,7 +130,7 @@ const JA = {
 
   arena: {
     h: "MTGアリーナ（デジタル版）で始める",
-    lead: "MTGの公式デジタル版です。<b>パソコン（Windows・Mac）でも、スマートフォン・タブレット（iPhone・iPad・Android）でも</b>遊べて、基本プレイ無料、日本語に対応しています。PC版とスマホ版は、同じアカウントのデータで遊べます。",
+    lead: "MTGの公式デジタル版です。<b>パソコン（Windows・Mac）でも、スマートフォン・タブレット（iPhone・iPad・Android）でも</b>遊べて、基本プレイ無料、日本語に対応しています。登録プレイヤーは1,700万人以上。PC版とスマホ版は、同じアカウントのデータで遊べます。",
     installH: "インストールする",
     install: [[["win", "apple"], "パソコン（Windows・Mac）", "公式ページへ", "https://mtg-jp.com/mtgarena/"], [["appstore"], "iPhone・iPad", "App Store", "https://apps.apple.com/jp/app/magic-the-gathering-arena/id1496227521"], [["play"], "Android", "Google Play", "https://play.google.com/store/apps/details?id=com.wizards.mtga&hl=ja"]],
     installNote: "対応する機種や必要な容量は、公式ページとストアの案内で確認してください。このサイトの練習ツールはスマートフォンでも使えますが、アリーナのログを読む補助ツールはパソコン専用です。",
@@ -180,7 +181,30 @@ const JA = {
       ["ドラフト", "8人で卓を囲み、1パックから1枚ずつ取って隣に回していく（3パック・計42枚をピック）。", ["「何を取るか」の判断力が問われる", "他の人の動きを読むのが面白い", "デッキ作りまで含めて楽しめる"]]
     ],
     tipH: "リミテッドで大切なこと",
-    tip: "強いカードを集めるだけでなく、<b>40枚全体のバランス</b>が勝敗を分けます。次の「配分」の目安を知っておくと、迷いません。"
+    tip: "強いカードを集めるだけでなく、<b>40枚全体のバランス</b>が勝敗を分けます。下の「配分」の目安を知っておくと、迷いません。"
+  },
+
+  draftTypes: {
+    h: "クイックドラフトとプレミアドラフト",
+    lead: "MTGアリーナのドラフトには2種類あります。どちらも、対戦する相手は本物のプレイヤーです。",
+    colH: ["", "クイックドラフト", "プレミアドラフト"],
+    rows: [
+      ["一緒にピックする相手", "コンピューター", "あなたを含む本物のプレイヤー8人"],
+      ["ピックの時間", "制限なし（自分のペースで選べる）", "1枚ごとに制限時間あり"],
+      ["参加費", "プレミアドラフトの半分ほど", "高め（そのぶん賞品も多い）"],
+      ["開催", "期間ごとに遊べるセットが入れ替わる", "新しいセットの発売直後から"]
+    ],
+    note: "ドラフトを始めるなら、まずは<b>クイックドラフト</b>がおすすめです。"
+  },
+
+  schedule: {
+    h: "開催スケジュール",
+    lead: "アリーナのリミテッドは、いつも同じセットで遊べるわけではありません。公式のイベントスケジュールに沿って開催されます。",
+    list: [
+      ["📦", "プレミアドラフト・シールド", "新しいセットが出ると、すぐにそのセットで始まります。"],
+      ["🔄", "クイックドラフト", "期間ごとに遊べるセットが入れ替わります。新しいセットのほかに、昔のセットも回ってきます。"],
+      ["📅", "新しいセットが出る間隔", "だいたい1か月半〜2か月ほど。間隔はセットによって変わるので、くわしくは公式のイベントスケジュールで確かめてください。"]
+    ]
   },
 
   deck: {
@@ -190,9 +214,9 @@ const JA = {
     barNote: "土地16〜17枚、クリーチャー15〜17枚、除去や強化などの呪文6〜8枚が目安です。近年は、土地17・クリーチャー17・呪文6という形を基準に紹介する解説が多く見られます（攻めるデッキは土地16に減らすことも）。",
     curveH: "マナカーブ（土地を除く23枚の目安）",
     curve: [["1", 2], ["2", 6], ["3", 5], ["4", 4], ["5", 3], ["6+", 3]],
-    curveNote: "軽いカードを多めにして、重いカードは少なめに。序盤に何も出せない手札事故を防げます。",
+    curveNote: "マナが重い強いカードばかり入れると、序盤や中盤に何も出せずに負けてしまいます。カードのマナの重さをほどよく散らす考え方を<b>マナカーブ</b>と呼びます。軽いカードを多めに、重いカードは少なめにしましょう。",
     tips: [
-      ["🎨", "色は2色までに", "土地は色の枚数に合わせて、たとえば9枚と8枚のように分けます。"],
+      ["🎨", "色は2色までに", "土地は色の枚数に合わせて、たとえば平地9枚と島8枚のように分けます。"],
       ["⚖️", "クリーチャーを十分に", "戦場に出せる味方が少ないと、攻めも守りも苦しくなります。"],
       ["🎯", "除去を忘れずに", "呪文の枠は少ないので、除去は厳選して入れます。除去の力を持つクリーチャーも数えられます。"]
     ]
@@ -213,7 +237,7 @@ const JA = {
     rarityLead: "カードの価値と、強さは別ものです。レアでなくても、強いカードはたくさんあります。",
     rarity: [["コモン", "c", "いちばん多い。デッキの土台"], ["アンコモン", "u", "ふつうより少なめ"], ["レア", "r", "強力なものが多い"], ["神話レア", "m", "最もめずらしい"]],
     dataH: "強いカードを数字で調べる",
-    data: "このサイトの<a href=\"../reports.html\">環境レポート</a>では、17Landsの実戦データから、色ごと・レアリティごとのカードの勝率を確認できます。目安にするのは<b>GIH勝率</b>（そのカードが手札か戦場にあった試合の勝率）で、同じセットの中で平均より3ポイントほど高ければ強いカードです。"
+    data: "このサイトの<a href=\"../reports.html\">環境レポート</a>では、実戦データから、色ごと・レアリティごとのカードの勝率を確認できます。目安にするのは<b>GIH勝率</b>（そのカードが手札か戦場にあった試合の勝率）で、同じセットの中で平均より3ポイントほど高ければ強いカードです。"
   },
 
   next: {
@@ -249,8 +273,8 @@ const EN = {
       title: "What is Limited? Sealed and Draft, building a 40-card deck, and why removal is strong (MTG beginners)",
       desc: "What MTG Limited (Sealed and Draft) is: building a deck from the packs you open, a guide to a 40-card deck, the mana curve, why removal is so strong in Limited, and how to find which cards are strong.",
       h1: "What is Limited?",
-      lead: "Limited means playing with only the cards from packs you open. Sealed vs Draft, how to build 40 cards, and why removal is strong — on one page.",
-      toc: [["limited", "What is Limited"], ["deck", "40-card deck"], ["removal", "Why removal"], ["next", "Next steps"]]
+      lead: "Limited means playing with only the cards from packs you open. Sealed vs Draft (Quick and Premier), the event schedule, how to build 40 cards, and why removal is strong — on one page.",
+      toc: [["limited", "What is Limited"], ["draft", "Quick vs Premier"], ["schedule", "Event schedule"], ["deck", "40-card deck"], ["removal", "Why removal"], ["next", "Next steps"]]
     }
   },
 
@@ -260,11 +284,11 @@ const EN = {
     points: [
       ["⚔️", "Usually one-on-one", "Both start at 20 life; bring your opponent to 0 and you win. There are also team formats for pairs, and formats for three or more players."],
       ["🃏", "You build the deck", "Pick the cards you like and put together a deck that is yours."],
-      ["🌍", "30+ years and still going", "Created in 1993, with tournaments held all over the world."]
+      ["🌍", "The world's first trading card game", "Designed by mathematician Richard Garfield in 1993. Over 50 million people have played it, it's sold in more than 150 countries, and there's a World Championship too."]
     ],
     flowH: "One turn at a glance",
-    flow: [["Untap", "Ready the cards you used last turn"], ["Draw", "Draw one card"], ["Play", "Play a land, then spend mana on spells and creatures"], ["Attack", "Attack with your creatures"], ["End", "Pass the turn"]],
-    flowNote: "<b>Lands</b> produce mana, the energy you spend on spells. You can play only one land per turn, so you can cast bigger cards as the game goes on."
+    flow: [["Untap", "Ready the cards you used last turn"], ["Draw", "Draw one card"], ["Main 1", "Play a land, then spend mana on spells and creatures"], ["Combat", "Attack with your creatures"], ["Main 2", "Play lands and spells after combat, too"], ["End", "Pass the turn"]],
+    flowNote: "You get two <b>main phases</b>, before and after combat, so you can see how your attack goes before casting more.<br><b>Lands</b> produce mana, the energy you spend on spells. You can play only one land per turn, so you can cast bigger cards as the game goes on."
   },
 
   colors: {
@@ -288,7 +312,7 @@ const EN = {
       ["Lightning Bolt", "Lightning Bolt", "Instant", "A spell you can cast almost any time, even on your opponent's turn. It is used up once cast."],
       ["Wrath of God", "Wrath of God", "Sorcery", "A spell you can cast only on your own turn, in your main phase. Often big effects."],
       ["Pacifism", "Pacifism", "Enchantment", "An effect that stays on the battlefield. This one stops a creature from fighting."],
-      ["Sol Ring", "Sol Ring", "Artifact", "A permanent like a tool. Many are colorless and go in any deck."],
+      ["Bonesplitter", "Bonesplitter", "Artifact", "A permanent like a tool. Many are colorless and go in any deck. This one is <b>Equipment</b>: attach it to a creature to make it stronger."],
       ["Chandra, Torch of Defiance", "Chandra, Torch of Defiance", "Planeswalker", "A powerful mage on your side. Use an ability each turn; attacks wear her down."],
       ["Forest", "Forest", "Land", "Makes mana — the foundation of your deck. About 40% of a deck is lands."]
     ]
@@ -312,7 +336,7 @@ const EN = {
 
   arena: {
     h: "Starting on MTG Arena",
-    lead: "The official digital version of Magic. It runs on <b>PC (Windows and Mac) and on phones and tablets (iPhone, iPad and Android)</b>, and it is free to play to start. Your account works across PC and mobile.",
+    lead: "The official digital version of Magic. It runs on <b>PC (Windows and Mac) and on phones and tablets (iPhone, iPad and Android)</b>, and it is free to play to start, with over 17 million registered players. Your account works across PC and mobile.",
     installH: "Install it",
     install: [[["win", "apple"], "PC (Windows / Mac)", "Official page", "https://magic.wizards.com/en/mtgarena"], [["appstore"], "iPhone / iPad", "App Store", "https://apps.apple.com/app/id1496227521"], [["play"], "Android", "Google Play", "https://play.google.com/store/apps/details?id=com.wizards.mtga&hl=en_US"]],
     installNote: "Check the official page and the store listing for supported devices and storage. The practice tools on this site work on a phone; the helper tools that read Arena's log are PC only.",
@@ -364,6 +388,29 @@ const EN = {
     tip: "It is not only about collecting strong cards; the <b>balance of all 40</b> decides games. The guide below keeps you from guessing."
   },
 
+  draftTypes: {
+    h: "Quick Draft and Premier Draft",
+    lead: "MTG Arena has two kinds of Draft. Either way, your opponents in games are real players.",
+    colH: ["", "Quick Draft", "Premier Draft"],
+    rows: [
+      ["You draft with", "Computer players", "Real players (8 including you)"],
+      ["Pick timer", "None (go at your own pace)", "Yes, for each pick"],
+      ["Entry fee", "About half of Premier Draft", "Higher (bigger prizes too)"],
+      ["When", "Sets rotate by period", "Right after a new set's release"]
+    ],
+    note: "If you're new to Draft, start with <b>Quick Draft</b>."
+  },
+
+  schedule: {
+    h: "Event schedule",
+    lead: "Limited on Arena isn't always the same set. Events follow the official event schedule.",
+    list: [
+      ["📦", "Premier Draft and Sealed", "Start with the new set as soon as it comes out."],
+      ["🔄", "Quick Draft", "Rotates through sets by period, so older sets come around too, not just the newest one."],
+      ["📅", "How often new sets come out", "Roughly every six to eight weeks. The gap varies from set to set, so check the official event schedule for details."]
+    ]
+  },
+
   deck: {
     h: "A 40-card deck, at a glance",
     lead: "When unsure, start from this shape.",
@@ -371,9 +418,9 @@ const EN = {
     barNote: "A rough guide: 16–17 lands, 15–17 creatures, and 6–8 spells such as removal and tricks. Many current guides use 17 lands, 17 creatures and 6 spells as the baseline (aggressive decks may drop to 16 lands).",
     curveH: "Mana curve (a guide for the 23 non-land cards)",
     curve: [["1", 2], ["2", 6], ["3", 5], ["4", 4], ["5", 3], ["6+", 3]],
-    curveNote: "Lots of cheap cards, fewer expensive ones. You avoid hands that do nothing early.",
+    curveNote: "If you only play big, powerful cards, you'll have nothing to cast in the early and middle game, and you'll lose. Spreading out your cards' mana costs is called the <b>mana curve</b>: lots of cheap cards, fewer expensive ones.",
     tips: [
-      ["🎨", "Two colors at most", "Split your lands to match, for example 9 and 8."],
+      ["🎨", "Two colors at most", "Split your lands to match, for example 9 Plains and 8 Islands."],
       ["⚖️", "Enough creatures", "Too few and you struggle both to attack and to defend."],
       ["🎯", "Don't forget removal", "With few spell slots, choose your removal carefully. Creatures that act as removal count too."]
     ]
@@ -394,7 +441,7 @@ const EN = {
     rarityLead: "Rarity is not the same as strength. Plenty of commons are very strong.",
     rarity: [["Common", "c", "Most plentiful; the backbone of a deck"], ["Uncommon", "u", "Less frequent"], ["Rare", "r", "Often powerful"], ["Mythic rare", "m", "The rarest"]],
     dataH: "Checking which cards are strong",
-    data: "The <a href=\"../reports.en.html\">set reports</a> on this site show card win rates by color and rarity from 17Lands data. Look at <b>GIH WR</b> (win rate in games where the card was in hand or on the battlefield); about 3 points above the set average is a strong card."
+    data: "The <a href=\"../reports.en.html\">set reports</a> on this site show card win rates by color and rarity from real game data. Look at <b>GIH WR</b> (win rate in games where the card was in hand or on the battlefield); about 3 points above the set average is a strong card."
   },
 
   next: {
@@ -568,6 +615,11 @@ const css = `<style>
   .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
   .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
   .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
+  .modebar{margin:0 0 18px}
+  .tabs{display:inline-flex;gap:3px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .tab{border-radius:999px;padding:8px 22px;font-size:14px;font-weight:600;color:var(--muted);text-decoration:none;line-height:1.4}
+  .tab:hover:not(.on){color:var(--ink);background:#fff}
+  .tab.on{background:var(--pine);color:var(--paper)}
 </style>`;
 
 function page(lang, kind){
@@ -633,6 +685,14 @@ ${f.rows.map(x => `<tr><th>${x[0]}</th><td>${x[1]}</td><td>${x[2]}</td></tr>`).j
 <div class="two">${l.cols.map(x => `<div class="box"><h3>${x[0]}</h3><p style="margin:0;font-size:13.5px">${x[1]}</p><ul>${x[2].map(i => `<li>${i}</li>`).join("")}</ul></div>`).join("")}</div>
 <p class="note"><b>${l.tipH}</b>　${l.tip}</p></section>`;
 
+  const dt = T.draftTypes, sc = T.schedule;
+  S.draft = `<section class="blk" id="draft"><h2>${dt.h}</h2><p class="lead">${dt.lead}</p>
+<table class="cmp"><thead><tr>${dt.colH.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>
+${dt.rows.map(x => `<tr><th>${x[0]}</th><td>${x[1]}</td><td>${x[2]}</td></tr>`).join("\n")}</tbody></table>
+<p class="note">${dt.note}</p></section>`;
+  S.schedule = `<section class="blk" id="schedule"><h2>${sc.h}</h2><p class="lead">${sc.lead}</p>
+<div class="cards3">${sc.list.map(p => `<div class="pt"><span class="ic">${p[0]}</span><b>${p[1]}</b><p>${p[2]}</p></div>`).join("")}</div></section>`;
+
   const total = d.bar.reduce((s, x) => s + x[1], 0), maxC = Math.max(...d.curve.map(x => x[1]));
   S.deck = `<section class="blk" id="deck"><h2>${d.h}</h2><p class="lead">${d.lead}</p>
 <div class="stack">${d.bar.map((x, i) => `<div class="s${i}" style="width:${(x[1] / total * 100).toFixed(1)}%"><b>${x[1]}</b>${x[0]}</div>`).join("")}</div>
@@ -659,13 +719,14 @@ ${f.rows.map(x => `<tr><th>${x[0]}</th><td>${x[1]}</td><td>${x[2]}</td></tr>`).j
 
   const order = kind === "mtg"
     ? ["what", "colors", "types", "read", "formats", "arena", "official", "next"]
-    : ["video", "limited", "deck", "removal", "next"];
-  S.video = kind === "limited" ? videoSection(lang, kind) : "";
+    : ["limited", "draft", "schedule", "deck", "removal", "next"];
 
   const gloss = `<details class="gl"><summary>${T.glossH}</summary><dl>${T.gloss.map(x => `<dt>${x[0]}</dt><dd>${x[1]}</dd>`).join("")}</dl></details>`;
-  const tocItems = (S.video ? [["video", VT[lang].toc]] : []).concat(P.toc);   // 動画を載せたページだけ、目次の先頭に「動画で見る」
-  const toc = `<ul class="toc">${tocItems.map(x => `<li><a href="#${x[0]}">${x[1]}</a></li>`).join("")}</ul>`;
-  const main = `${toc}\n${order.map(k => S[k]).filter(Boolean).join("\n")}\n${kind === "mtg" ? gloss : ""}${en ? "" : JS_JA}`;
+  const toc = `<ul class="toc">${P.toc.map(x => `<li><a href="#${x[0]}">${x[1]}</a></li>`).join("")}</ul>`;
+  // 切り替えのタブ（2つのページを行き来する。今のページが「on」）と、共通の動画。どちらも目次より上の同じ場所に置く
+  const tabs = `<div class="modebar"><div class="tabs" role="navigation" aria-label="${en ? "Getting started" : "はじめに"}">${[["mtg", "index"], ["limited", "limited"]].map(([k, b]) =>
+    `<a class="tab${k === kind ? " on" : ""}" href="${b}${en ? ".en" : ""}.html"${k === kind ? ' aria-current="page"' : ""}>${esc(T.pages[k].h1)}</a>`).join("")}</div></div>`;   // <nav> にすると、上のメニューのボタンの見た目が付いてしまうので div にする
+  const main = `${tabs}\n${videoSection(lang)}\n${toc}\n${order.map(k => S[k]).filter(Boolean).join("\n")}\n${kind === "mtg" ? gloss : ""}${en ? "" : JS_JA}`;
 
   return shell(lang, base, head, { header, main });
 }

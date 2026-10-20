@@ -129,6 +129,11 @@
   .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
   .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
   .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
+  .modebar{margin:0 0 18px}
+  .tabs{display:inline-flex;gap:3px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .tab{border-radius:999px;padding:8px 22px;font-size:14px;font-weight:600;color:var(--muted);text-decoration:none;line-height:1.4}
+  .tab:hover:not(.on){color:var(--ink);background:#fff}
+  .tab.on{background:var(--pine);color:var(--paper)}
 </style>
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
@@ -140,8 +145,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/mana/mana.min.css">
 <script src="../analytics.js"></script>
 <script src="/navmenu.js" defer></script>
+<script src="/tip.js" defer></script>
+<script src="/card-preview.js?v=1" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
@@ -203,6 +211,21 @@
   .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
   section{margin-top:18px}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
+  .longvideo h2{margin:0 0 4px;font-size:18px}
+  .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
+  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0A2038}
+  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .longvideo .yt button span{width:68px;height:68px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .longvideo .yt button span::after{content:"";border-left:23px solid #0B1E33;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
+  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px}
+  .longvideo .chap li{margin:0 0 2px}
+  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
+  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
+  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
   .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
   .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
   .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -222,6 +245,41 @@
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .cname{display:flex;align-items:center;gap:6px}
+  .cname .art{width:40px;height:30px;flex:none;display:block;border-radius:4px;object-fit:cover;background:var(--paper-2)}
+  @media (max-width:520px){ .cname .art{width:32px;height:24px} }
+  /* カードのティア表 */
+  .ctier input[type=radio]{position:absolute;opacity:0;pointer-events:none}
+  .ctabs{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--pine);border-radius:12px;overflow:hidden;margin:6px 0 10px;background:#fff}
+  .ctabs label{font-size:15px;font-weight:700;padding:10px 6px;color:var(--pine);border-left:1px solid var(--line);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.25;text-align:center}
+  .ctabs label:first-child{border-left:0}
+  .ctabs label .n{font-size:11.5px;font-weight:500;color:var(--muted)}
+  .ctier input:nth-of-type(1):checked ~ .ctabs label:nth-child(1),.ctier input:nth-of-type(2):checked ~ .ctabs label:nth-child(2),.ctier input:nth-of-type(3):checked ~ .ctabs label:nth-child(3){background:var(--pine);color:#fff}
+  .ctier input:nth-of-type(1):checked ~ .ctabs label:nth-child(1) .n,.ctier input:nth-of-type(2):checked ~ .ctabs label:nth-child(2) .n,.ctier input:nth-of-type(3):checked ~ .ctabs label:nth-child(3) .n{color:#BFD3EA}
+  .ctabs .rd{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+  .ctabs .rd.mr{background:linear-gradient(135deg,#E0A23B,#C4552C)}.ctabs .rd.u{background:#9AAAB4}.ctabs .rd.c{background:#2A3B4C;box-shadow:0 0 0 1px #fff inset}
+  @media (max-width:520px){ .ctabs label{font-size:13px;padding:9px 4px} }
+  @media (max-width:420px){ .ctabs .rd{display:none} }
+  .ccolors{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
+  .ccolors .lbl{font-size:12px;color:var(--muted);margin-right:2px}
+  .ccolors button{font:inherit;font-size:12.5px;line-height:1;padding:6px 10px;border-radius:999px;cursor:pointer;background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .ccolors button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
+  .tchip[hidden],.tempty[hidden]{display:none}
+  .ctier .tiers{display:none}
+  .ctier input:nth-of-type(1):checked ~ .t-mr,.ctier input:nth-of-type(2):checked ~ .t-u,.ctier input:nth-of-type(3):checked ~ .t-c{display:grid}
+  .tiers{display:grid;gap:5px}
+  .trow{display:grid;grid-template-columns:44px 1fr;gap:6px;align-items:stretch}
+  .tlab{display:flex;align-items:center;justify-content:center;border-radius:7px;font:800 20px/1 "Bricolage Grotesque",sans-serif;color:#fff}
+  .tlab.S{background:#C9472E}.tlab.A{background:#D98A1E}.tlab.B{background:#4F8A4A}.tlab.C{background:#6B7A8A}.tlab.D{background:#8C5E58}
+  .tcells{display:flex;flex-wrap:wrap;gap:5px;padding:5px;background:var(--paper-2);border-radius:7px;min-height:38px;align-items:center}
+  .tchip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--line);border-radius:7px;padding:3px 8px;font-size:13px}
+  .tchip b{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .ctier .tchip{padding:3px 8px 3px 4px}
+  .tchip .tpic{position:relative;flex:none;display:block}
+  .tchip .tpic .art{width:30px;height:22px;display:block;border-radius:3px;object-fit:cover;background:var(--paper-2)}
+  .tchip .tpic > :last-child{position:absolute;right:-5px;bottom:-4px;transform:scale(.72)}
+  .tempty{font-size:12px;color:var(--muted);padding:0 4px}
+  .tavg{font-size:12px;color:var(--muted);margin:6px 0 0}
   .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
   .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#FFFFFF}.rar.mythic{background:#C4552C}
   .links ul{margin:6px 0 0;padding-left:1.2em}
@@ -246,6 +304,9 @@
   .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}
   footer a{color:var(--muted)}
+  .faq details{border-bottom:1px solid var(--line,#D7E2EE);padding:10px 2px}
+  .faq summary{cursor:pointer;font-weight:700;font-size:14.5px}
+  .faq p{margin:8px 0 2px;font-size:14px;line-height:1.8}
   @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
@@ -260,34 +321,44 @@
       </select></div>
     <nav>
       <div class="ng"><span class="ngl">はじめに</span><span class="ngs">MTGの基本と、このサイトの使い方</span><a href="../start/index.html">MTGとは</a><a href="../start/limited.html">リミテッドとは</a></div>
-      <div class="ng"><span class="ngl">練習する</span><span class="ngs">仮想パックで練習</span><a href="../sealed.html">シールド練習</a><a href="../draft.html">ドラフト練習</a><a href="../draftroom.html">ドラフト練習（対人戦）</a></div>
+      <div class="ng"><span class="ngl">練習する</span><span class="ngs">仮想パックで練習</span><a href="../sealed.html">シールド練習</a><a href="../draft.html">ドラフト練習（CPU戦）</a><a href="../draftroom.html">ドラフト練習（対人戦）</a></div>
       <div class="ng"><span class="ngl">MTGアリーナで使う</span><span class="ngs">実戦のログを読んで助ける・PC専用</span><a href="../sealed-assist.html">シールド補助<b class="pcb">PC</b></a><a href="../assistant.html">ドラフト補助<b class="pcb">PC</b></a></div>
       <div class="ng"><span class="ngl">データを見る</span><span class="ngs">セットごとの強さ・速さを確認</span><a href="../reports.html">環境レポート</a></div>
       <div class="ng"><span class="ngl">対戦する</span><span class="ngs">友達との対戦・大会の進行</span><a href="../table.html">対戦卓</a><a href="../swiss.html">スイスドロー</a></div>
       <div class="ng"><span class="ngl">買う</span><span class="ngs">日本で買えるMTG用品</span><a href="../goods/index.html">日本のサプライ</a></div>
     </nav>
     <h1>リミテッドとは</h1>
-    <p>開けたパックのカードだけで戦う「リミテッド」。シールドとドラフトの違い、40枚デッキの組み方、除去が強い理由を、1ページでまとめました。</p>
+    <p>開けたパックのカードだけで戦う「リミテッド」。シールドとドラフト（クイック・プレミア）の違い、開催スケジュール、40枚デッキの組み方、除去が強い理由を、1ページでまとめました。</p>
     <link rel="alternate" hreflang="en" href="limited.en.html">
   </div>
 </header>
 <main>
-<ul class="toc"><li><a href="#video">動画で見る</a></li><li><a href="#limited">リミテッドとは</a></li><li><a href="#deck">40枚の配分</a></li><li><a href="#removal">除去が強い理由</a></li><li><a href="#next">次の一歩</a></li></ul>
+<div class="modebar"><div class="tabs" role="navigation" aria-label="はじめに"><a class="tab" href="index.html">MTGとは</a><a class="tab on" href="limited.html" aria-current="page">リミテッドとは</a></div></div>
 <section class="blk longvideo" id="video"><h2>動画で見る</h2><p class="lead">MTGの基本から、リミテッドの遊び方・40枚デッキの組み方まで、動画で解説しています。目次を押すと、その場面から再生します。</p>
 <div class="lv"><div class="yt" data-id="8D1YZTf8I_g"><img src="https://i.ytimg.com/vi/8D1YZTf8I_g/hqdefault.jpg" alt="【MTGアリーナ】リミテッド入門｜遊び方・シールドとドラフト・40枚デッキの組み方【初心者向け】" loading="lazy" width="640" height="360"><button type="button" aria-label="再生"><span></span></button></div><ul class="chap"><li><a href="https://youtu.be/8D1YZTf8I_g?t=0" data-t="0" target="_blank" rel="noopener"><time>0:00</time><span>はじめに</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=15" data-t="15" target="_blank" rel="noopener"><time>0:15</time><span>MTGとは</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=44" data-t="44" target="_blank" rel="noopener"><time>0:44</time><span>MTGアリーナとは</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=63" data-t="63" target="_blank" rel="noopener"><time>1:03</time><span>ゲームの基本</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=100" data-t="100" target="_blank" rel="noopener"><time>1:40</time><span>5つの色</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=121" data-t="121" target="_blank" rel="noopener"><time>2:01</time><span>カードの見方</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=141" data-t="141" target="_blank" rel="noopener"><time>2:21</time><span>呪文の種類</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=166" data-t="166" target="_blank" rel="noopener"><time>2:46</time><span>リミテッドとは</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=184" data-t="184" target="_blank" rel="noopener"><time>3:04</time><span>シールド</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=197" data-t="197" target="_blank" rel="noopener"><time>3:17</time><span>ドラフト</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=206" data-t="206" target="_blank" rel="noopener"><time>3:26</time><span>クイックとプレミア</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=242" data-t="242" target="_blank" rel="noopener"><time>4:02</time><span>開催スケジュール</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=282" data-t="282" target="_blank" rel="noopener"><time>4:42</time><span>40枚デッキの組み方</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=317" data-t="317" target="_blank" rel="noopener"><time>5:17</time><span>除去が強い理由</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=341" data-t="341" target="_blank" rel="noopener"><time>5:41</time><span>強いカードの見分け方</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=364" data-t="364" target="_blank" rel="noopener"><time>6:04</time><span>練習する</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=384" data-t="384" target="_blank" rel="noopener"><time>6:24</time><span>まとめ</span></a></li></ul></div>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoObject","name":"【MTGアリーナ】リミテッド入門｜遊び方・シールドとドラフト・40枚デッキの組み方【初心者向け】","description":"MTGの基本から、リミテッドの遊び方・40枚デッキの組み方まで、動画で解説しています。目次を押すと、その場面から再生します。","thumbnailUrl":["https://i.ytimg.com/vi/8D1YZTf8I_g/hqdefault.jpg"],"uploadDate":"2026-10-21","contentUrl":"https://www.youtube.com/watch?v=8D1YZTf8I_g","embedUrl":"https://www.youtube-nocookie.com/embed/8D1YZTf8I_g","inLanguage":"ja"}</script>
 <script>(function(){var box=document.querySelector(".longvideo .yt");if(!box)return;function play(t){var f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+box.dataset.id+"?autoplay=1&playsinline=1"+(t?"&start="+t:"");f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title="【MTGアリーナ】リミテッド入門｜遊び方・シールドとドラフト・40枚デッキの組み方【初心者向け】";box.innerHTML="";box.appendChild(f);}box.querySelector("button").addEventListener("click",function(){play(0);});document.querySelectorAll(".longvideo .chap a").forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();play(+a.dataset.t);box.scrollIntoView({block:"nearest",behavior:"smooth"});});});})();</script></section>
+<ul class="toc"><li><a href="#limited">リミテッドとは</a></li><li><a href="#draft">クイックとプレミア</a></li><li><a href="#schedule">開催スケジュール</a></li><li><a href="#deck">40枚の配分</a></li><li><a href="#removal">除去が強い理由</a></li><li><a href="#next">次の一歩</a></li></ul>
 <section class="blk" id="limited"><h2>リミテッドとは</h2><p class="lead">開けたパックのカードだけで、その場でデッキを作って戦う遊び方です。みんなが同じ条件で始めるので、カードの持ち数で差がつきません。</p>
 <div class="two"><div class="box"><h3>シールド</h3><p style="margin:0;font-size:13.5px">6パック分のカードをまとめて開け、そのプールから40枚のデッキを組む。</p><ul><li>一人で、じっくり組み立てられる</li><li>「どのカードを入れるか」が勝負</li><li>ドラフトより気軽に始められる</li></ul></div><div class="box"><h3>ドラフト</h3><p style="margin:0;font-size:13.5px">8人で卓を囲み、1パックから1枚ずつ取って隣に回していく（3パック・計42枚をピック）。</p><ul><li>「何を取るか」の判断力が問われる</li><li>他の人の動きを読むのが面白い</li><li>デッキ作りまで含めて楽しめる</li></ul></div></div>
-<p class="note"><b>リミテッドで大切なこと</b>　強いカードを集めるだけでなく、<b>40枚全体のバランス</b>が勝敗を分けます。次の「配分」の目安を知っておくと、迷いません。</p></section>
+<p class="note"><b>リミテッドで大切なこと</b>　強いカードを集めるだけでなく、<b>40枚全体のバランス</b>が勝敗を分けます。下の「配分」の目安を知っておくと、迷いません。</p></section>
+<section class="blk" id="draft"><h2>クイックドラフトとプレミアドラフト</h2><p class="lead">MTGアリーナのドラフトには2種類あります。どちらも、対戦する相手は本物のプレイヤーです。</p>
+<table class="cmp"><thead><tr><th></th><th>クイックドラフト</th><th>プレミアドラフト</th></tr></thead><tbody>
+<tr><th>一緒にピックする相手</th><td>コンピューター</td><td>あなたを含む本物のプレイヤー8人</td></tr>
+<tr><th>ピックの時間</th><td>制限なし（自分のペースで選べる）</td><td>1枚ごとに制限時間あり</td></tr>
+<tr><th>参加費</th><td>プレミアドラフトの半分ほど</td><td>高め（そのぶん賞品も多い）</td></tr>
+<tr><th>開催</th><td>期間ごとに遊べるセットが入れ替わる</td><td>新しいセットの発売直後から</td></tr></tbody></table>
+<p class="note">ドラフトを始めるなら、まずは<b>クイックドラフト</b>がおすすめです。</p></section>
+<section class="blk" id="schedule"><h2>開催スケジュール</h2><p class="lead">アリーナのリミテッドは、いつも同じセットで遊べるわけではありません。公式のイベントスケジュールに沿って開催されます。</p>
+<div class="cards3"><div class="pt"><span class="ic">📦</span><b>プレミアドラフト・シールド</b><p>新しいセットが出ると、すぐにそのセットで始まります。</p></div><div class="pt"><span class="ic">🔄</span><b>クイックドラフト</b><p>期間ごとに遊べるセットが入れ替わります。新しいセットのほかに、昔のセットも回ってきます。</p></div><div class="pt"><span class="ic">📅</span><b>新しいセットが出る間隔</b><p>だいたい1か月半〜2か月ほど。間隔はセットによって変わるので、くわしくは公式のイベントスケジュールで確かめてください。</p></div></div></section>
 <section class="blk" id="deck"><h2>40枚デッキの配分の目安</h2><p class="lead">迷ったら、まずこの形から始めましょう。</p>
 <div class="stack"><div class="s0" style="width:42.5%"><b>17</b>土地</div><div class="s1" style="width:42.5%"><b>17</b>クリーチャー</div><div class="s2" style="width:15.0%"><b>6</b>その他の呪文</div></div>
 <p style="font-size:13px;color:var(--muted);margin:8px 0 18px">土地16〜17枚、クリーチャー15〜17枚、除去や強化などの呪文6〜8枚が目安です。近年は、土地17・クリーチャー17・呪文6という形を基準に紹介する解説が多く見られます（攻めるデッキは土地16に減らすことも）。</p>
 <h3 class="sub">マナカーブ（土地を除く23枚の目安）</h3>
 <div class="curve"><div style="height:33%"><b>2</b></div><div style="height:100%"><b>6</b></div><div style="height:83%"><b>5</b></div><div style="height:67%"><b>4</b></div><div style="height:50%"><b>3</b></div><div style="height:50%"><b>3</b></div></div>
 <div class="curvelab"><span>1マナ</span><span>2マナ</span><span>3マナ</span><span>4マナ</span><span>5マナ</span><span>6+マナ</span></div>
-<p style="font-size:13px;color:var(--muted);margin:8px 0 14px">軽いカードを多めにして、重いカードは少なめに。序盤に何も出せない手札事故を防げます。</p>
-<div class="cards3"><div class="pt"><span class="ic">🎨</span><b>色は2色までに</b><p>土地は色の枚数に合わせて、たとえば9枚と8枚のように分けます。</p></div><div class="pt"><span class="ic">⚖️</span><b>クリーチャーを十分に</b><p>戦場に出せる味方が少ないと、攻めも守りも苦しくなります。</p></div><div class="pt"><span class="ic">🎯</span><b>除去を忘れずに</b><p>呪文の枠は少ないので、除去は厳選して入れます。除去の力を持つクリーチャーも数えられます。</p></div></div></section>
+<p style="font-size:13px;color:var(--muted);margin:8px 0 14px">マナが重い強いカードばかり入れると、序盤や中盤に何も出せずに負けてしまいます。カードのマナの重さをほどよく散らす考え方を<b>マナカーブ</b>と呼びます。軽いカードを多めに、重いカードは少なめにしましょう。</p>
+<div class="cards3"><div class="pt"><span class="ic">🎨</span><b>色は2色までに</b><p>土地は色の枚数に合わせて、たとえば平地9枚と島8枚のように分けます。</p></div><div class="pt"><span class="ic">⚖️</span><b>クリーチャーを十分に</b><p>戦場に出せる味方が少ないと、攻めも守りも苦しくなります。</p></div><div class="pt"><span class="ic">🎯</span><b>除去を忘れずに</b><p>呪文の枠は少ないので、除去は厳選して入れます。除去の力を持つクリーチャーも数えられます。</p></div></div></section>
 <section class="blk" id="removal"><h2>リミテッドで「除去」が強い理由</h2><p class="lead">除去とは、相手のクリーチャーを倒したり、動けなくしたりするカードのことです。</p>
 <h3 class="sub" style="margin-top:6px">なぜ強いのか</h3>
 <div class="cards3"><div class="pt"><span class="ic">①</span><b>相手の主役を1枚で止められる</b><p>リミテッドは、相手が大型や空を飛ぶ強いクリーチャーを出してきます。除去があれば、それを1枚で片づけられます。</p></div><div class="pt"><span class="ic">②</span><b>数に限りがある</b><p>1パックに入る除去は数枚だけ。ドラフトでは、早めに取っておくと差がつきます。</p></div><div class="pt"><span class="ic">③</span><b>カードの交換が得になる</b><p>自分の1枚で相手の強い1枚を倒せば、盤面が一気にこちらへ傾きます。</p></div></div>
@@ -295,9 +366,9 @@
 <div class="exs"><figure><span class="cimg " data-name="Lightning Bolt"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Lightning%20Bolt" alt="Lightning Bolt" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Lightning Bolt</i></span><figcaption><b>稲妻</b>ダメージを与えて倒す（火力）</figcaption></figure><figure><span class="cimg " data-name="Pacifism"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Pacifism" alt="Pacifism" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Pacifism</i></span><figcaption><b>平和な心</b>攻撃もブロックもできなくする</figcaption></figure></div>
 <h3 class="sub">レアリティ（めずらしさ）</h3><p style="margin:0 0 8px;font-size:13.5px">カードの価値と、強さは別ものです。レアでなくても、強いカードはたくさんあります。</p>
 <div class="rarg"><div class="c"><b>コモン</b>いちばん多い。デッキの土台</div><div class="u"><b>アンコモン</b>ふつうより少なめ</div><div class="r"><b>レア</b>強力なものが多い</div><div class="m"><b>神話レア</b>最もめずらしい</div></div>
-<h3 class="sub">強いカードを数字で調べる</h3><p style="margin:0;font-size:14px">このサイトの<a href="../reports.html">環境レポート</a>では、17Landsの実戦データから、色ごと・レアリティごとのカードの勝率を確認できます。目安にするのは<b>GIH勝率</b>（そのカードが手札か戦場にあった試合の勝率）で、同じセットの中で平均より3ポイントほど高ければ強いカードです。</p></section>
+<h3 class="sub">強いカードを数字で調べる</h3><p style="margin:0;font-size:14px">このサイトの<a href="../reports.html">環境レポート</a>では、実戦データから、色ごと・レアリティごとのカードの勝率を確認できます。目安にするのは<b>GIH勝率</b>（そのカードが手札か戦場にあった試合の勝率）で、同じセットの中で平均より3ポイントほど高ければ強いカードです。</p></section>
 <section class="blk" id="next"><h2>次の一歩</h2><p class="lead">ここまで読めば、遊び始める準備は十分です。</p>
-<div class="cta"><a class="main" href="index.html#arena"><b>MTGアリーナを入れる</b><small>パソコンでもスマートフォンでも、無料で始められます。</small></a><a class="" href="../"><b>シールドを練習する</b><small>6パック分の仮想パックで、40枚デッキを組む練習。</small></a><a class="" href="../draft.html"><b>ドラフトを練習する</b><small>8人卓を再現した仮想ドラフトで、ピックの練習。</small></a><a class="" href="../reports.html"><b>環境レポートを見る</b><small>セットごとの強い色・強いカードを確認。</small></a></div>
+<div class="cta"><a class="main" href="index.html#arena"><b>MTGアリーナを入れる</b><small>パソコンでもスマートフォンでも、無料で始められます。</small></a><a class="" href="../sealed.html"><b>シールドを練習する</b><small>6パック分の仮想パックで、40枚デッキを組む練習。</small></a><a class="" href="../draft.html"><b>ドラフトを練習する</b><small>8人卓を再現した仮想ドラフトで、ピックの練習。</small></a><a class="" href="../reports.html"><b>環境レポートを見る</b><small>セットごとの強い色・強いカードを確認。</small></a></div>
 <p class="credit">カード画像とマナシンボルは Scryfall から読み込んでいます。Magic: The Gathering は Wizards of the Coast LLC の商標です。このサイトは非公式のファンサイトです。</p></section>
 
 <script>

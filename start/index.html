@@ -115,6 +115,25 @@
     .cmp tbody th{width:28%}
     .types{grid-template-columns:repeat(2,1fr);gap:16px 10px}
   }
+  .blk.longvideo{padding:20px 22px;border-radius:12px;margin:0 0 22px}   /* セット別ページの .longvideo の枠より、このページの .blk に合わせる */
+  .blk.longvideo > h2{font-size:22px;margin:0 0 6px}.blk.longvideo > .lead{margin:0 0 14px;font-size:14px;opacity:1;color:var(--muted)}
+  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0A2038}
+  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .longvideo .yt button span{width:68px;height:68px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .longvideo .yt button span::after{content:"";border-left:23px solid #0B1E33;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
+  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px;max-height:420px;overflow-y:auto}
+  .longvideo .chap li{margin:0 0 2px}
+  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
+  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
+  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
+  .modebar{margin:0 0 18px}
+  .tabs{display:inline-flex;gap:3px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .tab{border-radius:999px;padding:8px 22px;font-size:14px;font-weight:600;color:var(--muted);text-decoration:none;line-height:1.4}
+  .tab:hover:not(.on){color:var(--ink);background:#fff}
+  .tab.on{background:var(--pine);color:var(--paper)}
 </style>
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
@@ -126,8 +145,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/mana/mana.min.css">
 <script src="../analytics.js"></script>
 <script src="/navmenu.js" defer></script>
+<script src="/tip.js" defer></script>
+<script src="/card-preview.js?v=1" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
@@ -189,6 +211,21 @@
   .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
   section{margin-top:18px}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
+  .longvideo h2{margin:0 0 4px;font-size:18px}
+  .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
+  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0A2038}
+  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .longvideo .yt button span{width:68px;height:68px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .longvideo .yt button span::after{content:"";border-left:23px solid #0B1E33;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
+  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px}
+  .longvideo .chap li{margin:0 0 2px}
+  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
+  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
+  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
   .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
   .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
   .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -208,6 +245,41 @@
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .cname{display:flex;align-items:center;gap:6px}
+  .cname .art{width:40px;height:30px;flex:none;display:block;border-radius:4px;object-fit:cover;background:var(--paper-2)}
+  @media (max-width:520px){ .cname .art{width:32px;height:24px} }
+  /* カードのティア表 */
+  .ctier input[type=radio]{position:absolute;opacity:0;pointer-events:none}
+  .ctabs{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--pine);border-radius:12px;overflow:hidden;margin:6px 0 10px;background:#fff}
+  .ctabs label{font-size:15px;font-weight:700;padding:10px 6px;color:var(--pine);border-left:1px solid var(--line);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.25;text-align:center}
+  .ctabs label:first-child{border-left:0}
+  .ctabs label .n{font-size:11.5px;font-weight:500;color:var(--muted)}
+  .ctier input:nth-of-type(1):checked ~ .ctabs label:nth-child(1),.ctier input:nth-of-type(2):checked ~ .ctabs label:nth-child(2),.ctier input:nth-of-type(3):checked ~ .ctabs label:nth-child(3){background:var(--pine);color:#fff}
+  .ctier input:nth-of-type(1):checked ~ .ctabs label:nth-child(1) .n,.ctier input:nth-of-type(2):checked ~ .ctabs label:nth-child(2) .n,.ctier input:nth-of-type(3):checked ~ .ctabs label:nth-child(3) .n{color:#BFD3EA}
+  .ctabs .rd{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+  .ctabs .rd.mr{background:linear-gradient(135deg,#E0A23B,#C4552C)}.ctabs .rd.u{background:#9AAAB4}.ctabs .rd.c{background:#2A3B4C;box-shadow:0 0 0 1px #fff inset}
+  @media (max-width:520px){ .ctabs label{font-size:13px;padding:9px 4px} }
+  @media (max-width:420px){ .ctabs .rd{display:none} }
+  .ccolors{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
+  .ccolors .lbl{font-size:12px;color:var(--muted);margin-right:2px}
+  .ccolors button{font:inherit;font-size:12.5px;line-height:1;padding:6px 10px;border-radius:999px;cursor:pointer;background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .ccolors button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
+  .tchip[hidden],.tempty[hidden]{display:none}
+  .ctier .tiers{display:none}
+  .ctier input:nth-of-type(1):checked ~ .t-mr,.ctier input:nth-of-type(2):checked ~ .t-u,.ctier input:nth-of-type(3):checked ~ .t-c{display:grid}
+  .tiers{display:grid;gap:5px}
+  .trow{display:grid;grid-template-columns:44px 1fr;gap:6px;align-items:stretch}
+  .tlab{display:flex;align-items:center;justify-content:center;border-radius:7px;font:800 20px/1 "Bricolage Grotesque",sans-serif;color:#fff}
+  .tlab.S{background:#C9472E}.tlab.A{background:#D98A1E}.tlab.B{background:#4F8A4A}.tlab.C{background:#6B7A8A}.tlab.D{background:#8C5E58}
+  .tcells{display:flex;flex-wrap:wrap;gap:5px;padding:5px;background:var(--paper-2);border-radius:7px;min-height:38px;align-items:center}
+  .tchip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--line);border-radius:7px;padding:3px 8px;font-size:13px}
+  .tchip b{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .ctier .tchip{padding:3px 8px 3px 4px}
+  .tchip .tpic{position:relative;flex:none;display:block}
+  .tchip .tpic .art{width:30px;height:22px;display:block;border-radius:3px;object-fit:cover;background:var(--paper-2)}
+  .tchip .tpic > :last-child{position:absolute;right:-5px;bottom:-4px;transform:scale(.72)}
+  .tempty{font-size:12px;color:var(--muted);padding:0 4px}
+  .tavg{font-size:12px;color:var(--muted);margin:6px 0 0}
   .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
   .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#FFFFFF}.rar.mythic{background:#C4552C}
   .links ul{margin:6px 0 0;padding-left:1.2em}
@@ -232,6 +304,9 @@
   .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}
   footer a{color:var(--muted)}
+  .faq details{border-bottom:1px solid var(--line,#D7E2EE);padding:10px 2px}
+  .faq summary{cursor:pointer;font-weight:700;font-size:14.5px}
+  .faq p{margin:8px 0 2px;font-size:14px;line-height:1.8}
   @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
@@ -246,7 +321,7 @@
       </select></div>
     <nav>
       <div class="ng"><span class="ngl">はじめに</span><span class="ngs">MTGの基本と、このサイトの使い方</span><a href="../start/index.html">MTGとは</a><a href="../start/limited.html">リミテッドとは</a></div>
-      <div class="ng"><span class="ngl">練習する</span><span class="ngs">仮想パックで練習</span><a href="../sealed.html">シールド練習</a><a href="../draft.html">ドラフト練習</a><a href="../draftroom.html">ドラフト練習（対人戦）</a></div>
+      <div class="ng"><span class="ngl">練習する</span><span class="ngs">仮想パックで練習</span><a href="../sealed.html">シールド練習</a><a href="../draft.html">ドラフト練習（CPU戦）</a><a href="../draftroom.html">ドラフト練習（対人戦）</a></div>
       <div class="ng"><span class="ngl">MTGアリーナで使う</span><span class="ngs">実戦のログを読んで助ける・PC専用</span><a href="../sealed-assist.html">シールド補助<b class="pcb">PC</b></a><a href="../assistant.html">ドラフト補助<b class="pcb">PC</b></a></div>
       <div class="ng"><span class="ngl">データを見る</span><span class="ngs">セットごとの強さ・速さを確認</span><a href="../reports.html">環境レポート</a></div>
       <div class="ng"><span class="ngl">対戦する</span><span class="ngs">友達との対戦・大会の進行</span><a href="../table.html">対戦卓</a><a href="../swiss.html">スイスドロー</a></div>
@@ -258,17 +333,22 @@
   </div>
 </header>
 <main>
+<div class="modebar"><div class="tabs" role="navigation" aria-label="はじめに"><a class="tab on" href="index.html" aria-current="page">MTGとは</a><a class="tab" href="limited.html">リミテッドとは</a></div></div>
+<section class="blk longvideo" id="video"><h2>動画で見る</h2><p class="lead">MTGの基本から、リミテッドの遊び方・40枚デッキの組み方まで、動画で解説しています。目次を押すと、その場面から再生します。</p>
+<div class="lv"><div class="yt" data-id="8D1YZTf8I_g"><img src="https://i.ytimg.com/vi/8D1YZTf8I_g/hqdefault.jpg" alt="【MTGアリーナ】リミテッド入門｜遊び方・シールドとドラフト・40枚デッキの組み方【初心者向け】" loading="lazy" width="640" height="360"><button type="button" aria-label="再生"><span></span></button></div><ul class="chap"><li><a href="https://youtu.be/8D1YZTf8I_g?t=0" data-t="0" target="_blank" rel="noopener"><time>0:00</time><span>はじめに</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=15" data-t="15" target="_blank" rel="noopener"><time>0:15</time><span>MTGとは</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=44" data-t="44" target="_blank" rel="noopener"><time>0:44</time><span>MTGアリーナとは</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=63" data-t="63" target="_blank" rel="noopener"><time>1:03</time><span>ゲームの基本</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=100" data-t="100" target="_blank" rel="noopener"><time>1:40</time><span>5つの色</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=121" data-t="121" target="_blank" rel="noopener"><time>2:01</time><span>カードの見方</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=141" data-t="141" target="_blank" rel="noopener"><time>2:21</time><span>呪文の種類</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=166" data-t="166" target="_blank" rel="noopener"><time>2:46</time><span>リミテッドとは</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=184" data-t="184" target="_blank" rel="noopener"><time>3:04</time><span>シールド</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=197" data-t="197" target="_blank" rel="noopener"><time>3:17</time><span>ドラフト</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=206" data-t="206" target="_blank" rel="noopener"><time>3:26</time><span>クイックとプレミア</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=242" data-t="242" target="_blank" rel="noopener"><time>4:02</time><span>開催スケジュール</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=282" data-t="282" target="_blank" rel="noopener"><time>4:42</time><span>40枚デッキの組み方</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=317" data-t="317" target="_blank" rel="noopener"><time>5:17</time><span>除去が強い理由</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=341" data-t="341" target="_blank" rel="noopener"><time>5:41</time><span>強いカードの見分け方</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=364" data-t="364" target="_blank" rel="noopener"><time>6:04</time><span>練習する</span></a></li><li><a href="https://youtu.be/8D1YZTf8I_g?t=384" data-t="384" target="_blank" rel="noopener"><time>6:24</time><span>まとめ</span></a></li></ul></div>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoObject","name":"【MTGアリーナ】リミテッド入門｜遊び方・シールドとドラフト・40枚デッキの組み方【初心者向け】","description":"MTGの基本から、リミテッドの遊び方・40枚デッキの組み方まで、動画で解説しています。目次を押すと、その場面から再生します。","thumbnailUrl":["https://i.ytimg.com/vi/8D1YZTf8I_g/hqdefault.jpg"],"uploadDate":"2026-10-21","contentUrl":"https://www.youtube.com/watch?v=8D1YZTf8I_g","embedUrl":"https://www.youtube-nocookie.com/embed/8D1YZTf8I_g","inLanguage":"ja"}</script>
+<script>(function(){var box=document.querySelector(".longvideo .yt");if(!box)return;function play(t){var f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+box.dataset.id+"?autoplay=1&playsinline=1"+(t?"&start="+t:"");f.allow="autoplay; encrypted-media; picture-in-picture";f.allowFullscreen=true;f.title="【MTGアリーナ】リミテッド入門｜遊び方・シールドとドラフト・40枚デッキの組み方【初心者向け】";box.innerHTML="";box.appendChild(f);}box.querySelector("button").addEventListener("click",function(){play(0);});document.querySelectorAll(".longvideo .chap a").forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();play(+a.dataset.t);box.scrollIntoView({block:"nearest",behavior:"smooth"});});});})();</script></section>
 <ul class="toc"><li><a href="#what">どんなゲーム</a></li><li><a href="#colors">5つの色</a></li><li><a href="#types">カードの種類</a></li><li><a href="#read">カードの見方</a></li><li><a href="#formats">フォーマット</a></li><li><a href="#arena">MTGアリーナ</a></li><li><a href="#official">公式ページ</a></li><li><a href="#next">次の一歩</a></li></ul>
 <section class="blk" id="what"><h2>MTGって、どんなゲーム？</h2><p class="lead">基本は1対1で遊ぶカードゲームです。自分でデッキ（カードの束）を組んで戦うところが一番の魅力です。</p>
-<div class="cards3"><div class="pt"><span class="ic">⚔️</span><b>基本は1対1</b><p>おたがいにライフ20から始め、相手のライフを0にすれば勝ち。2人1組で戦う形式や、3人以上で遊ぶ形式もあります。</p></div><div class="pt"><span class="ic">🃏</span><b>デッキは自分で作る</b><p>好きなカードを選んで、自分だけのデッキを組み立てます。</p></div><div class="pt"><span class="ic">🌍</span><b>30年以上続く定番のTCG</b><p>1993年に生まれたカードゲーム。大会も世界中で開かれています。</p></div></div>
+<div class="cards3"><div class="pt"><span class="ic">⚔️</span><b>基本は1対1</b><p>おたがいにライフ20から始め、相手のライフを0にすれば勝ち。2人1組で戦う形式や、3人以上で遊ぶ形式もあります。</p></div><div class="pt"><span class="ic">🃏</span><b>デッキは自分で作る</b><p>好きなカードを選んで、自分だけのデッキを組み立てます。</p></div><div class="pt"><span class="ic">🌍</span><b>世界で最初のトレーディングカードゲーム</b><p>1993年に、数学者リチャード・ガーフィールドが考えたゲーム。これまでに5,000万人以上が遊び、150以上の国で発売されています。世界大会も開かれています。</p></div></div>
 <h3 class="sub">1ターンの流れ</h3>
-<ol class="flow"><li><b>起こす</b>前のターンに使ったカードを元に戻す</li><li><b>引く</b>デッキの上から1枚引く</li><li><b>出す</b>土地を1枚置き、マナで呪文やクリーチャーを出す</li><li><b>攻撃</b>クリーチャーで相手を攻撃する</li><li><b>終わり</b>ターンを相手に渡す</li></ol>
-<p class="note"><b>土地</b>がマナ（呪文を使うためのエネルギー）の源です。土地は1ターンに1枚だけ置けるので、ターンが進むほど大きなカードを出せるようになります。</p></section>
+<ol class="flow"><li><b>起こす</b>前のターンに使ったカードを元に戻す</li><li><b>引く</b>デッキの上から1枚引く</li><li><b>第1メイン</b>土地を1枚置き、マナで呪文やクリーチャーを出す</li><li><b>攻撃</b>クリーチャーで相手を攻撃する</li><li><b>第2メイン</b>攻撃のあとにも、土地や呪文を出せる</li><li><b>終わり</b>ターンを相手に渡す</li></ol>
+<p class="note">カードを出せる<b>メイン</b>は、攻撃の前と後の2回あります。攻撃の様子を見てから、あとでカードを出すこともできます。<br><b>土地</b>がマナ（呪文を使うためのエネルギー）の源です。土地は1ターンに1枚だけ置けるので、ターンが進むほど大きなカードを出せるようになります。</p></section>
 <section class="blk" id="colors"><h2>5つの色が、それぞれ違う戦い方をする</h2><p class="lead">カードは5つの色に分かれ、色ごとに得意なことが違います。デッキは1〜2色で組むのが基本です。</p>
 <div class="colors"><div class="col W"><div class="nm"><img class="ms" src="https://svgs.scryfall.io/card-symbols/W.svg" alt="W" width="30" height="30" loading="lazy">白</div><div class="tg">守りと秩序</div><p>小さな仲間をたくさん並べ、空を飛ぶクリーチャーや回復で堅く戦います。</p></div><div class="col U"><div class="nm"><img class="ms" src="https://svgs.scryfall.io/card-symbols/U.svg" alt="U" width="30" height="30" loading="lazy">青</div><div class="tg">知略とコントロール</div><p>相手の呪文を打ち消したり、カードを引いたり。空を飛ぶ生き物も得意です。</p></div><div class="col B"><div class="nm"><img class="ms" src="https://svgs.scryfall.io/card-symbols/B.svg" alt="B" width="30" height="30" loading="lazy">黒</div><div class="tg">犠牲と除去</div><p>相手のクリーチャーを倒す呪文が豊富。ライフを払って強い効果を得ます。</p></div><div class="col R"><div class="nm"><img class="ms" src="https://svgs.scryfall.io/card-symbols/R.svg" alt="R" width="30" height="30" loading="lazy">赤</div><div class="tg">速さと火力</div><p>ダメージを与える呪文（火力）で相手のクリーチャーやライフを直接焼きます。</p></div><div class="col G"><div class="nm"><img class="ms" src="https://svgs.scryfall.io/card-symbols/G.svg" alt="G" width="30" height="30" loading="lazy">緑</div><div class="tg">大きさと成長</div><p>大型クリーチャーとマナ加速。力でゴリ押しする戦い方です。</p></div></div>
 <p class="note">ほかに、色を持たない<b>無色</b>のカード（アーティファクトなど）もあり、どんなデッキにも入れられます。</p></section>
 <section class="blk" id="types"><h2>カードの種類</h2><p class="lead">まずは、よく出てくる7種類を覚えれば大丈夫です。画像は説明用の例です（現在のアリーナで遊べるとは限りません）。</p>
-<div class="types"><div class="ty"><span class="cimg " data-name="Serra Angel"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Serra%20Angel" alt="Serra Angel" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Serra Angel</i></span><div class="tn">クリーチャー<small>セラの天使（Serra Angel）</small></div><p>戦場に出て戦う生き物。攻撃したり、相手の攻撃を受け止めたりします。</p></div><div class="ty"><span class="cimg " data-name="Lightning Bolt"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Lightning%20Bolt" alt="Lightning Bolt" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Lightning Bolt</i></span><div class="tn">インスタント<small>稲妻（Lightning Bolt）</small></div><p>好きなタイミングで使える呪文。相手のターン中にも使えて、使うと墓地に行きます。</p></div><div class="ty"><span class="cimg " data-name="Wrath of God"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Wrath%20of%20God" alt="Wrath of God" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Wrath of God</i></span><div class="tn">ソーサリー<small>神の怒り（Wrath of God）</small></div><p>自分のターンの途中にしか使えない呪文。大きな効果が多く、使い切りです。</p></div><div class="ty"><span class="cimg " data-name="Pacifism"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Pacifism" alt="Pacifism" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Pacifism</i></span><div class="tn">エンチャント<small>平和な心（Pacifism）</small></div><p>戦場に残り続ける効果。これは「相手のクリーチャーを動けなくする」タイプです。</p></div><div class="ty"><span class="cimg " data-name="Sol Ring"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Sol%20Ring" alt="Sol Ring" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Sol Ring</i></span><div class="tn">アーティファクト<small>太陽の指輪（Sol Ring）</small></div><p>道具のような永続物。多くは色を持たず、どのデッキにも入ります。</p></div><div class="ty"><span class="cimg " data-name="Chandra, Torch of Defiance"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Chandra%2C%20Torch%20of%20Defiance" alt="Chandra, Torch of Defiance" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Chandra, Torch of Defiance</i></span><div class="tn">プレインズウォーカー<small>反逆の先導者、チャンドラ（Chandra, Torch of Defiance）</small></div><p>味方になってくれる強力な魔道士。毎ターン能力を使い、相手に攻撃されると減っていきます。</p></div><div class="ty"><span class="cimg " data-name="Forest"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Forest" alt="Forest" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Forest</i></span><div class="tn">土地<small>森（Forest）</small></div><p>マナを生み出す、ゲームの土台。デッキの約4割は土地です。</p></div></div></section>
+<div class="types"><div class="ty"><span class="cimg " data-name="Serra Angel"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Serra%20Angel" alt="Serra Angel" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Serra Angel</i></span><div class="tn">クリーチャー<small>セラの天使（Serra Angel）</small></div><p>戦場に出て戦う生き物。攻撃したり、相手の攻撃を受け止めたりします。</p></div><div class="ty"><span class="cimg " data-name="Lightning Bolt"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Lightning%20Bolt" alt="Lightning Bolt" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Lightning Bolt</i></span><div class="tn">インスタント<small>稲妻（Lightning Bolt）</small></div><p>好きなタイミングで使える呪文。相手のターン中にも使えて、使うと墓地に行きます。</p></div><div class="ty"><span class="cimg " data-name="Wrath of God"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Wrath%20of%20God" alt="Wrath of God" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Wrath of God</i></span><div class="tn">ソーサリー<small>神の怒り（Wrath of God）</small></div><p>自分のターンの途中にしか使えない呪文。大きな効果が多く、使い切りです。</p></div><div class="ty"><span class="cimg " data-name="Pacifism"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Pacifism" alt="Pacifism" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Pacifism</i></span><div class="tn">エンチャント<small>平和な心（Pacifism）</small></div><p>戦場に残り続ける効果。これは「相手のクリーチャーを動けなくする」タイプです。</p></div><div class="ty"><span class="cimg " data-name="Bonesplitter"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Bonesplitter" alt="Bonesplitter" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Bonesplitter</i></span><div class="tn">アーティファクト<small>骨断ちの矛（Bonesplitter）</small></div><p>道具のような永続物。多くは色を持たず、どのデッキにも入ります。これは<b>装備品</b>で、クリーチャーに付けて強くできます。</p></div><div class="ty"><span class="cimg " data-name="Chandra, Torch of Defiance"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Chandra%2C%20Torch%20of%20Defiance" alt="Chandra, Torch of Defiance" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Chandra, Torch of Defiance</i></span><div class="tn">プレインズウォーカー<small>反逆の先導者、チャンドラ（Chandra, Torch of Defiance）</small></div><p>味方になってくれる強力な魔道士。毎ターン能力を使い、相手に攻撃されると減っていきます。</p></div><div class="ty"><span class="cimg " data-name="Forest"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Forest" alt="Forest" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Forest</i></span><div class="tn">土地<small>森（Forest）</small></div><p>マナを生み出す、ゲームの土台。デッキの約4割は土地です。</p></div></div></section>
 <section class="blk" id="read"><h2>カードの見方</h2><p class="lead">数字や記号の意味が分かれば、初めて見るカードでも強さが読めます。</p>
 <div class="anat"><div class="cardwrap"><span class="cimg " data-name="Serra Angel"><img src="https://api.scryfall.com/cards/named?format=image&version=normal&exact=Serra%20Angel" alt="Serra Angel" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('miss')"><i>Serra Angel</i></span><span class="badge" style="left:11%;top:5.8%">1</span><span class="badge" style="left:88%;top:5.8%">2</span><span class="badge" style="left:50%;top:30%">3</span><span class="badge" style="left:11%;top:57.5%">4</span><span class="badge" style="left:50%;top:74%">5</span><span class="badge" style="left:89%;top:92.5%">6</span></div>
 <div><ol><li><span>1</span>名前</li><li><span>2</span>マナコスト（出すために必要なマナ）</li><li><span>3</span>イラスト</li><li><span>4</span>タイプ（クリーチャーなど）</li><li><span>5</span>テキスト（能力の説明）</li><li><span>6</span>パワー／タフネス（攻撃力／体力）</li></ol>
@@ -281,7 +361,7 @@
 <tr><th>アリーナの例</th><td>スタンダード、エクスプローラー、ヒストリック など</td><td>ドラフト、シールド</td></tr>
 <tr><th>向いている人</th><td>強いデッキを研究して育てたい</td><td>すぐ始めたい、カードを集めたくない</td></tr></tbody></table>
 <p class="note">ほかに、2人1組で戦う<b>双頭巨人戦</b>（チームでライフ30を共有）や、3人以上で遊ぶ<b>コマンダー</b>など、人数の違う遊び方もあります。ただし、アリーナのリミテッドは<b>1対1</b>が基本です。</p><p class="note">どちらにも面白さがあります。このサイトは<b>リミテッド</b>を専門に扱っています。</p></section>
-<section class="blk" id="arena"><h2>MTGアリーナ（デジタル版）で始める</h2><p class="lead">MTGの公式デジタル版です。<b>パソコン（Windows・Mac）でも、スマートフォン・タブレット（iPhone・iPad・Android）でも</b>遊べて、基本プレイ無料、日本語に対応しています。PC版とスマホ版は、同じアカウントのデータで遊べます。</p>
+<section class="blk" id="arena"><h2>MTGアリーナ（デジタル版）で始める</h2><p class="lead">MTGの公式デジタル版です。<b>パソコン（Windows・Mac）でも、スマートフォン・タブレット（iPhone・iPad・Android）でも</b>遊べて、基本プレイ無料、日本語に対応しています。登録プレイヤーは1,700万人以上。PC版とスマホ版は、同じアカウントのデータで遊べます。</p>
 <h3 class="sub" style="margin-top:6px">インストールする</h3>
 <div class="inst"><a href="https://mtg-jp.com/mtgarena/" target="_blank" rel="noopener"><span class="ii"><span class="chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#0078D4" d="M3 3h8.5v8.5H3zM12.5 3H21v8.5h-8.5zM3 12.5h8.5V21H3zM12.5 12.5H21V21h-8.5z"/></svg></span><span class="chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#111" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg></span></span><b>パソコン（Windows・Mac）</b><small>公式ページへ</small></a><a href="https://apps.apple.com/jp/app/magic-the-gathering-arena/id1496227521" target="_blank" rel="noopener"><span class="ii"><span class="chip"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="asg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#18BFFB"/><stop offset="1" stop-color="#2072F3"/></linearGradient></defs><rect width="24" height="24" rx="5.5" fill="url(#asg)"/><path d="M7.2 17.6 12.4 8.4M16.8 17.6 11.6 8.4M8.6 14.4h6.8M9.6 6.6l.6-1.1" stroke="#fff" stroke-width="1.9" stroke-linecap="round" fill="none"/></svg></span></span><b>iPhone・iPad</b><small>App Store</small></a><a href="https://play.google.com/store/apps/details?id=com.wizards.mtga&hl=ja" target="_blank" rel="noopener"><span class="ii"><span class="chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00A0FF" d="M3.6 2.5 13.4 12l-9.8 9.5c-.4-.3-.6-.8-.6-1.4V3.9c0-.6.2-1.1.6-1.4z"/><path fill="#00D95F" d="M3.6 2.5 13.4 12l3.4-3.3L5.2 2.1c-.6-.3-1.2-.2-1.6.4z"/><path fill="#FF3A44" d="M3.6 21.5 13.4 12l3.4 3.3L5.2 21.9c-.6.3-1.2.2-1.6-.4z"/><path fill="#FFC800" d="m16.8 8.7 4 2.3c.8.5.8 1.5 0 2l-4 2.3-3.4-3.3z"/></svg></span></span><b>Android</b><small>Google Play</small></a></div>
 <p class="note">対応する機種や必要な容量は、公式ページとストアの案内で確認してください。このサイトの練習ツールはスマートフォンでも使えますが、アリーナのログを読む補助ツールはパソコン専用です。</p>

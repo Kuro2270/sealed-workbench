@@ -1,6 +1,6 @@
 {
-  "_note": "入門ページ（start/limited.html・limited.en.html）に載せる解説動画。id が入っている言語だけ載る。目次は YouTube の概要欄と同じ（秒で書く）。直したら maintenance/build-start.mjs を動かす",
-  "limited": {
+  "_note": "入門ページ（start/index.html「MTGとは」・start/limited.html「リミテッドとは」と英語版）の上に共通で載せる解説動画。id が入っている言語だけ載る。目次は YouTube の概要欄と同じ（秒で書く）。直したら maintenance/build-start.mjs を動かす",
+  "start": {
     "ja": {
       "id": "8D1YZTf8I_g",
       "title": "【MTGアリーナ】リミテッド入門｜遊び方・シールドとドラフト・40枚デッキの組み方【初心者向け】",
