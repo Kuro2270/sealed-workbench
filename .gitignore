@@ -16,3 +16,5 @@ social-manual/
 
 # wrangler dev の作業用フォルダ
 .wrangler/
+# 解説動画の生成物（台本 guide-video/<名前>/ja.json・en.json だけを残す）
+guide-video/*/out/

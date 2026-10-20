@@ -1,0 +1,190 @@
+name: 解説｜解説動画を作る（手動）
+
+# 定期的には作らない解説動画（例：リミテッド入門）を、台本 guide-video/<名前>/ja.json・en.json から作る。役割はこれだけ。
+#   ・自動では動かない。押したときだけ動く
+#   ・日本語: ナレーションは VOICEVOX（ずんだもん）。英語: ナレーションは Kokoro（英語の音声）、立ち絵は四国めたん
+#   ・YouTube には上げない。できた動画・目次・概要欄の下書き・題・サムネイルを、この実行ページの「Artifacts」から落として、YouTube Studio で手で上げる（30日で消える）
+#     Artifacts の名前: guide-<名前>-ja ／ guide-<名前>-en
+#   ・台本を直したいときは guide-video/<名前>/ja.json・en.json を直して、もう一度押す
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: "台本の名前（guide-video/ の下のフォルダ名。例: beginner）"
+        required: true
+        default: beginner
+      lang:
+        description: "作る言語（both = 日本語と英語を別々のジョブで同時に／ja／en）"
+        type: choice
+        options: [both, ja, en]
+        required: false
+        default: both
+      speed:
+        description: "日本語の読み上げの速さ（1.15 が既定。速くしたいときは上げる）"
+        required: false
+        default: "1.15"
+
+permissions:
+  contents: read
+
+jobs:
+  guide-ja:
+    name: 日本語版
+    if: ${{ inputs.lang != 'en' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      voicevox:
+        image: voicevox/voicevox_engine:cpu-ubuntu22.04-latest
+        ports:
+          - 50021:50021
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: ffmpeg と画像合成ライブラリを入れる
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ffmpeg fonts-noto-cjk
+          npm install --no-save sharp
+
+      - name: 背景のプレイ映像を Releases から落とす
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p short
+          gh release download assets --repo "$GITHUB_REPOSITORY" --pattern bg.mp4 --dir short --clobber || echo "::warning::Releases（タグ assets）に bg.mp4 が無いので、紺色の背景で作ります。"
+
+      - name: VOICEVOX が起きるのを待つ
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf -m 3 http://127.0.0.1:50021/version; then echo; exit 0; fi
+            sleep 3
+          done
+          echo "::error::VOICEVOX ENGINE が起動しませんでした。"
+          exit 1
+
+      - name: 動画を作る
+        env:
+          GUIDE: ${{ inputs.name }}
+          VOICEVOX_SPEED: ${{ inputs.speed }}
+          VOICEVOX_URL: http://127.0.0.1:50021
+        run: |
+          export GUIDE_NAME="$(echo "$GUIDE" | tr -cd 'A-Za-z0-9_-')"
+          echo "GUIDE_NAME=$GUIDE_NAME" >> "$GITHUB_ENV"
+          test -f "guide-video/${GUIDE_NAME}/ja.json" || { echo "::error::guide-video/${GUIDE_NAME}/ja.json がありません。"; exit 1; }
+          node maintenance/build-guide.mjs "$GUIDE_NAME" ja 2>&1 | tee guide.log
+          test -f "guide-video/${GUIDE_NAME}/out/ja/ja.mp4"
+          {
+            echo "## 解説動画（日本語版）ができました"
+            echo
+            echo "下の Artifacts から \`guide-${GUIDE_NAME}-ja\` を落として、ja.mp4 を確認してください。題は title.txt、概要欄は description.txt、サムネイルは thumbnail.jpg です。"
+            echo
+            echo '```'
+            sed -n '/^目次:/,$p' guide.log
+            echo '```'
+            echo
+            echo "### 読み上げの台本"
+            echo
+            echo '```'
+            node -e 'const s=require("./guide-video/"+process.env.GUIDE_NAME+"/out/ja/script.json");let t=0;for(const x of s){t+=+x.dur;console.log(`${String(x.layout).padEnd(9)} ${(+x.dur).toFixed(1)}s  ${x.say}\n          ${x.kana||""}`)}console.log("\n読み上げ合計 "+t.toFixed(0)+" 秒")'
+            echo '```'
+            echo
+            echo "読み違いがあれば、台本の \"speak\"（読み上げだけの文）に読みを書くか、short/yomi.json に「表記: 読み（カタカナ）」を足して、もう一度実行してください。"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 動画を保存する
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guide-${{ env.GUIDE_NAME }}-ja
+          path: |
+            guide-video/${{ env.GUIDE_NAME }}/out/ja/ja.mp4
+            guide-video/${{ env.GUIDE_NAME }}/out/ja/chapters.txt
+            guide-video/${{ env.GUIDE_NAME }}/out/ja/description.txt
+            guide-video/${{ env.GUIDE_NAME }}/out/ja/title.txt
+            guide-video/${{ env.GUIDE_NAME }}/out/ja/thumbnail.jpg
+            guide-video/${{ env.GUIDE_NAME }}/out/ja/script.json
+          retention-days: 30
+          if-no-files-found: warn
+
+  guide-en:
+    name: 英語版
+    if: ${{ inputs.lang != 'ja' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: ffmpeg と画像合成ライブラリを入れる
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ffmpeg fonts-noto-cjk
+          npm install --no-save sharp
+
+      - name: 背景のプレイ映像を Releases から落とす
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p short
+          gh release download assets --repo "$GITHUB_REPOSITORY" --pattern bg.mp4 --dir short --clobber || echo "::warning::Releases（タグ assets）に bg.mp4 が無いので、紺色の背景で作ります。"
+
+      - name: 英語の読み上げ（Kokoro）を入れる
+        run: pip install --quiet kokoro-onnx soundfile
+
+      - name: Kokoro のモデルを用意する（長尺と同じキャッシュ）
+        id: kokoro
+        uses: actions/cache@v4
+        with:
+          path: short/kokoro
+          key: kokoro-model-v1.0
+
+      - name: Kokoro のモデルを落とす
+        if: steps.kokoro.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p short/kokoro
+          curl -sSL -o short/kokoro/kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
+          curl -sSL -o short/kokoro/voices-v1.0.bin https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
+
+      - name: 動画を作る
+        env:
+          GUIDE: ${{ inputs.name }}
+          KOKORO_DIR: short/kokoro
+        run: |
+          export GUIDE_NAME="$(echo "$GUIDE" | tr -cd 'A-Za-z0-9_-')"
+          echo "GUIDE_NAME=$GUIDE_NAME" >> "$GITHUB_ENV"
+          test -f "guide-video/${GUIDE_NAME}/en.json" || { echo "::error::guide-video/${GUIDE_NAME}/en.json がありません。"; exit 1; }
+          node maintenance/build-guide.mjs "$GUIDE_NAME" en 2>&1 | grep --line-buffered -v onnxruntime | tee guide.log
+          test -f "guide-video/${GUIDE_NAME}/out/en/en.mp4"
+          {
+            echo "## 解説動画（英語版）ができました"
+            echo
+            echo "下の Artifacts から \`guide-${GUIDE_NAME}-en\` を落として、en.mp4 を確認してください。題は title.txt、概要欄は description.txt、サムネイルは thumbnail.jpg です。"
+            echo
+            echo '```'
+            sed -n '/^目次:/,$p' guide.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 動画を保存する
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guide-${{ env.GUIDE_NAME }}-en
+          path: |
+            guide-video/${{ env.GUIDE_NAME }}/out/en/en.mp4
+            guide-video/${{ env.GUIDE_NAME }}/out/en/chapters.txt
+            guide-video/${{ env.GUIDE_NAME }}/out/en/description.txt
+            guide-video/${{ env.GUIDE_NAME }}/out/en/title.txt
+            guide-video/${{ env.GUIDE_NAME }}/out/en/thumbnail.jpg
+            guide-video/${{ env.GUIDE_NAME }}/out/en/script.json
+          retention-days: 30
+          if-no-files-found: warn
