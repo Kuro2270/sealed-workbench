@@ -2,5 +2,9 @@
   "FRA-first": {
     "at": "2026-10-19T09:05:00.693Z",
     "seeded": true
+  },
+  "FRA-final": {
+    "at": "2026-10-20T08:42:20.406Z",
+    "bsky": true
   }
 }
