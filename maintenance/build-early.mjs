@@ -21,11 +21,14 @@
  *   ・ドラフト（PremierDraft）とシールド（Sealed）を合算した「リミテッド速報」にする。発売直後はシールドの試合が
  *     少ないので、分けると数字が薄い。シールドにまだ試合が無ければドラフトだけで作る（formats に残る）。
  *
+ * rarity_avg … レア度ごとの平均勝率（{ common, uncommon, rare }。rare は神話レアも含む）
+ *
  * 環境変数: EARLY_FORMATS（既定 PremierDraft,Sealed）、EARLY_MIN_GAMES（上位に出すカードの最低試合数。既定 300）
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { fetchCardRows } from "./l17-cards.mjs";
+import { rarityAverages } from "./card-level.mjs";
 
 const SET = String(process.argv[2] || "").toUpperCase();
 if(!SET){ console.error("使い方: node maintenance/build-early.mjs <SET>"); process.exit(1); }
@@ -174,13 +177,16 @@ for(const [name, c] of Object.entries(cards)){
 const top = {};
 for(const r of Object.keys(byRarity)) top[r] = byRarity[r].sort((a, b) => b.gih - a.gih).slice(0, 10);
 const nCards = Object.values(byRarity).reduce((n, a) => n + a.length, 0);
+/* レア度ごとの平均（引けた試合の勝率。試合数で重みづけ。上位に出すのと同じ最低試合数・土地は除く）。
+   ショートで「ボム級」（レアの平均を大きく上回るコモン・アンコモン）や「コモンの平均より何ポイント高いか」を言うのに使う */
+const rarity_avg = rarityAverages(Object.entries(cards).map(([name, c]) => ({ rarity: c.rarity, games: c.games, gih: c.games ? c.wins / c.games : null, land: !!landOf[name] })), MIN_GAMES);
 
 const out = {
   set: SET, mode: "early", early: true, formats,
   generated_at: new Date().toISOString(), data_generated_at: new Date().toISOString(), as_of: iso(Date.now()),
   released_at: setInfo.released_at,
   total_games: total, overall_win_rate: total ? totalWins / total : null,
-  top, colors, archetypes,
+  top, rarity_avg, colors, archetypes,
   notes: { summary: null, archetypes: null, speed: null, cards: null },
   source: "17Lands（card ratings / color ratings）", source_url: `${L17}/card_data?expansion=${SET}&format=PremierDraft`
 };

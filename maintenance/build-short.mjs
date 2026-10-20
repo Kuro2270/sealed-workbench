@@ -36,6 +36,8 @@ import { resolve } from "node:path";
 import { existsSync } from "node:fs";
 import { splitSay } from "./highlight-split.mjs";
 import { lookupOutside } from "./outside-cards.mjs";
+import { loadReport } from "./report-data.mjs";
+import { rarityAverages, isBombLevel } from "./card-level.mjs";
 
 const SET = process.argv[2];
 const LANG = (process.argv[3] || "ja").toLowerCase();
@@ -161,7 +163,9 @@ const pairName = p => [...p].map(c => CN[c] || c).join(JA ? "" : "-");
 
 /* ------------------------------------------------------------ 台本 */
 
-function buildScript(d, nameJa, names){
+const LEAD_GAP = 0.03;   // 1位が同じレア度の平均より 3pt 以上高ければ、その差を言う（ボム級が無いとき）
+function buildScript(d, nameJa, names, avgs = {}){
+  const rareAvg = avgs.rare || null;
   const pace = (d.speed || []).filter(s => s.wr != null && s.games);
   const fast = pace[0], slow = pace[pace.length - 1];
   const faster = fast && slow && fast.wr > slow.wr;
@@ -303,12 +307,29 @@ function buildScript(d, nameJa, names){
            : (prevTop.col === col ? `${CN[col]} is strong here too.` : `${CN[col]} leads here.`);
     }
     prevTop = { col };
-    scenes.push({ kind: "top", label, say: (JA ? `${label}のトップ3はこちらです。${brief ? "" : lead}` : `Top three ${label}s. ${brief ? "" : lead}`.trim()) + outsideNote(cards), cards, tail: opt.tail || 1.0,
+    // ボム級（card-level.mjs）：レア全体の平均勝率を大きく上回るものは、一言で取り立てる（勝率順なので、当てはまるのは上から何枚か）
+    const bombs = cards.filter(c => isBombLevel(c.gih, rareAvg));
+    bombs.forEach(c => { c.bomb = true; });
+    const NUMJ = ["", "", "2", "3"], NUME = ["", "", "two", "three"];
+    const bombHl = !bombs.length ? null : bombs.length === 1
+      ? { label: JA ? `1位の${bombs[0].label}` : `No. 1, ${bombs[0].name}`, idx: [0] }
+      : { label: JA ? `上位${NUMJ[bombs.length]}枚` : `The top ${NUME[bombs.length]}`, idx: bombs.map((c, i) => i) };
+    let bombSay = !bombHl ? "" : JA ? `${bombHl.label}は、${bombs.length === 2 ? "どちらも" : bombs.length > 2 ? "どれも" : ""}レアの平均勝率を超える、ボム級です。`
+                                    : ` ${bombHl.label}${bombs.length > 1 ? (bombs.length === 2 ? " both beat" : " all beat") : ", beats"} the average rare. Bomb-level.`;
+    // ボム級が無ければ、1位が同じレア度の平均より何ポイント高いかを言う（差が LEAD_GAP 以上のときだけ。抑揚をつけるため）
+    let gapHl = null;
+    const own = avgs[opt.rarity];
+    if(!bombHl && own && cards[0].gih - own >= LEAD_GAP){
+      const gap = ((cards[0].gih - own) * 100).toFixed(1);
+      gapHl = { label: JA ? `1位の${cards[0].label}` : `No. 1, ${cards[0].name}`, idx: [0] };
+      bombSay = JA ? `${gapHl.label}は、${label}の平均より${gap}ポイント高い勝率です。` : ` ${gapHl.label}, wins ${gap} points more than the average ${label}.`;
+    }
+    scenes.push({ kind: "top", label, say: (JA ? `${label}のトップ3はこちらです。${brief ? "" : lead}` : `Top three ${label}s. ${brief ? "" : lead}`.trim()) + bombSay + outsideNote(cards), cards, tail: opt.tail || 1.0, bombHl: bombHl || gapHl,
       strong: !brief && same ? col : null });   // 「〇が強いです」と言った色（読み上げに合わせて、その色のカードを光らせる）
   };
   // ボム（レア・神話レア）→ アンコモン → コモンの順（レアリティの高い順。2026年10月に入れ替え）
-  topScene(uncommons, UI.uncommon);
-  topScene(commons, UI.common, { tail: 3.0 });   // コモンはセリフが短く、カードを見る間が足りないので、読み終わりから 3 秒置く（2026年10月：1 → 3 秒）
+  topScene(uncommons, UI.uncommon, { rarity: "uncommon" });
+  topScene(commons, UI.common, { tail: 3.0, rarity: "common" });   // コモンはセリフが短く、カードを見る間が足りないので、読み終わりから 3 秒置く（2026年10月：1 → 3 秒）
 
   // 「意外な事実」の場面は入れない（2026年10月。狙い目はティア表で言う）
 
@@ -717,6 +738,9 @@ function sceneSvg(sc){
           s += `<rect x="96" y="${y + 16}" width="${CW - 32}" height="176" rx="10" fill="${DEEP}" opacity="0.5"/>`;
         }
         s += T(TX, y + Math.round(92 * k), UI.rank(i + 1), { size: 36, fill: i === 0 ? GOLD : MUTED, weight: i === 0 ? 900 : 400 });
+        // ボム級の札（順位の右）
+        if(c.bomb) s += `<rect x="${TX + 92}" y="${y + Math.round(92 * k) - 36}" width="${JA ? 128 : 170}" height="46" rx="23" fill="${GOLD}"/>` +
+                        T(TX + 92 + (JA ? 64 : 85), y + Math.round(92 * k) - 2, JA ? "ボム級" : "Bomb-level", { size: JA ? 30 : 26, weight: 900, anchor: "middle", fill: DEEP });
         // 名前は長ければ2行。右はしのキャラクターにかからない幅（TW）に収める
         const lines = wrapName(c.label, JA ? 10 : 20).slice(0, 2);
         let size = lines.length > 1 ? (JA ? 46 : 40) : (JA ? ([...c.label].length <= 8 ? 60 : 50) : (c.label.length <= 14 ? 50 : 42));
@@ -783,7 +807,10 @@ function highlightsOf(sc){
     const ROW = Math.min(420, Math.floor((capTop - 16 - Y0) / 3)), CH = ROW - 9;
     const row = i => ({ x: 66, y: Y0 + i * ROW - 10, w: rowW, h: CH + 20 });
     // 「〇が強いです」と言う場面だけ、その色のカードをまとめて光らせる
-    return sc.strong ? [{ label: CN[sc.strong], boxes: sc.cards.map((c, i) => c.color === sc.strong ? row(i) : null).filter(Boolean) }] : [];
+    const out = sc.strong ? [{ label: CN[sc.strong], boxes: sc.cards.map((c, i) => c.color === sc.strong ? row(i) : null).filter(Boolean) }] : [];
+    // ボム級の一言のあいだは、そのカードを光らせる
+    if(sc.bombHl) out.push({ label: sc.bombHl.label, boxes: sc.bombHl.idx.map(row) });
+    return out;
   }
   return [];
 }
@@ -923,7 +950,12 @@ async function main(){
   }
   console.error(Object.keys(SYM).length ? `マナ・シンボル: ${Object.keys(SYM).join(" ")}` : "マナ・シンボル: 取得できず、丸に文字で代用");
   await addOutsideCards(d, names);
-  const scenes = buildScript(d, nameJa, names);
+  // レア度ごとの平均勝率（ボム級や「平均より何ポイント高いか」を言うため）。速報は記事データ（build-early.mjs の rarity_avg）、
+  // ドラフト・シールドは勝率一覧から出す
+  const rep = EARLY ? null : await loadReport(SET, MODE);
+  const avgs = d.rarity_avg || (rep ? rarityAverages(rep.ratings.cards, MODE === "sealed" ? 300 : 1500) : {});
+  console.error(`レア度ごとの平均: ${["common", "uncommon", "rare"].map(r => `${r} ${avgs[r] ? pt(avgs[r]) + "%" : "なし"}`).join(" / ")}`);
+  const scenes = buildScript(d, nameJa, names, avgs);
 
   // セット名のロゴ画像（置いてあれば使う）
   {

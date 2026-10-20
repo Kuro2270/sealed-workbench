@@ -27,6 +27,7 @@
 
 import { splitSay } from "./highlight-split.mjs";
 import { loadReport } from "./report-data.mjs";
+import { rareAverage, isBombLevel, trophyShare } from "./card-level.mjs";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { execFileSync, execFile } from "node:child_process";
 import { cpus } from "node:os";
@@ -582,8 +583,7 @@ function buildScript(ctx){
 
   /* --- ボム10枚 --- */
   // レア全体の平均（引けた試合の勝率。試合数で重みづけ）。ボムの6〜10位の説明と、罠カードに使う
-  const rl = rd.cards.filter(c => !c.land && (c.rarity === "rare" || c.rarity === "mythic") && c.games >= 1500);
-  const rareAvg = rl.reduce((n, c) => n + c.gih * c.games, 0) / (rl.reduce((n, c) => n + c.games, 0) || 1);
+  const rareAvg = rareAverage(rd.cards, 1500) || 0;
   const rareD = rd.cards.filter(c => !c.land && (c.rarity === "rare" || c.rarity === "mythic") && c.games >= 1500).sort((a, b) => b.gih - a.gih);
   const bombs = rareD.slice(0, 10).map((c, i) => {
     const s = cardOf(rs.cards, c.name);
@@ -629,11 +629,11 @@ function buildScript(ctx){
     const KJ = { ...CJ, M: L("マルチカラー", "Multicolour"), C: L("無色", "Colourless") };
     const list = [];
     for(const col of order){ const com = topIn(col, "common"), unc = topIn(col, "uncommon"); if((col === "M" || col === "C") ? com.length + unc.length >= 3 : (com.length >= 3 && unc.length >= 3)) list.push({ col, com, unc }); }   // 多色・無色は、枚数が少ない（コモンが無い）環境もあるので、合わせて3枚以上あれば出す
-    // ボム級：上位3枚のうち、引けた試合の勝率がレア全体の平均（rareAvg）を大きく（BOMB_LEVEL 以上）上回るコモン・アンコモンは、取り立てて言う
+    // ボム級（card-level.mjs）：上位3枚のうち、引けた試合の勝率がレア全体の平均（rareAvg）を大きく上回るコモン・アンコモンは、取り立てて言う
     //   （読み上げにめりはりをつける）。平均の数字は最初の1回だけ言う（くり返すとくどい）。勝率順なので、当てはまるのは必ず上から何枚か。
     //   全勝デッキのデータがあれば、「その色を使った全勝デッキの何%に入っていたか」も添える（どれくらい使われて勝っているかが分かる）
     let rareSaid = false;
-    const bombLevel = arr => rl.length ? arr.slice(0, 3).filter(c => isBombLevel(c.gih, rareAvg)) : [];
+    const bombLevel = arr => rareAvg ? arr.slice(0, 3).filter(c => isBombLevel(c.gih, rareAvg)) : [];
     const deckWord = col => !col ? L("全勝デッキ", "all trophy decks") : EN ? `trophy decks playing ${pairName(col)}` : `${pairName(col)}を使った全勝デッキ`;
     const bombNote = (jp, en, arr) => {
       const r = bombLevel(arr);
@@ -783,23 +783,6 @@ function cardImg(c, x, y, w, h){
 function rowBoxes(cards, y0 = 250){
   const n = cards.length, CW = 270, CH = 376, gap = 54, total = n * CW + (n - 1) * gap, x0 = (W - total) / 2;
   return cards.map((c, i) => ({ label: c.label, x: x0 + i * (CW + gap) - 14, y: y0 - 64, w: CW + 28, h: 690 }));
-}
-/* コモン・アンコモンが「ボム級」か：引けた試合の勝率が、レア全体の平均を BOMB_LEVEL（1pt）以上上回る。
-   わずかに上回るだけ（59.8% に対して 60.0% など）では「ボム級」と呼ばない（言い過ぎになる） */
-const BOMB_LEVEL = 0.01;
-const isBombLevel = (gih, rareAvg) => rareAvg != null && rareAvg > 0 && gih - rareAvg >= BOMB_LEVEL;
-/* 全勝デッキの採用率：そのカードの色を全部含む色で組まれた全勝デッキのうち、そのカードが入っていた割合。
-   全勝デッキが TROPHY_MIN 件より少ないときは言わない（数字がぶれる）。返り値 { share, col（デッキの色。無色のカードは ""）} */
-const TROPHY_MIN = 100;
-function trophyShare(tr, card){
-  if(!tr || !tr.card_trophies) return null;
-  const col = "WUBRG".split("").filter(x => String(card.color || "").includes(x)).join("");
-  const has = k => [...col].every(x => k.includes(x));
-  const decks = (tr.colors || []).filter(c => has(c.colors)).reduce((n, c) => n + c.trophies, 0);
-  if(decks < TROPHY_MIN) return null;
-  const m = tr.card_trophies[card.name] || {};
-  const inn = Object.entries(m).filter(([k]) => has(k)).reduce((n, [, v]) => n + v, 0);
-  return { share: inn / decks, col };
 }
 function colortopBoxes(com, unc){
   const one = (x, list) => { const top = list.slice(0, 3), CW = 172, gap = 36, x0 = x + (860 - (top.length * CW + (top.length - 1) * gap)) / 2;
