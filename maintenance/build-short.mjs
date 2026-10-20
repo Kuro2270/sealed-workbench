@@ -75,7 +75,7 @@ const UI = JA ? {
   surpriseH: "意外な事実", nobody: "誰も組んでいない", strongerTogether: "組むと強くなる", weakerTogether: "組むと弱くなる",
   wrRank: (v, r) => `勝率 ${v}%（${r}位）`, wr: v => `勝率 ${v}%`, usedOnly: (g, p) => `使われた試合は ${g}。全体の${p}%だけ`, vsAvg2: (sign, n) => `2色それぞれの平均より ${sign}${n}pt`,
   outroA: "チャンネル登録を", outroB: "お願いします", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん",
-  earlyBadge: "速報", earlyHookC: "リミテッド速報", earlyH: "まだ序盤のデータです", early1: "順位はこれから動きます", early2: "全カードの勝率は配信12日目から", earlyAsOf: d => `${d} 時点`
+  earlyBadge: "速報", earlyHookC: "リミテッド速報"
 } : {
   analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute", hookA: "Limited in 1 minute", hookC: m => m ? "SEALED" : "DRAFT", hookD1: g => `${g} games analyzed`, hookD2: "Best colors & cards",
   tierH: "Colour-pair tier list", targetTag: "AIM FOR", bombsH: (a, b) => `Top 6 rare & mythic bombs (#${a}–${b})`, bombsTag: { mythic: "Mythic", rare: "Rare" },
@@ -89,7 +89,7 @@ const UI = JA ? {
   surpriseH: "One surprise", nobody: "Nobody plays it", strongerTogether: "Better together", weakerTogether: "Worse together",
   wrRank: (v, r) => `${v}% win rate (#${r})`, wr: v => `${v}% win rate`, usedOnly: (g, p) => `Only ${g} games — ${p}% of all decks`, vsAvg2: (sign, n) => `${sign}${n}pt vs each colour's average`,
   outroA: "Please subscribe", outroB: "", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS",
-  earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1", earlyH: "Early data", early1: "Rankings will move", early2: "Every card's win rate from day 12", earlyAsOf: d => `as of ${d}`
+  earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1"
 };
 const FONT = "'Noto Sans CJK JP','Noto Sans JP',sans-serif";
 
@@ -300,22 +300,15 @@ function buildScript(d, nameJa, names){
   topScene(uncommons, UI.uncommon);
   topScene(commons, UI.common, { tail: 3.0 });   // コモンはセリフが短く、カードを見る間が足りないので、読み終わりから 3 秒置く（2026年10月：1 → 3 秒）
 
-  // 速報の断り書き＋登録のお願い：2 段構え。1 段目で「序盤のデータ」、2 段目（同じ画面）で登録ボタンを出して「確定版を出すので登録を」
-  //   コモン・アンコモン・速さのあと、最後に置く（カードの紹介を先に見せてから、締めとしてお願いする）
-  if(EARLY){
-    const base = { kind: "early", asOf: d.as_of || "", tail: 0.6 };
-    scenes.push({ ...base, say: JA ? `まだ序盤のデータなので、順位はこれから動きます。` : `This is early data, so the rankings will move.` });
-    scenes.push({ ...base, nofade: true, subscribe: true, tail: 0.8,
-      say: JA ? `このあと環境まとめの解説動画も出すので、チャンネル登録をぜひお願いします。`
-              : `The full review is coming, so please subscribe.` });
-  }
-
   // 「意外な事実」の場面は入れない（2026年10月。狙い目はティア表で言う）
 
-  // 速報は、断り書きと登録のお願いを前半（ボムの直後）で済ませてあるので、締めの場面は付けない（最後は情報で終える）
-  if(!EARLY) scenes.push({ kind: "outro", art: true,
-    say: JA ? `次のセットも出すので、チャンネル登録をお願いします。` : `Subscribe for the next set.`,
-    site: SITE, tail: 1.0 });
+  // 締め：登録のお願いは、離脱されないよう一言だけ・短く（2026年10月。以前の「序盤のデータなので順位は動きます」の断り書きと、
+  //   長めの登録のお願いで、FRA の速報ショートの終盤に離脱が集中した）。登録する理由は一言だけ
+  scenes.push({ kind: "outro", art: true,
+    // 登録する理由を一言だけ添える（速報は「詳しい解説」、通常版は「次のセット」）
+    say: EARLY ? (JA ? `詳しい解説も出すので、チャンネル登録をお願いします！` : `The full review is coming, so subscribe!`)
+               : (JA ? `次のセットも出すので、チャンネル登録をお願いします！` : `Next set's coming, so subscribe!`),
+    site: SITE, tail: 0.4 });
   return scenes;
 }
 
@@ -410,7 +403,6 @@ function popSvg(inner, w, h){
 }
 /* 場面に重ねる「動く層」。セリフのあいだに現れて、ぽんと跳ねる */
 function popLayer(sc){
-  if(sc.kind === "early" && sc.subscribe) return { svg: popSvg(subscribeButton(), 640, 130), w: 640, h: 130, x: 100, y: 1080 };
   return null;
 }
 
@@ -736,18 +728,6 @@ function sceneSvg(sc){
                  : T(W / 2, 810, sc.big, { size: 140, weight: 900, anchor: "middle" })) +
         T(W / 2, 940, sc.sub, { size: 50, anchor: "middle", fill: BLUE, weight: 700 }) +
         T(W / 2, 1010, sc.note, { size: JA ? 34 : 30, anchor: "middle", fill: MUTED }), sc.say);
-    }
-    case "early": {
-      // 先行版の断り書き：序盤のデータであること、全カードの勝率が発売12日目から出ること
-      return frame(
-        `<rect x="${W / 2 - 170}" y="470" width="340" height="86" rx="43" fill="#E53935" stroke="#FFFFFF" stroke-width="5"/>` +
-        T(W / 2, 530, UI.earlyBadge, { size: JA ? 56 : 44, weight: 900, anchor: "middle", fill: "#FFFFFF" }) +
-        TS(W / 2, 700, UI.earlyH, { size: JA ? 84 : 96 }) +
-        T(W / 2, 830, UI.early1, { size: 56, weight: 700, anchor: "middle" }) +
-        T(W / 2, 910, UI.early2, { size: 56, weight: 700, anchor: "middle", fill: GOLD }) +
-        (sc.asOf ? T(W / 2, 1010, UI.earlyAsOf(sc.asOf), { size: 40, anchor: "middle", fill: MUTED }) : "") +
-        // 2 段目の登録ボタンは、動きを付けるため別の層（sc.pop）で重ねる（画像だけの確認では静止画に描く）
-        (sc.subscribe && process.env.SHORT_STILLS ? popSvg(subscribeButton(), 640, 130).replace(/^<svg[^>]*>|<\/svg>$/g, "").replace("<g>", `<g transform="translate(100 1080)">`) : ""), sc.say);
     }
     case "outro": {
       // 締めは「チャンネル登録をお願いします」だけ。クレジットや表記は概要欄に置く
