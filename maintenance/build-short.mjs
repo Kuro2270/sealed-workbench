@@ -211,10 +211,11 @@ function buildScript(d, nameJa, names){
   const scenes = [];
   const gamesEn = d.total_games >= 10000 ? Math.round(d.total_games / 1000) + " thousand" : manSay(d.total_games);
   scenes.push({ kind: "hook", art: true,
-    say: EARLY ? (JA ? `MTGアリーナ、${nameJa}のリミテッド速報です。1分でまとめました。`
-                     : `MTG Arena Limited: ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} format. The early look, in one minute.`)
-       : JA ? `MTGアリーナ、リミテッドの${nameJa}環境。${games}試合のデータが、1分でわかります。`
-            : `MTG Arena Limited: ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} format. ${gamesEn} games of data, in one minute.`,
+    // 最初の一言で「誰のための、何の動画か」を言う（例：リミテッドプレイヤーのための〇〇環境速報）
+    say: EARLY ? (JA ? `マジック：ザ・ギャザリングのリミテッドプレイヤーのための、${nameJa}環境速報です。MTGアリーナのデータを、1分でまとめました。`
+                     : `For Magic: The Gathering Limited players: the early report on ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} format. MTG Arena data, in one minute.`)
+       : JA ? `マジック：ザ・ギャザリングのリミテッドプレイヤーのための、${nameJa}の${d.mode === "sealed" ? "シールド" : "ドラフト"}環境まとめです。MTGアリーナ${games}試合のデータが、1分でわかります。`
+            : `For Magic: The Gathering Limited players: ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} ${d.mode === "sealed" ? "Sealed" : "Draft"} format, summed up. ${gamesEn} games of MTG Arena data, in one minute.`,
     title: nameJa, games, isSealed: d.mode === "sealed", early: EARLY });
 
   if(fast && slow){
