@@ -190,6 +190,68 @@ async function loadRemovalNames(){
   return null;
 }
 
+/* ------------------------------------------------------------ 全勝デッキの例（台本） */
+
+const EVENT_NAME = { PremierDraft: L("プレミアドラフト", "Premier Draft"), QuickDraft: L("クイックドラフト", "Quick Draft"), TradDraft: L("トラディショナルドラフト", "Traditional Draft") };
+const EVENT_ORDER = ["PremierDraft", "QuickDraft", "TradDraft"];
+const DECK_COLS = ["1", "2", "3", "4", "5", "6+"];   // マナ総量の列（0 は 1 の列、6 以上はまとめる）
+const deckCol = cmc => Math.max(0, Math.min(5, (cmc || 1) - 1));
+
+/* どのデッキを見せるか：レアと神話レアが0枚の全勝デッキから選ぶ。
+   探す順番は「ドラフトで最強の組み合わせ → 狙い目の色 → ほかの上位3つ」。負けの少ないもの（7勝0敗）を最優先し、
+   同じ負け数なら、タッチ（3色目）なし → プレミアドラフト → 探す順番の早い組み合わせ、の順で選ぶ */
+function pickTrophyDeck(trophies, candidates){
+  if(!trophies || !Array.isArray(trophies.colors)) return null;
+  const hits = [];
+  candidates.forEach((pair, ci) => {
+    const e = trophies.colors.find(x => x.colors === pair);
+    for(const s of (e && e.samples) || []) if(s.rares === 0) hits.push({ pair, ci, s });
+  });
+  const ev = s => { const i = EVENT_ORDER.indexOf(s.event); return i < 0 ? 9 : i; };
+  hits.sort((a, b) => a.s.losses - b.s.losses || (a.s.splash ? 1 : 0) - (b.s.splash ? 1 : 0) || ev(a.s) - ev(b.s) || a.ci - b.ci);
+  return hits[0] || null;
+}
+
+/* 全勝デッキの2場面：①デッキ全体（マナ総量の列に並べる）→ ②同じ画面で、鍵になった3枚を大きく */
+function trophyDeckScenes(ctx, { bestD, sleepers, pairsD, J }){
+  const { rd, trophies } = ctx;
+  const cands = [...new Set([bestD, ...sleepers, ...pairsD.slice(0, 3)].filter(Boolean).map(p => p.pair))];
+  const hit = pickTrophyDeck(trophies, cands);
+  if(!hit){ console.error("全勝デッキの例: レア0枚のデッキが見つからないので、入れない"); return null; }
+  const { pair, s } = hit;
+  const info = name => rd.cards.find(c => c.name === name) || {};
+  const cards = s.cards.map(([name, n, cmc]) => { const r = info(name); return { name, n, cmc: cmc ?? r.cmc ?? 0, label: J(name), rarity: r.rarity, color: r.color, r }; });
+  const nonland = cards.reduce((m, c) => m + c.n, 0);
+  const avgMv = cards.reduce((m, c) => m + c.cmc * c.n, 0) / (nonland || 1);
+  const perCol = DECK_COLS.map((_, i) => cards.filter(c => deckCol(c.cmc) === i).reduce((m, c) => m + c.n, 0));
+  const peak = perCol.indexOf(Math.max(...perCol));
+  // 鍵になった3枚：この2色のデッキでの勝率（無ければカード全体の勝率）が高い順。コモンを最低1枚
+  const stat = c => c.r.by_pair && c.r.by_pair[pair] && c.r.by_pair[pair][1] >= 250 ? { pg: c.r.by_pair[pair][0] } : c.r.gih != null ? { pg: c.r.gih, overall: true } : null;
+  const ranked = cards.filter(c => (c.rarity === "common" || c.rarity === "uncommon") && stat(c)).map(c => ({ ...c, ...stat(c) })).sort((a, b) => b.pg - a.pg);
+  let keys = ranked.slice(0, 3);
+  if(keys.length === 3 && !keys.some(c => c.rarity === "common")){ const com = ranked.find(c => c.rarity === "common"); if(com) keys = [keys[0], keys[1], com]; }
+  keys.sort((a, b) => b.pg - a.pg);
+  const record = L(`${s.wins}勝${s.losses}敗`, `${s.wins}–${s.losses}`);
+  const ev = EVENT_NAME[s.event] || s.event;
+  const splash = s.splash ? [...s.splash].filter(c => !pair.includes(c)).join("") : "";
+  const deck = { pair, record, wins: s.wins, losses: s.losses, event: ev, splash, lands: s.lands, avgMv, perCol, cards, keys };
+  const colWord = i => EN ? (i === 5 ? "six or more mana" : `${i + 1} mana`) : (i === 5 ? "6マナ以上" : `${i + 1}マナ`);
+  const q = c => EN ? `“${c.label}”` : `「${c.label}」`;
+  const sayA = EN
+    ? `Now let's look at a real trophy deck. This ${pairName(pair)} deck went ${s.wins} and ${s.losses} in ${ev}${splash ? `, with a small ${pairName(splash)} splash` : ""}, and it has no rares or mythics at all. ` +
+      `The biggest group is at ${colWord(peak)}, with ${perCol[peak]} cards, and the average mana value is ${avgMv.toFixed(1)}.`
+    : `ここで、実際の全勝デッキを一つ見てみます。${pairName(pair)}で、${ev}を${record}。${splash ? `${pairName(splash)}を少しタッチしていますが、` : ""}レアと神話レアは、一枚も入っていません。` +
+      `一番多いのは${colWord(peak)}の${perCol[peak]}枚で、平均マナ総量は${avgMv.toFixed(1)}です。`;
+  const sayB = !keys.length ? "" : EN
+    ? `The cards that carried it, from the left: ${andList(keys.map(q))}. Even without rares, strong commons and uncommons like these can win every game.`
+    : `このデッキを支えたのは、左から、${keys.map(q).join("、")}。レアがなくても、強いコモンとアンコモンを揃えれば、全勝できます。`;
+  const base = { kind: "trophydeck", deck, cards: cards.map(c => c) };   // cards：画像を取るため（場面1・2で同じもの）
+  const out = [{ ...base, chapter: L("レアなしの全勝デッキ", "A trophy deck with no rares"), say: sayA, tail: 0.5 }];
+  if(sayB) out.push({ ...base, nofade: true, focus: true, say: sayB, tail: 0.6, highlight: trophyKeyBoxes(keys) });
+  console.error(`全勝デッキの例: ${pair}（${ev} ${s.wins}-${s.losses}${splash ? `・タッチ ${splash}` : ""}、${nonland + s.lands}枚）`);
+  return out;
+}
+
 /* ------------------------------------------------------------ 台本 */
 
 function buildScript(ctx){
@@ -222,6 +284,7 @@ function buildScript(ctx){
   const sleepers = rankedD.filter(p => p !== bestD && p !== worstD && p.wr >= avgD - 0.005 && p.games / totalPG <= avgShareP * 0.85 && p.games >= 1500)
     .sort((a, b) => b.wr - a.wr).slice(0, 2);
   const sleepersTop = pairsD.slice(0, 3).filter(p => sleepers.includes(p));
+  const deckScenes = trophyDeckScenes(ctx, { bestD, sleepers, pairsD, J });   // 全勝デッキの例（冒頭の「順番に、〜」で言うので先に決める）
 
   /* --- 冒頭 --- */
   scenes.push({ kind: "hook", art: true, chapter: L("はじめに", "Intro"),
@@ -232,7 +295,7 @@ function buildScript(ctx){
   // 速さのデータ（試合ごとのデータから作る）は確定版にしか無い。暫定版では「環境の速さ」の章を入れず、組み合わせごとはマナカーブだけにする
   const hasPace = (dd.speed || []).some(x => x.wr != null && x.games), hasDeckSpeed = Object.keys(rd.pair_speed || {}).length > 0;
   const pairLabel = hasDeckSpeed ? L("色の組み合わせと速さ", "Pair speed & mana curve") : L("色の組み合わせ", "Colour pairs");
-  scenes.push({ kind: "agenda", say: EN ? `Here's the plan: ${hasPace ? "format speed, " : ""}single colours, colour pairs${hasDeckSpeed ? " and deck speed" : ""}, sleeper pairs, bombs, ${WITH_TRAPS ? "trap rares, " : ""}the best cards for each colour, and finally a summary.` : `順番に、${hasPace ? "環境の速さ、" : ""}単色の強さ、色の組み合わせ${hasDeckSpeed ? "とデッキの速さ" : ""}、狙い目の色、ボム、${WITH_TRAPS ? "罠なレアカード、" : ""}色別のおすすめを見て、最後にまとめます。${WITH_REMOVAL ? "除去も紹介します。" : ""}`,
+  scenes.push({ kind: "agenda", say: EN ? `Here's the plan: ${hasPace ? "format speed, " : ""}single colours, colour pairs${hasDeckSpeed ? " and deck speed" : ""}, sleeper pairs, ${deckScenes ? "a trophy deck with no rares, " : ""}bombs, ${WITH_TRAPS ? "trap rares, " : ""}the best cards for each colour, and finally a summary.` : `順番に、${hasPace ? "環境の速さ、" : ""}単色の強さ、色の組み合わせ${hasDeckSpeed ? "とデッキの速さ" : ""}、狙い目の色、${deckScenes ? "レアなしの全勝デッキ、" : ""}ボム、${WITH_TRAPS ? "罠なレアカード、" : ""}色別のおすすめを見て、最後にまとめます。${WITH_REMOVAL ? "除去も紹介します。" : ""}`,
     items: (EN ? [...(hasPace ? ["Format speed"] : []), "Single colours", pairLabel, "Sleeper pairs", ...(WITH_DVS ? ["Draft vs Sealed"] : []), "Top 10 bomb rares", ...(WITH_TRAPS ? ["Trap rares"] : []), "Top commons & uncommons", ...(WITH_REMOVAL ? ["Removal"] : []), "Summary"] : [...(hasPace ? ["環境の速さ"] : []), "単色の強さ", pairLabel, "狙い目の色", ...(WITH_DVS ? ["ドラフトとシールドの違い"] : []), "ボムのレア10枚", ...(WITH_TRAPS ? ["罠なレアカード"] : []), "色別のコモン・アンコモン", ...(WITH_REMOVAL ? ["除去（コモン・アンコモン）"] : []), "まとめ"]), tail: 0.4 });
 
   /* --- 速さ --- */
@@ -562,6 +625,9 @@ function buildScript(ctx){
     pushSpeed(p);
   });
 
+  /* --- レアなしの全勝デッキを1つ（全勝デッキのデータ data/trophies があり、レア0枚のデッキが見つかったときだけ） --- */
+  if(deckScenes) scenes.push(...deckScenes);
+
   /* --- ドラフトとシールドの違い（WITH_DVS のときだけ） --- */
   if(WITH_DVS){
     const both = pairsD.filter(p => rankS[p.pair] && p.games >= 1500).map(p => ({ ...p, rd: rankD[p.pair], rs: rankS[p.pair], diff: rankD[p.pair] - rankS[p.pair] }));
@@ -810,6 +876,78 @@ function summaryBoxes(sc){
   }
   cols.forEach((cards, i) => cards.forEach((c, j) => out.push({ label: c.label, x: 50 + i * (CWd + CG) + 12, y: 375 + 56 + j * 150, w: CWd - 24, h: 142 })));
   return out;
+}
+/* 全勝デッキの画面の配置（renderer と光らせる枠で共通）
+   左：マナ総量ごとの列（MTGアリーナのデッキ画面と同じ並べ方）。右：デッキの成績の枠。
+   鍵になった3枚は、左の場所に大きく重ねる */
+const TD = { x0: 60, colW: 196, gap: 18, top: 210, bottom: 872, panelX: 1360, panelW: 500, keyW: 330, keyGap: 56, keyY: 250 };
+TD.cardH = Math.round(TD.colW * 1.395);
+TD.leftW = 6 * TD.colW + 5 * TD.gap;
+const trophyKeyX = n => TD.x0 + (TD.leftW - (n * TD.keyW + (n - 1) * TD.keyGap)) / 2;
+function trophyKeyBoxes(keys){
+  const x0 = trophyKeyX(keys.length), kh = Math.round(TD.keyW * 1.395);
+  return keys.map((c, i) => ({ label: c.label, x: x0 + i * (TD.keyW + TD.keyGap) - 14, y: TD.keyY - 14, w: TD.keyW + 28, h: kh + 150 }));
+}
+function trophyDeckSvg(sc){
+  const d = sc.deck;
+  let s = "";
+  // 左：列の見出し（マナ総量と枚数）＋カード。同じカードは重ねず「×2」の札にする
+  const cols = DECK_COLS.map((_, i) => d.cards.filter(c => deckCol(c.cmc) === i).sort((a, b) => a.cmc - b.cmc || b.n - a.n));
+  const maxN = Math.max(1, ...cols.map(c => c.length));
+  const step = maxN <= 1 ? 0 : Math.min(84, (TD.bottom - TD.top - TD.cardH) / (maxN - 1));
+  cols.forEach((list, i) => {
+    const x = TD.x0 + i * (TD.colW + TD.gap);
+    s += `<circle cx="${x + 30}" cy="${TD.top - 42}" r="25" fill="#C9C2B5" stroke="${PAPER}" stroke-width="2"/>` + T(x + 30, TD.top - 32, DECK_COLS[i], { size: DECK_COLS[i].length > 1 ? 24 : 30, weight: 900, anchor: "middle", fill: DEEP });
+    s += T(x + 66, TD.top - 30, L(`${d.perCol[i]}枚`, `×${d.perCol[i]}`), { size: 30, weight: 900, fill: d.perCol[i] ? PAPER : MUTED });
+    list.forEach((c, j) => {
+      const y = TD.top + j * step;
+      s += `<rect x="${x + 3}" y="${y + 4}" width="${TD.colW}" height="${TD.cardH}" rx="10" fill="#000" opacity="0.4"/>`;
+      s += cardImg(c, x, y, TD.colW, TD.cardH);
+      // カード名の帯：画像の中の小さい名前の代わりに、大きく読める字で（同じカードが2枚以上なら右に ×2）
+      const bandH = 40, nameW = TD.colW - 18 - (c.n > 1 ? 46 : 0), len = Math.max([...c.label].length, 1);
+      // 長い名前は、まず字を小さく（18まで）→ それでも入らなければ横に詰める（65%まで）→ それでも入らなければ末尾を「…」に
+      const f = L(1, 0.55), size = Math.max(18, Math.min(23, Math.floor(nameW / (len * f))));
+      let label = c.label;
+      if(len * f * size * 0.65 > nameW) label = [...c.label].slice(0, Math.floor(nameW / (f * size * 0.65)) - 1).join("") + "…";
+      const k = Math.min(1, nameW / ([...label].length * f * size));   // 横に詰める倍率（textLength は画像化で効かないので、横方向だけ縮める）
+      s += `<rect x="${x}" y="${y}" width="${TD.colW}" height="${bandH}" rx="10" fill="#06101C"/>` +
+           `<text transform="translate(${x + 9} ${y + 28}) scale(${k.toFixed(3)} 1)" font-size="${size}" fill="${PAPER}" font-weight="900">${esc(label)}</text>`;
+      if(c.n > 1) s += `<rect x="${x + TD.colW - 48}" y="${y + 6}" width="42" height="28" rx="14" fill="${GOLD}"/>` + T(x + TD.colW - 27, y + 27, `×${c.n}`, { size: 21, weight: 900, anchor: "middle", fill: DEEP });
+    });
+  });
+  // 右：成績の枠
+  const px = TD.panelX, pw = TD.panelW, cx = px + pw / 2;
+  s += panel(px, 140, pw, 732, GOLD);
+  s += T(cx, 205, L("レアなしの全勝デッキ", "Trophy deck, no rares"), { size: L(36, 34), weight: 900, anchor: "middle", fill: GOLD });
+  s += pairSymbols(d.pair, cx - (d.pair.length * 90 - 10) / 2, 278, 80);
+  s += T(cx, 390, pairName(d.pair), { size: fitSize(pairName(d.pair), pw - 60, 60), weight: 900, anchor: "middle" });
+  s += T(cx, 440, d.event, { size: 30, anchor: "middle", fill: MUTED });
+  s += T(cx, 560, d.record, { size: 110, weight: 900, anchor: "middle", fill: GREEN });
+  const rows = [
+    [L("レア・神話レア", "Rares & mythics"), L("0枚", "0"), GOLD],
+    [L("土地", "Lands"), L(`${d.lands}枚`, String(d.lands)), PAPER],
+    [L("平均マナ総量", "Avg mana value"), d.avgMv.toFixed(1), PAPER],
+    ...(d.splash ? [[L("タッチ", "Splash"), pairName(d.splash), PAPER]] : [])
+  ];
+  rows.forEach(([k, v, col], i) => {
+    const y = 650 + i * 62;
+    s += `<line x1="${px + 40}" x2="${px + pw - 40}" y1="${y - 44}" y2="${y - 44}" stroke="${PAPER}" stroke-opacity="0.25" stroke-width="2"/>`;
+    s += T(px + 46, y, k, { size: 32, fill: col === GOLD ? GOLD : MUTED, weight: col === GOLD ? 900 : 400 }) + T(px + pw - 46, y + 2, v, { size: 40, weight: 900, anchor: "end", fill: col });
+  });
+  // 鍵になった3枚：左の列を暗くして、その上に大きく
+  if(sc.focus && d.keys.length){
+    s += `<rect x="${TD.x0 - 20}" y="130" width="${TD.leftW + 40}" height="${TD.bottom - 120}" rx="22" fill="${DEEP}" opacity="0.96"/>`;
+    s += T(TD.x0 + TD.leftW / 2, 205, L("このデッキを支えた、コモン・アンコモン", "The commons & uncommons that carried it"), { size: 36, anchor: "middle", fill: MUTED });
+    const kh = Math.round(TD.keyW * 1.395), x0 = trophyKeyX(d.keys.length);
+    d.keys.forEach((k, i) => {
+      const c = d.cards.find(x => x.name === k.name) || k, x = x0 + i * (TD.keyW + TD.keyGap);
+      s += cardImg(c, x, TD.keyY, TD.keyW, kh);
+      const lines = wrapName(k.label, 9);
+      lines.forEach((l, j) => { s += T(x + TD.keyW / 2, TD.keyY + kh + 44 + j * 34, l, { size: 30, weight: 900, anchor: "middle" }); });
+      s += T(x + TD.keyW / 2, TD.keyY + kh + 44 + (lines.length - 1) * 34 + 48, `${k.overall ? L("全体で", "Overall") : L("この2色で", "This pair")} ${pt(k.pg)}%`, { size: L(32, 28), weight: 700, anchor: "middle", fill: UP });
+    });
+  }
+  return frame(s, sc);
 }
 function cardRow(cards, stats, accent, y0 = 140){
   // 番号の丸は、カードの上の余白に置く（カードに重ねると、カード自身の名前の欄を隠してしまう）。y0 はカード上端
@@ -1140,6 +1278,7 @@ function sceneSvg(sc){
       ], GREEN, 250);
       return frame(s, sc);
     }
+    case "trophydeck": return trophyDeckSvg(sc);
     case "deck": {
       let s = T(80, 175, "デッキの組み方（40枚）", { size: 40, fill: MUTED });
       const parts = [["土地", 17, UP], ["クリーチャー", 17, GREEN], ["それ以外", 6, GOLD]], tot = 40;

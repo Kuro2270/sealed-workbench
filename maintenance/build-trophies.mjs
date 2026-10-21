@@ -172,14 +172,14 @@ async function buildMode(set, mode, meta){
     }
   }
   if(!read) return null;
-  /* サンプル：レア・神話レアの少ない順 → ランクの高い順 → 新しい順に SAMPLES 件。デッキが40枚に満たない（記録が欠けた）ものは除く */
+  /* サンプル：レア・神話レアの少ない順 → 負けの少ない順（7勝0敗を先に）→ ランクの高い順 → 新しい順に SAMPLES 件。デッキが40枚に満たない（記録が欠けた）ものは除く */
   const rankOf = r => { const i = RANK_ORDER.indexOf(r); return i < 0 ? 99 : i; };
   const colors = [...by.entries()].map(([c, g]) => ({
     colors: c, drafts: g.drafts, trophies: g.trophies,
     trophy_rate: g.drafts ? g.trophies / g.drafts : 0,
     share: trophies ? g.trophies / trophies : 0,
     samples: g.samples.filter(s => s.lands + s.cards.reduce((n, x) => n + x[1], 0) >= 40)
-      .sort((a, b) => Math.min(a.rares, RARE_CAP) - Math.min(b.rares, RARE_CAP) || rankOf(a.rank) - rankOf(b.rank) || b.time.localeCompare(a.time)).slice(0, SAMPLES)
+      .sort((a, b) => Math.min(a.rares, RARE_CAP) - Math.min(b.rares, RARE_CAP) || a.losses - b.losses || rankOf(a.rank) - rankOf(b.rank) || b.time.localeCompare(a.time)).slice(0, SAMPLES)
   })).filter(c => c.trophies > 0).sort((a, b) => b.trophies - a.trophies);
   return {
     set, mode, events: FORMATS[mode].map(f => f.event), generated_at: new Date().toISOString(),
