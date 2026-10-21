@@ -197,28 +197,23 @@ const EVENT_ORDER = ["PremierDraft", "QuickDraft", "TradDraft"];
 const DECK_COLS = ["1", "2", "3", "4", "5", "6+"];   // マナ総量の列（0 は 1 の列、6 以上はまとめる）
 const deckCol = cmc => Math.max(0, Math.min(5, (cmc || 1) - 1));
 
-/* どのデッキを見せるか：レアと神話レアが0枚の全勝デッキから選ぶ。
-   探す順番は「ドラフトで最強の組み合わせ → 狙い目の色 → ほかの上位3つ」。負けの少ないもの（7勝0敗）を最優先し、
-   同じ負け数なら、タッチ（3色目）なし → プレミアドラフト → 探す順番の早い組み合わせ、の順で選ぶ */
-function pickTrophyDeck(trophies, candidates){
+/* どのデッキを見せるか：その組み合わせの、レアと神話レアが0枚の全勝デッキから1つ。
+   負けの少ないもの（7勝0敗）を最優先し、同じ負け数なら、タッチ（3色目）なし → プレミアドラフト、の順で選ぶ */
+function pickTrophyDeck(trophies, pair){
   if(!trophies || !Array.isArray(trophies.colors)) return null;
-  const hits = [];
-  candidates.forEach((pair, ci) => {
-    const e = trophies.colors.find(x => x.colors === pair);
-    for(const s of (e && e.samples) || []) if(s.rares === 0) hits.push({ pair, ci, s });
-  });
+  const e = trophies.colors.find(x => x.colors === pair);
   const ev = s => { const i = EVENT_ORDER.indexOf(s.event); return i < 0 ? 9 : i; };
-  hits.sort((a, b) => a.s.losses - b.s.losses || (a.s.splash ? 1 : 0) - (b.s.splash ? 1 : 0) || ev(a.s) - ev(b.s) || a.ci - b.ci);
-  return hits[0] || null;
+  return ((e && e.samples) || []).filter(s => s.rares === 0)
+    .sort((a, b) => a.losses - b.losses || (a.splash ? 1 : 0) - (b.splash ? 1 : 0) || ev(a) - ev(b))[0] || null;
 }
 
-/* 全勝デッキの2場面：①デッキ全体（マナ総量の列に並べる）→ ②同じ画面で、鍵になった3枚を大きく */
-function trophyDeckScenes(ctx, { bestD, sleepers, pairsD, J }){
+/* 全勝デッキの2場面：①デッキ全体（マナ総量の列に並べる）→ ②同じ画面で、鍵になった3枚を大きく。
+   色の組み合わせの深堀り（デッキの速さとマナカーブの後）に、組み合わせごとに入れる。
+   n は動画の中で何個目か（言い回しを変えて、くり返しに聞こえないようにする）。worst は「一番勝ちにくい組み合わせ」のとき */
+function trophyDeckScenes(ctx, pair, J, n, worst){
   const { rd, trophies } = ctx;
-  const cands = [...new Set([bestD, ...sleepers, ...pairsD.slice(0, 3)].filter(Boolean).map(p => p.pair))];
-  const hit = pickTrophyDeck(trophies, cands);
-  if(!hit){ console.error("全勝デッキの例: レア0枚のデッキが見つからないので、入れない"); return null; }
-  const { pair, s } = hit;
+  const s = pickTrophyDeck(trophies, pair);
+  if(!s){ console.error(`全勝デッキの例: ${pair} はレア0枚のデッキが無いので、入れない`); return null; }
   const info = name => rd.cards.find(c => c.name === name) || {};
   const cards = s.cards.map(([name, n, cmc]) => { const r = info(name); return { name, n, cmc: cmc ?? r.cmc ?? 0, label: J(name), rarity: r.rarity, color: r.color, r }; });
   const nonland = cards.reduce((m, c) => m + c.n, 0);
@@ -237,16 +232,30 @@ function trophyDeckScenes(ctx, { bestD, sleepers, pairsD, J }){
   const deck = { pair, record, wins: s.wins, losses: s.losses, event: ev, splash, lands: s.lands, avgMv, perCol, cards, keys };
   const colWord = i => EN ? (i === 5 ? "six or more mana" : `${i + 1} mana`) : (i === 5 ? "6マナ以上" : `${i + 1}マナ`);
   const q = c => EN ? `“${c.label}”` : `「${c.label}」`;
+  const pn = pairName(pair);
+  // 出だし：1つ目だけ「レアなし」を丁寧に言う。勝ちにくい組み合わせは「それでも勝てる」の形で
+  const leadJ = worst ? `勝ちにくい${pn}でも、レアなしで全勝したデッキがあります。`
+              : n === 0 ? `${pn}で、実際に全勝したデッキを見てみます。`
+              : [`${pn}にも、レアなしの全勝デッキがあります。`, `${pn}の、レアなしの全勝デッキです。`][n % 2];
+  const leadE = worst ? `Even ${pn}, the hardest pair, has a trophy deck with no rares. `
+              : n === 0 ? `Here's a real ${pn} trophy deck. `
+              : [`Here's a ${pn} trophy deck with no rares. `, `${pn} has a rare-free trophy deck too. `][n % 2];
+  const noRareJ = n === 0 && !worst ? `レアと神話レアは、一枚も入っていません。` : "";
+  const noRareE = n === 0 && !worst ? `It has no rares or mythics at all. ` : "";
+  // デッキの形：1つ目は「一番多いマナ域」も言う。2つ目からは平均マナ総量だけ（同じ言い回しのくり返しを避ける）
+  const mv = avgMv.toFixed(1);
+  const shapeJ = n === 0 ? `一番多いのは${colWord(peak)}の${perCol[peak]}枚で、平均マナ総量は${mv}です。` : `平均マナ総量は${mv}です。`;
+  const shapeE = n === 0 ? `The biggest group is at ${colWord(peak)}, with ${perCol[peak]} cards, and the average mana value is ${mv}.` : `Its average mana value is ${mv}.`;
   const sayA = EN
-    ? `Now let's look at a real trophy deck. This ${pairName(pair)} deck went ${s.wins} and ${s.losses} in ${ev}${splash ? `, with a small ${pairName(splash)} splash` : ""}, and it has no rares or mythics at all. ` +
-      `The biggest group is at ${colWord(peak)}, with ${perCol[peak]} cards, and the average mana value is ${avgMv.toFixed(1)}.`
-    : `ここで、実際の全勝デッキを一つ見てみます。${pairName(pair)}で、${ev}を${record}。${splash ? `${pairName(splash)}を少しタッチしていますが、` : ""}レアと神話レアは、一枚も入っていません。` +
-      `一番多いのは${colWord(peak)}の${perCol[peak]}枚で、平均マナ総量は${avgMv.toFixed(1)}です。`;
+    ? leadE + `It went ${s.wins} and ${s.losses} in ${ev}${splash ? `, with a small ${pairName(splash)} splash` : ""}. ` + noRareE + shapeE
+    : leadJ + `${ev}を${record}。${splash ? `${pairName(splash)}を少しタッチしています。` : ""}` + noRareJ + shapeJ;
+  const KJ = ["このデッキを支えたのは、", "活躍したのは、", "このデッキの主役は、", "勝ちを支えたのは、"];
+  const KE = ["The cards that carried it, from the left: ", "The standouts, from the left: ", "The stars of this deck, from the left: ", "Carrying this one, from the left: "];
   const sayB = !keys.length ? "" : EN
-    ? `The cards that carried it, from the left: ${andList(keys.map(q))}. Even without rares, strong commons and uncommons like these can win every game.`
-    : `このデッキを支えたのは、左から、${keys.map(q).join("、")}。レアがなくても、強いコモンとアンコモンを揃えれば、全勝できます。`;
+    ? KE[n % KE.length] + `${andList(keys.map(q))}.` + (n === 0 ? " " + `Even without rares, strong commons and uncommons like these can win every game.` : "")
+    : KJ[n % KJ.length] + `左から、${keys.map(q).join("、")}。` + (n === 0 ? `レアがなくても、強いコモンとアンコモンを揃えれば、全勝できます。` : "");
   const base = { kind: "trophydeck", deck, cards: cards.map(c => c) };   // cards：画像を取るため（場面1・2で同じもの）
-  const out = [{ ...base, chapter: L("レアなしの全勝デッキ", "A trophy deck with no rares"), say: sayA, tail: 0.5 }];
+  const out = [{ ...base, chapter: null, say: sayA, tail: 0.5 }];
   if(sayB) out.push({ ...base, nofade: true, focus: true, say: sayB, tail: 0.6, highlight: trophyKeyBoxes(keys) });
   console.error(`全勝デッキの例: ${pair}（${ev} ${s.wins}-${s.losses}${splash ? `・タッチ ${splash}` : ""}、${nonland + s.lands}枚）`);
   return out;
@@ -284,7 +293,8 @@ function buildScript(ctx){
   const sleepers = rankedD.filter(p => p !== bestD && p !== worstD && p.wr >= avgD - 0.005 && p.games / totalPG <= avgShareP * 0.85 && p.games >= 1500)
     .sort((a, b) => b.wr - a.wr).slice(0, 2);
   const sleepersTop = pairsD.slice(0, 3).filter(p => sleepers.includes(p));
-  const deckScenes = trophyDeckScenes(ctx, { bestD, sleepers, pairsD, J });   // 全勝デッキの例（冒頭の「順番に、〜」で言うので先に決める）
+  // レアなしの全勝デッキがある組み合わせ（深堀りする組み合わせのどれか）。冒頭の「順番に、〜」で言うので先に調べる
+  const hasDecks = [...pairsD.slice(0, 3), worstD, ...sleepers].some(p => p && pickTrophyDeck(trophies, p.pair));
 
   /* --- 冒頭 --- */
   scenes.push({ kind: "hook", art: true, chapter: L("はじめに", "Intro"),
@@ -295,7 +305,7 @@ function buildScript(ctx){
   // 速さのデータ（試合ごとのデータから作る）は確定版にしか無い。暫定版では「環境の速さ」の章を入れず、組み合わせごとはマナカーブだけにする
   const hasPace = (dd.speed || []).some(x => x.wr != null && x.games), hasDeckSpeed = Object.keys(rd.pair_speed || {}).length > 0;
   const pairLabel = hasDeckSpeed ? L("色の組み合わせと速さ", "Pair speed & mana curve") : L("色の組み合わせ", "Colour pairs");
-  scenes.push({ kind: "agenda", say: EN ? `Here's the plan: ${hasPace ? "format speed, " : ""}single colours, colour pairs${hasDeckSpeed ? " and deck speed" : ""}, sleeper pairs, ${deckScenes ? "a trophy deck with no rares, " : ""}bombs, ${WITH_TRAPS ? "trap rares, " : ""}the best cards for each colour, and finally a summary.` : `順番に、${hasPace ? "環境の速さ、" : ""}単色の強さ、色の組み合わせ${hasDeckSpeed ? "とデッキの速さ" : ""}、狙い目の色、${deckScenes ? "レアなしの全勝デッキ、" : ""}ボム、${WITH_TRAPS ? "罠なレアカード、" : ""}色別のおすすめを見て、最後にまとめます。${WITH_REMOVAL ? "除去も紹介します。" : ""}`,
+  scenes.push({ kind: "agenda", say: EN ? `Here's the plan: ${hasPace ? "format speed, " : ""}single colours, colour pairs${hasDeckSpeed ? " and deck speed" : ""}${hasDecks ? " with real trophy decks" : ""}, sleeper pairs, bombs, ${WITH_TRAPS ? "trap rares, " : ""}the best cards for each colour, and finally a summary.` : `順番に、${hasPace ? "環境の速さ、" : ""}単色の強さ、色の組み合わせ${hasDeckSpeed ? "とデッキの速さ" : ""}、${hasDecks ? "レアなしの全勝デッキ、" : ""}狙い目の色、ボム、${WITH_TRAPS ? "罠なレアカード、" : ""}色別のおすすめを見て、最後にまとめます。${WITH_REMOVAL ? "除去も紹介します。" : ""}`,
     items: (EN ? [...(hasPace ? ["Format speed"] : []), "Single colours", pairLabel, "Sleeper pairs", ...(WITH_DVS ? ["Draft vs Sealed"] : []), "Top 10 bomb rares", ...(WITH_TRAPS ? ["Trap rares"] : []), "Top commons & uncommons", ...(WITH_REMOVAL ? ["Removal"] : []), "Summary"] : [...(hasPace ? ["環境の速さ"] : []), "単色の強さ", pairLabel, "狙い目の色", ...(WITH_DVS ? ["ドラフトとシールドの違い"] : []), "ボムのレア10枚", ...(WITH_TRAPS ? ["罠なレアカード"] : []), "色別のコモン・アンコモン", ...(WITH_REMOVAL ? ["除去（コモン・アンコモン）"] : []), "まとめ"]), tail: 0.4 });
 
   /* --- 速さ --- */
@@ -580,6 +590,9 @@ function buildScript(ctx){
     return { kind: "pairspeed", chapter: null, pair: p.pair, rows, best, low, dir, wrPair: p.wr, envDir, curve: ci, say, tail: 0.5 };
   };
   const pushSpeed = p => { const sp = pairSpeedScene(p); if(sp) scenes.push(sp); };
+  // レアなしの全勝デッキ（あれば）：その組み合わせの「デッキの速さとマナカーブ」の後に入れる
+  let deckN = 0;
+  const pushDeck = (p, worst = false) => { const tc = trophyDeckScenes(ctx, p.pair, J, deckN, worst); if(tc){ scenes.push(...tc); deckN++; } };
 
   const deep = (p, i, kind) => {
     const share = p.games / totalPG, avgShare = 1 / pairsD.length;
@@ -613,8 +626,8 @@ function buildScript(ctx){
              highlight: ks.map((c, i) => ({ label: c.label, x: 740 + i * (245 + 28) - 10, y: 205, w: 265, h: 362 })) };   // 読み上げに合わせて光らせる枠（画面の位置は renderer と合わせる）
   };
   // 上位3つの深堀り（狙い目に回るものは、そちらで紹介するので、ここでは飛ばす）。順位の言い方は、実際の順位から決める
-  pairsD.slice(0, 3).forEach((p, i) => { if(!sleepers.includes(p)){ scenes.push(deep(p, i, "top")); pushSpeed(p); } });
-  if(worstD && worstD !== bestD){ scenes.push(deep(worstD, 0, "worst")); pushSpeed(worstD); }
+  pairsD.slice(0, 3).forEach((p, i) => { if(!sleepers.includes(p)){ scenes.push(deep(p, i, "top")); pushSpeed(p); pushDeck(p); } });
+  if(worstD && worstD !== bestD){ scenes.push(deep(worstD, 0, "worst")); pushSpeed(worstD); pushDeck(worstD, true); }
 
   /* --- 狙い目の色：勝率がそこそこ高く（全体の平均付近以上）、使っている人が少なめ（平均の85%以下）。最大2つ --- */
   sleepers.forEach((p, i) => {
@@ -623,10 +636,9 @@ function buildScript(ctx){
     else sc.say = L(`もう一つ。`, `One more. `) + sc.say;
     scenes.push(sc);
     pushSpeed(p);
+    pushDeck(p);
   });
 
-  /* --- レアなしの全勝デッキを1つ（全勝デッキのデータ data/trophies があり、レア0枚のデッキが見つかったときだけ） --- */
-  if(deckScenes) scenes.push(...deckScenes);
 
   /* --- ドラフトとシールドの違い（WITH_DVS のときだけ） --- */
   if(WITH_DVS){
