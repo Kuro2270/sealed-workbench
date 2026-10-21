@@ -225,8 +225,9 @@ function buildScript(d, nameJa, names, avgs = {}){
   const gamesEn = d.total_games >= 10000 ? Math.round(d.total_games / 1000) + " thousand" : manSay(d.total_games);
   scenes.push({ kind: "hook", art: true,
     // 最初の一言で「誰のための、何の動画か」を短く言う（2026年10月：「マジック：ザ・ギャザリングの〜」から始めると長く、冒頭がもたつくため短くした）
-    say: JA ? `MTGアリーナ、${nameJa}の${EARLY ? "リミテッド" : d.mode === "sealed" ? "シールド" : "ドラフト"}環境を知りたい方に。1分でまとめました。`
-            : `Want to know ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} ${EARLY ? "Limited" : d.mode === "sealed" ? "Sealed" : "Draft"} format on MTG Arena? Here it is in one minute.`,
+    // 何試合のデータかも、セリフで言う（数字の裏付けが伝わるように）
+    say: JA ? `MTGアリーナ、${nameJa}の${EARLY ? "リミテッド" : d.mode === "sealed" ? "シールド" : "ドラフト"}環境を知りたい方に。${games}試合のデータを、1分でまとめました。`
+            : `Want to know ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} ${EARLY ? "Limited" : d.mode === "sealed" ? "Sealed" : "Draft"} format on MTG Arena? Here are ${gamesEn} games of data, in one minute.`,
     title: nameJa, games, isSealed: d.mode === "sealed", early: EARLY });
 
   if(fast && slow){
