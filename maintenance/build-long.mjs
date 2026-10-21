@@ -16,7 +16,7 @@
  *
  * 材料（どれを読むかは report-data.mjs が決める。確定版があれば確定版、無ければ暫定版）
  *   ・data/articles/<SET>_draft.json と <SET>_sealed.json（どちらも必要）
- *   ・data/ratings/<SET>_PremierDraft.json と <SET>_Sealed.json（カードごとの勝率）
+ *   ・data/ratings/events/<SET>_PremierDraft.json と <SET>_Sealed.json（カードごとの勝率。置き場所は ratings-files.mjs）
  *   ・暫定版（17Lands の毎日の集計。data/provisional と data/ratings/<SET>_draft.json / _sealed.json）でも作れる。
  *     ゲームごとのデータが無いので、「環境の速さ」の章と、組み合わせごとの「デッキの速さ・マナカーブ」の場面は入らない。
  *     概要欄のデータの出どころは「17Lands（〇月〇日時点の集計）」にする

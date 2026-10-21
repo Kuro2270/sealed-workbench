@@ -19,9 +19,10 @@
  * }
  */
 
-import { readdir, readFile, writeFile, mkdir } from "node:fs/promises";
+import { readdir, readFile, writeFile, mkdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import { cardTiers } from "./card-tier.mjs";
+import { readAllEventRatings } from "./ratings-files.mjs";
 
 const RATINGS = "data/ratings";
 const NOTES   = "data/notes";
@@ -203,17 +204,11 @@ function speedVerdict(speed, avgTurns, curve){
 }
 
 async function main(){
-  let files = [];
-  try{ files = (await readdir(RATINGS)).filter(f => f.endsWith(".json") && f !== "index.json"); }
-  catch(e){ process.stderr.write("集計データがありません。先に build-ratings を実行してください。\n"); return; }
-  if(!files.length){ process.stderr.write("集計データがありません。\n"); return; }
-
-  // セットごとに、形式別の集計を読み込む
+  // セットごとに、形式別（イベントごと）の集計を読み込む。置き場所は ratings-files.mjs が決める（data/ratings/events/）
+  const inputs = await readAllEventRatings();
+  if(!inputs.length){ process.stderr.write("集計データがありません。先に build-ratings を実行してください。\n"); return; }
   const bySet = new Map();
-  for(const f of files){
-    const d = await readJson(path.join(RATINGS, f));
-    if(!d || !Array.isArray(d.cards)) continue;
-    if(d.mode) continue;                     // 自分が書いた統合ファイルは入力にしない
+  for(const d of inputs){
     if(!bySet.has(d.set)) bySet.set(d.set, []);
     bySet.get(d.set).push(d);
   }
@@ -318,9 +313,23 @@ async function main(){
     speed: speedIndex
   }), "utf8");
 
+  await removeCaseTwins(OUT_DIR, made.map(m => `${m.set}_${m.mode}.json`));
+
   process.stderr.write(`環境レポートを生成: ${made.length}件\n`);
   made.forEach(m => process.stderr.write(
     `  ${m.set} ${m.mode}（${m.total_games.toLocaleString()}試合 / ${m.avg_turns ? m.avg_turns.toFixed(1) + "ターン" : "—"} / ${m.verdict}${m.hasNotes ? " / 考察あり" : ""}）\n`));
+}
+
+/* 書いたファイルと、大文字・小文字の違いだけの名前のファイル（例：FRA_sealed.json に対する FRA_Sealed.json）を消す。
+   以前の版が残した古いファイルで、どこからも読まれていない。Windows（大文字・小文字を区別しない）のフォルダを通ると、
+   同じファイルとして扱われて中身が混ざるため（2026年10月） */
+async function removeCaseTwins(dir, written){
+  const keep = new Set(written), lower = new Set(written.map(n => n.toLowerCase()));
+  let files = [];
+  try{ files = await readdir(dir); }catch(e){ return; }
+  const twins = files.filter(f => !keep.has(f) && lower.has(f.toLowerCase()));
+  for(const f of twins) await unlink(path.join(dir, f));
+  if(twins.length) process.stderr.write(`大文字・小文字の違いだけの古いファイルを消しました: ${twins.join(", ")}\n`);
 }
 
 export { MIN_GAMES, topByRarity, colorStrength };

@@ -5,7 +5,8 @@
  *   node maintenance/build-ratings.mjs              直近セットを自動で対象にする
  *   node maintenance/build-ratings.mjs HOB Sealed   組み合わせを指定して集計する
  *
- * 出力: data/ratings/<SET>_<FORMAT>.json と index.json
+ * 出力: data/ratings/events/<SET>_<FORMAT>.json と data/ratings/index.json
+ *       （置き場所は ratings-files.mjs が決める。2026年10月に直下から events/ に移した。以前の置き場所のファイルは、最初に events/ へ移す）
  *
  * 対象セットは Scryfall から自動取得するので、新セットが出れば
  * 次回の実行で勝手に加わる。公開データセットに無い組み合わせは飛ばす。
@@ -17,6 +18,7 @@ import { Readable } from "node:stream";
 import { createInterface } from "node:readline";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { eventFile, moveLegacyEventFiles } from "./ratings-files.mjs";
 
 const BASE = "https://17lands-public.s3.amazonaws.com/analysis_data/game_data";
 const SCRY = "https://api.scryfall.com";
@@ -362,8 +364,8 @@ async function build(set, format, metaCache){
     cards
   };
 
-  await mkdir(OUT_DIR, { recursive: true });
-  const out = path.join(OUT_DIR, `${set}_${format}.json`);
+  const out = eventFile(set, format);
+  await mkdir(path.dirname(out), { recursive: true });
   await writeFile(out, JSON.stringify(payload), "utf8");
 
   process.stderr.write(`完了: ${out}（${rows.toLocaleString()}試合 / ${cards.length}種`
@@ -373,6 +375,7 @@ async function build(set, format, metaCache){
 }
 
 async function main(){
+  await moveLegacyEventFiles(m => process.stderr.write(m + "\n"));
   const args = process.argv.slice(2);
   const targets = args.length >= 2
     ? [[args[0].toUpperCase(), args[1]]]

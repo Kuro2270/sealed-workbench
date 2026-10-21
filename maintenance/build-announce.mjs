@@ -13,6 +13,7 @@
  */
 
 import { readFile, writeFile } from "node:fs/promises";
+import { readEventRatings } from "./ratings-files.mjs";
 
 const SITE = process.env.SITE_URL || "https://sealed-workbench.com";
 const RATINGS = "data/ratings";
@@ -30,7 +31,7 @@ async function readJson(path, fallback){
 
 /* セットの上位カードを取り出す */
 async function topCards(set, event, n = 3){
-  const d = await readJson(`${RATINGS}/${set}_${event}.json`, null);
+  const d = await readEventRatings(set, event);
   if(!d || !Array.isArray(d.cards)) return [];
   return d.cards
     .filter(c => c.gih != null && c.games >= 500)
