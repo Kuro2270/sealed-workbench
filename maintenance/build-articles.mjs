@@ -142,6 +142,16 @@ function topByRarity(cards, rarity, n = TOP_N){
 }
 
 /* 単色の強さ（その色を含むデッキの勝率を試合数で重みづけ） */
+/* 記事に載せる色の組み合わせ。試合数が少なすぎるもの（300 試合未満・全体の 0.2% 未満）は除く。
+   2色の組み合わせは全部残す（勝率順の上位12件だけにすると、3色が多い環境（FRA など）で弱い2色が落ちて、
+   「一番勝ちにくい組み合わせ」や使用率の平均が狂うため。2026年10月に修正）。
+   1色・3色以上は、これまでどおり勝率順の上位12件に入ったものだけ */
+function keepArchetypes(archetypes, totalGames){
+  const ok = archetypes.filter(a => a.games >= Math.max(300, Math.floor(totalGames * 0.002)));
+  const top = new Set(ok.slice(0, 12));
+  return ok.filter(a => a.colors.length === 2 || top.has(a));
+}
+
 function colorStrength(archetypes){
   const acc = {};
   "WUBRG".split("").forEach(k => { acc[k] = { games: 0, wins: 0 }; });
@@ -238,7 +248,7 @@ async function main(){
           common:   topByRarity(cards, "common")
         },
         colors: colorStrength(m.archetypes),
-        archetypes: m.archetypes.filter(a => a.games >= Math.max(300, Math.floor(m.total_games * 0.002))).slice(0, 12),
+        archetypes: keepArchetypes(m.archetypes, m.total_games),
         curve: m.curve,
         speed: m.speed,
         verdict: speedVerdict(m.speed, m.avg_turns, m.curve),
