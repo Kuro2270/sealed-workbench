@@ -28,6 +28,7 @@
 import { splitSay } from "./highlight-split.mjs";
 import { loadReport } from "./report-data.mjs";
 import { rareAverage, isBombLevel, trophyShare } from "./card-level.mjs";
+import { makeLongThumbnail } from "./long-thumbnail.mjs";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { execFileSync, execFile } from "node:child_process";
 import { cpus } from "node:os";
@@ -684,7 +685,18 @@ function buildScript(ctx){
          : `6位から10位は、画面のとおりです。レア全体の、引けた試合の勝率の平均は${pt(rareAvg)}パーセントですが、どれも${lo}から${hi}パーセントと、大きく上回っています。引けたら、色を合わせに行く価値が十分にあります。`, tail: 0.6 });
   }
 
-  if(bombs.length >= 3) scenes[0].cards = bombs.slice(0, 3);     // 冒頭の画面に並べるボム
+  if(bombs.length >= 3) scenes[0].cards = bombs.slice(0, 3);     // 冒頭の画面に並べるボム（サムネイルにも使う）
+  // サムネイルの見出し：狙い目があれば狙い目の組み合わせ、無ければ最強の組み合わせ。数字は動画の中で言っているものだけ
+  {
+    // 見出しは「〇〇が最強！」のように言い切って、気持ちが動く形にする（数字は動画の中で言っているものだけ）
+    // 英語は見出しが長くなるので、「The best pair is」などを上の小さな一言（kicker）に分け、色の名前を大きく出す
+    const sl = sleepers[0], kGames = n => n >= 10000 ? `${Math.round(n / 10000) * 10}K` : n.toLocaleString("en-US");
+    scenes[0].thumb = sl
+      ? { kicker: L("", "The sleeper pick"), main: L(`${pairName(sl.pair)}が狙い目！`, `${pairName(sl.pair)}!`),
+          sub: L(`使う人${Math.round(sl.games / totalPG * 100)}%なのに勝率${pt(sl.wr)}%`, `Only ${Math.round(sl.games / totalPG * 100)}% play it, yet ${pt(sl.wr)}% win rate`) }
+      : { kicker: L("", "The best pair is"), main: L(`${pairName(bestD.pair)}が最強！`, `${pairName(bestD.pair)}!`),
+          sub: L(`${man(gamesD)}試合で勝率${pt(bestD.wr)}%`, `${pt(bestD.wr)}% win rate over ${kGames(gamesD)} games`) };
+  }
 
   /* --- 罠カード（WITH_TRAPS のときだけ） --- */
   const traps = !WITH_TRAPS ? [] : rd.cards.filter(c => !c.land && (c.rarity === "rare" || c.rarity === "mythic") && c.games >= 2500 && c.gih <= rareAvg - 0.015)
@@ -1796,6 +1808,22 @@ async function main(){
   for(const sc of scenes) for(const c of (sc.cards || [])) c.imgPath = await getImg(c);
   console.error(`カード画像: ${[...imgCache.values()].filter(Boolean).length}/${imgCache.size} 枚`);
 
+  // YouTube 用のサムネイル（maintenance/long-thumbnail.mjs）。画像だけ確認するとき（LONG_STILLS=1）も作る
+  //   キャラクター：日本語はフード付きのずんだもん（いつもの顔。short/zunda-hoodie/thumb.png。maintenance/zunda-hood.py で作る）、英語は四国めたん。
+  //   出さないとき：LONG_THUMB_ZUNDA=0
+  const makeThumbnail = async () => {
+    try{
+      const hook = scenes.find(sc => sc.kind === "hook") || {};
+      const character = process.env.LONG_THUMB_ZUNDA === "0" ? null
+        : (EN ? ["short/metan/open_open.png"] : ["short/zunda-hoodie/thumb.png", "short/zunda-hoodie/open_open.png", "short/zunda/open_open.png"]).find(f => existsSync(f)) || null;
+      const setLogo = existsSync(`short/logo/${SET}.png`) ? `short/logo/${SET}.png` : null;
+      await makeLongThumbnail({ out: `${OUT}/thumbnail.jpg`, sharp, font: FONT, en: EN, bg: artPath, arenaLogo: existsSync("short/logo/arena.png") ? "short/logo/arena.png" : null,
+        setLogo, setName: nameJa, label: L("リミテッド環境分析", "Limited Format Analysis"), kicker: (hook.thumb || {}).kicker || "",
+        main: (hook.thumb || {}).main || nameJa, sub: (hook.thumb || {}).sub || "", cards: (hook.cards || []).map(c => c.imgPath), character });
+      console.error(`サムネイル: ${OUT}/thumbnail.jpg（${(hook.thumb || {}).main || ""}／${(hook.thumb || {}).sub || ""}）`);
+    }catch(e){ console.error("サムネイルが作れませんでした:", String(e.message).slice(0, 300)); }
+  };
+
   let bgDur = 0;
   try{ bgDur = +execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", BG]).toString().trim(); }catch(e){}
   HAS_BG = bgDur > 0;
@@ -1985,6 +2013,7 @@ ${ZUNDA ? "立ち絵: 坂本アヒル（https://twitter.com/sakamoto_ahr）\n" :
 #MTGアリーナ #MTGA #リミテッド #${String(nameJa).replace(/[\s・]/g, "")}
 `, "utf8");
   console.error(`目次:\n${chapters.map(c => `  ${ts(c.at)} ${c.title}`).join("\n")}`);
+  await makeThumbnail();
   if(STILLS){ console.error(`画像だけ作りました。合計の目安 ${ts(total)}`); return; }
 
   await writeFile(`${OUT}/list.txt`, segs.join("\n"), "utf8");
@@ -1996,15 +2025,6 @@ ${ZUNDA ? "立ち絵: 坂本アヒル（https://twitter.com/sakamoto_ahr）\n" :
       `[0:a][bg]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`,
       "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-t", String(total), "-movflags", "+faststart", `${OUT}/${LANG}.mp4`]);
   }
-  // サムネイル（冒頭の場面。字幕の入る前の画面を、カードの絵に重ねる）。右下に、キャラクター（口を開けた笑顔）を載せる
-  //   日本語はフード付きのずんだもん、英語は四国めたん。出さないとき：LONG_THUMB_ZUNDA=0
-  try{
-    const zt = process.env.LONG_THUMB_ZUNDA === "0" ? null : (EN ? ["short/metan/open_open.png"] : ["short/zunda-hoodie/open_open.png", "short/zunda/open_open.png"]).find(f => existsSync(f));
-    const TZW = 400, TZH = Math.round(400 * 380 / 372);      // 素材は 372×380
-    execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...(artPath ? ["-loop", "1", "-i", artPath] : ["-f", "lavfi", "-i", `color=c=0x0A2038:s=${W}x${H}:r=30`]), "-loop", "1", "-i", `${OUT}/scene-0.png`, ...(zt ? ["-loop", "1", "-i", zt] : []), "-filter_complex",
-      `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1,gblur=sigma=${artMode === "key" ? 0.6 : 1.5},eq=brightness=0[b];[1:v]scale=${W}:${H},format=rgba[f];[b][f]overlay=shortest=1` +
-      (zt ? `[t];[2:v]scale=${TZW}:${TZH},format=rgba[z];[t][z]overlay=x=${W - TZW - 16}:y=${H - TZH + 6}:shortest=1` : ""), "-frames:v", "1", "-q:v", "2", `${OUT}/thumbnail.jpg`]);
-  }catch(e){ console.error("サムネイルが作れませんでした:", String(e.message).slice(0, 300)); }
   console.error(`\n${OUT}/${LANG}.mp4  合計 ${ts(total)}（${total.toFixed(0)} 秒）`);
 }
 
