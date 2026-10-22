@@ -54,6 +54,8 @@
     "unit.total":       { ja:"計 {n}枚", en:"{n} total" },
 
     "deck.title":       { ja:"デッキ",   en:"Deck" },
+    "deck.dockGo":      { ja:"デッキを見る", en:"View deck" },
+    "deck.dockCopy":    { ja:"アリーナ用にコピー", en:"Copy for Arena" },
     "deck.empty":       { ja:"プールのカードを押すと加わります", en:"Click a card in the pool to add it" },
     "deck.lands":       { ja:"基本土地", en:"Basic lands" },
     "deck.plus":        { ja:"{c}を1枚増やす", en:"Add one {c}" },

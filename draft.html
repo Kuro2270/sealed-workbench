@@ -11,7 +11,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
 <meta name="twitter:card" content="summary">
-<script src="./i18n.js?v=16"></script>
+<script src="./i18n.js?v=17"></script>
 <script src="./cardzoom.js"></script>
 <script src="./analytics.js"></script>
 <script src="/navmenu.js" defer></script>
@@ -141,6 +141,18 @@
   }
 
   .side{position:sticky;top:16px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+  @media (min-width:981px){
+    .side{max-height:calc(100vh - 32px);overflow:auto;overscroll-behavior:contain}
+    .side > .side-head:first-child{position:sticky;top:0;z-index:2;background:#fff;border-radius:var(--radius) var(--radius) 0 0}
+    .side .side-body,.side .sb-body{max-height:none}
+  }
+
+  /* デッキの枠は画面の高さに収めて、枠の中だけをスクロールする。枚数（上）とコピーのボタン（下）は枠に固定して、いつでも見える・押せるようにする
+     （2026年10月：コピーのボタンがページの一番下までスクロールしないと見えず、気付きにくかったため）。狭い画面では deck-dock.js が画面下に帯を出す */
+  .deck-actions{position:sticky;bottom:0;z-index:2;background:#fff;padding:10px 16px 12px;border-top:1px solid var(--line);box-shadow:0 -8px 16px -12px rgba(13,27,42,.45);border-radius:0 0 var(--radius) var(--radius)}
+  .deck-actions[hidden]{display:none}
+  .deck-actions button{width:100%}
+  .deck-actions button + button{margin-top:6px}
   .side-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
   .side-head h3{font-size:16px;margin:0}
   .count{font-size:24px;font-variant-numeric:tabular-nums}
@@ -381,10 +393,10 @@
     <div id="board"></div>
   </section>
 
-  <aside class="side">
+  <aside class="side" data-dock-panel="980">
     <div class="side-head">
       <h3 id="sideTitle" data-i18n="draft.picked">ピック済み</h3>
-      <div class="count" id="sideCount">0</div>
+      <div class="count" id="sideCount" data-dock-count>0</div>
     </div>
     <div class="target" id="targetRow" hidden>
       <span data-i18n="deck.target">追加先</span>
@@ -409,7 +421,9 @@
     <div class="export" id="exportWrap" hidden>
       <textarea id="exportBox" readonly data-i18n-ph="deck.exportPh"></textarea>
       <div style="font-size:11.5px;color:var(--muted);margin-top:6px" data-i18n="deck.exportNote">インポート用のカード名は、表示設定にかかわらず英語名で出力します。</div>
-      <button id="copyBtn" style="width:100%;margin-top:8px" data-i18n="deck.copy">アリーナ用テキストをコピー</button>
+    </div>
+    <div class="deck-actions" id="exportActions" hidden>
+      <button id="copyBtn" data-i18n="deck.copy">アリーナ用テキストをコピー</button>
     </div>
   </aside>
 </main>
@@ -618,7 +632,7 @@ function finishDraft(){
   $("phase").hidden = true;
   $("bar").hidden = true;
   $("lands").hidden = false;
-  $("exportWrap").hidden = false;
+  $("exportWrap").hidden = false; $("exportActions").hidden = false;
   $("targetRow").hidden = false;
   $("sbHead").hidden = false;
   $("sbBody").hidden = false;
@@ -664,7 +678,7 @@ function applySnap(s, msgKey){
   $("startBtn").disabled = !$("setSelect").value;
   $("phase").hidden = building; $("bar").hidden = building; $("colors").hidden = false;
   $("optRow").hidden = false;
-  $("lands").hidden = !building; $("exportWrap").hidden = !building;
+  $("lands").hidden = !building; $("exportWrap").hidden = !building; $("exportActions").hidden = !building;
   $("targetRow").hidden = !building; $("sbHead").hidden = !building; $("sbBody").hidden = !building;
   setSideTitle(building ? "deck.title" : "draft.picked");
   target = s.target || "main";
@@ -990,5 +1004,6 @@ PoolSave.mountHistory(SAVE_KEY, $("histBox"), snap => { archiveCurrent(); applyS
 if(!restoreCurrent() && FROM_ROOM && !PoolSave.history(SAVE_KEY).length) location.replace("./draftroom.html");   // 組むプールが無ければ部屋の画面へ
 </script>
 <script src="./goods-widget.js?v=6" defer></script>
+<script src="./deck-dock.js?v=1" defer></script>
 </body>
 </html>
