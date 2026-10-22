@@ -7,14 +7,15 @@
  *   DRY_RUN=1 node maintenance/bsky-like.mjs       … 付ける候補を見るだけ（いいねはしない）
  *
  * 環境変数：BSKY_HANDLE, BSKY_APP_PASSWORD（無ければ何もしない）
- *           LIKE_LIMIT … 1日（日本時間）に付ける上限。既定 10、最大 50。今日すでに付けた数（手で付けたものも含む）を引いた分だけ付ける
+ *           LIKE_LIMIT … 1日（日本時間）に付ける上限。既定 50。50〜200 の間で使う（50 より小さい数は 50、200 より大きい数は 200）。
+ *                        今日すでに付けた数（手で付けたものも含む）を引いた分だけ付ける
  *           LIKE_LIMIT_SRC … 上限の数をどこから取ったか（input / var / default。Summary に出すだけ）
- *           MANUAL     … 1 なら手で押した実行。今日の数は見ずに、LIKE_LIMIT の件数をそのまま付ける（最大 50）
+ *           MANUAL     … 1 なら手で押した実行。今日の数は見ずに、LIKE_LIMIT の件数をそのまま付ける（手で入れた件数は 1〜200）
  *           BSKY_BASE  … 確認用（作り物のサーバーに向ける）
  *
  * 付けない投稿：自分の投稿、もう付けた投稿、返信、ラベル（成人向け・スパムなど）の付いた投稿や人、
  *               ミュート・ブロックの関係にある人、短すぎる投稿、2日より前の投稿。
- * 1回の実行で、同じ人には1つだけ。いいねとの間は「75秒 ＋ 10秒〜3分のランダム」あける（人が付けるくらいの間隔で、毎回ばらつかせる）。
+ * 1回の実行で、同じ人には1つだけ。いいねとの間は「20秒〜75秒のランダム」あける（毎回ばらつかせる。200件で平均2時間半ほど）。
  *   確認用に LIKE_WAIT_MS（固定の分）・LIKE_JITTER_MIN_MS / LIKE_JITTER_MAX_MS（ランダムの幅）で変えられる。
  */
 import { appendFile } from "node:fs/promises";
@@ -24,13 +25,19 @@ const DRY = process.env.DRY_RUN === "1";
 const MANUAL = process.env.MANUAL === "1";
 // 全角の数字（「５０」）や「50件」のような書き方でも読めるようにする（読めないと既定の 10 件になってしまうため）
 const RAW_LIMIT = String(process.env.LIKE_LIMIT || "").replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0)).trim();
-const LIMIT = Math.max(0, Math.min(50, parseInt(RAW_LIMIT || "10", 10) || 10));
+// 1日の上限は 50〜200 件（2026年10月：10〜50 件から引き上げ）。手で押して件数を入れたときだけは、少ない件数（1件〜）でも試せる
+const LIMIT_MIN = 50, LIMIT_MAX = 200;
+const LIMIT = (() => {
+  const n = parseInt(RAW_LIMIT || String(LIMIT_MIN), 10) || LIMIT_MIN;
+  return Math.min(LIMIT_MAX, Math.max(MANUAL && process.env.LIKE_LIMIT_SRC === "input" ? 1 : LIMIT_MIN, n));
+})();
 // 上限の数をどこから取ったか（Summary に出す。「50 にしたのに 10 になる」ときの確認用）
 const LIMIT_FROM = { input: "手で押したときの入力", var: "設定（Variables の BSKY_LIKE_LIMIT）", default: "既定（BSKY_LIKE_LIMIT が Variables に無い）" }[process.env.LIKE_LIMIT_SRC] || "";
-const WAIT_MS = +(process.env.LIKE_WAIT_MS ?? 75000);
-const JITTER_MIN = +(process.env.LIKE_JITTER_MIN_MS ?? 10000), JITTER_MAX = +(process.env.LIKE_JITTER_MAX_MS ?? 180000);
+const WAIT_MS = +(process.env.LIKE_WAIT_MS ?? 0);
+const JITTER_MIN = +(process.env.LIKE_JITTER_MIN_MS ?? 20000), JITTER_MAX = +(process.env.LIKE_JITTER_MAX_MS ?? 75000);
 const waitMs = () => WAIT_MS + JITTER_MIN + Math.random() * Math.max(0, JITTER_MAX - JITTER_MIN);
 const MAX_AGE_H = 48, MIN_TEXT = 20;
+const SEARCH_PAGES = 3;          // 言葉ごとに探す回数（1回 100 件まで）。上限 200 件でも候補が足りるように
 const REFRESH_MS = 60 * 60000;   // ログインの鍵を取り直す間隔（1時間。鍵は2時間ほどで切れる）
 /* MTG の話をしている投稿か（本文に MTG らしい言葉があるか）。検索は「magic」だけで当たる投稿や、宣伝のついでにタグを付けた投稿も返すため */
 const ON_TOPIC = /\bmtg|magic[:\s]+the gathering|magic arena|マジック|ギャザリング/i;
@@ -115,8 +122,14 @@ async function main(){
   const lists = [];
   for(const { q, lang } of QUERIES){
     try{
-      const d = await api(`app.bsky.feed.searchPosts?q=${encodeURIComponent(q)}&sort=latest&limit=100&since=${encodeURIComponent(since)}${lang ? "&lang=" + lang : ""}`, auth);
-      lists.push((d.posts || []).filter(p => suitable(p, session.did)));
+      const found = []; let cursor = "";
+      for(let page = 0; page < SEARCH_PAGES; page++){
+        const d = await api(`app.bsky.feed.searchPosts?q=${encodeURIComponent(q)}&sort=latest&limit=100&since=${encodeURIComponent(since)}${lang ? "&lang=" + lang : ""}${cursor ? "&cursor=" + encodeURIComponent(cursor) : ""}`, auth);
+        found.push(...(d.posts || []));
+        if(!d.cursor || !(d.posts || []).length) break;
+        cursor = d.cursor;
+      }
+      lists.push(found.filter(p => suitable(p, session.did)));
     }catch(e){ console.log(`「${q}」を探せませんでした: ${e.message}`); lists.push([]); }
   }
   const picked = [], seenPost = new Set(), seenAuthor = new Set();
@@ -128,6 +141,7 @@ async function main(){
       seenPost.add(p.uri); seenAuthor.add(p.author.did); picked.push(p);
     }
   }
+  console.log(`候補：${picked.length} 件（付けたい数 ${want} 件）`);
   if(!picked.length){ console.log("いいねを付ける投稿は見つかりませんでした。"); await summary("いいねを付ける投稿は見つかりませんでした。"); return; }
 
   const rows = [];
