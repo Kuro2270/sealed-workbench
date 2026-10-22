@@ -1,11 +1,11 @@
 /* 環境レポート：全勝デッキのサンプル（reports.html から使う）
    data/trophies/<SET>_<draft|sealed>.json（maintenance/build-trophies.mjs が作る）を読み、
-   全勝の多い色の組み合わせ（上位3つ）と、ねらい目の組み合わせ（reports.html の sleeperPairs）をタブで並べる。
-   デッキは土地を除いたカード画像の一覧。サンプルは「前／次」で切り替える。
-   ページ側の t・esc・pct・manaI・imageUrls・displayName・sleeperPairs を使う */
+   色の組み合わせのTier表で選んだ組み合わせ（ボタン .tchip[data-pair]）のサンプルを、Tier表のすぐ下に出す。
+   はじめは、Tier表の一番上（最強）の組み合わせ。サンプルは「前／次」で切り替える（2026年10月：上位3つ＋ねらい目のタブから変更）。
+   ページ側の t・esc・pct・manaI・imageUrls・displayName・fillMissing を使う */
 (function(){
   const cache = {};
-  let state = null;          // { data, tabs, tab, idx, box, report }
+  let state = null;          // { data, pair, idx, box, report }
 
   async function fetchData(set, mode){
     const key = set + "_" + mode;
@@ -34,14 +34,12 @@
     }
   }
 
-  /* タブ：全勝の多い2色の上位3つ＋ねらい目（重複は1つに） */
-  function tabsOf(data, report){
-    const two = data.colors.filter(c => /^[WUBRG]{2}$/.test(c.colors));
-    const top = two.slice(0, 3).map((c, i) => ({ colors: c.colors, kind: "top", i: i + 1 }));
-    const sleepers = typeof sleeperPairs === "function" ? sleeperPairs(report) : [];
-    top.forEach(x => { x.sleeper = sleepers.includes(x.colors); });   // 上位でもねらい目なら印を付ける
-    const sl = sleepers.filter(c => !top.some(x => x.colors === c)).map(c => ({ colors: c, kind: "sleeper", sleeper: true }));
-    return [...top, ...sl].map(x => ({ ...x, entry: data.colors.find(c => c.colors === x.colors) || null }));
+  /* Tier表のボタンの選択の印を、今の組み合わせに合わせる */
+  function markChips(){
+    document.querySelectorAll(".tchip[data-pair]").forEach(b => {
+      const on = !!state && b.dataset.pair === state.pair;
+      b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on));
+    });
   }
 
   /* マナ総量 → 列（0〜1、2、3、4、5以上） */
@@ -98,13 +96,12 @@
   }
 
   function paint(){
-    const { data, tabs, tab, idx, box, report } = state;
-    const cur = tabs[tab], e = cur && cur.entry, samples = e ? e.samples : [];
+    const { data, pair, idx, box, report } = state;
+    const e = data.colors.find(c => c.colors === pair) || null, samples = e ? e.samples : [];
     const s = samples[Math.min(idx, samples.length - 1)];   // samples はレアの少ない順（sortSamples）
-    const tabBtn = (x, i) => `<button type="button" class="ttab${i === tab ? " on" : ""}" data-tab="${i}">${[...x.colors].map(manaI).join("")}${esc(pairName(x.colors))}${x.sleeper ? `<span class="slp">${esc(t("reports.tier.sleeper"))}</span>` : ""}</button>`;
-    box.innerHTML = `<h2>${esc(t("reports.trophy.h"))}</h2>
+    const sep = I18N.isJa() ? "：" : ": ";
+    box.innerHTML = `<h3 class="thead">${esc(t("reports.trophy.h"))}${esc(sep)}${[...pair].map(manaI).join("")}${esc(pairName(pair))}</h3>
       <p class="lead">${esc(t(report.mode === "sealed" ? "reports.trophy.leadS" : "reports.trophy.lead"))}</p>
-      <div class="ttabs">${tabs.map(tabBtn).join("")}</div>
       ${e ? `<p class="tstat">${esc(t("reports.trophy.stat", { n: e.trophies.toLocaleString(), s: pctTxt(e.share), r: pctTxt(e.trophy_rate) }))}</p>` : ""}
       ${s ? `<div class="tnav"><button type="button" data-nav="-1" aria-label="${esc(t("reports.trophy.prev"))}" ${idx <= 0 ? "disabled" : ""}>‹</button>
         <span>${esc(t("reports.trophy.sample", { i: idx + 1, n: samples.length }))}</span>
@@ -113,6 +110,7 @@
       ${s && !(typeof TOUCH !== "undefined" && TOUCH) ? `<p class="tnote">${esc(t("reports.trophy.tap"))}</p>` : ""}
       <p class="tnote">${esc(t("reports.trophy.src"))}</p>`;
     box.hidden = false;
+    markChips();
     bindPreview(box);
   }
 
@@ -145,18 +143,33 @@
     const data = await fetchData(set, mode);
     const report = (typeof window.__report === "function") ? window.__report() : null;
     if(!data || !data.colors || !data.colors.length || !box.isConnected) return;
-    const keep = state && state.data === data ? state : null;
-    state = { data, report: report || { set, mode, archetypes: [], overall_win_rate: 0.5 }, box, tabs: [], tab: keep ? keep.tab : 0, idx: keep ? keep.idx : 0 };
+    // サンプルのデッキには、記事の上位カードに入っていないセット外のカード（スペシャルゲストなど）が出てくる。
+    // ページの fillMissing で、その名前と画像を先に引いておく（引かないと画像の代わりに名前の文字だけになる）
+    if(typeof fillMissing === "function"){
+      const names = data.colors.flatMap(c => (c.samples || []).flatMap(s => (s.cards || []).map(x => x[0])));
+      try{ await fillMissing(names); }catch(e){}
+      if(!box.isConnected) return;
+    }
+    // 選べる組み合わせは、Tier表に並んでいるもの。同じセット・形式の表示し直しなら、選んでいた組み合わせを続ける
+    const pairs = [...document.querySelectorAll(".tchip[data-pair]")].map(b => b.dataset.pair);
+    if(!pairs.length) return;
+    const keep = state && state.data === data && pairs.includes(state.pair) ? state : null;
+    state = { data, report: report || { set, mode }, box, pair: keep ? keep.pair : pairs[0], idx: keep ? keep.idx : 0 };
     sortSamples(data);
-    state.tabs = tabsOf(data, state.report);
-    if(state.tab >= state.tabs.length) state.tab = 0;
     paint();
   }
 
   document.addEventListener("click", ev => {
-    if(!state || !state.box.contains(ev.target)) return;
-    const tb = ev.target.closest("[data-tab]");
-    if(tb){ state.tab = +tb.dataset.tab; state.idx = 0; paint(); return; }
+    if(!state) return;
+    // Tier表の組み合わせを押したら、その組み合わせのサンプルに切り替える
+    const chip = ev.target.closest(".tchip[data-pair]");
+    if(chip){
+      if(chip.dataset.pair !== state.pair){ state.pair = chip.dataset.pair; state.idx = 0; paint(); }
+      const r = state.box.getBoundingClientRect();
+      if(r.top > window.innerHeight - 120) state.box.scrollIntoView({ behavior: "smooth", block: "start" });   // サンプルが画面の下に隠れているときだけ寄せる
+      return;
+    }
+    if(!state.box.contains(ev.target)) return;
     const nv = ev.target.closest("[data-nav]");
     if(nv && !nv.disabled){ state.idx += +nv.dataset.nav; paint(); }
   });

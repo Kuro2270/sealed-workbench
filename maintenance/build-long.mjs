@@ -268,7 +268,10 @@ function buildScript(ctx){
   const J = n => EN ? String(n).split(" // ")[0] : ((nm.names || {})[n] || n);
   const scenes = [];
   const gamesD = dd.total_games, gamesS = ds.total_games;
-  const avgD = rd.overall_win_rate, avgS = rs.overall_win_rate;
+  const avgD = rd.overall_win_rate, avgS = rs.overall_win_rate;          // カードの勝率と比べる平均（勝率一覧と同じ、プレミアドラフト／シールドの試合）
+  // 色の組み合わせと比べる平均：組み合わせの勝率（記事）と同じ試合の集まり（ドラフトはプレミア・トラディショナル・2枚ピックの合計）の平均。
+  // サイトの環境レポート（reports.html の tierOf・sleeperPairs）と同じ数字を使い、ティアと狙い目がサイトとそろうようにする（2026年10月）
+  const avgPD = dd.overall_win_rate, avgPS = ds.overall_win_rate;
   const cardOf = (list, name) => list.find(c => c.name === name);
 
   // 試合数がごく少ない組み合わせ（全体の3%未満・1500試合未満）は、勝率がぶれるので順位に入れない
@@ -290,7 +293,7 @@ function buildScript(ctx){
   const monoS = Object.fromEntries((ds.colors || []).map(c => [c.color, c.wr]));
   /* 狙い目の色：勝率がそこそこ高く（全体の平均付近以上）、使っている人が少なめ（平均の85%以下）。最大2つ */
   const avgShareP = 1 / pairsD.length;
-  const sleepers = rankedD.filter(p => p !== bestD && p !== worstD && p.wr >= avgD - 0.005 && p.games / totalPG <= avgShareP * 0.85 && p.games >= 1500)
+  const sleepers = rankedD.filter(p => p !== bestD && p !== worstD && p.wr >= avgPD - 0.005 && p.games / totalPG <= avgShareP * 0.85 && p.games >= 1500)
     .sort((a, b) => b.wr - a.wr).slice(0, 2);
   const sleepersTop = pairsD.slice(0, 3).filter(p => sleepers.includes(p));
   // レアなしの全勝デッキがある組み合わせ（深堀りする組み合わせのどれか）。冒頭の「順番に、〜」で言うので先に調べる
@@ -305,7 +308,7 @@ function buildScript(ctx){
   // 速さのデータ（試合ごとのデータから作る）は確定版にしか無い。暫定版では「環境の速さ」の章を入れず、組み合わせごとはマナカーブだけにする
   const hasPace = (dd.speed || []).some(x => x.wr != null && x.games), hasDeckSpeed = Object.keys(rd.pair_speed || {}).length > 0;
   const pairLabel = hasDeckSpeed ? L("色の組み合わせと速さ", "Pair speed & mana curve") : L("色の組み合わせ", "Colour pairs");
-  scenes.push({ kind: "agenda", say: EN ? `Here's the plan: ${hasPace ? "format speed, " : ""}single colours, colour pairs${hasDeckSpeed ? " and deck speed" : ""}${hasDecks ? " with real trophy decks" : ""}, sleeper pairs, bombs, ${WITH_TRAPS ? "trap rares, " : ""}the best cards for each colour, and finally a summary.` : `順番に、${hasPace ? "環境の速さ、" : ""}単色の強さ、色の組み合わせ${hasDeckSpeed ? "とデッキの速さ" : ""}、${hasDecks ? "レアなしの全勝デッキ、" : ""}狙い目の色、ボム、${WITH_TRAPS ? "罠なレアカード、" : ""}色別のおすすめを見て、最後にまとめます。${WITH_REMOVAL ? "除去も紹介します。" : ""}`,
+  scenes.push({ kind: "agenda", say: EN ? `Here's the plan: ${hasPace ? "format speed, " : ""}single colours, colour pairs${hasDeckSpeed ? " and deck speed" : ""}${hasDecks ? " with real trophy decks" : ""}, ${sleepers.length ? "sleeper pairs, " : ""}bombs, ${WITH_TRAPS ? "trap rares, " : ""}the best cards for each colour, and finally a summary.` : `順番に、${hasPace ? "環境の速さ、" : ""}単色の強さ、色の組み合わせ${hasDeckSpeed ? "とデッキの速さ" : ""}、${hasDecks ? "レアなしの全勝デッキ、" : ""}${sleepers.length ? "狙い目の色、" : ""}ボム、${WITH_TRAPS ? "罠なレアカード、" : ""}色別のおすすめを見て、最後にまとめます。${WITH_REMOVAL ? "除去も紹介します。" : ""}`,
     items: (EN ? [...(hasPace ? ["Format speed"] : []), "Single colours", pairLabel, "Sleeper pairs", ...(WITH_DVS ? ["Draft vs Sealed"] : []), "Top 10 bomb rares", ...(WITH_TRAPS ? ["Trap rares"] : []), "Top commons & uncommons", ...(WITH_REMOVAL ? ["Removal"] : []), "Summary"] : [...(hasPace ? ["環境の速さ"] : []), "単色の強さ", pairLabel, "狙い目の色", ...(WITH_DVS ? ["ドラフトとシールドの違い"] : []), "ボムのレア10枚", ...(WITH_TRAPS ? ["罠なレアカード"] : []), "色別のコモン・アンコモン", ...(WITH_REMOVAL ? ["除去（コモン・アンコモン）"] : []), "まとめ"]), tail: 0.4 });
 
   /* --- 速さ --- */
@@ -367,16 +370,16 @@ function buildScript(ctx){
       return [...(w2.length >= rows.length ? w2 : rows), ...w3].map(p => ({ ...p, share: p.games / tot })).sort((a, b) => b.wr - a.wr);
     };
     const tierRowsD = widen(dd, pairsD), tierRowsS = widen(ds, pairsS);
-    const tD = tierOf(tierRowsD, avgD), tS = tierOf(tierRowsS, avgS);
+    const tD = tierOf(tierRowsD, avgPD), tS = tierOf(tierRowsS, avgPS);
     const multiShare = multiRows(dd).reduce((n, p) => n + p.games, 0) / (pairRows(dd).reduce((n, p) => n + p.games, 0) || 1);   // 3色デッキの多さ（2色の合計に対する割合）
     const multiNote = THREE
       ? L(`この環境は三色のデッキが主流なので、三色も二色と同じ扱いで見ていきます。`, `Three-colour decks are the norm in this format, so I'll treat them the same as pairs. `)
       : EN
-        ? (multiShare >= 0.2 ? `Three-colour decks are common in this format, but they're still a two-colour base with a splash, so the picks below are about pairs. ` : `Three-colour entries are a two-colour base with a splash, so read the picks below as pairs. `)
-        : (multiShare >= 0.2 ? `この環境は三色のデッキも多めですが、基本は二色にもう一色をタッチした形なので、狙い目は二色で考えます。` : `三色は、二色にもう一色をタッチした形なので、狙い目は二色で考えます。`);
+        ? (multiShare >= 0.2 ? `Three-colour decks are common in this format, but they're still a two-colour base with a splash, so I'll focus on pairs. ` : `Three-colour entries are a two-colour base with a splash, so I'll focus on pairs. `)
+        : (multiShare >= 0.2 ? `この環境は三色のデッキも多めですが、基本は二色にもう一色をタッチした形なので、二色を中心に見ていきます。` : `三色は、二色にもう一色をタッチした形なので、二色を中心に見ていきます。`);
     const sD = tD.S.map(p => pairName(p.pair)), sS = tS.S.map(p => pairName(p.pair));
     const sameS = sD.length === sS.length && sD.every(n => sS.includes(n));
-    const tierBase = { kind: "tier", chapter: null, tiersD: tD, tiersS: tS, bestD, worstD, avgD, avgS, three: THREE };
+    const tierBase = { kind: "tier", chapter: null, tiersD: tD, tiersS: tS, bestD, worstD, avgD: avgPD, avgS: avgPS, three: THREE };
     scenes.push({ ...tierBase, chapter: L("色の組み合わせ", "Colour pairs"),
       say: EN ? `Now, colour pairs, as a tier list: Draft on the left, Sealed on the right, with three-colour decks included. ` +
                 (sD.length <= 1 ? `In Draft, ${pairName(bestD.pair)} stands alone in S tier at ${pt(bestD.wr)} percent. `
@@ -603,12 +606,12 @@ function buildScript(ctx){
     const ordinal = ["一番", "二番目に", "三番目に"][i];
     const ordinalE = ["The strongest pair is", "Second is", "Third is"][i];
     const sleeperSayE = () => {
-      const rel = p.wr >= avgD ? `That's above the format average of ${pt(avgD)} percent.` : `That's about the same as the format average of ${pt(avgD)} percent.`;
+      const rel = p.wr >= avgPD ? `That's above the format average of ${pt(avgPD)} percent.` : `That's about the same as the format average of ${pt(avgPD)} percent.`;
       return `${pairName(p.pair)} wins ${pt(p.wr)} percent in Draft. ${rel} Yet only ${Math.round(share * 100)} percent of decks play it, below the average of ${Math.round(avgShare * 100)} percent. ` +
         `Fewer players compete for its cards, so it's a great target when the strong colours aren't flowing. ` + keySay(ks, p.pair) + (sealedWr != null ? `The Sealed win rate is ${pt(sealedWr)} percent.` : "");
     };
     const sleeperSay = () => {
-      const rel = p.wr >= avgD ? `これは全体の平均${pt(avgD)}パーセントを上回っています。` : `これは全体の平均${pt(avgD)}パーセントと、ほぼ同じです。`;
+      const rel = p.wr >= avgPD ? `これは全体の平均${pt(avgPD)}パーセントを上回っています。` : `これは全体の平均${pt(avgPD)}パーセントと、ほぼ同じです。`;
       return `${pairName(p.pair)}は、ドラフトの勝率は${pt(p.wr)}パーセント。${rel}それなのに、使っている人は全体の${Math.round(share * 100)}パーセントで、平均の${Math.round(avgShare * 100)}パーセントより少なめです。` +
         `カードの取り合いになりにくいので、強い色が流れてこないときの、狙い目です。` + keySay(ks, p.pair) + (sealedWr != null ? `シールドの勝率は${pt(sealedWr)}パーセントです。` : "");
     };

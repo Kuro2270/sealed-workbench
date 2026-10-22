@@ -11,10 +11,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
-<script src="./i18n.js?v=13"></script>
+<script src="./i18n.js?v=14"></script>
 <script src="./analytics.js"></script>
 <script src="./tip.js" defer></script>
-<script src="./trophies.js?v=10"></script>
+<script src="./trophies.js?v=11"></script>
 <script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#10304F">
@@ -208,6 +208,12 @@
   .tchip small{color:var(--muted);font-size:11.5px}
   .tchip .slp{font-size:11px;font-weight:700;color:#fff;background:var(--gold);border-radius:4px;padding:0 6px}
   .tchip.sleeper{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+  /* 色の組み合わせのTier表：押すと、その組み合わせの全勝デッキのサンプルを下に出す */
+  button.tchip.pick{font:inherit;font-size:13.5px;color:inherit;cursor:pointer;transition:transform .12s, box-shadow .12s}
+  button.tchip.pick:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(16,48,79,.18)}
+  button.tchip.pick.on{border-color:var(--pine);box-shadow:0 0 0 2px var(--pine) inset;background:#EEF4FB}
+  button.tchip.pick:focus-visible{outline:3px solid rgba(47,125,246,.45);outline-offset:2px}
+  .trophy .thead{font-size:16px;margin:22px 0 4px;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .tavg{font-size:12.5px;color:var(--muted);margin:6px 0 0}
   .tlab.D{background:#8C5E58}
   /* カードのティア表 */
@@ -1023,7 +1029,8 @@ function render(){
     out.push(`<section>
       <h2>${t("reports.arche.h")}</h2>
       <p class="lead">${t("reports.tier.arche.lead")}</p>
-      ${tierBoard(pairs, avg, a => `<span class="tchip${sl.includes(a.colors) ? " sleeper" : ""}" title="${esc(t("reports.tier.games", {n: (a.games || 0).toLocaleString()}))}">${[...a.colors].map(manaI).join("")}${esc(pairName(a.colors))}<b>${pct(a.wr)}</b>${sl.includes(a.colors) ? `<span class="slp">${esc(t("reports.tier.sleeper"))}</span>` : ""}</span>`)}
+      ${tierBoard(pairs, avg, a => `<button type="button" class="tchip pick${sl.includes(a.colors) ? " sleeper" : ""}" data-pair="${esc(a.colors)}" title="${esc(t("reports.tier.games", {n: (a.games || 0).toLocaleString()}))}">${[...a.colors].map(manaI).join("")}${esc(pairName(a.colors))}<b>${pct(a.wr)}</b>${sl.includes(a.colors) ? `<span class="slp">${esc(t("reports.tier.sleeper"))}</span>` : ""}</button>`)}
+      <div class="trophy" id="trophySec" hidden></div>
       ${others.length ? `<details class="others"><summary>${esc(t("reports.tier.others"))}</summary><div class="bars">${others.map(a =>
         barRow(pairName(a.colors), a.wr, a.games, wrClass(a.wr, avg), [...a.colors].map(manaI).join(""))).join("")}</div></details>` : ""}
       ${d.notes?.archetypes ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.archetypes[I18N.lang] || "")}</p></div>` : ""}
@@ -1069,8 +1076,7 @@ function render(){
     </section>`);
   }
 
-  // 全勝デッキのサンプル（trophies.js が中身を入れる）。マナ総量ごとの勝率の次に置く
-  out.push(`<section class="trophy" id="trophySec" hidden></section>`);
+  // 全勝デッキのサンプルは、色の組み合わせのTier表のすぐ下（#trophySec）に、選んだ組み合わせの分を出す（2026年10月。trophies.js が中身を入れる）
 
   // レアリティ別のカード
   const hasCards = RARITIES.some(r => (d.top?.[r] || []).length);
