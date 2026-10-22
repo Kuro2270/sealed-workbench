@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
-<script src="./i18n.js?v=14"></script>
+<script src="./i18n.js?v=15"></script>
 <script src="./analytics.js"></script>
 <script src="/navmenu.js" defer></script>
 <link rel="manifest" href="/manifest.webmanifest">
@@ -106,6 +106,7 @@
   .term:hover .pop,.term:focus .pop,.term:focus-within .pop{opacity:1;visibility:visible}
   @media (max-width:720px){ .tools{grid-template-columns:1fr} .term .pop{left:auto;right:0} }
   .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .cta a[hidden]{display:none}
   .cta a{
     display:inline-block;background:var(--gold);color:#FFFFFF;font-weight:700;
     text-decoration:none;padding:10px 18px;border-radius:var(--radius);font-size:14px;
@@ -148,7 +149,7 @@
 
   /* ---------- トップページ ---------- */
   main{max-width:980px}
-  .big{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:0 0 6px}
+  .big{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:0 0 6px}
   .bigcard{display:flex;flex-direction:column;gap:6px;background:#fff;border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:var(--radius);padding:18px 18px 16px;text-decoration:none;color:var(--ink);transition:transform .12s,box-shadow .12s}
   .bigcard:hover{transform:translateY(-2px);box-shadow:0 14px 30px -18px rgba(13,27,42,.5)}
   .bigcard .k{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted)}
@@ -258,6 +259,7 @@
     <div class="big">
       <a class="bigcard" href="./sealed.html"><span class="k" data-i18n="top.c1.k">PRACTICE</span><b data-i18n="nav.sealed">シールド練習</b><span class="d" data-i18n-html="index.lead"><img class="gem" src="/assets/icon/gem.png" alt="">ジェムを使わずに、6パックを開けてシールドを何度でも練習できます。</span><ul class="perks" data-i18n-html="perks.arena"></ul><span class="go" data-i18n="top.go">開く →</span></a>
       <a class="bigcard" href="./draft.html"><span class="k" data-i18n="top.c2.k">PRACTICE</span><b data-i18n="nav.draft">ドラフト練習（CPU戦）</b><span class="d" data-i18n-html="draft.lead"><img class="gem" src="/assets/icon/gem.png" alt="">ジェムを使わずに、CPU 7人と8人卓のドラフトを何度でも練習できます。</span><ul class="perks" data-i18n-html="perks.arena"></ul><span class="go" data-i18n="top.go">開く →</span></a>
+      <a class="bigcard" href="./draftroom.html"><span class="k" data-i18n="top.c4.k">PRACTICE</span><b data-i18n="nav.room">ドラフト練習（対人戦）</b><span class="d" data-i18n-html="room.lead"><img class="gem" src="/assets/icon/gem.png" alt="">ジェムを使わずに、友達と同じ卓でドラフトができます。</span><ul class="perks" data-i18n-html="perks.room"></ul><span class="go" data-i18n="top.go">開く →</span></a>
       <a class="bigcard" href="./reports.html"><span class="k" data-i18n="top.c3.k">DATA</span><b data-i18n="nav.reports">環境レポート</b><span class="d" data-i18n="top.c3.d"></span><span class="go" data-i18n="top.go">開く →</span></a>
     </div>
   </section>
@@ -272,7 +274,7 @@
     <h2 data-i18n="top.new.h">MTGがはじめての方へ</h2>
     <div class="newbie">
       <p data-i18n="top.new.p"></p>
-      <div class="cta"><a data-start-link href="./start/index.html" data-i18n="nav.start">MTGとは</a><a data-limited-link href="./start/limited.html" data-i18n="nav.limited">リミテッドとは</a></div>
+      <div class="cta"><a data-start-link href="./start/index.html" data-i18n="nav.start">MTGとは</a><a data-limited-link href="./start/limited.html" data-i18n="nav.limited">リミテッドとは</a><a id="newVideo" href="#" target="_blank" rel="noopener" hidden data-i18n="top.new.video">動画で見る（YouTube）</a></div>
     </div>
   </section>
 
@@ -346,7 +348,16 @@ function drawLatest(){
 /* 解説動画のリンクは、言語ごとのチャンネルへ */
 function setVideoLink(){ const a = document.getElementById("featVideo"); if(a) a.href = I18N.lang === "en" ? "https://www.youtube.com/@sealedworkbench" : "https://www.youtube.com/@sealedworkbench_jp"; }
 setVideoLink();
-I18N.onChange(() => { sel.value = I18N.lang; drawLatest(); setVideoLink(); });
+/* 「MTGがはじめての方へ」の入門動画：data/guide-videos.json の start（入門ページと同じ動画）。その言語の id が無ければ出さない */
+let GUIDE = null;
+function setGuideLink(){
+  const a = document.getElementById("newVideo"), v = GUIDE && GUIDE[I18N.lang === "en" ? "en" : "ja"];
+  if(!a) return;
+  a.hidden = !(v && v.id);
+  if(v && v.id) a.href = "https://www.youtube.com/watch?v=" + encodeURIComponent(v.id);
+}
+fetch("./data/guide-videos.json").then(r => r.ok ? r.json() : null).then(j => { GUIDE = j && j.start; setGuideLink(); }).catch(() => {});
+I18N.onChange(() => { sel.value = I18N.lang; drawLatest(); setVideoLink(); setGuideLink(); });
 document.addEventListener("DOMContentLoaded", loadLatest);
 </script>
 <script src="./goods-widget.js?v=6" defer></script>
