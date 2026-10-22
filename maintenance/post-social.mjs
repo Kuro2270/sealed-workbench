@@ -251,7 +251,7 @@ function monthlyPost(ctx, lang, track){
   const lines = [
     L ? `【データ更新】${nm} の勝率データを更新しました` : `Data update: ${nm} win rates refreshed`,
     "",
-    L ? `ドラフト・シールドあわせて ${games.toLocaleString()}試合分（17Lands公開データ）。カード勝率一覧と環境レポート、ドラフト補助に反映済みです。`
+    L ? `ドラフト・シールドあわせて ${games.toLocaleString()}試合分（17Lands公開データ）。カード勝率一覧と環境レポート、ドラフトのデッキ構築補助に反映済みです。`
       : `${games.toLocaleString()} games across Draft and Sealed (17Lands public data). Card win rates, set reports and the draft assistant are all updated.`,
     "", url, TAGS[lang]
   ];
@@ -267,7 +267,7 @@ function announcePost(ctx, lang, track){
   const lines = [
     L ? `【${nm}】リミテッドの勝率データを公開しました` : `${nm} Limited data is live`,
     "",
-    L ? `${games.toLocaleString()}試合分の実戦データから、カード勝率・環境レポート・ドラフト補助が使えます。` : `Card win rates, a format report and the draft assistant, built from ${games.toLocaleString()} games.`,
+    L ? `${games.toLocaleString()}試合分の実戦データから、カード勝率・環境レポート・ドラフトのデッキ構築補助が使えます。` : `Card win rates, a format report and the draft deck assistant, built from ${games.toLocaleString()} games.`,
     ""
   ];
   if(top.length){ lines.push(L ? "~いまのレア・神話レアの上位：" : "~Top rares & mythics so far:"); top.forEach(c => lines.push(`~・${cardLabel(ctx, lang, c.name)} ${pct(c.gih)}`)); lines.push(""); }

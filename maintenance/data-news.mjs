@@ -3,7 +3,7 @@
  *   出来事は5つ。どれもサイトのファイルを見て決める（17Lands には問い合わせない）。
  *     memo    … 速報メモを、アリーナの配信から7日目の数字で書き直した（data/early/<SET>.json の round が 2）
  *     first   … 全カードの勝率とティア表を載せた（配信12日目。data/provisional/<SET>_draft.json の stage）
- *     assist  … ドラフト補助・シールド補助が、そのセットの勝率つきで使えるようになった（first の翌日。同じ日に2件出さないため1日ずらす）
+ *     assist  … シールド・ドラフトのデッキ構築補助が、そのセットの勝率つきで使えるようになった（first の翌日。同じ日に2件出さないため1日ずらす）
  *     refined … その1週間後に、増えたデータで勝率を作り直した（stage が refined）
  *     final   … 17Lands の公開データで作り直し、「環境の速さ」が加わった（data/articles/<SET>_draft.json に speed がある、発売から60日以内のセット）
  *   X の文案は x-drafts.mjs、Bluesky への投稿は post-data-news.mjs が、ここを使う。
@@ -67,15 +67,15 @@ export async function newsText(e, track){
   const ja = track === "x";
   const nm = (await setName(e.set))[ja ? "ja" : "en"];
   const names = ja ? ((await readJson(`data/names/${e.set}.json`, {})).names || {}) : {};
-  // 補助ツールの告知は「MTGアリーナで使う」のページ（ドラフト補助・シールド補助の入口）へ。ほかはセット別ページ（速報メモは下見ページ）
+  // 補助ツールの告知は「デッキ構築補助」のページ（シールド・ドラフトのデッキ構築補助の入口）へ。ほかはセット別ページ（速報メモは下見ページ）
   const page = e.kind === "assist" ? `${SITE}/arena.html` : `${SITE}/sets/${e.set}${e.kind === "memo" ? ".profile" : ""}${ja ? "" : ".en"}.html`;
   const url = `${page}?from=${track}`;
   const tags = ja ? ["#MTGアリーナ", "#MTGA", "#リミテッド", tagOf(nm)] : ["#MTGArena", "#MTGLimited", tagOf(nm)];
   let head, body = [], desc = "Card win rates, a card tier list and colour pairs for MTG Arena Limited. Free, no sign-up.";
   if(e.kind === "assist"){
-    head = ja ? `【${nm}】ドラフト補助・シールド補助が、全カードの勝率つきで使えます` : `${nm}: the Draft and Sealed assistants now have every card's win rate`;
-    body = ja ? ["・ドラフト補助：いま見ているパックを、勝率と自分の色からおすすめ順に", "・シールド補助：配られたプールから、2色のデッキ案を組みます", "~アリーナのログを読むだけ。PCのChrome／Edgeで無料"]
-              : ["• Draft assistant: ranks the pack in front of you by win rate and your colours", "• Sealed assistant: builds two-colour deck ideas from your real pool", "~It just reads Arena's log. Free, on PC (Chrome / Edge)."];
+    head = ja ? `【${nm}】シールド・ドラフトのデッキ構築補助が、全カードの勝率つきで使えます` : `${nm}: the Draft and Sealed deck assistants now have every card's win rate`;
+    body = ja ? ["・ドラフトのデッキ構築補助：いま見ているパックを、勝率と自分の色からおすすめ順に", "・シールドのデッキ構築補助：配られたプールから、2色のデッキ案を組みます", "~アリーナのログを読むだけ。PCのChrome／Edgeで無料"]
+              : ["• Draft deck assistant: ranks the pack in front of you by win rate and your colours", "• Sealed deck assistant: builds two-colour deck ideas from your real pool", "~It just reads Arena's log. Free, on PC (Chrome / Edge)."];
     desc = "Draft and Sealed assistants for MTG Arena: they read Arena's log and suggest picks and decks by win rate. Free, PC (Chrome / Edge).";
   }else if(e.kind === "memo"){
     const n = await readJson(`data/early/${e.set}.json`, {});
