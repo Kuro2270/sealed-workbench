@@ -204,6 +204,9 @@ jobs:
         run: |
           if [ -f "short/$SET_CODE/$VTAG.thumbnail.jpg" ]; then
             echo "サムネイル: short/$SET_CODE/$VTAG.thumbnail.jpg（YouTube に自動で付けます。付かなかったときは Artifacts のこのファイルを Studio で付けてください）" >> "$GITHUB_STEP_SUMMARY"
+            if [ -f "short/$SET_CODE/$VTAG.thumbnail-alt.jpg" ]; then
+              echo "差し替え用のサムネイル（狙い目の組み合わせ）: Artifacts の $VTAG.thumbnail-alt.jpg（公開するときに、こちらにしたければ Studio で付け替えてください）" >> "$GITHUB_STEP_SUMMARY"
+            fi
           fi
 
       # X・Bluesky に動画そのものを添付するために、動画ファイルを Releases（タグ videos）にも置いておく
@@ -336,6 +339,7 @@ jobs:
           path: |
             short/${{ env.SET_CODE }}/${{ env.VTAG }}.mp4
             short/${{ env.SET_CODE }}/${{ env.VTAG }}.thumbnail.jpg
+            short/${{ env.SET_CODE }}/${{ env.VTAG }}.thumbnail-alt.jpg
             short/${{ env.SET_CODE }}/${{ env.VTAG }}/script.json
             short/${{ env.SET_CODE }}/${{ env.VTAG }}.youtube.json
           retention-days: 30
