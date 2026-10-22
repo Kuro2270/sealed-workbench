@@ -2,6 +2,7 @@
   "lang": "en",
   "header": "MTG Arena Limited for Beginners",
   "title": "MTG Arena Limited for Beginners | How to Play, Sealed vs Draft, Building a 40-Card Deck",
+  "thumbnail": { "tag": "For Beginners", "label": "Limited Guide", "main": "Start Here!", "sub": "Learn Limited in {min} minutes", "bgAt": 60 },
   "description": "New to Limited on MTG Arena? This video explains how to play from scratch.\nWhat Magic is, MTG Arena, the basic rules, the five colours, how to read a card and spell types, Sealed and Draft (Quick Draft vs Premier Draft), the event schedule, how to build a 40-card deck, and why removal matters.\n\n▼ Chapters\n{chapters}\n\n▼ Free Sealed / Draft practice, the basics of Magic and Limited, and format reports\nhttps://sealed-workbench.com/start/limited.en.html\n\nVoice: Kokoro TTS\nCharacter: Shikoku Metan (VOICEVOX / Tohoku Zunko project; illustration by Sakamoto Ahiru, recoloured)\n{bgm}Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.\n\n#MTGArena #MTGA #MTGLimited #MTGBeginner",
   "tags": [
     "MTG Arena",

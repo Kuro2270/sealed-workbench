@@ -1,5 +1,5 @@
 /*
- * 長尺動画の YouTube 用サムネイル（1920×1080）を作る。役割はこれだけ（build-long.mjs から使う）。
+ * 長尺動画の YouTube 用サムネイル（1920×1080）を作る。役割はこれだけ（build-long.mjs から使う。解説動画の build-guide.mjs も同じ形で使う）。
  *
  *   上の3分の1：MTGアリーナのロゴ・セットのロゴと、「リミテッド環境分析」の帯（テレビの一覧でも、何の動画か分かるように）
  *   下の3分の2：左にキャラクターとボムのカード、右に大きな見出し（例「最強は白青」）と一言（例「40万試合で勝率57.9%」）
@@ -7,7 +7,7 @@
  *
  *   await makeLongThumbnail({ out, sharp, font, bg, arenaLogo, setLogo, setName, label, kicker, main, sub, cards, character, en })
  *     bg        … 背景の絵（ファイル。無ければ紺色）
- *     arenaLogo / setLogo … ロゴの画像（ファイル。無ければ setName を文字で出す）
+ *     arenaLogo / setLogo … ロゴの画像（ファイル。無ければ setName を文字で出す。解説動画は setName に「初心者向け」などを入れる）
  *     cards     … カード画像（data URI）を最大3枚
  *     character … キャラクターの画像（ファイル。透明な背景の PNG）
  */
@@ -40,7 +40,7 @@ export async function makeLongThumbnail(o){
     <line x1="50" x2="${W - 50}" y1="${TOP}" y2="${TOP}" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="2"/>
     ${arena ? `<image href="${arena}" x="46" y="16" width="430" height="150" preserveAspectRatio="xMinYMid meet"/>` : ""}
     ${logo ? `<image href="${logo}" x="50" y="${arena ? 160 : 60}" width="620" height="${arena ? 188 : 260}" preserveAspectRatio="xMinYMid meet"/>`
-           : `<text x="60" y="230" font-size="${fit(o.setName, 700, 110)}" font-weight="900" fill="#FFFFFF" font-family="${font}" ${stroke(110)}>${esc(o.setName)}</text>`}
+           : `<text x="60" y="${arena ? 300 : 230}" font-size="${fit(o.setName, 700, 110)}" font-weight="900" fill="#FFFFFF" font-family="${font}" ${stroke(110)}>${esc(o.setName)}</text>`}
     <rect x="${BAND_R - bandW}" y="${(TOP - bandH) / 2}" width="${bandW}" height="${bandH}" rx="24" fill="#D9412B" stroke="#FFFFFF" stroke-width="7"/>
     <text x="${BAND_R - bandW / 2}" y="${TOP / 2 + bandSize * 0.36}" font-size="${bandSize}" font-weight="900" fill="#FFFFFF" text-anchor="middle" font-family="${font}">${esc(label)}</text>`;
 

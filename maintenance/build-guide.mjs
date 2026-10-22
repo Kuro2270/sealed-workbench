@@ -13,6 +13,7 @@
  *            speak（読み上げだけ別の文にしたいとき。数字の読みなど。字幕は say のまま）, nofade（前の場面と同じ画面のまま続ける）, tail（読み終わりから次までの秒） }
  *            nofade の場面で layout が前と同じなら、view は前の場面の view に上書きで足される（同じ表を何度も書かなくてよい）
  *   ui     … 画面に出す固定の文言（言語ごと）。title・description は YouTube に上げるときの題と概要欄（{chapters}・{bgm} は作るときに埋める）
+ *   thumbnail … YouTube のサムネイルの文言 { tag（ロゴの下）, label（赤い帯）, main（大きな見出し）, sub（その下の一言。{min} は動画の長さ（分）を入れる）, bgAt（背景に使うプレイ映像の秒） }
  *
  * 出力: guide-video/<名前>/out/<ja|en>/ に <ja|en>.mp4、chapters.txt、description.txt、title.txt、thumbnail.jpg、script.json
  *       （途中生成物も同じ場所。commit はしない。ワークフローの Artifacts から落とす）
@@ -27,6 +28,7 @@ import { execFileSync, execFile } from "node:child_process";
 import { cpus } from "node:os";
 import { resolve } from "node:path";
 import { existsSync } from "node:fs";
+import { makeLongThumbnail } from "./long-thumbnail.mjs";
 
 const NAME = process.argv[2];
 const LANG = (process.argv[3] || "ja").toLowerCase();
@@ -570,6 +572,25 @@ async function main(){
   await mkdir(OUT, { recursive: true });
   const sharp = (await import("sharp")).default;
 
+  // YouTube 用のサムネイル（maintenance/long-thumbnail.mjs。長尺と同じ形）。画像だけ確認するとき（GUIDE_STILLS=1）も作る
+  //   背景：プレイ映像（short/bg.mp4）の1コマ（thumbnail.bgAt 秒。無ければ紺色）。セットに関係ない動画なので、セットの絵は使わない
+  //   キャラクター：日本語はフード付きのずんだもん（いつもの顔。short/zunda-hoodie/thumb.png）、英語は四国めたん
+  const makeThumbnail = async (book, total) => {
+    try{
+      const t = book.thumbnail || {}, min = String(Math.max(1, Math.round(total / 60)));
+      let bg = null;
+      if(HAS_BG){
+        bg = `${OUT}/thumbnail-bg.jpg`;
+        execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-ss", String(Math.max(0, Math.min(+t.bgAt || 60, bgDur - 1))), "-i", BG, "-frames:v", "1", "-q:v", "2", bg]);
+      }
+      const character = (EN ? ["short/metan/open_open.png"] : ["short/zunda-hoodie/thumb.png", "short/zunda-hoodie/open_open.png", "short/zunda/open_open.png"]).find(f => existsSync(f)) || null;
+      const sub = String(t.sub || "").replace("{min}", min);
+      await makeLongThumbnail({ out: `${OUT}/thumbnail.jpg`, sharp, font: FONT, en: EN, bg, arenaLogo: existsSync("short/logo/arena.png") ? "short/logo/arena.png" : null,
+        setLogo: null, setName: t.tag || "", label: t.label || L("リミテッド入門", "Limited Guide"), main: t.main || book.header || "", sub, cards: [], character });
+      console.error(`サムネイル: ${OUT}/thumbnail.jpg（${t.main || ""}／${sub}）`);
+    }catch(e){ console.error("サムネイルが作れませんでした:", String(e.message).slice(0, 300)); }
+  };
+
   // 台本を場面にする：見出し（crumb）は直前の章を引き継ぐ。nofade で layout が同じなら、view は前の場面に上書きで足す
   const scenes = []; let chapter = "";
   for(const raw of book.scenes){
@@ -703,6 +724,7 @@ async function main(){
   await writeFile(`${OUT}/title.txt`, book.title || "", "utf8");
   await writeFile(`${OUT}/description.txt`, String(book.description || "").replace("{chapters}", chapterText).replace("{bgm}", bgmCredit ? `BGM: ${bgmCredit}\n` : "") + "\n", "utf8");
   console.error(`目次:\n${chapterText.split("\n").map(x => "  " + x).join("\n")}`);
+  await makeThumbnail(book, total);
   if(STILLS){ console.error(`画像だけ作りました。合計の目安 ${ts(total)}`); return; }
 
   await writeFile(`${OUT}/list.txt`, segs.join("\n"), "utf8");
@@ -713,13 +735,6 @@ async function main(){
       `[1:a]aformat=sample_rates=48000:channel_layouts=stereo,volume=${vol},afade=t=in:d=1,afade=t=out:st=${Math.max(0, total - 2).toFixed(2)}:d=2[bg];[0:a][bg]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`,
       "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-t", String(total), "-movflags", "+faststart", `${OUT}/${LANG}.mp4`]);
   }
-  // サムネイル：冒頭の画面に、キャラクター（口を開けた笑顔）を右下に載せる
-  try{
-    const zt = `${ZDIR}/open_open.png`, TZW = 400, TZH = Math.round(400 * 380 / 372);
-    execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...(HAS_BG ? ["-ss", "1.0", "-i", BG] : ["-f", "lavfi", "-i", `color=c=0x0A2038:s=${W}x${H}:r=30`]), "-loop", "1", "-i", `${OUT}/scene-0.png`, ...(existsSync(zt) ? ["-loop", "1", "-i", zt] : []), "-filter_complex",
-      `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1,gblur=sigma=6,eq=brightness=-0.08[b];[1:v]scale=${W}:${H},format=rgba[f];[b][f]overlay=shortest=1` +
-      (existsSync(zt) ? `[t];[2:v]scale=${TZW}:${TZH},format=rgba[z];[t][z]overlay=x=${W - TZW - 16}:y=${H - TZH + 6}:shortest=1` : ""), "-frames:v", "1", "-q:v", "2", `${OUT}/thumbnail.jpg`]);
-  }catch(e){ console.error("サムネイルが作れませんでした:", String(e.message).slice(0, 300)); }
   console.error(`\n${OUT}/${LANG}.mp4  合計 ${ts(total)}（${total.toFixed(0)} 秒）`);
 }
 
