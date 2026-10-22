@@ -17,7 +17,6 @@
     return cache[key];
   }
   const pairName = c => [...c].map(k => t("color." + k)).join(I18N.isJa() ? "／" : " / ");
-  const pctTxt = v => (v * 100).toFixed(v < 0.1 ? 1 : 0) + "%";
 
   /* レア・神話レアの枚数。データに無ければ（古いデータ）ページの Scryfall 情報から数える */
   function raresOf(s){
@@ -96,19 +95,16 @@
   }
 
   function paint(){
-    const { data, pair, idx, box, report } = state;
+    const { data, pair, idx, box } = state;
     const e = data.colors.find(c => c.colors === pair) || null, samples = e ? e.samples : [];
     const s = samples[Math.min(idx, samples.length - 1)];   // samples はレアの少ない順（sortSamples）
     const sep = I18N.isJa() ? "：" : ": ";
+    // 見出し（選んだ組み合わせ）・前後の切り替え・デッキだけを出す。説明文や数字は書かない（Tier表とつながっていることが見て分かるように。2026年10月）
     box.innerHTML = `<h3 class="thead">${esc(t("reports.trophy.h"))}${esc(sep)}${[...pair].map(manaI).join("")}${esc(pairName(pair))}</h3>
-      <p class="lead">${esc(t(report.mode === "sealed" ? "reports.trophy.leadS" : "reports.trophy.lead"))}</p>
-      ${e ? `<p class="tstat">${esc(t("reports.trophy.stat", { n: e.trophies.toLocaleString(), s: pctTxt(e.share), r: pctTxt(e.trophy_rate) }))}</p>` : ""}
       ${s ? `<div class="tnav"><button type="button" data-nav="-1" aria-label="${esc(t("reports.trophy.prev"))}" ${idx <= 0 ? "disabled" : ""}>‹</button>
         <span>${esc(t("reports.trophy.sample", { i: idx + 1, n: samples.length }))}</span>
         <button type="button" data-nav="1" aria-label="${esc(t("reports.trophy.next"))}" ${idx >= samples.length - 1 ? "disabled" : ""}>›</button></div>
-        ${deckHtml(s)}` : `<p class="tnote">${esc(t("reports.trophy.none"))}</p>`}
-      ${s && !(typeof TOUCH !== "undefined" && TOUCH) ? `<p class="tnote">${esc(t("reports.trophy.tap"))}</p>` : ""}
-      <p class="tnote">${esc(t("reports.trophy.src"))}</p>`;
+        ${deckHtml(s)}` : `<p class="tnote">${esc(t("reports.trophy.none"))}</p>`}`;
     box.hidden = false;
     markChips();
     bindPreview(box);
