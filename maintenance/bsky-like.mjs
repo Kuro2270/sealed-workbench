@@ -15,6 +15,7 @@
  *
  * 付けない投稿：自分の投稿、もう付けた投稿、返信、ラベル（成人向け・スパムなど）の付いた投稿や人、
  *               ミュート・ブロックの関係にある人、短すぎる投稿、2日より前の投稿。
+ * 同じ人には、きのう・きょう（日本時間）にいいねを付けていたら付けない（毎日同じ人に付かないよう、1日以上あける。手で付けたいいねも含む）。
  * 1回の実行で、同じ人には1つだけ。いいねとの間は「20秒〜75秒のランダム」あける（毎回ばらつかせる。200件で平均2時間半ほど）。
  *   確認用に LIKE_WAIT_MS（固定の分）・LIKE_JITTER_MIN_MS / LIKE_JITTER_MAX_MS（ランダムの幅）で変えられる。
  */
@@ -64,24 +65,33 @@ async function api(path, auth, init = {}){
   return r.json();
 }
 
-/* 今日（日本時間）すでに付けたいいねの数。自分のいいねの記録を新しい順に見る */
-async function likedToday(auth, did){
-  const from = jstMidnight(); let n = 0, cursor = "";
-  for(let page = 0; page < 5; page++){
+/* 自分のいいねの記録を新しい順に見て、次の2つを返す（手で付けたいいねも含む）
+     today   … 今日（日本時間）付けたいいねの数
+     authors … きのう・きょう（日本時間）にいいねを付けた投稿の人（did）。この人たちには、今日は付けない
+   いいねの記録には相手の投稿の URI（at://<相手の did>/app.bsky.feed.post/...）が入っているので、そこから人を取る */
+async function recentLikes(auth, did){
+  const today = jstMidnight(), from = today - 24 * 3600000;
+  const out = { today: 0, authors: new Set() };
+  let cursor = "";
+  for(let page = 0; page < 10; page++){       // 1日 200 件まで × 2日分を見られるように
     const d = await api(`com.atproto.repo.listRecords?repo=${encodeURIComponent(did)}&collection=app.bsky.feed.like&limit=100${cursor ? "&cursor=" + encodeURIComponent(cursor) : ""}`, auth);
     for(const rec of d.records || []){
-      if(Date.parse(rec.value && rec.value.createdAt) >= from) n++;
-      else return n;
+      const at = Date.parse(rec.value && rec.value.createdAt);
+      if(!(at >= from)) return out;
+      if(at >= today) out.today++;
+      const m = String((rec.value.subject || {}).uri || "").match(/^at:\/\/([^/]+)\//);
+      if(m) out.authors.add(m[1]);
     }
-    if(!d.cursor) return n;
+    if(!d.cursor) return out;
     cursor = d.cursor;
   }
-  return n;
+  return out;
 }
 
-function suitable(p, me){
+function suitable(p, me, recentAuthors){
   const rec = p.record || {};
   if(p.author.did === me) return false;
+  if(recentAuthors.has(p.author.did)) return false;   // きのう・きょう、いいねを付けた人
   if(p.viewer && p.viewer.like) return false;
   if(rec.reply) return false;
   if((p.labels || []).length || (p.author.labels || []).length) return false;
@@ -112,7 +122,8 @@ async function main(){
     console.log("（ログインの鍵を取り直しました）");
   };
 
-  const done = await likedToday(auth, session.did);
+  const recent = await recentLikes(auth, session.did), done = recent.today;
+  console.log(`きのう・きょういいねを付けた人：${recent.authors.size} 人（今日は付けない）`);
   const room = MANUAL ? LIMIT : Math.max(0, LIMIT - done);   // 手で押したときは、今日の数に関係なく付ける
   console.log(MANUAL ? `手で押した実行：今日のいいね ${done} 件に関係なく、${room} 件まで付けます` : `今日のいいね：${done} 件（上限 ${LIMIT}）。あと ${room} 件まで`);
   if(!room && !DRY){ await summary(`今日はもう上限（${LIMIT}件${LIMIT_FROM ? `、${LIMIT_FROM}` : ""}）まで付けています。`); return; }
@@ -129,7 +140,7 @@ async function main(){
         if(!d.cursor || !(d.posts || []).length) break;
         cursor = d.cursor;
       }
-      lists.push(found.filter(p => suitable(p, session.did)));
+      lists.push(found.filter(p => suitable(p, session.did, recent.authors)));
     }catch(e){ console.log(`「${q}」を探せませんでした: ${e.message}`); lists.push([]); }
   }
   const picked = [], seenPost = new Set(), seenAuthor = new Set();
