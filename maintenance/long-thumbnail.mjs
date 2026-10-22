@@ -24,11 +24,12 @@ export async function makeLongThumbnail(o){
   const stroke = s => `stroke="#06101C" stroke-width="${Math.round(s * 0.16)}" stroke-linejoin="round" paint-order="stroke"`;
   const [arena, logo, chara] = await Promise.all([dataUri(o.arenaLogo), dataUri(o.setLogo), dataUri(o.character)]);
 
-  // 背景：絵は下の段（下の3分の2）の大きさに合わせて入れ、ぼかして暗くする（文字とカードを主役にする）。
+  // 背景：絵は下の段（下の3分の2）の大きさに合わせて入れ、少しだけぼかして暗くする（文字とカードを主役にしつつ、セットの絵だと分かるように）。
   //   上の段は暗い地のまま（絵を全面に敷くと、上の段に隠れて絵の上のほうが見えないため）
   let back = await sharp({ create: { width: W, height: H, channels: 3, background: "#07111F" } }).png().toBuffer();
   if(o.bg){
-    const art = await sharp(o.bg).resize(W, H - TOP, { fit: "cover", position: "attention" }).blur(14).modulate({ brightness: 0.6 }).toBuffer();
+    // 絵の上のほう（人物の顔があることが多い）を残し、下を切る（north）。ぼかしは軽くして、どのセットの絵か分かるようにする（2026年10月：強くぼかすと何の絵か分からなかった）。文字の読みやすさは右側の暗いグラデーションで保つ
+    const art = await sharp(o.bg).resize(W, H - TOP, { fit: "cover", position: "north" }).blur(1.5).modulate({ brightness: 0.85, saturation: 1.1 }).toBuffer();
     back = await sharp(back).composite([{ input: art, left: 0, top: TOP }]).png().toBuffer();
   }
 
@@ -43,11 +44,11 @@ export async function makeLongThumbnail(o){
     <rect x="${BAND_R - bandW}" y="${(TOP - bandH) / 2}" width="${bandW}" height="${bandH}" rx="24" fill="#D9412B" stroke="#FFFFFF" stroke-width="7"/>
     <text x="${BAND_R - bandW / 2}" y="${TOP / 2 + bandSize * 0.36}" font-size="${bandSize}" font-weight="900" fill="#FFFFFF" text-anchor="middle" font-family="${font}">${esc(label)}</text>`;
 
-  // 下の段：カード（キャラクターの奥に、少し扇形に並べる。文字を大きく取るため、左寄りに小さめに）
+  // 下の段：カード（キャラクターの右下に、少し扇形に並べる。背景の絵の人物の顔を隠さないよう、下寄りに）
   const cards = (o.cards || []).filter(Boolean).slice(0, 3);
-  const CW = 230, CH = Math.round(CW * 680 / 488), angle = [-10, 0, 10], cx0 = 250;
+  const CW = 230, CH = Math.round(CW * 680 / 488), angle = [-10, 0, 10], cx0 = 470;
   const cardSvg = cards.map((src, i) => {
-    const x = cx0 + i * 130, y = TOP + 60 + (i === 1 ? -12 : 14);
+    const x = cx0 + i * 115, y = TOP + 370 + (i === 1 ? -12 : 14);   // 背景の絵の人物の顔（上のほう）を隠さないよう、下寄りに置く
     return `<g transform="rotate(${angle[i] || 0} ${x + CW / 2} ${y + CH / 2})"><rect x="${x + 6}" y="${y + 10}" width="${CW}" height="${CH}" rx="12" fill="#000" opacity="0.45"/>` +
            `<image href="${src}" x="${x}" y="${y}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/></g>`;
   }).join("");
@@ -74,7 +75,7 @@ export async function makeLongThumbnail(o){
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
     <defs><linearGradient id="t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050B14" stop-opacity="0.95"/><stop offset="1" stop-color="#050B14" stop-opacity="0.78"/></linearGradient>
-      <linearGradient id="r" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#050B14" stop-opacity="0.9"/><stop offset="0.7" stop-color="#050B14" stop-opacity="0.75"/><stop offset="1" stop-color="#050B14" stop-opacity="0"/></linearGradient></defs>
+      <linearGradient id="r" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#050B14" stop-opacity="0.72"/><stop offset="0.7" stop-color="#050B14" stop-opacity="0.5"/><stop offset="1" stop-color="#050B14" stop-opacity="0"/></linearGradient></defs>
     ${cardSvg}${right}${charSvg}${top}
   </svg>`;
   await sharp(back).composite([{ input: Buffer.from(svg) }]).jpeg({ quality: 90 }).toFile(o.out);
