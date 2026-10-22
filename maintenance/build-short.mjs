@@ -228,7 +228,12 @@ function buildScript(d, nameJa, names, avgs = {}){
     // 何試合のデータかも、セリフで言う（数字の裏付けが伝わるように）
     say: JA ? `MTGアリーナ、${nameJa}の${EARLY ? "リミテッド" : d.mode === "sealed" ? "シールド" : "ドラフト"}環境を知りたい方に。${games}試合のデータを1分でまとめました。`
             : `Want to know ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} ${EARLY ? "Limited" : d.mode === "sealed" ? "Sealed" : "Draft"} format on MTG Arena? ${gamesEn} games of data in one minute.`,
-    title: nameJa, games, isSealed: d.mode === "sealed", early: EARLY });
+    title: nameJa, games, isSealed: d.mode === "sealed", early: EARLY,
+    // YouTube 用サムネイルの見出し（thumbSvg）。最強の組み合わせを言い切る形。狙い目は差し替え用（thumbnail-alt.jpg）に
+    thumb: best ? { l1: JA ? `${pairName(best.pair)}が` : pairName(best.pair), l2: JA ? "最強！" : "is the best!",
+                    sub: JA ? `${games}試合で勝率${pt(best.wr)}%` : `${pt(best.wr)}% win rate over ${d.total_games >= 10000 ? Math.round(d.total_games / 10000) * 10 + "K" : manSay(d.total_games)} games` } : null,
+    thumbAlt: target && !target.isBest ? { l1: JA ? `${pairName(target.pair)}が` : pairName(target.pair), l2: JA ? "狙い目！" : "is the sleeper!",
+                    sub: JA ? `勝率${target.rank}位なのに使う人が少ない` : `#${target.rank} by win rate, yet under-drafted` } : null });
 
   if(fast && slow){
     // 速さは一言だけ。数字は画面に任せる（読み上げるとくどい）
@@ -576,43 +581,42 @@ function frame(inner, say, opts = {}){
 /* YouTube 用のサムネイル（冒頭の場面とは別に作る）。
    ショートの一覧（グリッド）では上下が切れ、下部に題名が重なるので、大事なものは縦 18%〜72% の帯に収める。
    セットのロゴ（short/logo/<SET>.png）があればそれを主役に、無ければセット名の文字。 */
-function thumbSvg(hook){
-  const parts = String(hook.title).includes(" ") && JA ? String(hook.title).split(/\s+/) : [hook.title];
-  const longest = Math.max(...parts.map(p => [...p].length));
-  const lines = parts.length > 1 ? parts : (JA && longest > 9 ? [[...hook.title].slice(0, Math.ceil(longest / 2)).join(""), [...hook.title].slice(Math.ceil(longest / 2)).join("")] : parts);
-  const sz = JA ? Math.min(140, Math.floor(960 / Math.max(...lines.map(l => [...l].length), 4))) : Math.min(150, Math.floor(980 / Math.max(longest * 0.62, 4)));
-  const TOP = 340, BOTTOM = 1380;                       // この間に収める（上 18%・下 28% は見切れる前提）
+function thumbSvg(hook, alt = false){
+  // 2026年10月：長尺のサムネイルと同じ考え方で作り直した（何の動画かを上に／答えを1つ、大きく言い切る／キャラクターとボムのカードは下に）
+  //   大事なもの（ロゴ・帯・見出し・数字）は縦 340〜1380px（18%〜72%）の帯に収める。上下は一覧で切れる・題名が重なる前提で、絵だけを置く
+  const TOP = 340, BOTTOM = 1380, th = (alt && hook.thumbAlt) || hook.thumb;
+  let inner = `<defs><linearGradient id="gz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050B14" stop-opacity="0"/><stop offset="0.08" stop-color="#050B14" stop-opacity="0.82"/><stop offset="0.92" stop-color="#050B14" stop-opacity="0.82"/><stop offset="1" stop-color="#050B14" stop-opacity="0"/></linearGradient></defs>` +
+    `<rect x="0" y="${TOP - 60}" width="${W}" height="${BOTTOM - TOP + 120}" fill="url(#gz)"/>`;
+  // 下：ボムのカード（少し扇形）とキャラクター。帯の外なので、切れても困らない飾り
+  const cards = (hook.thumbCards || []).filter(Boolean).slice(0, 3), CW = 300, CH = Math.round(CW * 680 / 488);
+  cards.forEach((src, i) => {
+    const x = 420 + i * 150, y = BOTTOM + 20 + (i === 1 ? -14 : 16), rot = [-10, 0, 10][i];
+    inner += `<g transform="rotate(${rot} ${x + CW / 2} ${y + CH / 2})"><rect x="${x + 6}" y="${y + 10}" width="${CW}" height="${CH}" rx="14" fill="#000" opacity="0.45"/><image href="${src}" x="${x}" y="${y}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/></g>`;
+  });
+  if(hook.thumbChar) inner += `<image href="${hook.thumbChar.src}" x="-20" y="${H - Math.round(600 * hook.thumbChar.h / hook.thumbChar.w)}" width="600" height="${Math.round(600 * hook.thumbChar.h / hook.thumbChar.w)}"/>`;
   let y = TOP;
-  let inner = `<defs><linearGradient id="gz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050B14" stop-opacity="0"/><stop offset="0.12" stop-color="#050B14" stop-opacity="0.78"/><stop offset="0.88" stop-color="#050B14" stop-opacity="0.78"/><stop offset="1" stop-color="#050B14" stop-opacity="0"/></linearGradient></defs>` +
-    `<rect x="0" y="${TOP - 80}" width="${W}" height="${BOTTOM - TOP + 160}" fill="url(#gz)"/>`;
-  // アリーナのロゴ（小さく）
-  inner += hook.arenaLogo ? `<image href="${hook.arenaLogo}" x="${W / 2 - 200}" y="${y}" width="400" height="140" preserveAspectRatio="xMidYMid meet"/>`
-                          : T(W / 2, y + 100, UI.arena, { size: 60, weight: 900, anchor: "middle", fill: "#FFFFFF" });
-  y += 170;
+  // アリーナのロゴ
+  inner += hook.arenaLogo ? `<image href="${hook.arenaLogo}" x="${W / 2 - 170}" y="${y}" width="340" height="110" preserveAspectRatio="xMidYMid meet"/>`
+                          : T(W / 2, y + 80, UI.arena, { size: 56, weight: 900, anchor: "middle", fill: "#FFFFFF" });
+  y += 118;
   // セットのロゴ、または名前
-  if(hook.logo){
-    inner += `<image href="${hook.logo}" x="90" y="${y}" width="900" height="330" preserveAspectRatio="xMidYMid meet"/>`;
-    y += 360;
-  }else{
-    for(const l of lines){ inner += TS(W / 2, y + sz, l, { size: sz, fill: "#FFD23F" }); y += Math.round(sz * 1.12); }
-    y += 20;
-  }
-  // 速報バッジ（ロゴ／名前の左上に重ねる）
-  if(hook.early) inner += `<g transform="rotate(-8 190 ${TOP + 150})"><rect x="50" y="${TOP + 110}" width="280" height="84" rx="42" fill="#E53935" stroke="#FFFFFF" stroke-width="6"/>` +
-    T(190, TOP + 170, UI.earlyBadge, { size: JA ? 54 : 36, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>`;
-  // 種類のピル
-  const pill = hook.early ? UI.earlyHookC : UI.hookC(hook.isSealed);
-  inner += `<rect x="${W / 2 - 300}" y="${y}" width="600" height="104" rx="52" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
-    T(W / 2, y + 72, pill, { size: hook.early && !JA ? 54 : 64, weight: 900, anchor: "middle", fill: "#06101C" });
-  y += 170;
-  // 試合数と中身（下の帯の中、題名に隠れない位置）
-  const g = UI.hookD1(hook.games), n1 = String(hook.games), l1 = [...g].length, l2 = [...UI.hookD2].length;
-  const s1 = JA ? Math.min(130, Math.floor(980 / l1)) : Math.min(104, Math.floor(980 / (l1 * 0.58)));
-  const s2 = JA ? Math.min(96, Math.floor(980 / l2)) : Math.min(84, Math.floor(980 / (l2 * 0.58)));
-  const i = g.indexOf(n1), head = i >= 0 ? g.slice(0, i) : "", tail = i >= 0 ? g.slice(i + n1.length) : g;
-  const y1 = Math.min(y + s1, BOTTOM - s2 - 40);
-  inner += `<text x="${W / 2}" y="${y1}" font-size="${s1}" fill="#FFFFFF" font-weight="900" text-anchor="middle" stroke="#06101C" stroke-width="${Math.round(s1 * 0.16)}" stroke-linejoin="round" paint-order="stroke">${esc(head)}<tspan fill="#FFD23F">${esc(n1)}</tspan>${esc(tail)}</text>` +
-    TS(W / 2, y1 + Math.round(s2 * 1.3), UI.hookD2, { size: s2 });
+  if(hook.logo){ inner += `<image href="${hook.logo}" x="150" y="${y}" width="780" height="220" preserveAspectRatio="xMidYMid meet"/>`; y += 232; }
+  else{ const sz = Math.min(120, Math.floor(940 / (Math.max([...String(hook.title)].length, 4) * (JA ? 1 : 0.6)))); inner += TS(W / 2, y + sz, hook.title, { size: sz, fill: "#FFFFFF" }); y += sz + 50; }
+  // 何の動画かの帯（赤）：「1分でわかる ドラフト環境」など
+  const ribbon = hook.early ? (JA ? `1分でわかる ${UI.earlyHookC}` : UI.earlyHookC) : (JA ? `1分でわかる ${UI.hookC(hook.isSealed)}` : `${UI.hookC(hook.isSealed)} IN 1 MINUTE`);
+  const rs = Math.min(64, Math.floor(900 / ([...ribbon].length * (JA ? 1 : 0.62)))), rw = Math.round([...ribbon].length * rs * (JA ? 1 : 0.62) + 80);
+  inner += `<rect x="${(W - rw) / 2}" y="${y}" width="${rw}" height="${Math.round(rs * 1.6)}" rx="20" fill="#D9412B" stroke="#FFFFFF" stroke-width="6"/>` +
+    T(W / 2, y + Math.round(rs * 0.8 + rs * 0.36), ribbon, { size: rs, weight: 900, anchor: "middle", fill: "#FFFFFF" });
+  y += Math.round(rs * 1.6) + 24;
+  if(!th) return frame(inner, null, { header: false });
+  // 見出し（2行・黄色）と、下の一行（白）。全角の「！」は右に空きがあるので、その分だけ右へずらして真ん中に見せる
+  const wide = JA ? 1 : 0.56, room = BOTTOM - y;
+  const subS = Math.min(74, Math.floor(980 / ([...th.sub].length * wide)));
+  const mainS = Math.min(200, Math.floor(980 / (Math.max([...th.l1].length, [...th.l2].length) * wide)), Math.floor((room - subS - 60) / 2.08));
+  const nudge = t => /！$/.test(t) ? Math.round(mainS * 0.19) : 0;
+  const y1 = y + mainS, y2 = y1 + Math.round(mainS * 1.04);
+  inner += TS(W / 2 + nudge(th.l1), y1, th.l1, { size: mainS, fill: "#FFD23F" }) + TS(W / 2 + nudge(th.l2), y2, th.l2, { size: mainS, fill: "#FFD23F" }) +
+           TS(W / 2, y2 + subS + 40, th.sub, { size: subS });
   return frame(inner, null, { header: false });
 }
 
@@ -1064,11 +1068,21 @@ async function main(){
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...args, "-map", "[v]", "-frames:v", "1", "-q:v", String(q), out]);
   };
   // YouTube 用のサムネイル（1080×1920。一覧で切れない配置）。動画と一緒に作り、youtube-upload.mjs が使う
+  //   狙い目の組み合わせがあるときは、差し替え用に「〇〇が狙い目！」の版も作る（short/<SET>/<TAG>.thumbnail-alt.jpg。公開するときに Studio で選ぶ）
+  //   キャラクター：日本語はフード付きのずんだもん（short/zunda-hoodie/thumb.png）、英語は四国めたん。出さないとき：SHORT_THUMB_CHAR=0
   const makeThumbnail = async () => {
-    const png = `${OUT}/${TAG}/thumb.png`;
-    await sharp(Buffer.from(thumbSvg(scenes[0])), { density: 72 }).png().toFile(png);
-    composeStill(png, `${OUT}/${TAG}.thumbnail.jpg`, W, H, 2);
-    console.error(`YouTube 用サムネイル: ${OUT}/${TAG}.thumbnail.jpg`);
+    const hook = scenes[0];
+    const bombs = scenes.find(sc => sc.kind === "bombs");
+    hook.thumbCards = bombs ? bombs.cards.slice(0, 3).map(c => c.imgPath) : [];
+    const cf = process.env.SHORT_THUMB_CHAR === "0" ? null : (JA ? ["short/zunda-hoodie/thumb.png", "short/zunda-hoodie/open_open.png", "short/zunda/open_open.png"] : ["short/metan/open_open.png"]).find(f => existsSync(f));
+    if(cf){ const buf = await readFile(cf), m = await sharp(buf).metadata(); hook.thumbChar = { src: "data:image/png;base64," + buf.toString("base64"), w: m.width, h: m.height }; }
+    for(const [alt, name] of [[false, "thumbnail"], [true, "thumbnail-alt"]]){
+      if(alt && !hook.thumbAlt) continue;
+      const png = `${OUT}/${TAG}/${name}.png`;
+      await sharp(Buffer.from(thumbSvg(hook, alt)), { density: 72 }).png().toFile(png);
+      composeStill(png, `${OUT}/${TAG}.${name}.jpg`, W, H, 2);
+      console.error(`YouTube 用サムネイル${alt ? "（差し替え用・狙い目）" : ""}: ${OUT}/${TAG}.${name}.jpg`);
+    }
   };
 
   // サムネイルだけ作る（SHORT_POSTER=1）。冒頭のタイトル場面を背景に重ねて assets/video/<SET>-<TAG>.jpg に。読み上げは要らない
