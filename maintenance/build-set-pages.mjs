@@ -46,9 +46,9 @@ const L = {
     site: "リミテッド・ワークベンチ",            // ヘッダーの文字（左のロゴが「MTGアリーナ」を担う）
     siteFull: "MTGアリーナ リミテッド・ワークベンチ",   // <title> 用（検索向けに「MTGアリーナ」を残す）
     title: (s, c) => `${s}（${c}）リミテッド カード点数ランキング・評価｜勝率で見る強いカード`,
-    desc: (s, g, c, sp) => `MTGアリーナ「${s}（${c}）」のリミテッド（ドラフト・シールド）で強いカードを、17Landsの実戦データ（${g}試合）の勝率で採点。コモン・アンコモン・レア別のカード点数ランキングに加えて、${sp ? "環境の速さ、" : ""}強い色、勝率の高い2色の組み合わせも分かります。`,
+    desc: (s, g, c, sp) => `MTGアリーナ「${s}（${c}）」のリミテッド（ドラフト・シールド）で強いカードを、実戦データ（${g}試合）の勝率で採点。コモン・アンコモン・レア別のカード点数ランキングに加えて、${sp ? "環境の速さ、" : ""}強い色、勝率の高い2色の組み合わせも分かります。`,
     h1: s => `${s}｜リミテッド カード点数ランキングと環境レポート`,
-    lead: "マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、17Landsのデータを集計した実戦の勝率です。カードの点数（評価）は、この勝率で見られます。",
+    lead: "マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、実戦のデータを集計した勝率です。カードの点数（評価）は、この勝率で見られます。",
     mode: { draft: "ドラフト", sealed: "シールド", early: "発売直後の速報" },
     games: (n, d) => `総試合数 ${n}／全体勝率 ${d}`,
     built: d => `集計 ${d}`,
@@ -62,7 +62,7 @@ const L = {
     colorsH: "色の強さ", colorsLead: "その色のカードをデッキに入れた試合の勝率です。",
     archeH: "色の組み合わせ", archeLead: "2色の組み合わせごとの勝率です。試合数の多い順に並べています。",
     curveH: "マナ総量ごとの勝率", curveLead: "そのマナ総量のカードが手札か戦場にあった試合の勝率です。",
-    tipGih: "GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標で、17Landsのデータを集計しています。",
+    tipGih: "GIH勝率（Games In Hand）：そのカードが手札か戦場にあった試合の勝率です。カードの強さを見る基本の指標です。",
     ctierH: "カードのティア表", ctierLead: n => `全カードの勝率（GIH勝率）の分布から、S〜Dの5段階に分けました。レアリティが違っても、同じランクなら同じくらいの強さです。${n}試合以上のカードに限っています。`,
     ctierGroup: { mr: "神話レア・レア", u: "アンコモン", c: "コモン" }, ctierAvg: p => `全カードの平均 ${p}`,
     ctierCount: "{n}枚", ctierColors: "色（選んだ色だけで使えるカード）", ctierAll: "すべて", ctierMulti: "多色", ctierColorless: "無色",
@@ -73,7 +73,7 @@ const L = {
     faq: [
       ["リミテッドのカードの点数（評価）とは？", "そのカードがどれだけ強いかを数字で表したものを、点数や評価と呼びます。人が付ける点数には好みが入りますが、このページでは実際の対戦結果の勝率で見ています。"],
       ["点数（GIH勝率）はどう読めばいいですか？", "そのセット全体の勝率より高いカードは、入れたデッキが勝ちやすかったカードです。ただし、試合数が少ないカードは数字がぶれやすく、強いデッキに入りやすいカードは高く出る傾向があります。色や相性とあわせて、目安として使ってください。"],
-      ["点数はいつ更新されますか？", "毎週月曜日に、17Landsの最新データで更新します。"]
+      ["点数はいつ更新されますか？", "毎週月曜日に、最新のデータで更新します。"]
     ],
     rarity: { mythic:"神話レア", rare:"レア", uncommon:"アンコモン", common:"コモン" },
     col: { color:"色", pair:"色の組み合わせ", cmc:"マナ総量", wr:"勝率", score:"点数（GIH勝率）", games:"試合数", card:"カード", cards:"種類数" },
@@ -83,16 +83,14 @@ const L = {
     links: "関連ページ",
     linkRatings: "このセットの全カードの勝率一覧",
     linkReports: "環境レポート（他のセットに切り替え）",
-    linkSealed: "シールド構築の練習", linkDraft: "ドラフト構築の練習", linkAssist: "ドラフト補助（PC・Chrome/Edge）",
+    linkSealed: "シールド構築の練習", linkDraft: "ドラフト構築の練習", linkRoom: "友達とドラフト（対人戦）", linkAssist: "ドラフト補助（PC・Chrome/Edge）",
     linkIndex: "セット一覧",
     indexH1: "セット別のリミテッド カード点数ランキングと環境レポート",
     indexLead: "セットを選ぶと、そのセットのカード点数ランキングと、ドラフト・シールドの環境レポートが開きます。発売日の新しい順です。",
-    source: "出典：17Lands Public Data（CC BY 4.0）を当サイトが集計。カード情報はScryfall。",
-    sourceDaily: "出典：17Lands（毎日の集計）を当サイトが集計。カード情報はScryfall。",
     none: "このセットのデータはまだありません。",
     nav: { start:"MTGとは", limited:"リミテッドとは", sealed:"シールド練習", draft:"ドラフト練習（CPU戦）", room:"ドラフト練習（対人戦）", ratings:"カード勝率一覧", reports:"環境レポート", swiss:"スイスドロー", assist:"ドラフト補助", sassist:"シールド補助", table:"対戦卓", privacy:"プライバシー", goods:"日本のサプライ" },
-    navgrp: { start:"はじめに", build:"練習する", assist:"MTGアリーナで使う", data:"データを見る", play:"対戦する", shop:"買う" },
-    navsub: { start:"MTGの基本と、このサイトの使い方", build:"仮想パックで練習", assist:"実戦のログを読んで助ける・PC専用", data:"セットごとの強さ・速さを確認", play:"友達との対戦・大会の進行", shop:"日本で買えるMTG用品" },
+    navgrp: { start:"はじめに", build:"仮想パックで練習する", assist:"MTGアリーナで使う", data:"データを見る", play:"対戦する", shop:"買う" },
+    navsub: { start:"MTGの基本と、このサイトの使い方", build:"6パック開封・CPU戦や対人戦のドラフト", assist:"実戦のログを読んで助ける・PC専用", data:"セットごとの強さ・速さを確認", play:"友達との対戦・大会の進行", shop:"日本で買えるMTG用品" },
     pc: "PC",
     foot: 'データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="../privacy.html">プライバシーポリシー</a>にまとめています。<br><a href="../faq.html">よくある質問</a>・<a href="../contact.html">お問い合わせ</a>・<a href="../about.html">運営者情報</a><br><a href="../goods/index.html">日本の TCG サプライ（スリーブ・デッキケース）</a>',
     otherLang: "English", otherHref: c => `${c}.en.html`
@@ -101,9 +99,9 @@ const L = {
     site: "Limited Workbench",
     siteFull: "MTG Arena Limited Workbench",
     title: (s, c) => `${s} (${c}) Limited card ratings — best cards ranked by win rate (MTG Arena)`,
-    desc: (s, g, c, sp) => `Which cards are best in ${s} (${c}) Limited on MTG Arena? Card ratings by win rate from ${g} games of 17Lands data, ranked by rarity — plus ${sp ? "format speed, " : ""}the strongest colours and the best two-colour pairs.`,
+    desc: (s, g, c, sp) => `Which cards are best in ${s} (${c}) Limited on MTG Arena? Card ratings by win rate from ${g} games of real match data, ranked by rarity — plus ${sp ? "format speed, " : ""}the strongest colours and the best two-colour pairs.`,
     h1: s => `${s} | Limited card ratings and format report`,
-    lead: "Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from 17Lands data. Use them as card ratings: the higher the win rate, the stronger the card.",
+    lead: "Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from match data. Use them as card ratings: the higher the win rate, the stronger the card.",
     mode: { draft: "Draft", sealed: "Sealed", early: "Early look" },
     games: (n, d) => `${n} games · overall win rate ${d}`,
     built: d => `Built ${d}`,
@@ -117,7 +115,7 @@ const L = {
     colorsH: "Colour strength", colorsLead: "Win rate of games where the deck included cards of that colour.",
     archeH: "Colour pairs", archeLead: "Win rate by two-colour pair, sorted by number of games.",
     curveH: "Win rate by mana value", curveLead: "Win rate of games where a card of that mana value was in hand or on the battlefield.",
-    tipGih: "GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength, aggregated from 17Lands data.",
+    tipGih: "GIH win rate (Games In Hand): the win rate of games where this card was in hand or on the battlefield — the basic measure of card strength.",
     ctierH: "Card tier list", ctierLead: n => `Every card graded S to D from the spread of GIH win rates across the whole set. The scale is shared, so the same grade means similar strength at any rarity. Cards with at least ${n} games.`,
     ctierGroup: { mr: "Mythic & rare", u: "Uncommon", c: "Common" }, ctierAvg: p => `Average across all cards ${p}`,
     ctierCount: "{n} cards", ctierColors: "Colours (cards castable with the ones you pick)", ctierAll: "All", ctierMulti: "Multicolour", ctierColorless: "Colourless",
@@ -128,7 +126,7 @@ const L = {
     faq: [
       ["What is a Limited card rating?", "A number that says how strong a card is. Ratings given by people include personal taste, so this page uses win rates from real games instead."],
       ["How should I read the GIH win rate?", "A card above the set's overall win rate was in decks that won more often. Cards with few games swing a lot, and cards that go into strong decks tend to look better than they are, so treat it as a guide and read it together with colours and synergy."],
-      ["When are the ratings updated?", "Every Monday (Japan time), from the latest 17Lands data."]
+      ["When are the ratings updated?", "Every Monday (Japan time), from the latest data."]
     ],
     rarity: { mythic:"Mythic", rare:"Rare", uncommon:"Uncommon", common:"Common" },
     col: { color:"Colour", pair:"Pair", cmc:"Mana value", wr:"Win rate", score:"Rating (GIH WR)", games:"Games", card:"Card", cards:"Cards" },
@@ -138,16 +136,14 @@ const L = {
     links: "Related pages",
     linkRatings: "All card win rates for this set",
     linkReports: "Set reports (switch sets)",
-    linkSealed: "Sealed practice", linkDraft: "Draft practice", linkAssist: "Draft assistant (PC, Chrome/Edge)",
+    linkSealed: "Sealed practice", linkDraft: "Draft practice", linkRoom: "Draft with friends (vs players)", linkAssist: "Draft assistant (PC, Chrome/Edge)",
     linkIndex: "All sets",
     indexH1: "Limited card ratings and format reports by set",
     indexLead: "Pick a set to open its card ratings and its Draft and Sealed report. Newest first.",
-    source: "Source: 17Lands Public Data (CC BY 4.0), aggregated by this site. Card data via Scryfall.",
-    sourceDaily: "Source: 17Lands (daily figures), aggregated by this site. Card data via Scryfall.",
     none: "No data for this set yet.",
     nav: { start:"What is MTG?", limited:"What is Limited?", sealed:"Sealed practice", draft:"Draft practice (vs CPU)", room:"Draft practice (vs players)", ratings:"Card win rates", reports:"Set reports", swiss:"Swiss pairings", assist:"Draft assistant", sassist:"Sealed assistant", table:"Play table", privacy:"Privacy", goods:"Japanese supplies" },
-    navgrp: { start:"Start", build:"Practice", assist:"Use with MTG Arena", data:"Data", play:"Play", shop:"Shop" },
-    navsub: { start:"MTG basics & how to use this site", build:"Virtual packs", assist:"Reads your log in real play · PC only", data:"How strong and fast each set is", play:"Play friends or run a tournament", shop:"MTG supplies sold in Japan" },
+    navgrp: { start:"Start", build:"Practice with virtual packs", assist:"Use with MTG Arena", data:"Data", play:"Play", shop:"Shop" },
+    navsub: { start:"MTG basics & how to use this site", build:"Open 6 packs · draft vs CPUs or players", assist:"Reads your log in real play · PC only", data:"How strong and fast each set is", play:"Play friends or run a tournament", shop:"MTG supplies sold in Japan" },
     pc: "PC",
     foot: 'Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../faq.html">FAQ</a> · <a href="../contact.html">Contact</a> · <a href="../about.html">About</a><br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a>',
     otherLang: "日本語", otherHref: c => `${c}.html`
@@ -709,10 +705,9 @@ ${T.faq.map(([q, a]) => `  <details><summary>${esc(q)}</summary><p>${esc(a)}</p>
 </section>` : "";
   const links = `<section class="links"><h3>${esc(T.links)}</h3><ul>
   <li><a href="../reports.html?set=${code}">${esc(T.linkReports)}</a></li>
-  <li><a href="../sealed.html">${esc(T.linkSealed)}</a>／<a href="../draft.html">${esc(T.linkDraft)}</a>／<a href="../assistant.html">${esc(T.linkAssist)}</a></li>
+  <li><a href="../sealed.html">${esc(T.linkSealed)}</a>／<a href="../draft.html">${esc(T.linkDraft)}</a>／<a href="../draftroom.html">${esc(T.linkRoom)}</a>／<a href="../assistant.html">${esc(T.linkAssist)}</a></li>
   <li><a href="index${lang === "en" ? ".en" : ""}.html">${esc(T.linkIndex)}</a></li>
-</ul></section>
-<p class="source">${esc(modes.some(m => arts[m].provisional) ? T.sourceDaily : T.source)}</p>`;
+</ul></section>`;   // データの出典・権利表示は、ページ下のリンク先（プライバシーポリシー）にまとめる（2026年10月）
   // セットごとの OGP 画像（build-set-ogp.mjs が作る）。まだ無いセットは、サイト共通の画像にする（SNS で画像が出ないのを防ぐ）
   const og = existsSync(`${OUT}/og/${code}-${lang}.png`) ? `${SITE}/${OUT}/og/${code}-${lang}.png` : null;
   return shell(lang, code, head, { header, main: body + "\n" + faq + "\n" + links }, og);

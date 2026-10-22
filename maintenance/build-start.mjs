@@ -251,9 +251,9 @@ const JA = {
       ["MTGアリーナを入れる", "パソコンでもスマートフォンでも、無料で始められます。", "index.html#arena", true],
       ["シールドを練習する", "6パック分の仮想パックで、40枚デッキを組む練習。", "../sealed.html", false],
       ["ドラフトを練習する", "8人卓を再現した仮想ドラフトで、ピックの練習。", "../draft.html", false],
+      ["友達とドラフトする", "招待リンクで、友達と同じ卓を囲むドラフト。", "../draftroom.html", false],
       ["環境レポートを見る", "セットごとの強い色・強いカードを確認。", "../reports.html", false]
     ],
-    credit: "カード画像とマナシンボルは Scryfall から読み込んでいます。Magic: The Gathering は Wizards of the Coast LLC の商標です。このサイトは非公式のファンサイトです。"
   },
 
   glossH: "用語集",
@@ -455,9 +455,9 @@ const EN = {
       ["Install MTG Arena", "Free to start, on PC or your phone.", "index.en.html#arena", true],
       ["Practice Sealed", "Build a 40-card deck from six virtual packs.", "../sealed.html", false],
       ["Practice Draft", "Practice picking in a simulated eight-player pod.", "../draft.html", false],
+      ["Draft with friends", "Share an invite link and draft at the same table.", "../draftroom.html", false],
       ["Read the set reports", "See the strong colors and cards for each set.", "../reports.html", false]
     ],
-    credit: "Card images and mana symbols are loaded from Scryfall. Magic: The Gathering is a trademark of Wizards of the Coast LLC. This is an unofficial fan site."
   },
 
   glossH: "Glossary",
@@ -724,8 +724,7 @@ ${dt.rows.map(x => `<tr><th>${x[0]}</th><td>${x[1]}</td><td>${x[2]}</td></tr>`).
 
   const nextList = kind === "mtg" ? n.mtgList : n.list;
   S.next = `<section class="blk" id="next"><h2>${n.h}</h2><p class="lead">${n.lead}</p>
-<div class="cta">${nextList.map(x => `<a class="${x[3] ? "main" : ""}" href="${x[2]}"><b>${x[0]}</b><small>${x[1]}</small></a>`).join("")}</div>
-<p class="credit">${n.credit}</p></section>`;
+<div class="cta">${nextList.map(x => `<a class="${x[3] ? "main" : ""}" href="${x[2]}"><b>${x[0]}</b><small>${x[1]}</small></a>`).join("")}</div></section>`;   // 権利表示はページ下のリンク先（プライバシーポリシー）にまとめる（2026年10月）
 
   const order = kind === "mtg"
     ? ["what", "colors", "types", "read", "formats", "arena", "official", "next"]

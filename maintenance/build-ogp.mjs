@@ -21,13 +21,13 @@ const TEXT = {
   ja: {
     title: "リミテッド・ワークベンチ",
     sub: "MTGアリーナのリミテッドを無料で練習",
-    bullets: ["シールド戦・ドラフトを何度でも", "17Landsの実戦データで勝率表示", "アリーナにそのままインポート"],
+    bullets: ["シールド戦・ドラフトを何度でも", "実戦データで勝率表示", "アリーナにそのままインポート"],
     domain: "sealed-workbench.com"
   },
   en: {
     title: "Limited Workbench",
     sub: "Free MTG Arena Limited practice",
-    bullets: ["Sealed and draft, unlimited runs", "Real win rates from 17Lands data", "Export straight into Arena"],
+    bullets: ["Sealed and draft, unlimited runs", "Real win rates from match data", "Export straight into Arena"],
     domain: "sealed-workbench.com"
   }
 };
