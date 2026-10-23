@@ -1,19 +1,26 @@
 name: SNS｜Bluesky のいいね（自動・毎日・テスト運用）
 
 # Bluesky で、MTGアリーナ・マジック：ザ・ギャザリングについての最近の投稿（英語・日本語）を探して、いいねを付ける。
-# 1日（日本時間）に付けるのは上限まで（手で付けたいいねも数に入る）。役割はこれだけで、投稿はしない。
-# 上限の変え方：Settings → Secrets and variables → Actions → Variables に「BSKY_LIKE_LIMIT」（例: 10）を登録・編集する。
+# 自動の実行は1日1回、決めた件数を付ける。役割はこれだけで、投稿はしない。
+#   GitHub の定時実行は混むと数時間遅れたり飛ばされたりするので、夜に4回の時刻を入れてある（20:43・22:13・23:43・翌2:13）。
+#   最初に動いた回だけがいいねを付け、あとの回は「今日の分はもう済んでいる」と調べて何もしない（調べるのは maintenance/bsky-like-done.mjs）。
+#   「今日」は日本時間の朝4時から翌朝4時まで。1件も付けられずに失敗した回は済んだことにせず、次の時刻にもう一度動く。
+#   その日に手で付けたいいね・手で押した実行の分は、件数に数えない（2026年10月に変更）。
+# 件数の変え方：Settings → Secrets and variables → Actions → Variables に「BSKY_LIKE_LIMIT」（例: 10）を登録・編集する。
 #   登録が無ければ 50 件。50〜200 件の間で使う（50 より小さい数は 50 件、200 より大きい数は 200 件として扱う）。
 #   ※ Variables の「Repository variables」に登録する（Secrets や Environment の変数は、このワークフローからは見えない）。
 # いいねとの間は「20 秒〜75 秒のランダム」あける（50 件で 40 分ほど、200 件で 2 時間半ほど）。付けたいいねは、実行結果の Summary に一覧で出る。
 # 同じ人には、きのう・きょういいねを付けていたら付けない（1日以上あける。手で付けたいいねも含む）。
 # 止めるとき：Actions の画面でこのワークフローを開き、右上の「…」→「Disable workflow」。
 # 手で押すときは「候補を見るだけ」にすると、いいねを付けずに候補だけ見られる。
-# 手で押して付けるときは、今日すでに付けた数に関係なく、指定の件数（空なら設定の値）まで付ける。毎日の自動実行だけが1日の上限を守る。
+# 手で押して付けるときは、指定の件数（空なら設定の値）まで付ける。手で押した実行は、自動の1日1回とは別に数える（自動の分は減らない）。
 
 on:
   schedule:
-    - cron: "43 11 * * *"      # 毎日 20:43（日本時間）。投稿が多い夜に
+    - cron: "43 11 * * *"      # 毎日 20:43（日本時間）。投稿が多い夜に。ふだんはこの回が付ける
+    - cron: "13 13 * * *"      # 22:13（予備。その日の分が済んでいれば何もしない）
+    - cron: "43 14 * * *"      # 23:43（予備）
+    - cron: "13 17 * * *"      # 翌 2:13（予備。朝4時までは前の日の分として数える）
   workflow_dispatch:
     inputs:
       dry_run:
@@ -21,11 +28,12 @@ on:
         type: boolean
         default: true
       limit:
-        description: "今回付ける件数（1〜200。今日の件数に関係なく付ける）。空なら設定（BSKY_LIKE_LIMIT）の値"
+        description: "今回付ける件数（1〜200）。空なら設定（BSKY_LIKE_LIMIT）の値"
         default: ""
 
 permissions:
   contents: read
+  actions: read     # 今日の自動の実行がもう済んだかを調べるため（実行の一覧を見るだけ）
 
 concurrency:
   group: bsky-like
@@ -42,7 +50,15 @@ jobs:
         with:
           node-version: "22"
 
+      - name: 今日の自動の分がもう済んだかを調べる（自動の実行のときだけ）
+        id: done
+        if: github.event_name == 'schedule'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node maintenance/bsky-like-done.mjs
+
       - name: いいねを付ける
+        if: steps.done.outputs.done != 'true'
         env:
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
           LIKE_LIMIT: ${{ inputs.limit || vars.BSKY_LIKE_LIMIT || '50' }}
