@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "遅い環境",
+   "t": "ゲームは平均10.1ターンと長く、重いデッキほど勝ちやすい（速いデッキ55.0%、重いデッキ57.2%）環境です。"
+  },
+  {
+   "h": "青が軸",
+   "t": "色別は青が1位。白青57.9%・青黒57.0%が上位で、青緑は53.9%です。"
+  },
+  {
+   "h": "注目のカード",
+   "t": "[[Ajani Unrelenting]]は73.8%と別格。コモンは[[Mindseeker Oculus]]・[[Extended Absence]]が上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "A slow format",
+   "t": "Games last 10.1 turns on average, and heavier decks win more (55.0% for fast decks, 57.2% for the heaviest)."
+  },
+  {
+   "h": "Blue is the core",
+   "t": "Blue is the top colour. White/Blue (57.9%) and Blue/Black (57.0%) lead, while Blue/Green sits at 53.9%."
+  },
+  {
+   "h": "Cards to watch",
+   "t": "[[Ajani Unrelenting]] is in a league of its own at 73.8%. [[Mindseeker Oculus]] and [[Extended Absence]] are the top commons."
+  }
+ ]
+}

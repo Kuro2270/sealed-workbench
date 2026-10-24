@@ -8,13 +8,15 @@
  * 画像は Scryfall の公式カード画像とマナシンボルを、ブラウザから直接読み込む（Wizards の Fan Content Policy の範囲）。
  * ページの枠（ナビ・言語切り替え・フッター）は他のセット別ページと同じ shell() を使う。
  * 文章は参考にした入門記事の要点を、このサイト向けにかみ砕いて書き直したもの。
- * 2つのページの先頭には、切り替えのタブ（MTGとは／リミテッドとは。環境レポートのドラフト／シールドと同じ見た目）と、
- * 共通の解説動画（data/guide-videos.json の start。id がある言語だけ）を目次つきで置く。
+ * 読み物の「シールドの組み方」（start/sealed）・「ドラフトの基本」（start/draft）も、同じ枠で作る（文面とブロックは start-guides.mjs）。
+ * ページの先頭には、切り替えのタブ（MTGとは／リミテッドとは／シールドの組み方／ドラフトの基本。環境レポートのドラフト／シールドと同じ見た目）と、
+ * 「MTGとは」「リミテッドとは」には、共通の解説動画（data/guide-videos.json の start。id がある言語だけ）を目次つきで置く。
  */
 
 import { mkdir, writeFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import { shell, L, esc, SITE, pretty } from "./build-set-pages.mjs";
+import { READ, guideCss, guideSections } from "./start-guides.mjs";
 
 const SYM = k => `<img class="ms" src="https://svgs.scryfall.io/card-symbols/${k}.svg" alt="${k}" width="22" height="22" loading="lazy">`;
 const cardUrl = name => `https://api.scryfall.com/cards/named?format=image&version=normal&exact=${encodeURIComponent(name)}`;
@@ -624,11 +626,16 @@ const css = `<style>
   .tab.on{background:var(--pine);color:var(--paper)}
 </style>`;
 
+/* 入門ページの4つ（タブの並び）。ファイル名と、タブに出す名前 */
+const KINDS = [["mtg", "index"], ["limited", "limited"], ["sealed", "sealed"], ["draft", "draft"]];
+const tabLabel = (lang, k) => READ[lang][k] ? READ[lang][k].tab : (lang === "en" ? EN : JA).pages[k].h1;
+
 function page(lang, kind){
   const T = lang === "ja" ? JA : EN;
   const en = lang === "en";
-  const P = T.pages[kind];
-  const base = kind === "mtg" ? "index" : "limited";
+  const guide = READ[lang][kind];   // 読み物（シールドの組み方・ドラフトの基本）。中身は start-guides.mjs
+  const P = guide || T.pages[kind];
+  const base = KINDS.find(k => k[0] === kind)[1];
   const self = `${base}${en ? ".en" : ""}.html`;
   const canonical = pretty(`${SITE}/start/${self}`);
   const head = `<title>${esc(P.title)}</title>
@@ -639,7 +646,7 @@ function page(lang, kind){
 <meta property="og:title" content="${esc(P.title)}">
 <meta property="og:description" content="${esc(P.desc)}">
 <meta property="og:url" content="${canonical}">
-${css}`;
+${css}${guide ? guideCss : ""}`;
   const header = `    <h1>${esc(P.h1)}</h1>
     <p>${esc(P.lead)}</p>`;
 
@@ -733,18 +740,18 @@ ${dt.rows.map(x => `<tr><th>${x[0]}</th><td>${x[1]}</td><td>${x[2]}</td></tr>`).
   const gloss = `<details class="gl"><summary>${T.glossH}</summary><dl>${T.gloss.map(x => `<dt>${x[0]}</dt><dd>${x[1]}</dd>`).join("")}</dl></details>`;
   const toc = `<ul class="toc">${P.toc.map(x => `<li><a href="#${x[0]}">${x[1]}</a></li>`).join("")}</ul>`;
   // 切り替えのタブ（2つのページを行き来する。今のページが「on」）と、共通の動画。どちらも目次より上の同じ場所に置く
-  const tabs = `<div class="modebar"><div class="tabs" role="navigation" aria-label="${en ? "Getting started" : "はじめに"}">${[["mtg", "index"], ["limited", "limited"]].map(([k, b]) =>
-    `<a class="tab${k === kind ? " on" : ""}" href="${b}${en ? ".en" : ""}.html"${k === kind ? ' aria-current="page"' : ""}>${esc(T.pages[k].h1)}</a>`).join("")}</div></div>`;   // <nav> にすると、上のメニューのボタンの見た目が付いてしまうので div にする
+  const tabs = `<div class="modebar"><div class="tabs" role="navigation" aria-label="${en ? "Getting started" : "はじめに"}">${KINDS.map(([k, b]) =>
+    `<a class="tab${k === kind ? " on" : ""}" href="${b}${en ? ".en" : ""}.html"${k === kind ? ' aria-current="page"' : ""}>${esc(tabLabel(lang, k))}</a>`).join("")}</div></div>`;
+  if(guide) return shell(lang, base, head, { header, main: `${tabs}\n${guideSections(lang, kind)}` });   // <nav> にすると、上のメニューのボタンの見た目が付いてしまうので div にする
   const main = `${tabs}\n${videoSection(lang)}\n${toc}\n${order.map(k => S[k]).filter(Boolean).join("\n")}\n${kind === "mtg" ? gloss : ""}${en ? "" : JS_JA}`;
 
   return shell(lang, base, head, { header, main });
 }
 
 await mkdir("start", { recursive: true });
-for(const kind of ["mtg", "limited"]){
+for(const [kind, base] of KINDS){
   for(const lang of ["ja", "en"]){
-    const base = kind === "mtg" ? "index" : "limited";
     await writeFile(`start/${base}${lang === "en" ? ".en" : ""}.html`, page(lang, kind), "utf8");
   }
 }
-console.log("入門ページを作りました: start/index(.en).html（MTGとは）, start/limited(.en).html（リミテッドとは）");
+console.log("入門ページを作りました: start/index(.en).html（MTGとは）, start/limited(.en).html（リミテッドとは）, start/sealed(.en).html（シールドの組み方）, start/draft(.en).html（ドラフトの基本）");

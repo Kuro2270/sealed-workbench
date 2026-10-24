@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "青緑が最上位",
+   "t": "ドラフト57.7%・シールド59.9%で、どちらも2色の組み合わせの1位です。"
+  },
+  {
+   "h": "どの色でも戦える",
+   "t": "色別の差は1ポイント前後と小さく、速さによる差も小さめです。"
+  },
+  {
+   "h": "拾いたいコモン",
+   "t": "[[Cryogen Relic]]・[[Galactic Wayfarer]]・[[Banishing Light]]がコモンの上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "Blue/Green on top",
+   "t": "Blue/Green is the best pair in both Draft (57.7%) and Sealed (59.9%)."
+  },
+  {
+   "h": "Every colour is playable",
+   "t": "The gap between colours is only about one point, and speed matters little."
+  },
+  {
+   "h": "Commons to grab",
+   "t": "[[Cryogen Relic]], [[Galactic Wayfarer]] and [[Banishing Light]] are the top commons."
+  }
+ ]
+}

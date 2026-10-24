@@ -16,6 +16,8 @@
   document.querySelectorAll("a[data-start-link]").forEach(function(a){ a.href = startHref; });
   var limitedHref = BASE + "start/limited" + (lang === "en" ? ".en" : "") + ".html";
   document.querySelectorAll("a[data-limited-link]").forEach(function(a){ a.href = limitedHref; });
+  // 入門ページのほかのページ（data-start-page="sealed" → start/sealed.html / sealed.en.html）
+  document.querySelectorAll("a[data-start-page]").forEach(function(a){ a.href = BASE + "start/" + a.getAttribute("data-start-page") + (lang === "en" ? ".en" : "") + ".html"; });
 
   var box = document.getElementById("goodsStrip");
   if(!box) return;

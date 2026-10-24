@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Draft Basics | What to Pick and When to Choose Colours in MTG Arena Draft</title>
+<meta name="description" content="The basics of Draft: how picks flow, what to take at each stage, how to spot an open colour, and the mistakes to avoid.">
+<link rel="canonical" href="https://sealed-workbench.com/start/draft.en">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/start/draft">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/start/draft.en">
+<meta property="og:title" content="Draft Basics | What to Pick and When to Choose Colours in MTG Arena Draft">
+<meta property="og:description" content="The basics of Draft: how picks flow, what to take at each stage, how to spot an open colour, and the mistakes to avoid.">
+<meta property="og:url" content="https://sealed-workbench.com/start/draft.en">
+<style>
+  html{scroll-behavior:smooth}
+  main{max-width:960px}
+  .toc{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 22px;padding:0;list-style:none;position:sticky;top:0;z-index:20;background:rgba(245,248,252,.94);backdrop-filter:blur(6px);padding:8px 0;border-bottom:1px solid var(--line)}
+  .toc a{display:inline-block;font-size:12.5px;padding:5px 11px;border-radius:999px;background:#fff;border:1px solid var(--line);color:var(--ink);text-decoration:none;white-space:nowrap}
+  .toc a:hover{border-color:var(--gold);color:var(--gold)}
+  .blk{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:0 0 22px;scroll-margin-top:60px}
+  .blk > h2{font-size:22px;margin:0 0 6px}
+  .blk > .lead{margin:0 0 14px;color:var(--muted);font-size:14px}
+  .cards3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .pt{background:var(--paper-2);border-radius:10px;padding:14px 16px}
+  .pt .ic{font-size:26px;line-height:1}
+  .pt b{display:block;margin:6px 0 2px;font-size:15px}
+  .pt p{margin:0;font-size:13.5px;line-height:1.65}
+  h3.sub{font-size:15px;margin:20px 0 8px}
+  .flow{list-style:none;margin:0;padding:0;display:flex;gap:6px;flex-wrap:wrap;counter-reset:f}
+  .flow li{flex:1 1 140px;position:relative;background:var(--pine);color:#fff;border-radius:10px;padding:10px 12px 10px 38px;font-size:12.5px;line-height:1.5;counter-increment:f}
+  .flow li::before{content:counter(f);position:absolute;left:10px;top:10px;width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .flow li b{display:block;font-size:14px;color:#9CC8FF}
+  .note{margin:12px 0 0;font-size:13.5px;background:var(--paper-2);border-left:4px solid var(--gold);padding:9px 13px;border-radius:0 8px 8px 0}
+  .colors{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+  .col{border-radius:10px;padding:12px 14px;border:2px solid;background:#fff}
+  .col .nm{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px}
+  .col .nm img{width:30px;height:30px}
+  .col .tg{font-size:12px;color:var(--muted);margin:2px 0 6px}
+  .col p{margin:0;font-size:13px;line-height:1.65}
+  .col.W{border-color:#E7D9A8;background:#FFFBEF}.col.U{border-color:#8DBBDE;background:#F1F8FD}.col.B{border-color:#8D8795;background:#F4F2F6}.col.R{border-color:#E39A86;background:#FFF3EF}.col.G{border-color:#86B58C;background:#F1F9F2}
+  .types{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:16px 14px}
+  .ty{display:flex;flex-direction:column;gap:8px}
+  .ty .cimg{max-width:200px}
+  .ty .tn{font-weight:800;font-size:14.5px}
+  .ty .tn small{display:block;font-weight:500;color:var(--muted);font-size:11.5px}
+  .ty p{margin:0;font-size:12.5px;line-height:1.6}
+  .cimg{position:relative;display:block;aspect-ratio:488/680;border-radius:4.5%;overflow:hidden;background:var(--paper-2);box-shadow:0 8px 20px -10px rgba(13,27,42,.55)}
+  .cimg img{width:100%;height:100%;display:block;object-fit:cover}
+  .cimg i{display:none;position:absolute;inset:0;padding:12px;font-style:normal;font-weight:700;font-size:13px;color:var(--muted);align-items:center;justify-content:center;text-align:center}
+  .cimg.miss img{display:none}.cimg.miss i{display:flex}
+  .anat{display:grid;grid-template-columns:minmax(260px,360px) 1fr;gap:24px;align-items:start}
+  .anat .cardwrap{position:relative}
+  .anat .lead-line{position:absolute;height:2px;margin-top:-1px;background:var(--gold);box-shadow:0 0 0 1px rgba(255,255,255,.7)}
+  .anat .lead-dot{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--gold);border:1.5px solid #fff;transform:translate(-50%,-50%)}
+  .badge{position:absolute;width:24px;height:24px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.45);transform:translate(-50%,-50%);border:2px solid #fff}
+  .anat ol{list-style:none;margin:0 0 14px;padding:0}
+  .anat ol li{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--paper-2);font-size:14px}
+  .anat ol li span{flex:none;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .ms{vertical-align:middle;margin:0 1px}
+  .cost{display:inline-block;background:var(--paper-2);padding:2px 8px;border-radius:999px}
+  .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .box{border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .box h3{margin:0 0 6px;font-size:16px}
+  .box ul{margin:8px 0 0;padding-left:1.2em;font-size:13.5px}
+  .steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;counter-reset:s}
+  .steps li{background:var(--paper-2);border-radius:10px;padding:12px 14px 12px;counter-increment:s;font-size:13px;line-height:1.6}
+  .steps li b{display:block;font-size:14.5px;margin-bottom:2px}
+  .steps li::before{content:counter(s);display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;font-size:12px;align-items:center;justify-content:center;margin-bottom:6px}
+  .cmp{width:100%;border-collapse:collapse;font-size:13.5px}
+  .cmp th,.cmp td{padding:9px 10px;border-bottom:1px solid var(--paper-2);text-align:left;vertical-align:top}
+  .cmp thead th{font-size:13px;color:#fff;background:var(--pine)}
+  .cmp thead th:last-child{background:var(--gold)}
+  .cmp tbody th{width:22%;color:var(--muted);font-weight:500;font-size:12.5px}
+  .stack{display:flex;height:54px;border-radius:10px;overflow:hidden;font-weight:800;color:#fff;font-size:13px}
+  .stack div{display:flex;align-items:center;justify-content:center;flex-direction:column;line-height:1.25;text-align:center;padding:0 4px}
+  .stack div b{font-size:19px}
+  .stack .s0{background:#7C6F5A}.stack .s1{background:var(--pine)}.stack .s2{background:var(--gold)}
+  .curve{display:flex;align-items:flex-end;gap:10px;height:170px;padding:26px 4px 0;border-bottom:2px solid var(--line)}
+  .curve div{flex:1;background:var(--gold);border-radius:6px 6px 0 0;position:relative;min-height:6px}
+  .curve div b{position:absolute;top:-22px;left:0;right:0;text-align:center;font-size:13px}
+  .curvelab{display:flex;gap:10px;padding:4px 4px 0;font-size:12px;color:var(--muted)}
+  .curvelab span{flex:1;text-align:center}
+  .rarg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:0}
+  .rarg div{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;background:#fff}
+  .rarg b{display:flex;align-items:center;gap:7px;font-size:14px;margin-bottom:2px}
+  .rarg b::before{content:"";width:12px;height:12px;border-radius:50%;background:#2A3B4C}
+  .rarg .u b::before{background:#9DB0BC}.rarg .r b::before{background:#C9A227}.rarg .m b::before{background:#D8572A}
+  .exs{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 0}
+  .exs figure{margin:0;width:150px}
+  .exs figcaption{font-size:12.5px;margin-top:6px;line-height:1.5}
+  .exs figcaption b{display:block}
+  .cta{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+  .cta a{display:block;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:13px 15px;text-decoration:none;color:var(--ink)}
+  .cta a:hover{border-color:var(--gold)}
+  .cta a b{display:block;font-size:15px;color:var(--pine);margin-bottom:2px}
+  .cta a small{font-size:12.5px;color:var(--muted);line-height:1.5}
+  .cta a.main{background:var(--gold);border-color:var(--gold)}
+  .cta a.main b,.cta a.main small{color:#fff}
+  .inst{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:0 0 4px}
+  .inst a{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;background:var(--gold);color:#fff;text-decoration:none;border-radius:12px;padding:14px 12px;box-shadow:0 6px 16px -10px rgba(47,125,246,.9)}
+  .inst a:hover{background:#1F6AE0}
+  .inst .ii{display:flex;gap:8px;margin-bottom:4px}
+  .chip{display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:11px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+  .chip svg{width:26px;height:26px;display:block}
+  .inst b{font-size:14.5px}
+  .inst small{font-size:12px;opacity:.9}
+  .more{font-size:13px;margin:14px 0 0;padding-left:1.2em}
+  .more a,.blk p a{color:var(--pine)}
+  details.gl{margin:0 0 22px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 20px}
+  details.gl summary{cursor:pointer;font-weight:800;font-size:16px}
+  details.gl dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:12px 0 0;font-size:13.5px}
+  details.gl dt{font-weight:700}details.gl dd{margin:0;color:var(--muted)}
+  .credit{font-size:11.5px;color:var(--muted);margin:8px 0 0}
+  @media (max-width:720px){
+    .blk{padding:16px 14px}.anat{grid-template-columns:1fr}.anat .cardwrap{width:100%;max-width:340px;margin:0 auto}
+    .toc{position:static;flex-wrap:nowrap;overflow-x:auto}
+    .cmp tbody th{width:28%}
+    .types{grid-template-columns:repeat(2,1fr);gap:16px 10px}
+  }
+  .blk.longvideo{padding:20px 22px;border-radius:12px;margin:0 0 22px}   /* セット別ページの .longvideo の枠より、このページの .blk に合わせる */
+  .blk.longvideo > h2{font-size:22px;margin:0 0 6px}.blk.longvideo > .lead{margin:0 0 14px;font-size:14px;opacity:1;color:var(--muted)}
+  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0A2038}
+  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .longvideo .yt button span{width:68px;height:68px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .longvideo .yt button span::after{content:"";border-left:23px solid #0B1E33;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
+  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px;max-height:420px;overflow-y:auto}
+  .longvideo .chap li{margin:0 0 2px}
+  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
+  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
+  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
+  .modebar{margin:0 0 18px}
+  .tabs{display:inline-flex;gap:3px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .tab{border-radius:999px;padding:8px 22px;font-size:14px;font-weight:600;color:var(--muted);text-decoration:none;line-height:1.4}
+  .tab:hover:not(.on){color:var(--ink);background:#fff}
+  .tab.on{background:var(--pine);color:var(--paper)}
+</style><style>
+  .sum{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;counter-reset:m}
+  .sum li{counter-increment:m;background:var(--pine);color:#fff;border-radius:12px;padding:14px 16px 14px 50px;position:relative;font-size:14px;line-height:1.6}
+  .sum li::before{content:counter(m);position:absolute;left:14px;top:13px;width:26px;height:26px;border-radius:50%;background:var(--gold);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .sum li b{color:#9CC8FF}
+  .yn{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+  .yn div{border-radius:10px;padding:12px 16px;border:2px solid}
+  .yn .y{border-color:#86B58C;background:#F1F9F2}.yn .n{border-color:#E39A86;background:#FFF3EF}
+  .yn h3{margin:0 0 6px;font-size:15px}
+  .yn ul{margin:0;padding:0;list-style:none;font-size:13.5px;line-height:1.7}
+  .yn .y li::before{content:"✓";color:#2E8B3E;font-weight:800;margin-right:8px}
+  .yn .n li::before{content:"✕";color:#C4472B;font-weight:800;margin-right:8px}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+  .tile{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:linear-gradient(180deg,#F4F8FE,#fff)}
+  .tile .big{font-size:34px;font-weight:800;color:var(--gold);line-height:1.1}
+  .tile .big small{font-size:15px;font-weight:700;margin-left:2px;color:var(--muted)}
+  .tile b{display:block;margin:4px 0 4px;font-size:15px}
+  .tile p{margin:0;font-size:13px;line-height:1.65;color:var(--ink)}
+  .asof{font-size:12px;color:var(--muted);margin:10px 0 0}
+  .chk{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:6px 14px}
+  .chk label{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:8px;background:var(--paper-2);font-size:14px;line-height:1.5;cursor:pointer}
+  .chk input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--gold)}
+  .chk input:checked + span{color:var(--muted);text-decoration:line-through}
+  .mist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+  .mist li{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;font-size:13.5px;line-height:1.6}
+  .mist .bad,.mist .good{border-radius:10px;padding:10px 12px}
+  .mist .bad{background:#FFF3EF;border:1px solid #F0C6B9}.mist .good{background:#F1F9F2;border:1px solid #BFDDC3}
+  .mist .bad::before{content:"✕ ";color:#C4472B;font-weight:800}.mist .good::before{content:"✓ ";color:#2E8B3E;font-weight:800}
+  .mist .ar{color:var(--muted);font-weight:800}
+  .when td:first-child{width:30%;font-weight:700;color:var(--pine)}
+  .when td small{font-weight:500;color:var(--muted)}
+  #steps .steps{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  #next .cta{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  @media (max-width:720px){
+    .mist li{grid-template-columns:1fr;gap:4px}.mist .ar{display:none}
+    .modebar .tabs{display:flex;overflow-x:auto;max-width:100%}.modebar .tab{padding:8px 14px;white-space:nowrap}
+  }
+</style>
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta property="og:image" content="https://sealed-workbench.com/ogp-en.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:image" content="https://sealed-workbench.com/ogp-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/mana/mana.min.css">
+<script src="../analytics.js"></script>
+<script src="/navmenu.js" defer></script>
+<script src="/tip.js" defer></script>
+<script src="/card-preview.js?v=1" defer></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#10304F">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Workbench">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
+<style>
+  :root{--pine:#10304F;--pine-deep:#0A2038;--paper:#F5F8FC;--paper-2:#E8EEF6;--ink:#0D1B2A;--muted:#5C7185;--gold:#2F7DF6;--line:#D3DFEB;
+        --w:#FAF4E2;--u:#7FB4D8;--b:#7A7480;--r:#DB8068;--g:#79A87F;--m:#C3A03B;--c:#9AA3A0;--radius:8px}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  header{background:linear-gradient(135deg,var(--pine-deep) 0%,var(--pine) 55%,#17466F 100%);color:var(--paper);padding:24px 24px 16px;border-bottom:3px solid var(--gold);box-shadow:0 10px 30px -18px rgba(8,26,48,.9)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:#9CC8FF;line-height:24px;margin:0 0 12px}
+  .brand a{color:inherit;text-decoration:none}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;color:#C6D9EE;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid #2C4D74}
+  nav a:hover{background:#1A4A79;color:var(--paper)}
+  nav{gap:10px 16px;align-items:flex-end}
+  .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
+  .ng:first-of-type{padding-left:0;border-left:none}
+  .ng{position:relative;padding-top:17px}
+  .ng:has(.ngs){padding-top:35px}
+  .ngl{position:absolute;left:16px;top:0;white-space:nowrap;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6}
+  .ng:first-of-type .ngl,.ng:first-of-type .ngs{left:0}
+  .ngs{position:absolute;left:16px;top:17px;white-space:nowrap;font-size:11px;color:#8FA9C6;line-height:1.3}
+  nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
+  nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
+  @media (max-width:760px){ .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0} }
+  /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
+  .ng{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;column-gap:7px;row-gap:5px;justify-content:start;align-items:center;padding-top:0}
+  .ng:has(.ngs){padding-top:0}
+  .ngl,.ngs{position:static;grid-column:1/-1;white-space:nowrap}
+  .ngl{grid-row:1;left:auto}
+  .ngs{grid-row:2;left:auto;top:auto;font-size:11.5px;color:#A9BFD8;margin-top:-2px}
+  nav a{grid-row:3;padding:8px 16px;border-radius:10px;font-weight:700;background:linear-gradient(180deg,#2A5F96,#1C4A7C);border:1px solid #4A83BF;color:#FFFFFF;box-shadow:0 2px 0 #12365C,0 4px 10px rgba(0,0,0,.28);-webkit-font-smoothing:auto;text-shadow:none;letter-spacing:.02em}
+  nav a:not(.on):hover{background:linear-gradient(180deg,#3573B3,#25609F);border-color:#6FA3DA}
+  nav a:active{box-shadow:0 1px 0 #12365C}
+  nav a.on{box-shadow:0 2px 0 rgba(0,0,0,.35),0 4px 10px rgba(0,0,0,.28)}
+  @media (max-width:760px){
+    .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+    .ngl,.ngs{flex:0 0 100%}
+  }
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  .lang{margin-top:12px;font-size:13px}
+  .lang a{color:#C6D9EE}
+  main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
+  .mode{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:22px}
+  .mode > h2{font-size:22px;margin:0 0 4px;display:flex;align-items:baseline;gap:12px}
+  .mode > h2 small{font-size:13px;color:var(--muted);font-weight:500}
+  .built{color:var(--muted);font-size:12.5px;margin:0 0 6px}
+  section{margin-top:18px}
+  .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
+  .points{margin:0 0 22px;padding:16px 18px;border:1px solid var(--line,#d9e2ee);border-left:5px solid #2F7DF6;border-radius:14px;background:#fff}
+  .points h2{margin:0 0 10px;font-size:18px}
+  .points ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+  .points li{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline;font-size:14.5px;line-height:1.65}
+  .points li b{display:inline-block;min-width:8.5em;color:#1F5FC4}
+  @media (max-width:640px){.points li{grid-template-columns:1fr}.points li b{min-width:0}}
+  .longvideo h2{margin:0 0 4px;font-size:18px}
+  .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
+  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0A2038}
+  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .longvideo .yt button span{width:68px;height:68px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .longvideo .yt button span::after{content:"";border-left:23px solid #0B1E33;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
+  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px}
+  .longvideo .chap li{margin:0 0 2px}
+  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
+  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
+  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
+  .video .yt{position:relative;width:min(270px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
+  .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .video .yt button span{width:64px;height:64px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .video .yt button span::after{content:"";border-left:22px solid #0B1E33;border-top:13px solid transparent;border-bottom:13px solid transparent;margin-left:5px}
+  .video .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .video .vtext{flex:1 1 240px;min-width:0}
+  .video .vtext p{margin:0 0 8px}
+  .video .vtext a{font-size:13px}
+  section h3{font-size:16px;margin:0 0 4px}
+  .lead{color:var(--muted);font-size:13px;margin:0 0 8px}
+  .verdict{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;font-size:14.5px}
+  .verdict .gap{display:block;font-size:12.5px;color:var(--muted);margin-top:5px;font-weight:400}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+  td{padding:6px 8px;border-bottom:1px solid var(--paper-2)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22);margin-right:6px;vertical-align:-1px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .cname{display:flex;align-items:center;gap:6px}
+  .cname .art{width:40px;height:30px;flex:none;display:block;border-radius:4px;object-fit:cover;background:var(--paper-2)}
+  @media (max-width:520px){ .cname .art{width:32px;height:24px} }
+  /* カードのティア表 */
+  .ctier input[type=radio]{position:absolute;opacity:0;pointer-events:none}
+  .ctabs{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--pine);border-radius:12px;overflow:hidden;margin:6px 0 10px;background:#fff}
+  .ctabs label{font-size:15px;font-weight:700;padding:10px 6px;color:var(--pine);border-left:1px solid var(--line);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.25;text-align:center}
+  .ctabs label:first-child{border-left:0}
+  .ctabs label .n{font-size:11.5px;font-weight:500;color:var(--muted)}
+  .ctier input:nth-of-type(1):checked ~ .ctabs label:nth-child(1),.ctier input:nth-of-type(2):checked ~ .ctabs label:nth-child(2),.ctier input:nth-of-type(3):checked ~ .ctabs label:nth-child(3){background:var(--pine);color:#fff}
+  .ctier input:nth-of-type(1):checked ~ .ctabs label:nth-child(1) .n,.ctier input:nth-of-type(2):checked ~ .ctabs label:nth-child(2) .n,.ctier input:nth-of-type(3):checked ~ .ctabs label:nth-child(3) .n{color:#BFD3EA}
+  .ctabs .rd{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+  .ctabs .rd.mr{background:linear-gradient(135deg,#E0A23B,#C4552C)}.ctabs .rd.u{background:#9AAAB4}.ctabs .rd.c{background:#2A3B4C;box-shadow:0 0 0 1px #fff inset}
+  @media (max-width:520px){ .ctabs label{font-size:13px;padding:9px 4px} }
+  @media (max-width:420px){ .ctabs .rd{display:none} }
+  .ccolors{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
+  .ccolors .lbl{font-size:12px;color:var(--muted);margin-right:2px}
+  .ccolors button{font:inherit;font-size:12.5px;line-height:1;padding:6px 10px;border-radius:999px;cursor:pointer;background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .ccolors button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
+  .tchip[hidden],.tempty[hidden]{display:none}
+  .ctier .tiers{display:none}
+  .ctier input:nth-of-type(1):checked ~ .t-mr,.ctier input:nth-of-type(2):checked ~ .t-u,.ctier input:nth-of-type(3):checked ~ .t-c{display:grid}
+  .tiers{display:grid;gap:5px}
+  .trow{display:grid;grid-template-columns:44px 1fr;gap:6px;align-items:stretch}
+  .tlab{display:flex;align-items:center;justify-content:center;border-radius:7px;font:800 20px/1 "Bricolage Grotesque",sans-serif;color:#fff}
+  .tlab.S{background:#C9472E}.tlab.A{background:#D98A1E}.tlab.B{background:#4F8A4A}.tlab.C{background:#6B7A8A}.tlab.D{background:#8C5E58}
+  .tcells{display:flex;flex-wrap:wrap;gap:5px;padding:5px;background:var(--paper-2);border-radius:7px;min-height:38px;align-items:center}
+  .tchip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--line);border-radius:7px;padding:3px 8px;font-size:13px}
+  .tchip b{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .ctier .tchip{padding:3px 8px 3px 4px}
+  .tchip .tpic{position:relative;flex:none;display:block}
+  .tchip .tpic .art{width:30px;height:22px;display:block;border-radius:3px;object-fit:cover;background:var(--paper-2)}
+  .tchip .tpic > :last-child{position:absolute;right:-5px;bottom:-4px;transform:scale(.72)}
+  .tempty{font-size:12px;color:var(--muted);padding:0 4px}
+  .tavg{font-size:12px;color:var(--muted);margin:6px 0 0}
+  .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
+  .rar.uncommon{background:#8496A0}.rar.rare{background:var(--gold);color:#FFFFFF}.rar.mythic{background:#C4552C}
+  .links ul{margin:6px 0 0;padding-left:1.2em}
+  .links a{color:var(--pine)}
+  .source{color:var(--muted);font-size:12px;margin-top:20px}
+  .setlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+  .setlist li a{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-decoration:none;color:var(--ink)}
+  .setlist li a:hover{border-color:var(--gold)}
+  .setlist small{display:block;color:var(--muted);font-size:12px}
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .langsel{background:#0F2A44;color:var(--paper);border:1px solid #2E5A86;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:13px}
+  .summary{font-size:14.5px;line-height:1.8;margin:0 0 16px;padding:12px 16px;background:var(--paper-2);border-radius:8px}
+  header h1 .code{font-size:14px;font-weight:600;color:#A9C2DE;margin-left:8px;letter-spacing:.06em}
+  footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+
+  .gstrip{margin:28px 0 0;padding:16px 0 0;border-top:1px solid var(--line)}
+  .gstrip .gh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 4px}.gstrip h2{font-size:15px;margin:0}.gstrip .gpr{font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px}
+  .gstrip .gmore{margin-left:auto;font-size:12.5px}.gstrip .glead{font-size:12.5px;color:var(--muted);margin:0 0 10px}
+  .gstrip ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+  .gstrip li{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px;display:flex;gap:8px;align-items:flex-start}
+  .gstrip .gi{flex:none;width:64px;height:64px;border-radius:6px;overflow:hidden;background:var(--paper-2)}.gstrip .gi img{width:100%;height:100%;object-fit:contain;display:block}
+  .gstrip .gt{min-width:0}.gstrip .gn{font-size:12px;font-weight:700;line-height:1.35;margin:0 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .gstrip .gp{font-size:12px;margin:0 0 5px}.gstrip .gb{display:inline-block;font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--pine);color:#fff;text-decoration:none}
+  footer a{color:var(--muted)}
+  .faq details{border-bottom:1px solid var(--line,#D7E2EE);padding:10px 2px}
+  .faq summary{cursor:pointer;font-weight:700;font-size:14.5px}
+  .faq p{margin:8px 0 2px;font-size:14px;line-height:1.8}
+  @media (max-width:720px){ header{padding:16px 14px 12px} main{padding:16px 12px 50px} header p{min-height:0} nav{gap:6px;font-size:12px} .mode{padding:14px 12px} }
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brandrow"><div class="brand"><a href="/" class="brandhome" aria-label="Home" style="display:inline-block;margin:0 12px 0 0;vertical-align:middle"><img class="brandlogo" src="/assets/logo/arena.png" alt="MTG Arena" width="97" height="34" style="height:34px;width:auto;display:block;margin-top:-5px" onerror="this.parentNode.remove()"></a><a href="../">Limited Workbench</a></div>
+      <select class="langsel" aria-label="Language" onchange="location.href=this.value">
+        <option value="draft.html">日本語</option>
+        <option value="draft.en.html" selected>English</option>
+      </select></div>
+    <nav>
+      <div class="ng"><span class="ngl">Start</span><span class="ngs">MTG basics &amp; how to use this site</span><a href="../start/index.en.html">What is MTG?</a><a href="../start/limited.en.html">What is Limited?</a></div>
+      <div class="ng"><span class="ngl">Practice with virtual packs</span><span class="ngs">Open 6 packs · draft vs CPUs or players</span><a href="../sealed.html">Sealed practice</a><a href="../draft.html">Draft practice (vs CPU)</a><a href="../draftroom.html">Draft practice (vs players)</a></div>
+      <div class="ng"><span class="ngl">Deck-building help</span><span class="ngs">Deck ideas and pick advice in live Arena events · PC only</span><a href="../sealed-assist.html">Sealed deck assistant<b class="pcb">PC</b></a><a href="../assistant.html">Draft deck assistant<b class="pcb">PC</b></a></div>
+      <div class="ng"><span class="ngl">Data</span><span class="ngs">How strong and fast each set is</span><a href="../reports.html">Set reports</a></div>
+      <div class="ng"><span class="ngl">Play</span><span class="ngs">Play friends or run a tournament</span><a href="../table.html">Play table</a><a href="../swiss.html">Swiss pairings</a></div>
+      <div class="ng"><span class="ngl">Shop</span><span class="ngs">MTG supplies sold in Japan</span><a href="../goods/index.en.html">Japanese supplies</a></div>
+    </nav>
+    <h1>Draft basics</h1>
+    <p>In Draft you pick one card at a time as packs are passed around, then build a 40-card deck. Here is what to take and when to settle on colours.</p>
+    <link rel="alternate" hreflang="ja" href="draft.html">
+  </div>
+</header>
+<main>
+<div class="modebar"><div class="tabs" role="navigation" aria-label="Getting started"><a class="tab" href="index.en.html">What is MTG?</a><a class="tab" href="limited.en.html">What is Limited?</a><a class="tab" href="sealed.en.html">Building Sealed</a><a class="tab on" href="draft.en.html" aria-current="page">Draft basics</a></div></div>
+<ul class="toc"><li><a href="#sum">In short</a></li><li><a href="#flow">How picks flow</a></li><li><a href="#when">What to take</a></li><li><a href="#signal">Open colours</a></li><li><a href="#data">The data</a></li><li><a href="#ng">Common mistakes</a></li><li><a href="#next">Next steps</a></li></ul>
+<section class="blk" id="sum"><h2>In short</h2><ol class="sum"><li>Early on, take <b>the strongest card</b>, whatever the colour</li><li><b>Settle on two colours</b> by early pack two</li><li>A colour whose good cards come late is <b>open</b></li></ol></section>
+<section class="blk" id="flow"><h2>How picks flow</h2>
+<ol class="flow"><li><b>Pack 1</b>Take one of 14 cards and pass the rest left</li><li><b>Pack 2</b>Pass to the right</li><li><b>Pack 3</b>Pass left again</li><li><b>Build</b>23 of your 42 picks plus 17 lands</li></ol><p class="note">Building the deck works the same as in Sealed — follow the steps in <a href="sealed.en.html#steps">Building a Sealed deck</a>.</p></section>
+<section class="blk" id="when"><h2>What to take at each stage</h2>
+<table class="cmp when"><thead><tr><th>Stage</th><th>What to take</th></tr></thead><tbody>
+<tr><td>Early pack 1<br><small>Picks 1–5</small></td><td><b>The strongest card</b>, whatever the colour: bombs, then removal, then strong creatures</td></tr>
+<tr><td>Late pack 1 to<br>early pack 2</td><td>Watch which colours keep flowing and <b>narrow down to two</b></td></tr>
+<tr><td>Late pack 2 to<br>pack 3</td><td><b>Fill the gaps</b> in your two colours: two-drops, removal, answers to flyers</td></tr></tbody></table></section>
+<section class="blk" id="signal"><h2>How to spot an open colour</h2>
+<div class="cards3"><div class="pt"><span class="ic">🔍</span><b>Watch the late picks</b><p>If strong cards of a colour are still there from pick 6 onwards, the players passing to you are not taking it.</p></div><div class="pt"><span class="ic">🔁</span><b>Remember the direction</b><p>Packs 1 and 3 go the same way, so a colour that was open in pack 1 tends to flow again in pack 3.</p></div><div class="pt"><span class="ic">⚖️</span><b>Don't marry a colour</b><p>Moving into the open colour usually works out better than forcing one strong card's colour.</p></div></div><p class="note">In Quick Draft the other seven drafters are bots, so treat these signals as a rough guide.</p></section>
+<section class="blk" id="data"><h2>Draft by the numbers</h2><p class="lead">Totals across sets from this site's <a href="../reports.html">set reports</a>.</p>
+<div class="tiles"><div class="tile"><div class="big">13<small>/15 sets</small></div><b>Light decks do better in Draft</b><p>Decks under 2.9 average mana value beat decks at 3.5 and above, by 1.5 points on average. Don't overload on expensive cards.</p></div><div class="tile"><div class="big">1.3<small> points</small></div><b>Three-colour decks win less than two-colour ones</b><p>Two colours win 56.1%, three colours 54.8%. Only about 8% of decks use three. Stick to two in Draft.</p></div></div><p class="asof">Based on 15 sets, data as of 2026-10-21. The numbers change as the data updates.</p></section>
+<section class="blk" id="ng"><h2>Common mistakes</h2>
+<ul class="mist"><li><span class="bad">Sticking with your first pick's colour no matter what</span><span class="ar">→</span><span class="good">Read the flow and switch by early pack two</span></li><li><span class="bad">Taking only rares and expensive cards</span><span class="ar">→</span><span class="good">From mid pack 1, pick up two-drops and removal on purpose</span></li><li><span class="bad">Still taking the 'best card' in pack 3</span><span class="ar">→</span><span class="good">Prioritise playables in your two colours. A card you can't play is worth nothing</span></li></ul></section>
+<section class="blk" id="next"><h2>Next steps</h2>
+<div class="cta"><a class="main" href="../draft.html"><b>Practise Draft</b><small>A virtual eight-player draft to practise your picks.</small></a><a class="" href="../draftroom.html"><b>Draft with friends</b><small>Share an invite link and draft at the same table.</small></a><a class="" href="../assistant.html"><b>Draft deck helper</b><small>Shows suggestions by win rate and colour during an Arena draft (PC).</small></a><a class="" href="../reports.html"><b>Set reports</b><small>The strongest colours and cards in each set.</small></a></div></section>
+<div id="goodsStrip"></div>
+<script src="../goods-widget.js?v=6" defer></script>
+</main>
+<footer>Data sources, legal notices and how to credit this site are all on the <a href="../privacy.html">privacy page</a>.<br><a href="../faq.html">FAQ</a> · <a href="../contact.html">Contact</a> · <a href="../about.html">About</a><br><a href="../goods/index.en.html">Japanese TCG supplies — sleeves and deck boxes you can only get in Japan</a></footer>
+</body>
+</html>

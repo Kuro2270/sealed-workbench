@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "ドラフトは白赤",
+   "t": "白赤が58.9%で、2位以下に3ポイントの差をつけています。"
+  },
+  {
+   "h": "シールドは重めで青",
+   "t": "シールドは重いデッキほど有利で、色別は青が1位です。"
+  },
+  {
+   "h": "拾いたいコモン",
+   "t": "[[Sibsig Appraiser]]・[[Dispelling Exhale]]、シールドでは[[Unending Whisper]]がコモンの上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "Draft is White/Red",
+   "t": "White/Red wins 58.9%, three points clear of every other pair."
+  },
+  {
+   "h": "Sealed: heavier and blue",
+   "t": "In Sealed heavier decks do better, and Blue is the top colour."
+  },
+  {
+   "h": "Commons to grab",
+   "t": "[[Sibsig Appraiser]] and [[Dispelling Exhale]], plus [[Unending Whisper]] in Sealed, are the top commons."
+  }
+ ]
+}

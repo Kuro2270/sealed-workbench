@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "白黒と青赤",
+   "t": "ドラフトは白黒59.7%・青赤59.1%、シールドも白黒61.0%が1位です。"
+  },
+  {
+   "h": "注目のカード",
+   "t": "神話の[[The Last Ronin]]（70.0%）とレアの[[Sally Pride, Lioness Leader]]（70.6%）。"
+  },
+  {
+   "h": "拾いたいコモン",
+   "t": "[[Frog Butler]]・[[Mouser Foundry]]・[[Manhole Missile]]がコモンの上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "White/Black and Blue/Red",
+   "t": "White/Black (59.7%) and Blue/Red (59.1%) lead Draft, and White/Black (61.0%) tops Sealed too."
+  },
+  {
+   "h": "Cards to watch",
+   "t": "The mythic [[The Last Ronin]] (70.0%) and the rare [[Sally Pride, Lioness Leader]] (70.6%)."
+  },
+  {
+   "h": "Commons to grab",
+   "t": "[[Frog Butler]], [[Mouser Foundry]] and [[Manhole Missile]] are the top commons."
+  }
+ ]
+}

@@ -89,6 +89,12 @@
   section{margin-top:18px}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
   .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
+  .points{margin:0 0 22px;padding:16px 18px;border:1px solid var(--line,#d9e2ee);border-left:5px solid #2F7DF6;border-radius:14px;background:#fff}
+  .points h2{margin:0 0 10px;font-size:18px}
+  .points ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+  .points li{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline;font-size:14.5px;line-height:1.65}
+  .points li b{display:inline-block;min-width:8.5em;color:#1F5FC4}
+  @media (max-width:640px){.points li{grid-template-columns:1fr}.points li b{min-width:0}}
   .longvideo h2{margin:0 0 4px;font-size:18px}
   .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
   .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
@@ -210,7 +216,11 @@
   </div>
 </header>
 <main>
-<article class="mode">
+<section class="points"><h2>この環境のポイント</h2><ul>
+  <li><b>重めが有利</b><span>軽いデッキの54.3%に対し、重いデッキは56.2%。シールドではさらに重いデッキが有利です。</span></li>
+  <li><b>緑と白</b><span>白緑57.8%が1位。青は色別で最下位で、青赤は51.1%です。</span></li>
+  <li><b>拾いたいコモン</b><span>「鞍上からの投擲」・「貪る灰」・「盾、構え」がコモンの上位です。</span></li>
+</ul></section><article class="mode">
   <h2>ドラフト <small>総試合数 1,388,295／全体勝率 54.8%</small></h2>
   <p class="built">集計 2026-10-05</p>
   <p class="summary">サンダー・ジャンクションの無法者のドラフトは1,388,295試合のデータで、全体勝率は54.8%。環境はやや遅く、重いデッキのほうが勝ちやすいです。色は緑（55.7%）と白（55.5%）が強く、2色の組み合わせでは白緑が57.8%で最強、青赤が51.1%で最弱です。カード単位ではコモンは「鞍上からの投擲」、アンコモンは「荒野無頼団の緑刃」、レアは「乱伐者、ボニー・ポール」が最も勝率が高いカードです。</p>
@@ -445,6 +455,7 @@
 <section class="links"><h3>関連ページ</h3><ul>
   <li><a href="../reports.html?set=OTJ">環境レポート（他のセットに切り替え）</a></li>
   <li><a href="../sealed.html">シールド構築の練習</a>／<a href="../draft.html">ドラフト構築の練習</a>／<a href="../draftroom.html">友達とドラフト（対人戦）</a>／<a href="../assistant.html">ドラフトのデッキ構築補助（PC・Chrome/Edge）</a></li>
+  <li><a href="../start/sealed.html">シールドの組み方</a>／<a href="../start/draft.html">ドラフトの基本</a></li>
   <li><a href="index.html">セット一覧</a></li>
 </ul></section>
 <div id="goodsStrip"></div>

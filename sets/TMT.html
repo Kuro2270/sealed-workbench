@@ -89,6 +89,12 @@
   section{margin-top:18px}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
   .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
+  .points{margin:0 0 22px;padding:16px 18px;border:1px solid var(--line,#d9e2ee);border-left:5px solid #2F7DF6;border-radius:14px;background:#fff}
+  .points h2{margin:0 0 10px;font-size:18px}
+  .points ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+  .points li{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline;font-size:14.5px;line-height:1.65}
+  .points li b{display:inline-block;min-width:8.5em;color:#1F5FC4}
+  @media (max-width:640px){.points li{grid-template-columns:1fr}.points li b{min-width:0}}
   .longvideo h2{margin:0 0 4px;font-size:18px}
   .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
   .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
@@ -210,7 +216,11 @@
   </div>
 </header>
 <main>
-<section class="longvideo"><h2>リミテッド環境まとめ（長尺動画）</h2><p class="lead">ドラフトとシールドの両方のデータで、強い色・狙い目の色・ボム・罠・色別のおすすめカードまでまとめました。目次を押すと、その場面から再生します。</p>
+<section class="points"><h2>この環境のポイント</h2><ul>
+  <li><b>白黒と青赤</b><span>ドラフトは白黒59.7%・青赤59.1%、シールドも白黒61.0%が1位です。</span></li>
+  <li><b>注目のカード</b><span>神話の「ラスト・ローニン」（70.0%）とレアの「ライオンクイーン、サリー・プライド」（70.6%）。</span></li>
+  <li><b>拾いたいコモン</b><span>「カエルの執事」・「マウサー製造工場」・「マンホールミサイル」がコモンの上位です。</span></li>
+</ul></section><section class="longvideo"><h2>リミテッド環境まとめ（長尺動画）</h2><p class="lead">ドラフトとシールドの両方のデータで、強い色・狙い目の色・ボム・罠・色別のおすすめカードまでまとめました。目次を押すと、その場面から再生します。</p>
   <div class="lv"><div class="yt" data-id="E-_6FafHLUE">
     <img src="https://i.ytimg.com/vi/E-_6FafHLUE/hqdefault.jpg" alt="【ミュータント タートルズ】環境まとめ｜強い色・狙い目の色・ボム10枚・罠カード・除去【MTGアリーナ リミテッド】" loading="lazy" width="640" height="360">
     <button type="button" aria-label="再生"><span></span></button>
@@ -462,6 +472,7 @@
 <section class="links"><h3>関連ページ</h3><ul>
   <li><a href="../reports.html?set=TMT">環境レポート（他のセットに切り替え）</a></li>
   <li><a href="../sealed.html">シールド構築の練習</a>／<a href="../draft.html">ドラフト構築の練習</a>／<a href="../draftroom.html">友達とドラフト（対人戦）</a>／<a href="../assistant.html">ドラフトのデッキ構築補助（PC・Chrome/Edge）</a></li>
+  <li><a href="../start/sealed.html">シールドの組み方</a>／<a href="../start/draft.html">ドラフトの基本</a></li>
   <li><a href="index.html">セット一覧</a></li>
 </ul></section>
 <div id="goodsStrip"></div>

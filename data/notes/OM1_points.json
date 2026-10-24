@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "白緑が中心",
+   "t": "ドラフト58.7%・シールド61.2%で、どちらも2色の組み合わせの1位です。"
+  },
+  {
+   "h": "赤は苦戦",
+   "t": "色別では赤が最下位（52.5%）で、黒赤は51.8%です。"
+  },
+  {
+   "h": "拾いたいコモン",
+   "t": "[[Spectacular Tactics]]・[[City Pigeon]]・[[Gallant Citizen]]がコモンの上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "White/Green leads",
+   "t": "White/Green is the top pair in both Draft (58.7%) and Sealed (61.2%)."
+  },
+  {
+   "h": "Red struggles",
+   "t": "Red is the weakest colour (52.5%), and Black/Red sits at 51.8%."
+  },
+  {
+   "h": "Commons to grab",
+   "t": "[[Spectacular Tactics]], [[City Pigeon]] and [[Gallant Citizen]] are the top commons."
+  }
+ ]
+}

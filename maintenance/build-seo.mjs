@@ -71,8 +71,8 @@ async function main(){
     ].join("\n");
   });
 
-  // 入門ページ（MTGとは＝start/index、リミテッドとは＝start/limited。日本語は .html、英語は .en.html）
-  for(const base of ["index", "limited"]){
+  // 入門ページ（MTGとは＝start/index、リミテッドとは＝start/limited、シールドの組み方＝start/sealed、ドラフトの基本＝start/draft。日本語は .html、英語は .en.html）
+  for(const base of ["index", "limited", "sealed", "draft"]){
     try{
       await stat(`start/${base}.html`);
       for(const f of [`${base}.html`, `${base}.en.html`]){

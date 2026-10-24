@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "白が軸",
+   "t": "色別1位は白（57.4%）。ドラフトは白黒58.2%・白赤58.1%が上位です。"
+  },
+  {
+   "h": "シールドは白赤",
+   "t": "シールドは白赤が59.3%で1位です。"
+  },
+  {
+   "h": "拾いたいコモン",
+   "t": "[[Elite Interceptor]]・[[Pursue the Past]]・[[Rubble Rouser]]がコモンの上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "White is the core",
+   "t": "White is the top colour (57.4%). White/Black (58.2%) and White/Red (58.1%) lead Draft."
+  },
+  {
+   "h": "Sealed is White/Red",
+   "t": "White/Red (59.3%) is the top pair in Sealed."
+  },
+  {
+   "h": "Commons to grab",
+   "t": "[[Elite Interceptor]], [[Pursue the Past]] and [[Rubble Rouser]] are the top commons."
+  }
+ ]
+}

@@ -89,6 +89,12 @@
   section{margin-top:18px}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
   .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
+  .points{margin:0 0 22px;padding:16px 18px;border:1px solid var(--line,#d9e2ee);border-left:5px solid #2F7DF6;border-radius:14px;background:#fff}
+  .points h2{margin:0 0 10px;font-size:18px}
+  .points ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+  .points li{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline;font-size:14.5px;line-height:1.65}
+  .points li b{display:inline-block;min-width:8.5em;color:#1F5FC4}
+  @media (max-width:640px){.points li{grid-template-columns:1fr}.points li b{min-width:0}}
   .longvideo h2{margin:0 0 4px;font-size:18px}
   .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
   .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
@@ -210,7 +216,11 @@
   </div>
 </header>
 <main>
-<article class="mode">
+<section class="points"><h2>この環境のポイント</h2><ul>
+  <li><b>ドラフトは混戦</b><span>黒緑57.5%、白青・白緑57.0%が上位で、速さによる差もほとんどありません。</span></li>
+  <li><b>シールドは白緑</b><span>白緑が61.0%で頭ひとつ抜け、重いデッキほど有利です。黒赤は51.2%と苦戦しています。</span></li>
+  <li><b>拾いたいコモン</b><span>「アケノテブクロ使いの賛美者」・「完全の確立」・「傷刃の斥候」がコモンの上位です。</span></li>
+</ul></section><article class="mode">
   <h2>ドラフト <small>総試合数 593,444／全体勝率 55.6%</small></h2>
   <p class="built">集計 2026-10-21</p>
   <p class="summary">ローウィンの昏明のドラフトは593,444試合のデータで、全体勝率は55.6%。環境は速さでは差がつきにくいです。色は緑（55.9%）と白（55.8%）が強く、2色の組み合わせでは黒緑が57.5%で最強、黒赤が54.1%で最弱です。カード単位ではコモンは「アケノテブクロ使いの賛美者」、アンコモンは「深水路の決闘者」、レアは「アシュリングの命令」が最も勝率が高いカードです。</p>
@@ -445,6 +455,7 @@
 <section class="links"><h3>関連ページ</h3><ul>
   <li><a href="../reports.html?set=ECL">環境レポート（他のセットに切り替え）</a></li>
   <li><a href="../sealed.html">シールド構築の練習</a>／<a href="../draft.html">ドラフト構築の練習</a>／<a href="../draftroom.html">友達とドラフト（対人戦）</a>／<a href="../assistant.html">ドラフトのデッキ構築補助（PC・Chrome/Edge）</a></li>
+  <li><a href="../start/sealed.html">シールドの組み方</a>／<a href="../start/draft.html">ドラフトの基本</a></li>
   <li><a href="index.html">セット一覧</a></li>
 </ul></section>
 <div id="goodsStrip"></div>

@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "速い環境",
+   "t": "軽いデッキ57.3%、重いデッキ52.9%と、速さの差が大きい環境です。"
+  },
+  {
+   "h": "白が圧倒",
+   "t": "シールドの白は61.3%。コモンの上位4枚もすべて白です（[[Compassionate Healer]]など）。"
+  },
+  {
+   "h": "ドラフトのコモン",
+   "t": "[[Lost Days]]・[[Firebending Lesson]]・[[It'll Quench Ya!]]が上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "A fast format",
+   "t": "Speed matters a lot: 57.3% for light decks against 52.9% for the heaviest."
+  },
+  {
+   "h": "White dominates",
+   "t": "White wins 61.3% in Sealed, and the top four commons there are all white ([[Compassionate Healer]] and more)."
+  },
+  {
+   "h": "Draft commons",
+   "t": "[[Lost Days]], [[Firebending Lesson]] and [[It'll Quench Ya!]] are the top commons."
+  }
+ ]
+}

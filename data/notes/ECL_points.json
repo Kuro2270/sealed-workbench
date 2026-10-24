@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "ドラフトは混戦",
+   "t": "黒緑57.5%、白青・白緑57.0%が上位で、速さによる差もほとんどありません。"
+  },
+  {
+   "h": "シールドは白緑",
+   "t": "白緑が61.0%で頭ひとつ抜け、重いデッキほど有利です。黒赤は51.2%と苦戦しています。"
+  },
+  {
+   "h": "拾いたいコモン",
+   "t": "[[Dawnhand Eulogist]]・[[Assert Perfection]]・[[Scarblade Scout]]がコモンの上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "Draft is wide open",
+   "t": "Black/Green (57.5%), White/Blue and White/Green (57.0%) lead, and speed makes almost no difference."
+  },
+  {
+   "h": "Sealed is White/Green",
+   "t": "White/Green (61.0%) is clearly ahead, and heavier decks do better. Black/Red struggles at 51.2%."
+  },
+  {
+   "h": "Commons to grab",
+   "t": "[[Dawnhand Eulogist]], [[Assert Perfection]] and [[Scarblade Scout]] are the top commons."
+  }
+ ]
+}

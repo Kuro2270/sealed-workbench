@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "重めが有利",
+   "t": "軽いデッキの54.3%に対し、重いデッキは56.2%。シールドではさらに重いデッキが有利です。"
+  },
+  {
+   "h": "緑と白",
+   "t": "白緑57.8%が1位。青は色別で最下位で、青赤は51.1%です。"
+  },
+  {
+   "h": "拾いたいコモン",
+   "t": "[[Throw from the Saddle]]・[[Consuming Ashes]]・[[Take Up the Shield]]がコモンの上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "Heavier is better",
+   "t": "Light decks win 54.3% against 56.2% for the heaviest, and Sealed leans even further that way."
+  },
+  {
+   "h": "Green and White",
+   "t": "White/Green (57.8%) is the top pair. Blue is the weakest colour, and Blue/Red sits at 51.1%."
+  },
+  {
+   "h": "Commons to grab",
+   "t": "[[Throw from the Saddle]], [[Consuming Ashes]] and [[Take Up the Shield]] are the top commons."
+  }
+ ]
+}

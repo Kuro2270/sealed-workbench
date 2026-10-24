@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "緑の環境",
+   "t": "ドラフト・シールドとも緑が色別1位。2色の上位3つ（青緑57.0%・黒緑56.9%・白緑56.8%）はすべて緑を含みます。"
+  },
+  {
+   "h": "速さより中身",
+   "t": "ドラフトは速さで差がつきにくく、シールドはやや重いデッキが有利です。白赤（52.3%）は苦戦しています。"
+  },
+  {
+   "h": "拾いたいコモン",
+   "t": "[[Stampeding Scurryfoot]]・[[Migrating Ketradon]]（どちらも緑）がコモンの上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "A green format",
+   "t": "Green is the top colour in both formats, and the top three pairs (Blue/Green 57.0%, Black/Green 56.9%, White/Green 56.8%) all include it."
+  },
+  {
+   "h": "Quality over speed",
+   "t": "Speed barely matters in Draft, and Sealed leans slightly towards heavier decks. White/Red (52.3%) struggles."
+  },
+  {
+   "h": "Commons to grab",
+   "t": "[[Stampeding Scurryfoot]] and [[Migrating Ketradon]], both green, are the top commons."
+  }
+ ]
+}

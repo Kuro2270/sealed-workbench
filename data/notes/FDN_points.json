@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "軽さが大事",
+   "t": "重いデッキ（平均マナ総量3.5以上）は51.8%まで落ちる、速い環境です。"
+  },
+  {
+   "h": "白が強い",
+   "t": "シールドは白を含む組み合わせが上位4つを占めます（白黒58.7%など）。黒緑・青緑は苦戦しています。"
+  },
+  {
+   "h": "除去のコモン",
+   "t": "[[Stab]]・[[Bake into a Pie]]・[[Burst Lightning]]がコモンの上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "Stay low",
+   "t": "A fast format: the heaviest decks (3.5+ average mana value) drop to 51.8%."
+  },
+  {
+   "h": "White is strong",
+   "t": "In Sealed the top four pairs all include White (White/Black 58.7%). Black/Green and Blue/Green struggle."
+  },
+  {
+   "h": "Removal commons",
+   "t": "[[Stab]], [[Bake into a Pie]] and [[Burst Lightning]] are the top commons."
+  }
+ ]
+}

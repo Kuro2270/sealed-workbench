@@ -78,12 +78,14 @@ const L = {
     rarity: { mythic:"神話レア", rare:"レア", uncommon:"アンコモン", common:"コモン" },
     col: { color:"色", pair:"色の組み合わせ", cmc:"マナ総量", wr:"勝率", score:"点数（GIH勝率）", games:"試合数", card:"カード", cards:"種類数" },
     colorName: { W:"白", U:"青", B:"黒", R:"赤", G:"緑" },
+    pointsH: "この環境のポイント",
     longH: "リミテッド環境まとめ（長尺動画）", longLead: "ドラフトとシールドの両方のデータで、強い色・狙い目の色・ボム・罠・色別のおすすめカードまでまとめました。目次を押すと、その場面から再生します。",
     videoH: "1分でわかる環境（動画）", videoLead: "この環境の要点を1分のショート動画にまとめました。再生ボタンで YouTube の動画を読み込みます。", videoEarlyH: "発売直後の速報（動画）", videoEarlyLead: "発売直後の数日分のデータから作った速報です。順位はこの後のデータで動いています。", videoPlay: "再生", videoOpen: "YouTube で見る",
     links: "関連ページ",
     linkRatings: "このセットの全カードの勝率一覧",
     linkReports: "環境レポート（他のセットに切り替え）",
     linkSealed: "シールド構築の練習", linkDraft: "ドラフト構築の練習", linkRoom: "友達とドラフト（対人戦）", linkAssist: "ドラフトのデッキ構築補助（PC・Chrome/Edge）",
+    linkGuideSealed: "シールドの組み方", linkGuideDraft: "ドラフトの基本",
     linkIndex: "セット一覧",
     indexH1: "セット別のリミテッド カード点数ランキングと環境レポート",
     indexLead: "セットを選ぶと、そのセットのカード点数ランキングと、ドラフト・シールドの環境レポートが開きます。発売日の新しい順です。",
@@ -131,12 +133,14 @@ const L = {
     rarity: { mythic:"Mythic", rare:"Rare", uncommon:"Uncommon", common:"Common" },
     col: { color:"Colour", pair:"Pair", cmc:"Mana value", wr:"Win rate", score:"Rating (GIH WR)", games:"Games", card:"Card", cards:"Cards" },
     colorName: { W:"White", U:"Blue", B:"Black", R:"Red", G:"Green" },
+    pointsH: "Key points of this format",
     longH: "Format overview (long video)", longLead: "We covered the strongest colour pairs, sleeper pairs, the best bombs, trap rares and the top commons and uncommons for each colour, using both Draft and Sealed data. Press a chapter to jump to that part of the video.",
     videoH: "The format in 60 seconds (video)", videoLead: "The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.", videoEarlyH: "Early look (video)", videoEarlyLead: "Made from the first days of data. Rankings have moved since.", videoPlay: "Play", videoOpen: "Watch on YouTube",
     links: "Related pages",
     linkRatings: "All card win rates for this set",
     linkReports: "Set reports (switch sets)",
     linkSealed: "Sealed practice", linkDraft: "Draft practice", linkRoom: "Draft with friends (vs players)", linkAssist: "Draft deck assistant (PC, Chrome/Edge)",
+    linkGuideSealed: "Building a Sealed deck", linkGuideDraft: "Draft basics",
     linkIndex: "All sets",
     indexH1: "Limited card ratings and format reports by set",
     indexLead: "Pick a set to open its card ratings and its Draft and Sealed report. Newest first.",
@@ -413,6 +417,12 @@ ${head}
   section{margin-top:18px}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
   .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
+  .points{margin:0 0 22px;padding:16px 18px;border:1px solid var(--line,#d9e2ee);border-left:5px solid #2F7DF6;border-radius:14px;background:#fff}
+  .points h2{margin:0 0 10px;font-size:18px}
+  .points ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+  .points li{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline;font-size:14.5px;line-height:1.65}
+  .points li b{display:inline-block;min-width:8.5em;color:#1F5FC4}
+  @media (max-width:640px){.points li{grid-template-columns:1fr}.points li b{min-width:0}}
   .longvideo h2{margin:0 0 4px;font-size:18px}
   .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
   .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
@@ -675,6 +685,18 @@ ${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoS
   return out;
 }
 
+/* この環境のポイント（data/notes/<SET>_points.json に書いた、短い解説。3つほど）。[[英語のカード名]] は日本語のページでは日本語名にする */
+function pointsSection(lang, code, names){
+  const P = (() => { try{ return JSON.parse(readFileSync(`data/notes/${code}_points.json`, "utf8")); }catch(e){ return null; } })();
+  const list = P && P[lang];
+  if(!list || !list.length) return "";
+  const card = n => (lang === "ja" && (names[n] || names[n.split(" // ")[0]])) ? noRuby(names[n] || names[n.split(" // ")[0]]) : n;
+  const text = s => esc(s).replace(/\[\[(.+?)\]\]/g, (_, n) => lang === "ja" ? `「${esc(card(n))}」` : `<i>${esc(n)}</i>`);
+  return `<section class="points"><h2>${esc(L[lang].pointsH)}</h2><ul>
+${list.map(p => `  <li><b>${esc(p.h)}</b><span>${text(p.t)}</span></li>`).join("\n")}
+</ul></section>`;
+}
+
 function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos, long, images, full = images){
   const T = L[lang];
   const modes = ["draft","sealed"].filter(m => arts[m]);
@@ -694,7 +716,7 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos, 
 <meta property="og:url" content="${canonical}">`;
   const header = `    <h1>${esc(T.h1(setDisplay))} <small class="code">${esc(code)}</small></h1>
     <p>${esc(T.lead)}${info.released_at ? `　${lang === "ja" ? "発売" : "Released"} ${esc(info.released_at)}` : ""}</p>`;
-  const body = (modes.length ? longSection(lang, code, setDisplay, long) : "") + (modes.length
+  const body = (modes.length ? pointsSection(lang, code, names) + longSection(lang, code, setDisplay, long) : "") + (modes.length
     ? modes.map(m => modeSection(lang, code, m, arts[m], speedIndex, names, setDisplay, videos, images, full)).join("\n")
     : `<p>${esc(T.none)}</p>`);
   const faqLd = { "@context": "https://schema.org", "@type": "FAQPage", inLanguage: lang,
@@ -706,6 +728,7 @@ ${T.faq.map(([q, a]) => `  <details><summary>${esc(q)}</summary><p>${esc(a)}</p>
   const links = `<section class="links"><h3>${esc(T.links)}</h3><ul>
   <li><a href="../reports.html?set=${code}">${esc(T.linkReports)}</a></li>
   <li><a href="../sealed.html">${esc(T.linkSealed)}</a>／<a href="../draft.html">${esc(T.linkDraft)}</a>／<a href="../draftroom.html">${esc(T.linkRoom)}</a>／<a href="../assistant.html">${esc(T.linkAssist)}</a></li>
+  <li><a href="../start/sealed${lang === "en" ? ".en" : ""}.html">${esc(T.linkGuideSealed)}</a>／<a href="../start/draft${lang === "en" ? ".en" : ""}.html">${esc(T.linkGuideDraft)}</a></li>
   <li><a href="index${lang === "en" ? ".en" : ""}.html">${esc(T.linkIndex)}</a></li>
 </ul></section>`;   // データの出典・権利表示は、ページ下のリンク先（プライバシーポリシー）にまとめる（2026年10月）
   // セットごとの OGP 画像（build-set-ogp.mjs が作る）。まだ無いセットは、サイト共通の画像にする（SNS で画像が出ないのを防ぐ）

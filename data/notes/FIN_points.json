@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "ドラフトとシールドで別の顔",
+   "t": "ドラフトは速いデッキ（58.1%）がはっきり有利、シールドはやや重いデッキが有利です。"
+  },
+  {
+   "h": "組み合わせ",
+   "t": "ドラフトは青赤58.2%、シールドは白黒61.6%が1位。赤緑はどちらでも最下位です。"
+  },
+  {
+   "h": "拾いたいコモン",
+   "t": "[[White Auracite]]・[[Combat Tutorial]]・[[Town Greeter]]がコモンの上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "Two different formats",
+   "t": "In Draft fast decks (58.1%) are clearly ahead; in Sealed slightly heavier decks do better."
+  },
+  {
+   "h": "Best pairs",
+   "t": "Blue/Red (58.2%) tops Draft and White/Black (61.6%) tops Sealed. Red/Green is last in both."
+  },
+  {
+   "h": "Commons to grab",
+   "t": "[[White Auracite]], [[Combat Tutorial]] and [[Town Greeter]] are the top commons."
+  }
+ ]
+}

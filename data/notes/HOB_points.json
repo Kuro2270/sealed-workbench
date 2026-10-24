@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "速い黒赤",
+   "t": "軽いデッキが有利で、黒赤がドラフト58.6%・シールド60.6%でどちらも1位です。"
+  },
+  {
+   "h": "青は苦戦",
+   "t": "シールドの青は52.1%、青緑は50.7%です。"
+  },
+  {
+   "h": "拾いたいコモン",
+   "t": "[[Crude Bent Blade]]・[[Pinecone Strike]]・[[Gollum, Silent Slinker]]がコモンの上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "Fast Black/Red",
+   "t": "Lighter decks win more, and Black/Red is the top pair in both Draft (58.6%) and Sealed (60.6%)."
+  },
+  {
+   "h": "Blue struggles",
+   "t": "In Sealed, Blue wins 52.1% and Blue/Green only 50.7%."
+  },
+  {
+   "h": "Commons to grab",
+   "t": "[[Crude Bent Blade]], [[Pinecone Strike]] and [[Gollum, Silent Slinker]] are the top commons."
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "白青が最強",
+   "t": "ドラフト59.5%・シールド62.2%で、どちらも2色の組み合わせの1位です。"
+  },
+  {
+   "h": "赤は苦戦",
+   "t": "色別では赤が最下位で、黒赤は52.5%です。"
+  },
+  {
+   "h": "注目のカード",
+   "t": "レアの[[The Super Hero Civil War]]（70.4%）と神話の[[Captain Marvel, Earth's Protector]]（69.5%）。コモンは[[Trickster's Stratagem]]・[[Hero in Training]]が上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "White/Blue is the best",
+   "t": "White/Blue is the top pair in both Draft (59.5%) and Sealed (62.2%)."
+  },
+  {
+   "h": "Red struggles",
+   "t": "Red is the weakest colour, and Black/Red sits at 52.5%."
+  },
+  {
+   "h": "Cards to watch",
+   "t": "The rare [[The Super Hero Civil War]] (70.4%) and the mythic [[Captain Marvel, Earth's Protector]] (69.5%). [[Trickster's Stratagem]] and [[Hero in Training]] are the top commons."
+  }
+ ]
+}

@@ -89,6 +89,12 @@
   section{margin-top:18px}
   .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
   .longvideo{margin:0 0 26px;padding:16px;border:1px solid var(--line,#d9e2ee);border-radius:16px}
+  .points{margin:0 0 22px;padding:16px 18px;border:1px solid var(--line,#d9e2ee);border-left:5px solid #2F7DF6;border-radius:14px;background:#fff}
+  .points h2{margin:0 0 10px;font-size:18px}
+  .points ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+  .points li{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline;font-size:14.5px;line-height:1.65}
+  .points li b{display:inline-block;min-width:8.5em;color:#1F5FC4}
+  @media (max-width:640px){.points li{grid-template-columns:1fr}.points li b{min-width:0}}
   .longvideo h2{margin:0 0 4px;font-size:18px}
   .longvideo .lead{margin:0 0 12px;font-size:13px;opacity:.8}
   .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
@@ -210,7 +216,11 @@
   </div>
 </header>
 <main>
-<article class="mode">
+<section class="points"><h2>Key points of this format</h2><ul>
+  <li><b>Draft is wide open</b><span>Black/Green (57.5%), White/Blue and White/Green (57.0%) lead, and speed makes almost no difference.</span></li>
+  <li><b>Sealed is White/Green</b><span>White/Green (61.0%) is clearly ahead, and heavier decks do better. Black/Red struggles at 51.2%.</span></li>
+  <li><b>Commons to grab</b><span><i>Dawnhand Eulogist</i>, <i>Assert Perfection</i> and <i>Scarblade Scout</i> are the top commons.</span></li>
+</ul></section><article class="mode">
   <h2>Draft <small>593,444 games · overall win rate 55.6%</small></h2>
   <p class="built">Built 2026-10-21</p>
   <p class="summary">Lorwyn Eclipsed Draft on MTG Arena: 593,444 games, 55.6% overall win rate. On speed, speed makes little difference. Green (55.9%) and White (55.8%) are the strongest colours; the best two-colour pair is Black/Green at 57.5%, and the weakest is Black/Red at 54.1%. By card, the top common is Dawnhand Eulogist, the top uncommon is Deepchannel Duelist, the top rare is Ashling's Command (game-in-hand win rate).</p>
@@ -445,6 +455,7 @@
 <section class="links"><h3>Related pages</h3><ul>
   <li><a href="../reports.html?set=ECL">Set reports (switch sets)</a></li>
   <li><a href="../sealed.html">Sealed practice</a>／<a href="../draft.html">Draft practice</a>／<a href="../draftroom.html">Draft with friends (vs players)</a>／<a href="../assistant.html">Draft deck assistant (PC, Chrome/Edge)</a></li>
+  <li><a href="../start/sealed.en.html">Building a Sealed deck</a>／<a href="../start/draft.en.html">Draft basics</a></li>
   <li><a href="index.en.html">All sets</a></li>
 </ul></section>
 <div id="goodsStrip"></div>

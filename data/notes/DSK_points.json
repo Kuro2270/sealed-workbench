@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "速い白",
+   "t": "軽いデッキが有利（56.7%→重いデッキ53.3%）。白赤57.4%・白青56.9%が上位です。"
+  },
+  {
+   "h": "黒は苦戦",
+   "t": "色別では黒が最下位（53.6%）で、青黒は52.2%です。"
+  },
+  {
+   "h": "注目のカード",
+   "t": "神話の[[Overlord of the Mistmoors]]はシールドで72.5%。コモンは[[Trapped in the Screen]]・[[Glimmerburst]]が上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "Fast and white",
+   "t": "Lighter decks win more (56.7% down to 53.3% for the heaviest). White/Red (57.4%) and White/Blue (56.9%) lead."
+  },
+  {
+   "h": "Black struggles",
+   "t": "Black is the weakest colour (53.6%), and Blue/Black sits at 52.2%."
+  },
+  {
+   "h": "Cards to watch",
+   "t": "The mythic [[Overlord of the Mistmoors]] wins 72.5% in Sealed. [[Trapped in the Screen]] and [[Glimmerburst]] are the top commons."
+  }
+ ]
+}

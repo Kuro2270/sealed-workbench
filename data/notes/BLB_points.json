@@ -1,0 +1,31 @@
+{
+ "_about": "セット別ページの「この環境のポイント」（build-set-pages.mjs が出す）。[[英語のカード名]] は、日本語のページでは日本語名になる。数字は data/articles の実戦データ（書いた時点）",
+ "ja": [
+  {
+   "h": "速い環境",
+   "t": "軽いデッキほど勝ちやすく、平均マナ総量2.9未満は55.7%、3.5以上は53.1%まで下がります。"
+  },
+  {
+   "h": "黒が軸",
+   "t": "ドラフト・シールドとも黒が色別1位。ドラフトは黒赤56.6%・黒緑56.3%、シールドは白黒58.8%が最上位で、青赤（51.7%）は避けたい組み合わせです。"
+  },
+  {
+   "h": "拾いたいコモン",
+   "t": "[[Savor]]・[[Carrot Cake]]・[[Intrepid Rabbit]]がコモンの勝率上位です。"
+  }
+ ],
+ "en": [
+  {
+   "h": "A fast format",
+   "t": "Lighter decks win more: 55.7% under 2.9 average mana value, down to 53.1% at 3.5 and above."
+  },
+  {
+   "h": "Black is the core",
+   "t": "Black is the top colour in both Draft and Sealed. Black/Red (56.6%) and Black/Green (56.3%) lead Draft, White/Black (58.8%) leads Sealed, and Blue/Red (51.7%) is the pair to avoid."
+  },
+  {
+   "h": "Commons to grab",
+   "t": "[[Savor]], [[Carrot Cake]] and [[Intrepid Rabbit]] are the top commons by win rate."
+  }
+ ]
+}
