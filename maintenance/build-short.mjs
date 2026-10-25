@@ -994,10 +994,11 @@ function highlightsOf(sc){
                          : sc.cards.map((c, i) => c.outside ? { label: JA ? c.label : c.name, boxes: [row(i)] } : null).filter(Boolean);
   }
   if(sc.kind === "trendCards"){
-    // 1位のカードの話のあいだ、そのカードを光らせる
+    // 名前を言っているカードを、そのあいだだけ光らせる（言った順に移る。字幕を分けた場面では、その字幕で言うカードだけ）
     const capTop = captionTop(sc.layoutSay || sc.say), Y0 = sc.chapter ? CH_Y0 : 236;
     const ROW = Math.min(420, Math.floor((capTop - 16 - Y0) / 3)), CH = ROW - 9;
-    return sc.cards.length > 1 ? [{ label: sc.cards[0].label, boxes: [{ x: 66, y: Y0 - 10, w: rowW, h: CH + 20 }] }] : [];
+    const said = sc.cards.map((c, i) => ({ c, i, at: String(sc.say).indexOf(c.label) })).filter(x => x.at >= 0).sort((a, b) => a.at - b.at);
+    return sc.cards.length > 1 ? said.map(({ c, i }) => ({ label: c.label, boxes: [{ x: 66, y: Y0 + i * ROW - 10, w: rowW, h: CH + 20 }] })) : [];
   }
   if(sc.kind === "trendPairs" && sc.pick) return [];   // 狙い目の場面は、行そのものを金色にしてあるので光らせない
   if(sc.kind === "trendPairs"){
