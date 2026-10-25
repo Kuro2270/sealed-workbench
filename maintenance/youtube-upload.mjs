@@ -57,9 +57,9 @@ const md = s => { const [, m, d] = String(s).split("-").map(Number); return LANG
 const span = k => win && win[k] ? `${md(win[k].from)}${LANG === "ja" ? "〜" : "–"}${md(win[k].to)}` : "";
 const FAN = `Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.`;
 const trendMeta = () => LANG === "ja" ? {
-  title: `【${name.ja}】評価が変わったコモン・アンコモンは？ドラフト環境の変化｜MTGアリーナ #Shorts`,
+  title: `【${name.ja}】評価が変わったカードは？コモン・アンコモン・レア別 ドラフト環境の変化｜MTGアリーナ #Shorts`,
   description: [
-    `MTGアリーナ『${name.ja}』のドラフト（プレミアドラフト）で、発売1週目と直近の1週間を比べて、引けた試合の勝率が上がった・下がったコモン／アンコモン（あれば、見直されたレアも）と、2色の組み合わせの変化・狙い目をまとめました。`,
+    `MTGアリーナ『${name.ja}』のドラフト（プレミアドラフト）で、発売1週目と直近の1週間を比べて、コモン・アンコモン・レアごとに引けた試合の勝率が上がった・下がったカードと、2色デッキの勝率の変化・狙い目をまとめました。`,
     ...(win ? [`比べた期間: 1週目 ${span("first")}／直近 ${span("last")}${gamesTxt ? "（合わせて" + gamesTxt + "試合）" : ""}`] : []),
     `カードの勝率は、引けた試合の勝率（GIH WR）です。`,
     ``,
@@ -80,9 +80,9 @@ const trendMeta = () => LANG === "ja" ? {
   ].join("\n"),
   tags: ["MTGアリーナ", "MTGA", "マジック：ザ・ギャザリング", "リミテッド", "ドラフト", "環境の変化", name.ja, "17Lands"]
 } : {
-  title: `${name.en} Draft: Commons & Uncommons That Changed Since Week 1 | MTG Arena #Shorts`,
+  title: `${name.en} Draft: Cards That Changed Since Week 1 (Commons, Uncommons, Rares) | MTG Arena #Shorts`,
   description: [
-    `How the ${name.en} Premier Draft format on MTG Arena has shifted: the commons and uncommons whose win rate when drawn rose or fell the most between week one and the latest week (plus any rares that were underrated at launch), how the colour pairs moved, and the pair to aim for.`,
+    `How the ${name.en} Premier Draft format on MTG Arena has shifted: the commons, uncommons and rares whose win rate when drawn rose or fell the most between week one and the latest week, how the colour pairs moved, and the pair to aim for.`,
     ...(win ? [`Compared: week one ${span("first")} vs latest ${span("last")}${gamesTxt ? " (" + gamesTxt + " games combined)" : ""}`] : []),
     `Card win rates are games-in-hand win rates (GIH WR).`,
     ``,

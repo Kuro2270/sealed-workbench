@@ -294,7 +294,7 @@ function videoPost(ctx, lang, track, withVideo = !!VIDEO_FILE){
     const lines = [
       L ? `【${nm}】ドラフト環境の変化${withVideo ? "" : "（動画）"}` : `${nm} Draft: what changed since week 1${withVideo ? "" : " (video)"}`,
       "",
-      L ? `発売1週目と直近の1週間を比べて、勝率が上がった・下がったコモン・アンコモンと、2色の組み合わせの変化をまとめました。` : `Week one vs the latest week: the commons and uncommons that rose and fell the most, and how the colour pairs moved.`,
+      L ? `発売1週目と直近の1週間を比べて、コモン・アンコモン・レアごとに勝率が上がった・下がったカードと、2色の組み合わせの変化をまとめました。` : `Week one vs the latest week: the commons, uncommons and rares that rose and fell the most, and how the colour pairs moved.`,
       up ? (L ? `~いちばん上がった${RNM[up.rarity] || "コモン・アンコモン"}：${cardLabel(ctx, lang, up.name)}（引けた試合の勝率 ${(up.first.gih * 100).toFixed(1)}%→${(up.last.gih * 100).toFixed(1)}%）`
               : `~Top rising ${RNM[up.rarity] || "common/uncommon"}: ${cardLabel(ctx, lang, up.name)} (win rate when drawn ${(up.first.gih * 100).toFixed(1)}%→${(up.last.gih * 100).toFixed(1)}%)`) : null,
       rise ? (L ? `~いちばん伸びた組み合わせ：${pairLabel(rise.colors)}（${sg(rise.delta)}pt）` : `~Most improved pair: ${pairLabel(rise.colors)} (${sg(rise.delta)}pt)`) : null,
