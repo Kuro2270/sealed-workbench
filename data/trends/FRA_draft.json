@@ -2,13 +2,15 @@
  "set": "FRA",
  "mode": "draft",
  "event": "PremierDraft",
- "generated_at": "2026-10-25T03:03:23.178Z",
+ "format": 2,
+ "generated_at": "2026-10-25T04:54:45.241Z",
  "source": "17Lands Public Data (CC BY 4.0)",
  "source_url": "https://www.17lands.com/public_datasets",
  "data_from": "2026-09-29",
  "data_to": "2026-10-16",
  "days": 7,
  "min_games": 2000,
+ "min_rare_games": 800,
  "min_pair_games": 1500,
  "window": {
   "first": {
@@ -56,6 +58,22 @@
    },
    "delta": 0.0168,
    "z": 1.67
+  },
+  {
+   "name": "Way of the Healer",
+   "rarity": "uncommon",
+   "color": "W",
+   "cmc": 4,
+   "first": {
+    "gih": 0.5714,
+    "games": 8708
+   },
+   "last": {
+    "gih": 0.5833,
+    "games": 5675
+   },
+   "delta": 0.0118,
+   "z": 1.4
   }
  ],
  "fallers": [
@@ -108,16 +126,329 @@
    "z": -2.8
   }
  ],
+ "by_rarity": {
+  "common": {
+   "risers": [
+    {
+     "name": "Cast Away Doubt",
+     "rarity": "common",
+     "color": "B",
+     "cmc": 3,
+     "first": {
+      "gih": 0.5348,
+      "games": 4568
+     },
+     "last": {
+      "gih": 0.5476,
+      "games": 2847
+     },
+     "delta": 0.0128,
+     "z": 1.08
+    },
+    {
+     "name": "Murmuring Volume",
+     "rarity": "common",
+     "color": "",
+     "cmc": 3,
+     "first": {
+      "gih": 0.57,
+      "games": 9025
+     },
+     "last": {
+      "gih": 0.5768,
+      "games": 11166
+     },
+     "delta": 0.0069,
+     "z": 0.98
+    },
+    {
+     "name": "Emergency Phytomedic",
+     "rarity": "common",
+     "color": "GW",
+     "cmc": 1,
+     "first": {
+      "gih": 0.5505,
+      "games": 8754
+     },
+     "last": {
+      "gih": 0.5576,
+      "games": 4681
+     },
+     "delta": 0.0071,
+     "z": 0.79
+    }
+   ],
+   "fallers": [
+    {
+     "name": "Surveillance Phantasm",
+     "rarity": "common",
+     "color": "U",
+     "cmc": 2,
+     "first": {
+      "gih": 0.5897,
+      "games": 18862
+     },
+     "last": {
+      "gih": 0.5713,
+      "games": 14387
+     },
+     "delta": -0.0184,
+     "z": -3.36
+    },
+    {
+     "name": "Wrath of the Bloodmane",
+     "rarity": "common",
+     "color": "R",
+     "cmc": 3,
+     "first": {
+      "gih": 0.5747,
+      "games": 16268
+     },
+     "last": {
+      "gih": 0.5576,
+      "games": 10212
+     },
+     "delta": -0.0171,
+     "z": -2.73
+    },
+    {
+     "name": "Sureshot Sower",
+     "rarity": "common",
+     "color": "G",
+     "cmc": 2,
+     "first": {
+      "gih": 0.5529,
+      "games": 10235
+     },
+     "last": {
+      "gih": 0.535,
+      "games": 5873
+     },
+     "delta": -0.0179,
+     "z": -2.2
+    }
+   ]
+  },
+  "uncommon": {
+   "risers": [
+    {
+     "name": "Twisted Fates",
+     "rarity": "uncommon",
+     "color": "BW",
+     "cmc": 5,
+     "first": {
+      "gih": 0.5661,
+      "games": 5828
+     },
+     "last": {
+      "gih": 0.5882,
+      "games": 4080
+     },
+     "delta": 0.0222,
+     "z": 2.2
+    },
+    {
+     "name": "Teyo, Lightshield Expert",
+     "rarity": "uncommon",
+     "color": "W",
+     "cmc": 2,
+     "first": {
+      "gih": 0.5593,
+      "games": 6460
+     },
+     "last": {
+      "gih": 0.5761,
+      "games": 3885
+     },
+     "delta": 0.0168,
+     "z": 1.67
+    },
+    {
+     "name": "Way of the Healer",
+     "rarity": "uncommon",
+     "color": "W",
+     "cmc": 4,
+     "first": {
+      "gih": 0.5714,
+      "games": 8708
+     },
+     "last": {
+      "gih": 0.5833,
+      "games": 5675
+     },
+     "delta": 0.0118,
+     "z": 1.4
+    }
+   ],
+   "fallers": [
+    {
+     "name": "Proft, Sinister Mastermind",
+     "rarity": "uncommon",
+     "color": "B",
+     "cmc": 3,
+     "first": {
+      "gih": 0.5711,
+      "games": 6440
+     },
+     "last": {
+      "gih": 0.5414,
+      "games": 3622
+     },
+     "delta": -0.0297,
+     "z": -2.88
+    },
+    {
+     "name": "Arni, Humble Scribe",
+     "rarity": "uncommon",
+     "color": "U",
+     "cmc": 3,
+     "first": {
+      "gih": 0.5651,
+      "games": 6937
+     },
+     "last": {
+      "gih": 0.5384,
+      "games": 4487
+     },
+     "delta": -0.0266,
+     "z": -2.8
+    },
+    {
+     "name": "Traxos, Academy Guardian",
+     "rarity": "uncommon",
+     "color": "U",
+     "cmc": 4,
+     "first": {
+      "gih": 0.5729,
+      "games": 7169
+     },
+     "last": {
+      "gih": 0.5499,
+      "games": 4966
+     },
+     "delta": -0.0229,
+     "z": -2.5
+    }
+   ]
+  },
+  "rare": {
+   "risers": [
+    {
+     "name": "Enlightened Confidant",
+     "rarity": "mythic",
+     "color": "W",
+     "cmc": 2,
+     "first": {
+      "gih": 0.559,
+      "games": 1195
+     },
+     "last": {
+      "gih": 0.6039,
+      "games": 866
+     },
+     "delta": 0.0449,
+     "z": 2.05,
+     "underrated": true
+    },
+    {
+     "name": "Avatar of Burgeoning Echoes",
+     "rarity": "mythic",
+     "color": "GU",
+     "cmc": 2,
+     "first": {
+      "gih": 0.5966,
+      "games": 1356
+     },
+     "last": {
+      "gih": 0.6279,
+      "games": 1005
+     },
+     "delta": 0.0313,
+     "z": 1.54,
+     "underrated": true
+    },
+    {
+     "name": "Guiding Hydra",
+     "rarity": "rare",
+     "color": "W",
+     "cmc": 1,
+     "first": {
+      "gih": 0.5799,
+      "games": 3373
+     },
+     "last": {
+      "gih": 0.5921,
+      "games": 2165
+     },
+     "delta": 0.0122,
+     "z": 0.9,
+     "underrated": true
+    }
+   ],
+   "fallers": [
+    {
+     "name": "Chandra, Chill of Compliance",
+     "rarity": "mythic",
+     "color": "U",
+     "cmc": 3,
+     "first": {
+      "gih": 0.6146,
+      "games": 1798
+     },
+     "last": {
+      "gih": 0.5633,
+      "games": 1415
+     },
+     "delta": -0.0513,
+     "z": -2.94
+    },
+    {
+     "name": "Carnivorous Cultivator",
+     "rarity": "rare",
+     "color": "G",
+     "cmc": 2,
+     "first": {
+      "gih": 0.6245,
+      "games": 3326
+     },
+     "last": {
+      "gih": 0.5888,
+      "games": 2213
+     },
+     "delta": -0.0357,
+     "z": -2.66
+    },
+    {
+     "name": "Draconic Visitor",
+     "rarity": "rare",
+     "color": "R",
+     "cmc": 5,
+     "first": {
+      "gih": 0.5654,
+      "games": 2517
+     },
+     "last": {
+      "gih": 0.5233,
+      "games": 1418
+     },
+     "delta": -0.0421,
+     "z": -2.54
+    }
+   ]
+  }
+ },
  "pairs": [
   {
    "colors": "WU",
    "first": {
     "wr": 0.5781,
-    "games": 17258
+    "games": 17258,
+    "share": 0.1433
    },
    "last": {
     "wr": 0.5677,
-    "games": 12085
+    "games": 12085,
+    "share": 0.1744
    },
    "delta": -0.0103
   },
@@ -125,11 +456,13 @@
    "colors": "UR",
    "first": {
     "wr": 0.5589,
-    "games": 11926
+    "games": 11926,
+    "share": 0.099
    },
    "last": {
     "wr": 0.5611,
-    "games": 7551
+    "games": 7551,
+    "share": 0.109
    },
    "delta": 0.0023
   },
@@ -137,11 +470,13 @@
    "colors": "UB",
    "first": {
     "wr": 0.5762,
-    "games": 19800
+    "games": 19800,
+    "share": 0.1644
    },
    "last": {
     "wr": 0.5567,
-    "games": 13900
+    "games": 13900,
+    "share": 0.2006
    },
    "delta": -0.0195
   },
@@ -149,11 +484,13 @@
    "colors": "WB",
    "first": {
     "wr": 0.5331,
-    "games": 6588
+    "games": 6588,
+    "share": 0.0547
    },
    "last": {
     "wr": 0.5504,
-    "games": 3016
+    "games": 3016,
+    "share": 0.0435
    },
    "delta": 0.0173
   },
@@ -161,11 +498,13 @@
    "colors": "RG",
    "first": {
     "wr": 0.5669,
-    "games": 16412
+    "games": 16412,
+    "share": 0.1363
    },
    "last": {
     "wr": 0.5486,
-    "games": 7976
+    "games": 7976,
+    "share": 0.1151
    },
    "delta": -0.0183
   },
@@ -173,11 +512,13 @@
    "colors": "BG",
    "first": {
     "wr": 0.5731,
-    "games": 10661
+    "games": 10661,
+    "share": 0.0885
    },
    "last": {
     "wr": 0.5466,
-    "games": 5862
+    "games": 5862,
+    "share": 0.0846
    },
    "delta": -0.0265
   },
@@ -185,11 +526,13 @@
    "colors": "WG",
    "first": {
     "wr": 0.5493,
-    "games": 14211
+    "games": 14211,
+    "share": 0.118
    },
    "last": {
     "wr": 0.5453,
-    "games": 6958
+    "games": 6958,
+    "share": 0.1004
    },
    "delta": -0.004
   },
@@ -197,11 +540,13 @@
    "colors": "BR",
    "first": {
     "wr": 0.5413,
-    "games": 10540
+    "games": 10540,
+    "share": 0.0875
    },
    "last": {
     "wr": 0.5426,
-    "games": 5323
+    "games": 5323,
+    "share": 0.0768
    },
    "delta": 0.0013
   },
@@ -209,11 +554,13 @@
    "colors": "UG",
    "first": {
     "wr": 0.5311,
-    "games": 6168
+    "games": 6168,
+    "share": 0.0512
    },
    "last": {
     "wr": 0.5386,
-    "games": 3836
+    "games": 3836,
+    "share": 0.0554
    },
    "delta": 0.0075
   },
@@ -221,11 +568,13 @@
    "colors": "WR",
    "first": {
     "wr": 0.5465,
-    "games": 6846
+    "games": 6846,
+    "share": 0.0569
    },
    "last": {
     "wr": 0.5376,
-    "games": 2777
+    "games": 2777,
+    "share": 0.0401
    },
    "delta": -0.0088
   }
@@ -312,22 +661,6 @@
    "z": 1.08
   },
   {
-   "name": "Guiding Hydra",
-   "rarity": "rare",
-   "color": "W",
-   "cmc": 1,
-   "first": {
-    "gih": 0.5799,
-    "games": 3373
-   },
-   "last": {
-    "gih": 0.5921,
-    "games": 2165
-   },
-   "delta": 0.0122,
-   "z": 0.9
-  },
-  {
    "name": "Way of the Healer",
    "rarity": "uncommon",
    "color": "W",
@@ -406,22 +739,6 @@
    },
    "delta": 0.007,
    "z": 0.77
-  },
-  {
-   "name": "Theorist's Proxy",
-   "rarity": "rare",
-   "color": "U",
-   "cmc": 2,
-   "first": {
-    "gih": 0.5753,
-    "games": 3327
-   },
-   "last": {
-    "gih": 0.5822,
-    "games": 2456
-   },
-   "delta": 0.007,
-   "z": 0.53
   },
   {
    "name": "Murmuring Volume",
@@ -552,22 +869,6 @@
    "z": 0.31
   },
   {
-   "name": "Jace, Reality Sculptor",
-   "rarity": "rare",
-   "color": "U",
-   "cmc": 5,
-   "first": {
-    "gih": 0.5834,
-    "games": 3353
-   },
-   "last": {
-    "gih": 0.5874,
-    "games": 2402
-   },
-   "delta": 0.0041,
-   "z": 0.31
-  },
-  {
    "name": "Rescue Girl, First Responder",
    "rarity": "uncommon",
    "color": "W",
@@ -582,22 +883,6 @@
    },
    "delta": 0.0037,
    "z": 0.35
-  },
-  {
-   "name": "Jace's Machinations",
-   "rarity": "rare",
-   "color": "U",
-   "cmc": 3,
-   "first": {
-    "gih": 0.5761,
-    "games": 3645
-   },
-   "last": {
-    "gih": 0.5796,
-    "games": 2476
-   },
-   "delta": 0.0034,
-   "z": 0.27
   },
   {
    "name": "Restore with Empathy",
@@ -696,22 +981,6 @@
    "z": 0.24
   },
   {
-   "name": "Sanctum Lurker",
-   "rarity": "rare",
-   "color": "B",
-   "cmc": 3,
-   "first": {
-    "gih": 0.6226,
-    "games": 3839
-   },
-   "last": {
-    "gih": 0.6238,
-    "games": 2759
-   },
-   "delta": 0.0012,
-   "z": 0.1
-  },
-  {
    "name": "Tetsuko Umezawa, Fugitive",
    "rarity": "uncommon",
    "color": "U",
@@ -726,22 +995,6 @@
    },
    "delta": 0.0012,
    "z": 0.12
-  },
-  {
-   "name": "Variable Chaser",
-   "rarity": "rare",
-   "color": "U",
-   "cmc": 3,
-   "first": {
-    "gih": 0.5865,
-    "games": 2929
-   },
-   "last": {
-    "gih": 0.5878,
-    "games": 2256
-   },
-   "delta": 0.0012,
-   "z": 0.09
   },
   {
    "name": "Plan for All Outcomes",
@@ -1064,22 +1317,6 @@
    "z": -0.22
   },
   {
-   "name": "Proctor of Potential",
-   "rarity": "rare",
-   "color": "UW",
-   "cmc": 2,
-   "first": {
-    "gih": 0.6128,
-    "games": 2776
-   },
-   "last": {
-    "gih": 0.61,
-    "games": 2059
-   },
-   "delta": -0.0027,
-   "z": -0.19
-  },
-  {
    "name": "Campus Crier",
    "rarity": "common",
    "color": "W",
@@ -1126,22 +1363,6 @@
    },
    "delta": -0.0032,
    "z": -0.43
-  },
-  {
-   "name": "Null Summoner",
-   "rarity": "rare",
-   "color": "BU",
-   "cmc": 4,
-   "first": {
-    "gih": 0.6361,
-    "games": 4443
-   },
-   "last": {
-    "gih": 0.6327,
-    "games": 3196
-   },
-   "delta": -0.0034,
-   "z": -0.3
   },
   {
    "name": "Pia, Determined Rebuilder",
@@ -1206,22 +1427,6 @@
    },
    "delta": -0.0041,
    "z": -0.55
-  },
-  {
-   "name": "Kindred Judgment",
-   "rarity": "rare",
-   "color": "W",
-   "cmc": 7,
-   "first": {
-    "gih": 0.6306,
-    "games": 3010
-   },
-   "last": {
-    "gih": 0.6263,
-    "games": 2719
-   },
-   "delta": -0.0042,
-   "z": -0.33
   },
   {
    "name": "Marwyn, the Preserver",
@@ -1318,22 +1523,6 @@
    },
    "delta": -0.0053,
    "z": -0.42
-  },
-  {
-   "name": "Lyra, Tolarian Archangel",
-   "rarity": "rare",
-   "color": "U",
-   "cmc": 3,
-   "first": {
-    "gih": 0.6152,
-    "games": 4270
-   },
-   "last": {
-    "gih": 0.6096,
-    "games": 2938
-   },
-   "delta": -0.0056,
-   "z": -0.48
   },
   {
    "name": "Memory Trap",
@@ -1640,22 +1829,6 @@
    "z": -1.1
   },
   {
-   "name": "Diviner of Victory",
-   "rarity": "rare",
-   "color": "U",
-   "cmc": 1,
-   "first": {
-    "gih": 0.6042,
-    "games": 3770
-   },
-   "last": {
-    "gih": 0.5957,
-    "games": 2847
-   },
-   "delta": -0.0085,
-   "z": -0.7
-  },
-  {
    "name": "Proft, Consulting Detective",
    "rarity": "uncommon",
    "color": "U",
@@ -1960,38 +2133,6 @@
    "z": -1.19
   },
   {
-   "name": "Vraska, the Cutting Glare",
-   "rarity": "rare",
-   "color": "BG",
-   "cmc": 3,
-   "first": {
-    "gih": 0.6356,
-    "games": 3326
-   },
-   "last": {
-    "gih": 0.6238,
-    "games": 2634
-   },
-   "delta": -0.0118,
-   "z": -0.94
-  },
-  {
-   "name": "Lich's Relic",
-   "rarity": "rare",
-   "color": "B",
-   "cmc": 1,
-   "first": {
-    "gih": 0.6396,
-    "games": 4195
-   },
-   "last": {
-    "gih": 0.6276,
-    "games": 2879
-   },
-   "delta": -0.0119,
-   "z": -1.02
-  },
-  {
    "name": "Woodwork Prodigy",
    "rarity": "uncommon",
    "color": "GR",
@@ -2024,22 +2165,6 @@
    "z": -1.79
   },
   {
-   "name": "Repurposed Enforcer",
-   "rarity": "rare",
-   "color": "W",
-   "cmc": 2,
-   "first": {
-    "gih": 0.6063,
-    "games": 3216
-   },
-   "last": {
-    "gih": 0.594,
-    "games": 2118
-   },
-   "delta": -0.0124,
-   "z": -0.9
-  },
-  {
    "name": "Vinelasher Adept",
    "rarity": "common",
    "color": "G",
@@ -2070,22 +2195,6 @@
    },
    "delta": -0.0131,
    "z": -1.15
-  },
-  {
-   "name": "Ajani's Anguish",
-   "rarity": "rare",
-   "color": "R",
-   "cmc": 1,
-   "first": {
-    "gih": 0.5744,
-    "games": 3261
-   },
-   "last": {
-    "gih": 0.5611,
-    "games": 2037
-   },
-   "delta": -0.0132,
-   "z": -0.95
   },
   {
    "name": "Recursive Recruitment",
@@ -2198,22 +2307,6 @@
    },
    "delta": -0.0147,
    "z": -1.54
-  },
-  {
-   "name": "Simulacrum Shaper",
-   "rarity": "rare",
-   "color": "G",
-   "cmc": 3,
-   "first": {
-    "gih": 0.6125,
-    "games": 3404
-   },
-   "last": {
-    "gih": 0.5978,
-    "games": 2101
-   },
-   "delta": -0.0147,
-   "z": -1.08
   },
   {
    "name": "Way of the Wildspeaker",
@@ -2472,22 +2565,6 @@
    "z": -2.25
   },
   {
-   "name": "Liliana the Repentant",
-   "rarity": "rare",
-   "color": "B",
-   "cmc": 2,
-   "first": {
-    "gih": 0.5745,
-    "games": 3250
-   },
-   "last": {
-    "gih": 0.5542,
-    "games": 2113
-   },
-   "delta": -0.0203,
-   "z": -1.46
-  },
-  {
    "name": "Chandra's Emberling",
    "rarity": "common",
    "color": "R",
@@ -2552,22 +2629,6 @@
    "z": -1.98
   },
   {
-   "name": "Gideon the Oathless",
-   "rarity": "rare",
-   "color": "B",
-   "cmc": 3,
-   "first": {
-    "gih": 0.6114,
-    "games": 3407
-   },
-   "last": {
-    "gih": 0.5874,
-    "games": 2448
-   },
-   "delta": -0.024,
-   "z": -1.85
-  },
-  {
    "name": "Ruric Thar, Magecrusher",
    "rarity": "uncommon",
    "color": "G",
@@ -2582,22 +2643,6 @@
    },
    "delta": -0.0243,
    "z": -2.32
-  },
-  {
-   "name": "Hungering Puppetbeast",
-   "rarity": "rare",
-   "color": "G",
-   "cmc": 5,
-   "first": {
-    "gih": 0.6344,
-    "games": 3422
-   },
-   "last": {
-    "gih": 0.6088,
-    "games": 2536
-   },
-   "delta": -0.0256,
-   "z": -2.01
   },
   {
    "name": "Winter, Tormented Loner",
@@ -2632,6 +2677,694 @@
    "z": -2.8
   },
   {
+   "name": "Proft, Sinister Mastermind",
+   "rarity": "uncommon",
+   "color": "B",
+   "cmc": 3,
+   "first": {
+    "gih": 0.5711,
+    "games": 6440
+   },
+   "last": {
+    "gih": 0.5414,
+    "games": 3622
+   },
+   "delta": -0.0297,
+   "z": -2.88
+  },
+  {
+   "name": "Aerid Konstrari",
+   "rarity": "mythic",
+   "color": "GR",
+   "cmc": 4,
+   "first": {
+    "gih": 0.6626,
+    "games": 1651
+   },
+   "last": {
+    "gih": 0.6371,
+    "games": 1149
+   },
+   "delta": -0.0256,
+   "z": -1.39
+  },
+  {
+   "name": "Ajani Unrelenting",
+   "rarity": "mythic",
+   "color": "R",
+   "cmc": 6,
+   "first": {
+    "gih": 0.7338,
+    "games": 2149
+   },
+   "last": {
+    "gih": 0.7448,
+    "games": 1438
+   },
+   "delta": 0.011,
+   "z": 0.73
+  },
+  {
+   "name": "Ajani's Anguish",
+   "rarity": "rare",
+   "color": "R",
+   "cmc": 1,
+   "first": {
+    "gih": 0.5744,
+    "games": 3261
+   },
+   "last": {
+    "gih": 0.5611,
+    "games": 2037
+   },
+   "delta": -0.0132,
+   "z": -0.95
+  },
+  {
+   "name": "Avatar of Burgeoning Echoes",
+   "rarity": "mythic",
+   "color": "GU",
+   "cmc": 2,
+   "first": {
+    "gih": 0.5966,
+    "games": 1356
+   },
+   "last": {
+    "gih": 0.6279,
+    "games": 1005
+   },
+   "delta": 0.0313,
+   "z": 1.54
+  },
+  {
+   "name": "Carnivorous Cultivator",
+   "rarity": "rare",
+   "color": "G",
+   "cmc": 2,
+   "first": {
+    "gih": 0.6245,
+    "games": 3326
+   },
+   "last": {
+    "gih": 0.5888,
+    "games": 2213
+   },
+   "delta": -0.0357,
+   "z": -2.66
+  },
+  {
+   "name": "Chandra, Chill of Compliance",
+   "rarity": "mythic",
+   "color": "U",
+   "cmc": 3,
+   "first": {
+    "gih": 0.6146,
+    "games": 1798
+   },
+   "last": {
+    "gih": 0.5633,
+    "games": 1415
+   },
+   "delta": -0.0513,
+   "z": -2.94
+  },
+  {
+   "name": "Chandra, Torch of Defiance",
+   "rarity": "mythic",
+   "color": "R",
+   "cmc": 4,
+   "first": {
+    "gih": 0.6241,
+    "games": 1583
+   },
+   "last": {
+    "gih": 0.5952,
+    "games": 1134
+   },
+   "delta": -0.0289,
+   "z": -1.52
+  },
+  {
+   "name": "Curse-Marred Demon",
+   "rarity": "rare",
+   "color": "R",
+   "cmc": 4,
+   "first": {
+    "gih": 0.581,
+    "games": 2945
+   },
+   "last": {
+    "gih": 0.5441,
+    "games": 1781
+   },
+   "delta": -0.0369,
+   "z": -2.48
+  },
+  {
+   "name": "Dark Matter Manipulator",
+   "rarity": "rare",
+   "color": "B",
+   "cmc": 1,
+   "first": {
+    "gih": 0.5979,
+    "games": 2114
+   },
+   "last": {
+    "gih": 0.5641,
+    "games": 1693
+   },
+   "delta": -0.0338,
+   "z": -2.1
+  },
+  {
+   "name": "Denzilore Fatehold",
+   "rarity": "mythic",
+   "color": "UW",
+   "cmc": 4,
+   "first": {
+    "gih": 0.6381,
+    "games": 1843
+   },
+   "last": {
+    "gih": 0.5947,
+    "games": 1251
+   },
+   "delta": -0.0434,
+   "z": -2.43
+  },
+  {
+   "name": "Diviner of Victory",
+   "rarity": "rare",
+   "color": "U",
+   "cmc": 1,
+   "first": {
+    "gih": 0.6042,
+    "games": 3770
+   },
+   "last": {
+    "gih": 0.5957,
+    "games": 2847
+   },
+   "delta": -0.0085,
+   "z": -0.7
+  },
+  {
+   "name": "Draconic Visitor",
+   "rarity": "rare",
+   "color": "R",
+   "cmc": 5,
+   "first": {
+    "gih": 0.5654,
+    "games": 2517
+   },
+   "last": {
+    "gih": 0.5233,
+    "games": 1418
+   },
+   "delta": -0.0421,
+   "z": -2.54
+  },
+  {
+   "name": "Enlightened Confidant",
+   "rarity": "mythic",
+   "color": "W",
+   "cmc": 2,
+   "first": {
+    "gih": 0.559,
+    "games": 1195
+   },
+   "last": {
+    "gih": 0.6039,
+    "games": 866
+   },
+   "delta": 0.0449,
+   "z": 2.05
+  },
+  {
+   "name": "Face Yourself",
+   "rarity": "rare",
+   "color": "R",
+   "cmc": 7,
+   "first": {
+    "gih": 0.5504,
+    "games": 1893
+   },
+   "last": {
+    "gih": 0.5499,
+    "games": 1442
+   },
+   "delta": -0.0005,
+   "z": -0.03
+  },
+  {
+   "name": "Garruk, Curse Breaker",
+   "rarity": "mythic",
+   "color": "G",
+   "cmc": 5,
+   "first": {
+    "gih": 0.6603,
+    "games": 1843
+   },
+   "last": {
+    "gih": 0.6618,
+    "games": 1298
+   },
+   "delta": 0.0015,
+   "z": 0.08
+  },
+  {
+   "name": "Garruk, Veiled Butcher",
+   "rarity": "mythic",
+   "color": "B",
+   "cmc": 5,
+   "first": {
+    "gih": 0.6727,
+    "games": 1864
+   },
+   "last": {
+    "gih": 0.6595,
+    "games": 1433
+   },
+   "delta": -0.0133,
+   "z": -0.8
+  },
+  {
+   "name": "Gideon the Oathless",
+   "rarity": "rare",
+   "color": "B",
+   "cmc": 3,
+   "first": {
+    "gih": 0.6114,
+    "games": 3407
+   },
+   "last": {
+    "gih": 0.5874,
+    "games": 2448
+   },
+   "delta": -0.024,
+   "z": -1.85
+  },
+  {
+   "name": "Gideon's Memorial",
+   "rarity": "rare",
+   "color": "W",
+   "cmc": 2,
+   "first": {
+    "gih": 0.5139,
+    "games": 1621
+   },
+   "last": {
+    "gih": 0.5051,
+    "games": 891
+   },
+   "delta": -0.0088,
+   "z": -0.42
+  },
+  {
+   "name": "Guiding Hydra",
+   "rarity": "rare",
+   "color": "W",
+   "cmc": 1,
+   "first": {
+    "gih": 0.5799,
+    "games": 3373
+   },
+   "last": {
+    "gih": 0.5921,
+    "games": 2165
+   },
+   "delta": 0.0122,
+   "z": 0.9
+  },
+  {
+   "name": "Hungering Puppetbeast",
+   "rarity": "rare",
+   "color": "G",
+   "cmc": 5,
+   "first": {
+    "gih": 0.6344,
+    "games": 3422
+   },
+   "last": {
+    "gih": 0.6088,
+    "games": 2536
+   },
+   "delta": -0.0256,
+   "z": -2.01
+  },
+  {
+   "name": "Jace's Machinations",
+   "rarity": "rare",
+   "color": "U",
+   "cmc": 3,
+   "first": {
+    "gih": 0.5761,
+    "games": 3645
+   },
+   "last": {
+    "gih": 0.5796,
+    "games": 2476
+   },
+   "delta": 0.0034,
+   "z": 0.27
+  },
+  {
+   "name": "Jace, Reality Sculptor",
+   "rarity": "rare",
+   "color": "U",
+   "cmc": 5,
+   "first": {
+    "gih": 0.5834,
+    "games": 3353
+   },
+   "last": {
+    "gih": 0.5874,
+    "games": 2402
+   },
+   "delta": 0.0041,
+   "z": 0.31
+  },
+  {
+   "name": "Kindred Judgment",
+   "rarity": "rare",
+   "color": "W",
+   "cmc": 7,
+   "first": {
+    "gih": 0.6306,
+    "games": 3010
+   },
+   "last": {
+    "gih": 0.6263,
+    "games": 2719
+   },
+   "delta": -0.0042,
+   "z": -0.33
+  },
+  {
+   "name": "Kwia Vigorbloom",
+   "rarity": "mythic",
+   "color": "GW",
+   "cmc": 6,
+   "first": {
+    "gih": 0.6268,
+    "games": 1495
+   },
+   "last": {
+    "gih": 0.6217,
+    "games": 941
+   },
+   "delta": -0.0051,
+   "z": -0.25
+  },
+  {
+   "name": "Lich's Relic",
+   "rarity": "rare",
+   "color": "B",
+   "cmc": 1,
+   "first": {
+    "gih": 0.6396,
+    "games": 4195
+   },
+   "last": {
+    "gih": 0.6276,
+    "games": 2879
+   },
+   "delta": -0.0119,
+   "z": -1.02
+  },
+  {
+   "name": "Liliana the Faultless",
+   "rarity": "rare",
+   "color": "W",
+   "cmc": 1,
+   "first": {
+    "gih": 0.5815,
+    "games": 2172
+   },
+   "last": {
+    "gih": 0.5883,
+    "games": 1404
+   },
+   "delta": 0.0068,
+   "z": 0.4
+  },
+  {
+   "name": "Liliana the Repentant",
+   "rarity": "rare",
+   "color": "B",
+   "cmc": 2,
+   "first": {
+    "gih": 0.5745,
+    "games": 3250
+   },
+   "last": {
+    "gih": 0.5542,
+    "games": 2113
+   },
+   "delta": -0.0203,
+   "z": -1.46
+  },
+  {
+   "name": "Lyra, Archangel of Dawn",
+   "rarity": "rare",
+   "color": "W",
+   "cmc": 3,
+   "first": {
+    "gih": 0.6056,
+    "games": 2774
+   },
+   "last": {
+    "gih": 0.5968,
+    "games": 1580
+   },
+   "delta": -0.0088,
+   "z": -0.57
+  },
+  {
+   "name": "Lyra, Tolarian Archangel",
+   "rarity": "rare",
+   "color": "U",
+   "cmc": 3,
+   "first": {
+    "gih": 0.6152,
+    "games": 4270
+   },
+   "last": {
+    "gih": 0.6096,
+    "games": 2938
+   },
+   "delta": -0.0056,
+   "z": -0.48
+  },
+  {
+   "name": "Master of Barbs",
+   "rarity": "rare",
+   "color": "R",
+   "cmc": 2,
+   "first": {
+    "gih": 0.5556,
+    "games": 1897
+   },
+   "last": {
+    "gih": 0.5309,
+    "games": 987
+   },
+   "delta": -0.0247,
+   "z": -1.26
+  },
+  {
+   "name": "Null Summoner",
+   "rarity": "rare",
+   "color": "BU",
+   "cmc": 4,
+   "first": {
+    "gih": 0.6361,
+    "games": 4443
+   },
+   "last": {
+    "gih": 0.6327,
+    "games": 3196
+   },
+   "delta": -0.0034,
+   "z": -0.3
+  },
+  {
+   "name": "Overwrite the Multiverse",
+   "rarity": "mythic",
+   "color": "B",
+   "cmc": 6,
+   "first": {
+    "gih": 0.6564,
+    "games": 2014
+   },
+   "last": {
+    "gih": 0.6662,
+    "games": 1384
+   },
+   "delta": 0.0098,
+   "z": 0.59
+  },
+  {
+   "name": "Pompous Battlemage",
+   "rarity": "rare",
+   "color": "R",
+   "cmc": 1,
+   "first": {
+    "gih": 0.5378,
+    "games": 1653
+   },
+   "last": {
+    "gih": 0.5184,
+    "games": 868
+   },
+   "delta": -0.0194,
+   "z": -0.93
+  },
+  {
+   "name": "Proctor of Potential",
+   "rarity": "rare",
+   "color": "UW",
+   "cmc": 2,
+   "first": {
+    "gih": 0.6128,
+    "games": 2776
+   },
+   "last": {
+    "gih": 0.61,
+    "games": 2059
+   },
+   "delta": -0.0027,
+   "z": -0.19
+  },
+  {
+   "name": "Pyre Rhymer",
+   "rarity": "rare",
+   "color": "R",
+   "cmc": 3,
+   "first": {
+    "gih": 0.524,
+    "games": 1603
+   },
+   "last": {
+    "gih": 0.5143,
+    "games": 840
+   },
+   "delta": -0.0097,
+   "z": -0.46
+  },
+  {
+   "name": "Repurposed Enforcer",
+   "rarity": "rare",
+   "color": "W",
+   "cmc": 2,
+   "first": {
+    "gih": 0.6063,
+    "games": 3216
+   },
+   "last": {
+    "gih": 0.594,
+    "games": 2118
+   },
+   "delta": -0.0124,
+   "z": -0.9
+  },
+  {
+   "name": "Rise of the Deathbringer",
+   "rarity": "rare",
+   "color": "B",
+   "cmc": 5,
+   "first": {
+    "gih": 0.5782,
+    "games": 3056
+   },
+   "last": {
+    "gih": 0.5584,
+    "games": 1995
+   },
+   "delta": -0.0198,
+   "z": -1.39
+  },
+  {
+   "name": "Samut, Hazoret's Champion",
+   "rarity": "rare",
+   "color": "R",
+   "cmc": 2,
+   "first": {
+    "gih": 0.5737,
+    "games": 2205
+   },
+   "last": {
+    "gih": 0.573,
+    "games": 1391
+   },
+   "delta": -0.0007,
+   "z": -0.04
+  },
+  {
+   "name": "Sanctum Lurker",
+   "rarity": "rare",
+   "color": "B",
+   "cmc": 3,
+   "first": {
+    "gih": 0.6226,
+    "games": 3839
+   },
+   "last": {
+    "gih": 0.6238,
+    "games": 2759
+   },
+   "delta": 0.0012,
+   "z": 0.1
+  },
+  {
+   "name": "Seasoned Cryomancer",
+   "rarity": "mythic",
+   "color": "U",
+   "cmc": 3,
+   "first": {
+    "gih": 0.5938,
+    "games": 2048
+   },
+   "last": {
+    "gih": 0.6094,
+    "games": 1275
+   },
+   "delta": 0.0157,
+   "z": 0.9
+  },
+  {
+   "name": "Simulacrum Shaper",
+   "rarity": "rare",
+   "color": "G",
+   "cmc": 3,
+   "first": {
+    "gih": 0.6125,
+    "games": 3404
+   },
+   "last": {
+    "gih": 0.5978,
+    "games": 2101
+   },
+   "delta": -0.0147,
+   "z": -1.08
+  },
+  {
+   "name": "Solarium Sentry",
+   "rarity": "rare",
+   "color": "GW",
+   "cmc": 2,
+   "first": {
+    "gih": 0.5787,
+    "games": 1759
+   },
+   "last": {
+    "gih": 0.5753,
+    "games": 1003
+   },
+   "delta": -0.0035,
+   "z": -0.18
+  },
+  {
    "name": "Sphinx of False Conclusions",
    "rarity": "rare",
    "color": "U",
@@ -2648,20 +3381,100 @@
    "z": -2.38
   },
   {
-   "name": "Proft, Sinister Mastermind",
-   "rarity": "uncommon",
-   "color": "B",
+   "name": "Tenured Tethermage",
+   "rarity": "rare",
+   "color": "GR",
    "cmc": 3,
    "first": {
-    "gih": 0.5711,
-    "games": 6440
+    "gih": 0.5917,
+    "games": 2853
    },
    "last": {
-    "gih": 0.5414,
-    "games": 3622
+    "gih": 0.5812,
+    "games": 1755
    },
-   "delta": -0.0297,
-   "z": -2.88
+   "delta": -0.0105,
+   "z": -0.7
+  },
+  {
+   "name": "The Echoverse Fulcrum",
+   "rarity": "mythic",
+   "color": "",
+   "cmc": 2,
+   "first": {
+    "gih": 0.5965,
+    "games": 1601
+   },
+   "last": {
+    "gih": 0.5953,
+    "games": 1117
+   },
+   "delta": -0.0012,
+   "z": -0.06
+  },
+  {
+   "name": "The Theorist, Jace Beleren",
+   "rarity": "mythic",
+   "color": "U",
+   "cmc": 4,
+   "first": {
+    "gih": 0.6894,
+    "games": 2109
+   },
+   "last": {
+    "gih": 0.6961,
+    "games": 1484
+   },
+   "delta": 0.0067,
+   "z": 0.43
+  },
+  {
+   "name": "Theorist's Proxy",
+   "rarity": "rare",
+   "color": "U",
+   "cmc": 2,
+   "first": {
+    "gih": 0.5753,
+    "games": 3327
+   },
+   "last": {
+    "gih": 0.5822,
+    "games": 2456
+   },
+   "delta": 0.007,
+   "z": 0.53
+  },
+  {
+   "name": "Uldaros Theorix",
+   "rarity": "mythic",
+   "color": "BU",
+   "cmc": 6,
+   "first": {
+    "gih": 0.6928,
+    "games": 2103
+   },
+   "last": {
+    "gih": 0.6996,
+    "games": 1528
+   },
+   "delta": 0.0068,
+   "z": 0.44
+  },
+  {
+   "name": "Variable Chaser",
+   "rarity": "rare",
+   "color": "U",
+   "cmc": 3,
+   "first": {
+    "gih": 0.5865,
+    "games": 2929
+   },
+   "last": {
+    "gih": 0.5878,
+    "games": 2256
+   },
+   "delta": 0.0012,
+   "z": 0.09
   },
   {
    "name": "Verdant Kraken",
@@ -2680,20 +3493,52 @@
    "z": -2.42
   },
   {
-   "name": "Carnivorous Cultivator",
+   "name": "Vindictive Triumph",
    "rarity": "rare",
-   "color": "G",
+   "color": "BW",
+   "cmc": 3,
+   "first": {
+    "gih": 0.5554,
+    "games": 1390
+   },
+   "last": {
+    "gih": 0.5512,
+    "games": 1085
+   },
+   "delta": -0.0042,
+   "z": -0.21
+  },
+  {
+   "name": "Vraska's Final Mercy",
+   "rarity": "rare",
+   "color": "B",
    "cmc": 2,
    "first": {
-    "gih": 0.6245,
+    "gih": 0.5597,
+    "games": 2687
+   },
+   "last": {
+    "gih": 0.5408,
+    "games": 1581
+   },
+   "delta": -0.0189,
+   "z": -1.2
+  },
+  {
+   "name": "Vraska, the Cutting Glare",
+   "rarity": "rare",
+   "color": "BG",
+   "cmc": 3,
+   "first": {
+    "gih": 0.6356,
     "games": 3326
    },
    "last": {
-    "gih": 0.5888,
-    "games": 2213
+    "gih": 0.6238,
+    "games": 2634
    },
-   "delta": -0.0357,
-   "z": -2.66
+   "delta": -0.0118,
+   "z": -0.94
   }
  ]
 }
