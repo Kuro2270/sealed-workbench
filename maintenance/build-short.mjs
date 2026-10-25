@@ -5,7 +5,7 @@
  *   node maintenance/build-short.mjs HOB        … 日本語（VOICEVOX）
  *   node maintenance/build-short.mjs HOB en     … 英語（Kokoro。KOKORO_DIR にモデルを置く）
  *   node maintenance/build-short.mjs HOB ja sealed … シールドのデータで（既定は draft）
- *   node maintenance/build-short.mjs FRA ja trend  … 修正版（確定版のあと。ドラフトの1週目と直近1週間の変化。data/trends/<SET>_draft.json から。台本は short-trend.mjs）
+ *   node maintenance/build-short.mjs FRA ja trend  … 修正版（確定版のあと。ドラフトの発売直後（最初の1週間）と最近1週間の変化。data/trends/<SET>_draft.json から。台本は short-trend.mjs）
  *
  * 出力: short/<SET>/<lang>.mp4（シールドは <lang>-sealed.mp4）と、途中生成物（台本 script.json・場面ごとの png/wav）
  *
@@ -84,8 +84,8 @@ const UI = JA ? {
   outroA: "チャンネル登録を", outroB: "お願いします", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん",
   earlyBadge: "速報", earlyHookC: "リミテッド速報",
   trendBadge: "修正版", trendHookC: "ドラフト環境の変化", trendHookD2: "評価が変わったカード",
-  trendUpH: "1週目から上がったコモン・アンコモン", trendDownH: "1週目から下がったコモン・アンコモン", trendPairsH: "2色の組み合わせ（1週目 → 直近）",
-  trendFirst: "1週目", trendLast: "最近", trendRise: "一番伸びた", trendFall: "一番落ちた", trendTop: "今の1位", trendTopKeep: "ずっと1位"
+  trendUpH: "発売直後から上がったカード", trendDownH: "発売直後から下がったカード", trendPairsH: "2色の組み合わせ（発売直後 → 最近）",
+  trendFirst: "発売直後", trendLast: "最近", trendRise: "一番伸びた", trendFall: "一番落ちた", trendTop: "今の1位", trendTopKeep: "ずっと1位"
 } : {
   analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute", hookA: "Limited in 1 minute", hookC: m => m ? "SEALED" : "DRAFT", hookD1: g => `${g} games analyzed`, hookD2: "Best colors & cards",
   tierH: "Colour-pair tier list", targetTag: "AIM FOR", bombsH: (a, b) => `Top 6 rare & mythic bombs (#${a}–${b})`, bombsTag: { mythic: "Mythic", rare: "Rare" },
@@ -101,8 +101,8 @@ const UI = JA ? {
   outroA: "Please subscribe", outroB: "", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS",
   earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1",
   trendBadge: "UPDATE", trendHookC: "DRAFT · WHAT CHANGED", trendHookD2: "Cards that rose & fell",
-  trendUpH: "Commons & uncommons rising since week one", trendDownH: "Commons & uncommons falling since week one", trendPairsH: "Colour pairs (week one → latest)",
-  trendFirst: "Week 1", trendLast: "Recent", trendRise: "Rose most", trendFall: "Fell most", trendTop: "No. 1 now", trendTopKeep: "No. 1 all along"
+  trendUpH: "Rising since launch", trendDownH: "Falling since launch", trendPairsH: "Colour pairs (launch → recent)",
+  trendFirst: "Launch", trendLast: "Recent", trendRise: "Rose most", trendFall: "Fell most", trendTop: "No. 1 now", trendTopKeep: "No. 1 all along"
 };
 const FONT = "'Noto Sans CJK JP','Noto Sans JP',sans-serif";
 
@@ -677,7 +677,7 @@ function thumbInner(hook, alt = false, { char = true } = {}){
   // 見出し（2行・黄色）と、下の一行（白）。全角の「！」は右に空きがあるので、その分だけ右へずらして真ん中に見せる
   const wide = JA ? 1 : 0.56, room = BOTTOM - y;
   if(th.sub2){
-    // 修正版：見出しは1行（カード名を「」で）。下に白い行（何週間で・何のカードか）と、黄色の行（1週目 → 今の勝率）
+    // 修正版：見出しは1行（カード名を「」で）。下に白い行（何週間で・何のカードか）と、黄色の行（発売直後 → 最近の勝率）
     const u = t => JA ? units(t) : [...t].length * wide;   // 日本語の行は、半角（数字や%）を細めに数える
     const subs = th.subs || [th.sub];
     const subS = Math.min(76, ...subs.map(t => Math.floor(980 / u(t)))), sub2S = Math.min(88, Math.floor(980 / u(th.sub2)));
@@ -856,7 +856,7 @@ function sceneSvg(sc){
       return frame(s, sc.say);
     }
     case "trendCards": {
-      // 修正版：1週目から上がった（下がった）カード 3 枚。左にカード、右に名前と「1週目 → 直近」の勝率、大きく差
+      // 修正版：発売直後から上がった（下がった）カード 3 枚。左にカード、右に名前と「発売直後 → 最近」の勝率、大きく差
       const capTop = captionTop(sc.layoutSay || sc.say), Y0 = sc.chapter ? CH_Y0 : 236, up = sc.dir === "up", col = up ? UP : DOWN;
       const ROW = Math.min(420, Math.floor((capTop - 16 - Y0) / 3)), k = ROW / 358;
       const CH = ROW - 9, CW = Math.round(CH * 250 / 349), TX = 80 + CW + 42, TW = ZX - 20 - TX;
@@ -877,7 +877,7 @@ function sceneSvg(sc){
         size = Math.min(size, Math.floor(TW / Math.max(...lines.map(l => JA ? [...l].length : l.length * 0.58), 1)));
         const ny = y + Math.round(150 * k);
         lines.forEach((l, j) => { s += T(TX, ny + j * (size + 6), l, { size, weight: 900 }); });
-        // 1週目 → 直近 の勝率
+        // 発売直後 → 最近 の勝率
         const by = ny + (lines.length - 1) * (size + 6) + Math.round(58 * k), bs = Math.round(34 * Math.min(1, Math.max(0.8, k)));
         s += T(TX, by, `${UI.trendFirst} ${pt(c.first.gih)}%`, { size: bs, fill: MUTED }) +
              T(TX + Math.round(units(`${UI.trendFirst} ${pt(c.first.gih)}%`) * bs) + 16, by, "→", { size: bs, fill: MUTED }) +
@@ -886,7 +886,7 @@ function sceneSvg(sc){
       return frame(s, sc.say);
     }
     case "trendPairs": {
-      // 修正版：2色の組み合わせ 10 通りを今の勝率の順に。1週目 → 直近 と差。
+      // 修正版：2色の組み合わせ 10 通りを最近の勝率の順に。発売直後 → 最近 と差。
       // いちばん伸びた・落ちた・今の1位は、行の枠と差の札の色で示し、見出しの下に色の見方を出す（行の中に文字の札を足すと、英語で重なるため）
       const capTop = captionTop(sc.say), Y0 = PAIR_Y0, n = sc.pairs.length;
       const ROW = pairRow(sc);

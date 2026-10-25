@@ -282,7 +282,7 @@ function videoPost(ctx, lang, track, withVideo = !!VIDEO_FILE){
   const nm = ctx.name[lang];
   const L = lang === "ja";
   if(vmode === "trend"){
-    // 修正版：1週目 → 直近で、いちばん上がったカードと、いちばん伸びた組み合わせ（data/trends/<SET>_draft.json）
+    // 修正版：発売直後 → 最近で、いちばん上がったカードと、いちばん伸びた組み合わせ（data/trends/<SET>_draft.json）
     let t = null; try{ t = JSON.parse(readFileSync(`data/trends/${ctx.code}_draft.json`, "utf8")); }catch(e){}
     const up = t && (t.risers || [])[0];
     const RNM = L ? { common: "コモン", uncommon: "アンコモン" } : { common: "common", uncommon: "uncommon" };
@@ -292,9 +292,9 @@ function videoPost(ctx, lang, track, withVideo = !!VIDEO_FILE){
     const sg = v => `${v >= 0 ? "+" : "−"}${(Math.abs(v) * 100).toFixed(1)}`;
     const url = ctx.url(lang) + `?from=${track}`;
     const lines = [
-      L ? `【${nm}】ドラフト環境の変化${withVideo ? "" : "（動画）"}` : `${nm} Draft: what changed since week 1${withVideo ? "" : " (video)"}`,
+      L ? `【${nm}】ドラフト環境の変化${withVideo ? "" : "（動画）"}` : `${nm} Draft: what changed since launch${withVideo ? "" : " (video)"}`,
       "",
-      L ? `発売1週目と直近の1週間を比べて、コモン・アンコモン・レアごとに勝率が上がった・下がったカードと、2色の組み合わせの変化をまとめました。` : `Week one vs the latest week: the commons, uncommons and rares that rose and fell the most, and how the colour pairs moved.`,
+      L ? `発売直後と最近の1週間を比べて、コモン・アンコモン・レアごとに勝率が上がった・下がったカードと、2色の組み合わせの変化をまとめました。` : `Launch week vs recent week: the commons, uncommons and rares that rose and fell the most, and how the colour pairs moved.`,
       up ? (L ? `~いちばん上がった${RNM[up.rarity] || "コモン・アンコモン"}：${cardLabel(ctx, lang, up.name)}（引けた試合の勝率 ${(up.first.gih * 100).toFixed(1)}%→${(up.last.gih * 100).toFixed(1)}%）`
               : `~Top rising ${RNM[up.rarity] || "common/uncommon"}: ${cardLabel(ctx, lang, up.name)} (win rate when drawn ${(up.first.gih * 100).toFixed(1)}%→${(up.last.gih * 100).toFixed(1)}%)`) : null,
       rise ? (L ? `~いちばん伸びた組み合わせ：${pairLabel(rise.colors)}（${sg(rise.delta)}pt）` : `~Most improved pair: ${pairLabel(rise.colors)} (${sg(rise.delta)}pt)`) : null,

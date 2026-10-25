@@ -4,7 +4,7 @@
  *
  *   node maintenance/youtube-upload.mjs HOB            … short/HOB/ja.mp4 を日本語チャンネルへ
  *   node maintenance/youtube-upload.mjs HOB en         … short/HOB/en.mp4 を英語チャンネルへ（英語版ができてから）
- *   node maintenance/youtube-upload.mjs HOB ja trend   … 修正版（1週目 → 直近の変化。short/HOB/ja-trend.mp4）
+ *   node maintenance/youtube-upload.mjs HOB ja trend   … 修正版（発売直後 → 最近の変化。short/HOB/ja-trend.mp4）
  *
  * 必要な環境変数
  *   YT_CLIENT_ID, YT_CLIENT_SECRET            … Google Cloud の OAuth クライアント
@@ -27,7 +27,7 @@ const MODE = (process.argv[4] || "draft").toLowerCase();
 const TAG = MODE === "draft" ? LANG : `${LANG}-${MODE}`;
 if(!SET || !["draft", "sealed", "early", "trend"].includes(MODE)){ console.error("使い方: node maintenance/youtube-upload.mjs <SET> [ja|en] [draft|sealed|early|trend]"); process.exit(1); }
 const EARLY = MODE === "early";   // 先行版（発売直後。データは 17Lands のカード勝率・色別勝率。サイトにはまだ載っていない）
-const TREND = MODE === "trend";   // 修正版（確定版のあと。ドラフトの1週目と直近の1週間の比較。データは data/trends/<SET>_draft.json）
+const TREND = MODE === "trend";   // 修正版（確定版のあと。ドラフトの発売直後（最初の1週間）と最近の1週間の比較。データは data/trends/<SET>_draft.json）
 
 const SITE = process.env.SITE_URL || "https://sealed-workbench.com";
 const ID = process.env.YT_CLIENT_ID, SECRET = process.env.YT_CLIENT_SECRET;
@@ -59,8 +59,8 @@ const FAN = `Unofficial Fan Content permitted under the Fan Content Policy. Not 
 const trendMeta = () => LANG === "ja" ? {
   title: `【${name.ja}】評価が変わったカードは？コモン・アンコモン・レア別 ドラフト環境の変化｜MTGアリーナ #Shorts`,
   description: [
-    `MTGアリーナ『${name.ja}』のドラフト（プレミアドラフト）で、発売1週目と直近の1週間を比べて、コモン・アンコモン・レアごとに引けた試合の勝率が上がった・下がったカードと、2色デッキの勝率の変化・狙い目をまとめました。`,
-    ...(win ? [`比べた期間: 1週目 ${span("first")}／直近 ${span("last")}${gamesTxt ? "（合わせて" + gamesTxt + "試合）" : ""}`] : []),
+    `MTGアリーナ『${name.ja}』のドラフト（プレミアドラフト）で、発売直後（最初の1週間）と最近の1週間を比べて、コモン・アンコモン・レアごとに引けた試合の勝率が上がった・下がったカードと、2色デッキの勝率の変化・狙い目をまとめました。`,
+    ...(win ? [`比べた期間: 発売直後 ${span("first")}／最近 ${span("last")}${gamesTxt ? "（合わせて" + gamesTxt + "試合）" : ""}`] : []),
     `カードの勝率は、引けた試合の勝率（GIH WR）です。`,
     ``,
     `▼ 全カードの勝率・環境レポート（無料）`,
@@ -80,10 +80,10 @@ const trendMeta = () => LANG === "ja" ? {
   ].join("\n"),
   tags: ["MTGアリーナ", "MTGA", "マジック：ザ・ギャザリング", "リミテッド", "ドラフト", "環境の変化", name.ja, "17Lands"]
 } : {
-  title: `${name.en} Draft: Cards That Changed Since Week 1 (Commons, Uncommons, Rares) | MTG Arena #Shorts`,
+  title: `${name.en} Draft: Cards That Changed Since Launch (Commons, Uncommons, Rares) | MTG Arena #Shorts`,
   description: [
-    `How the ${name.en} Premier Draft format on MTG Arena has shifted: the commons, uncommons and rares whose win rate when drawn rose or fell the most between week one and the latest week, how the colour pairs moved, and the pair to aim for.`,
-    ...(win ? [`Compared: week one ${span("first")} vs latest ${span("last")}${gamesTxt ? " (" + gamesTxt + " games combined)" : ""}`] : []),
+    `How the ${name.en} Premier Draft format on MTG Arena has shifted: the commons, uncommons and rares whose win rate when drawn rose or fell the most between launch week and the most recent week, how the colour pairs moved, and the pair to aim for.`,
+    ...(win ? [`Compared: launch week ${span("first")} vs recent week ${span("last")}${gamesTxt ? " (" + gamesTxt + " games combined)" : ""}`] : []),
     `Card win rates are games-in-hand win rates (GIH WR).`,
     ``,
     `▼ Every card's win rate and the full format report (free)`,
