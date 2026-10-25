@@ -41,7 +41,11 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
   const and = list => JA ? list.join("と") : list.join(" and ");
   const cap = t => t[0].toUpperCase() + t.slice(1);
   const byR = d.by_rarity || {};
-  const top = withLabel(d.risers)[0] || null;
+  // 章ごとの3枚は、揺れを考えた確かさ（z）で選んだうえで、差の大きい順に並べる（画面の上から「一番」になるように）
+  const byDelta = (list, dir) => (list || []).slice().sort((a, b) => dir * (b.delta - a.delta));
+  const chapterUp = r => withLabel(byDelta((byR[r] || {}).risers, 1)), chapterDown = r => withLabel(byDelta((byR[r] || {}).fallers, -1));
+  // サムネイルの答え：コモンとアンコモンの章の1枚目のうち、差の大きいほう（動画のその章の1枚目と同じカードになる）
+  const top = ["common", "uncommon"].map(r => chapterUp(r)[0]).filter(Boolean).sort((a, b) => b.delta - a.delta)[0] || withLabel(d.risers)[0] || null;
   const R0 = top && RN[L][top.rarity] ? top.rarity : "uncommon";
   const scenes = [];
 
@@ -62,9 +66,9 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
   const chapterEn = { common: "COMMONS", uncommon: "UNCOMMONS", rare: "RARES" };
   const intro = { common: JA ? "まずはコモン編。" : "First, commons.", uncommon: JA ? "続いてアンコモン編。" : "Next, uncommons.", rare: JA ? "そしてレア編。" : "Then rares." };
   for(const r of ["common", "uncommon", "rare"]){
-    const g = byR[r] || {}, up = withLabel(g.risers), down = withLabel(g.fallers);
+    const up = chapterUp(r), down = chapterDown(r);
     if(!up.length && !down.length) continue;
-    const rn = RN[L][r], ch = JA ? chapterJa[r] : chapterEn[r];
+    const rn = RN[L][r], rns = rn + "s", ch = JA ? chapterJa[r] : chapterEn[r];
     let opened = false;
     const open = () => { const t = opened ? "" : intro[r] + (JA ? "" : " "); opened = true; return t; };
     if(up.length){
@@ -72,8 +76,8 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
       const lead = r === "rare" && c0.underrated
           ? (JA ? `発売直後は目立たなかった${c0.label}が、引けた試合の勝率${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントに上がりました。`
                 : `${c0.label}, overlooked at launch, went from ${pct(c0.first.gih)} percent at launch to ${pct(c0.last.gih)} percent recently in win rate when drawn.`)
-          : (JA ? `一番上がったのは${c0.label}で、引けた試合の勝率は、発売直後の${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントです。`
-                : `The biggest riser is ${c0.label}: win rate when drawn went from ${pct(c0.first.gih)} percent at launch to ${pct(c0.last.gih)} percent recently.`);
+          : (JA ? `${rn}の中で一番上がったのは${c0.label}で、引けた試合の勝率は、発売直後の${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントです。`
+                : `The biggest riser among ${rns} is ${c0.label}: win rate when drawn went from ${pct(c0.first.gih)} percent at launch to ${pct(c0.last.gih)} percent recently.`);
       const tail = !rest.length ? "" : (JA ? `${and(rest)}も上がっています。` : ` ${and(rest)} are up too.`);
       scenes.push({ kind: "trendCards", dir: "up", cards: up, label: `trend-${r}-up`, tail: 0.8, minDur: 6, rare: r === "rare",
         chapter: ch, heading: JA ? "引けた試合の勝率が上がった" : "Win rate when drawn: rising",
@@ -83,8 +87,8 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
       const c0 = down[0], rest = down.slice(1).map(c => c.label);
       scenes.push({ kind: "trendCards", dir: "down", cards: down, label: `trend-${r}-down`, tail: 0.8, minDur: 6, rare: r === "rare",
         chapter: ch, heading: JA ? "引けた試合の勝率が下がった" : "Win rate when drawn: falling",
-        say: open() + (JA ? `逆に一番下がったのは${c0.label}。引けた試合の勝率が${pt1(c0.delta)}ポイント下がりました。${rest.length ? and(rest) + "も下がっています。" : ""}`
-                          : `The biggest faller: ${c0.label}, down ${pt1(c0.delta)} points in win rate when drawn.${rest.length ? ` ${and(rest)} dropped too.` : ""}`) });
+        say: open() + (JA ? `逆に${rn}の中で一番下がったのは${c0.label}。引けた試合の勝率が${pt1(c0.delta)}ポイント下がりました。${rest.length ? and(rest) + "も下がっています。" : ""}`
+                          : `The biggest faller among ${rns}: ${c0.label}, down ${pt1(c0.delta)} points in win rate when drawn.${rest.length ? ` ${and(rest)} dropped too.` : ""}`) });
     }
   }
 
