@@ -1,0 +1,78 @@
+name: ショート｜修正版の自動作成の起動（自動・毎日）
+
+# 修正版ショート（確定版のあと。ドラフトの1週目 → 直近の1週間の変化）を、決まった日に自動で作り始める。役割は「起動」だけ。
+# 毎日1回（9:40）、trend-due.mjs が選んだセット（紙の発売から28〜60日目・確定版あり・修正版の動画がまだ無い）について：
+#   ・修正版のデータがまだ無い → 「データ｜修正版の集計（自動・発売28日目〜）」を起こす（集計が終わるとデータがコミットされる）
+#   ・データがある             → 「ショート｜修正版ショートを作る（自動・発売28日目〜）」を起こし、確認用の Issue を立てる
+#   つまり、ふつうは1日目にデータ、2日目に動画。公開データの期間がまだ足りないときは、足りる日まで毎日集計を試す
+#   ・同じセットで2回は動画を作らない（Issue の題で確かめる）
+# 動画は YouTube に「非公開」で上がる。公開は自動ではしない（YouTube Studio で確認して手で公開 → 「ショート｜2 動画を配信」）。
+
+on:
+  schedule:
+    - cron: "40 0 * * *"       # 毎日 09:40（日本時間）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  actions: write
+
+jobs:
+  start:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 作る日が来たセットを選ぶ
+        run: node maintenance/trend-due.mjs > due.txt
+
+      - name: 集計か動画づくりを始める
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const due = fs.readFileSync('due.txt', 'utf8').split('\n').filter(Boolean).map(l => { const [set, step, released] = l.split('\t'); return { set, step, released }; });
+            if(!due.length){ core.info('今日作るセットはありません。'); return; }
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner, repo: context.repo.repo, state: 'all', labels: 'trend', per_page: 100 });
+            const repo = `https://github.com/${context.repo.owner}/${context.repo.repo}`;
+            for(const { set, step, released } of due){
+              if(step === 'data'){
+                // 集計を始めるだけ（Issue は立てない）。期間が足りなければ集計側が「作りませんでした」で終わり、翌日また試す
+                try{
+                  await github.rest.actions.createWorkflowDispatch({ owner: context.repo.owner, repo: context.repo.repo, workflow_id: 'trend-data.yml', ref: 'main', inputs: { set } });
+                  core.info(`${set}: 修正版のデータの集計を始めました`);
+                }catch(e){ core.warning(`修正版の集計を始められませんでした: ${set} ${e.message}`); }
+                continue;
+              }
+              const title = `【要確認】修正版ショートを作って非公開で上げます：${set}`;
+              if(issues.some(i => i.title === title)){ core.info(`${set}: もう作り始めたことがあるので飛ばします`); continue; }
+              try{
+                await github.rest.actions.createWorkflowDispatch({ owner: context.repo.owner, repo: context.repo.repo, workflow_id: 'trend-short.yml', ref: 'main', inputs: { set, lang: 'both', upload: 'true' } });
+              }catch(e){
+                core.warning(`修正版ショートを作り始められませんでした: ${set} ${e.message}`);
+                continue;
+              }
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, assignees: [context.repo.owner], labels: ['trend'],
+                body: [
+                  `${set} の修正版ショート（ドラフトの1週目 → 直近の1週間の変化）を、日本語と英語で自動で作り始めました（10〜20分ほど）。`,
+                  `できあがると YouTube に「非公開」で上がり、動画ごとに公開のリマインド（ラベル video）が届きます。公開は自動ではしません。`,
+                  ``,
+                  `## やること`,
+                  `1. 作成の進み具合と結果: ${repo}/actions/workflows/trend-short.yml`,
+                  `2. 届いたリマインドの手順で、動画を確認して YouTube Studio で「公開」にし、「ショート｜2 動画を配信」を押す`,
+                  ``,
+                  `作成が失敗したときは、GitHub から失敗の通知が届きます。直したうえで「ショート｜修正版ショートを作る（自動・発売28日目〜）」に ${set} を入れて手で実行してください。`,
+                  ``,
+                  `紙の発売: ${released}`
+                ].join('\n')
+              });
+            }
