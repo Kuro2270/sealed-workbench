@@ -40,6 +40,7 @@ import { lookupOutside } from "./outside-cards.mjs";
 import { loadReport } from "./report-data.mjs";
 import { rarityAverages, isBombLevel } from "./card-level.mjs";
 import { trendScript } from "./short-trend.mjs";
+import { TREND_FORMAT } from "./trend-format.mjs";
 
 const SET = process.argv[2];
 const LANG = (process.argv[3] || "ja").toLowerCase();
@@ -541,7 +542,7 @@ function fitSize(str, w, max){
   return Math.max(24, Math.min(max, Math.floor(w / Math.max(units, 1))));
 }
 function zundaPos(sc){
-  if(sc && sc.kind === "hook" && (sc.trend || sc.early) && sc.thumb) return { x: 40, y: 1600 };   // 修正版・速報の冒頭（サムネイルと同じ配置）：左下。見出しの文字と重ねない
+  if(sc && sc.kind === "hook" && (sc.trend || sc.early) && sc.thumb) return { x: 40, y: 1600 };   // 修正版・速報の冒頭：左下   // 修正版・速報の冒頭（サムネイルと同じ配置）：左下。見出しの文字と重ねない
   return { x: W - 24 - ZW, y: 1030 };   // 足もとが字幕の枠（最大 5 行）の上端にほぼ付く高さ
 }
 // 音声の大きさから、1/15 秒ごとの口の形を決める
@@ -629,6 +630,21 @@ function frame(inner, say, opts = {}){
    セットのロゴ（short/logo/<SET>.png）があればそれを主役に、無ければセット名の文字。 */
 function thumbSvg(hook, alt = false){ return frame(thumbInner(hook, alt), null, { header: false }); }
 /* サムネイルの中身。修正版では、動画の冒頭の場面にも同じものを使う（サムネイルと冒頭で情報をそろえる。char: false でキャラクターを描かない） */
+/* 修正版の冒頭：アリーナとセットのロゴを上に、赤い帯「ドラフト環境の変化」を大きく、真ん中より少し下に */
+function trendHookInner(hook){
+  let s = `<defs><linearGradient id="gh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050B14" stop-opacity="0"/><stop offset="0.1" stop-color="#050B14" stop-opacity="0.78"/><stop offset="0.9" stop-color="#050B14" stop-opacity="0.78"/><stop offset="1" stop-color="#050B14" stop-opacity="0"/></linearGradient></defs>` +
+          `<rect x="0" y="260" width="${W}" height="1060" fill="url(#gh)"/>`;
+  s += hook.arenaLogo ? `<image href="${hook.arenaLogo}" x="${W / 2 - 220}" y="360" width="440" height="150" preserveAspectRatio="xMidYMid meet"/>`
+                      : T(W / 2, 460, UI.arena, { size: 64, weight: 900, anchor: "middle", fill: "#FFFFFF" });
+  if(hook.logo) s += `<image href="${hook.logo}" x="110" y="530" width="860" height="300" preserveAspectRatio="xMidYMid meet"/>`;
+  else{ const sz = Math.min(130, Math.floor(940 / (Math.max([...String(hook.title)].length, 4) * (JA ? 1 : 0.6)))); s += TS(W / 2, 720, hook.title, { size: sz, fill: "#FFFFFF" }); }
+  const ribbon = (hook.thumb && hook.thumb.ribbon) || UI.trendHookC;
+  const rs = Math.min(JA ? 104 : 80, Math.floor(940 / ([...ribbon].length * (JA ? 1 : 0.62)))), rw = Math.round([...ribbon].length * rs * (JA ? 1 : 0.62) + 90), rh = Math.round(rs * 1.7);
+  const ry = 1000;
+  s += `<rect x="${(W - rw) / 2}" y="${ry}" width="${rw}" height="${rh}" rx="24" fill="#D9412B" stroke="#FFFFFF" stroke-width="7"/>` +
+       T(W / 2, ry + Math.round(rh / 2 + rs * 0.36), ribbon, { size: rs, weight: 900, anchor: "middle", fill: "#FFFFFF" });
+  return s;
+}
 function thumbInner(hook, alt = false, { char = true } = {}){
   // 2026年10月：長尺のサムネイルと同じ考え方で作り直した（何の動画かを上に／答えを1つ、大きく言い切る／キャラクターとボムのカードは下に）
   //   大事なもの（ロゴ・帯・見出し・数字）は縦 340〜1380px（18%〜72%）の帯に収める。上下は一覧で切れる・題名が重なる前提で、絵だけを置く
@@ -687,8 +703,12 @@ function sceneSvg(sc){
   switch(sc.kind){
     case "hook": {
       // 修正版：サムネイルと同じ中身を冒頭に出す（サムネイルで見た答えを、そのまま動画でも見せる）。左上に「修正版」の札
-      // 速報も同じ（2026年10月：サムネイルで見た情報が、動画に入ると消えて地味になるため）
-      if((sc.trend || sc.early) && sc.thumb) return frame(thumbInner(sc, false, { char: false }) +
+      // 修正版：答え（カード名と数字）は次の「注目」の場面で出すので、冒頭はロゴと、大きな「ドラフト環境の変化」の帯だけ。帯は真ん中より少し下に
+      if(sc.trend) return frame(trendHookInner(sc) +
+        `<g transform="rotate(-8 140 120)"><rect x="20" y="84" width="240" height="74" rx="37" fill="#E53935" stroke="#FFFFFF" stroke-width="5"/>` +
+        T(140, 136, UI.trendBadge, { size: JA ? 48 : 32, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>`, null, { header: false });
+      // 速報：サムネイルと同じ中身（2026年10月：サムネイルで見た情報が、動画に入ると消えて地味になるため）
+      if(sc.early && sc.thumb) return frame(thumbInner(sc, false, { char: false }) +
         `<g transform="rotate(-8 140 120)"><rect x="20" y="84" width="240" height="74" rx="37" fill="#E53935" stroke="#FFFFFF" stroke-width="5"/>` +
         T(140, 136, sc.trend ? UI.trendBadge : UI.earlyBadge, { size: JA ? 48 : 32, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>`, null, { header: false });
       // 一目で「何の動画か」が分かるように：大きな縁取り文字を、上下の暗い帯の上に置く。絵は真ん中に見せる
@@ -1112,6 +1132,10 @@ async function main(){
   const dataFile = TREND ? `data/trends/${SET}_draft.json` : `data/articles/${SET}_${MODE}.json`;
   const d = await readJson(dataFile, null);
   if(!d){ console.error(`${SET}: ${MODE} のデータ（${dataFile}）がありません`); process.exit(1); }
+  if(TREND && d.format !== TREND_FORMAT){
+    console.error(`${process.env.GITHUB_ACTIONS ? "::error::" : ""}${SET}: 修正版のデータ（${dataFile}）が古い形です（${d.format || 1} → ${TREND_FORMAT} が必要）。「データ｜修正版の集計」をやり直してから作ってください`);
+    process.exit(1);
+  }
   const names = await readJson(`data/names/${SET}.json`, { names: {}, images: {} });
   const nameJa = shortName(JA ? ((await setNameJa(SET)) || names.set || SET) : (names.set || SET));   // 英語のときは英語のセット名
   const sharp = (await import("sharp")).default;

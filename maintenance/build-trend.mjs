@@ -33,6 +33,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { csvRows, csvUrl, isWin } from "./l17-csv.mjs";
 import { eventFile } from "./ratings-files.mjs";
+import { TREND_FORMAT } from "./trend-format.mjs";
 
 const SET = String(process.argv[2] || "").toUpperCase();
 if(!/^[A-Z0-9]{2,6}$/.test(SET)){ console.error("使い方: node maintenance/build-trend.mjs <SET>"); process.exit(1); }
@@ -147,7 +148,8 @@ async function main(){
 
   const win = k => { const x = tot[k === "first" ? 0 : 1]; return { from: iso(W[k].from), to: iso(W[k].to), games: x.g, wr: r4(x.w / x.g) }; };
   const out = {
-    set: SET, mode: "draft", event: FORMAT, generated_at: new Date().toISOString(),
+    // format：データの形。動画づくり（build-short.mjs）は、この形でないデータでは作らずに止まる（古い集計のまま作って中身が薄くなるのを防ぐ）
+    set: SET, mode: "draft", event: FORMAT, format: TREND_FORMAT, generated_at: new Date().toISOString(),
     source: "17Lands Public Data (CC BY 4.0)", source_url: "https://www.17lands.com/public_datasets",
     data_from: iso(lo), data_to: iso(hi), days: DAYS, min_games: MIN_GAMES, min_rare_games: RARE_GAMES, min_pair_games: MIN_PAIR,
     window: { first: win("first"), last: win("last") },
