@@ -83,8 +83,8 @@ const UI = JA ? {
   outroA: "チャンネル登録を", outroB: "お願いします", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん",
   earlyBadge: "速報", earlyHookC: "リミテッド速報",
   trendBadge: "修正版", trendHookC: "ドラフト環境の変化", trendHookD2: "評価が変わったカード",
-  trendUpH: "1週目から上がったカード", trendDownH: "1週目から下がったカード", trendPairsH: "2色の組み合わせ（1週目 → 直近）",
-  trendFirst: "1週目", trendLast: "直近", trendRise: "一番伸びた", trendFall: "一番落ちた", trendTop: "今の1位"
+  trendUpH: "1週目から上がったコモン・アンコモン", trendDownH: "1週目から下がったコモン・アンコモン", trendPairsH: "2色の組み合わせ（1週目 → 直近）",
+  trendFirst: "1週目", trendLast: "直近", trendRise: "一番伸びた", trendFall: "一番落ちた", trendTop: "今の1位", trendTopKeep: "ずっと1位"
 } : {
   analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute", hookA: "Limited in 1 minute", hookC: m => m ? "SEALED" : "DRAFT", hookD1: g => `${g} games analyzed`, hookD2: "Best colors & cards",
   tierH: "Colour-pair tier list", targetTag: "AIM FOR", bombsH: (a, b) => `Top 6 rare & mythic bombs (#${a}–${b})`, bombsTag: { mythic: "Mythic", rare: "Rare" },
@@ -100,8 +100,8 @@ const UI = JA ? {
   outroA: "Please subscribe", outroB: "", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS",
   earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1",
   trendBadge: "UPDATE", trendHookC: "DRAFT · WHAT CHANGED", trendHookD2: "Cards that rose & fell",
-  trendUpH: "Rising since week one", trendDownH: "Falling since week one", trendPairsH: "Colour pairs (week one → latest)",
-  trendFirst: "Week 1", trendLast: "Latest", trendRise: "Rose most", trendFall: "Fell most", trendTop: "No. 1 now"
+  trendUpH: "Commons & uncommons rising since week one", trendDownH: "Commons & uncommons falling since week one", trendPairsH: "Colour pairs (week one → latest)",
+  trendFirst: "Week 1", trendLast: "Latest", trendRise: "Rose most", trendFall: "Fell most", trendTop: "No. 1 now", trendTopKeep: "No. 1 all along"
 };
 const FONT = "'Noto Sans CJK JP','Noto Sans JP',sans-serif";
 
@@ -518,7 +518,10 @@ function fitSize(str, w, max){
   const units = [...String(str)].reduce((n, ch) => n + (/[\x00-\x7F]/.test(ch) ? 0.58 : 1), 0);
   return Math.max(24, Math.min(max, Math.floor(w / Math.max(units, 1))));
 }
-function zundaPos(){ return { x: W - 24 - ZW, y: 1030 }; }   // 足もとが字幕の枠（最大 5 行）の上端にほぼ付く高さ
+function zundaPos(sc){
+  if(sc && sc.kind === "hook" && sc.trend && sc.thumb) return { x: 40, y: 1600 };   // 修正版の冒頭（サムネイルと同じ配置）：左下。見出しの文字と重ねない
+  return { x: W - 24 - ZW, y: 1030 };   // 足もとが字幕の枠（最大 5 行）の上端にほぼ付く高さ
+}
 // 音声の大きさから、1/15 秒ごとの口の形を決める
 function mouthStates(wavPath, len){
   const FPS = 15, n = Math.max(1, Math.ceil(len * FPS));
@@ -593,7 +596,9 @@ function frame(inner, say, opts = {}){
 /* YouTube 用のサムネイル（冒頭の場面とは別に作る）。
    ショートの一覧（グリッド）では上下が切れ、下部に題名が重なるので、大事なものは縦 18%〜72% の帯に収める。
    セットのロゴ（short/logo/<SET>.png）があればそれを主役に、無ければセット名の文字。 */
-function thumbSvg(hook, alt = false){
+function thumbSvg(hook, alt = false){ return frame(thumbInner(hook, alt), null, { header: false }); }
+/* サムネイルの中身。修正版では、動画の冒頭の場面にも同じものを使う（サムネイルと冒頭で情報をそろえる。char: false でキャラクターを描かない） */
+function thumbInner(hook, alt = false, { char = true } = {}){
   // 2026年10月：長尺のサムネイルと同じ考え方で作り直した（何の動画かを上に／答えを1つ、大きく言い切る／キャラクターとボムのカードは下に）
   //   大事なもの（ロゴ・帯・見出し・数字）は縦 340〜1380px（18%〜72%）の帯に収める。上下は一覧で切れる・題名が重なる前提で、絵だけを置く
   const TOP = 340, BOTTOM = 1380, th = (alt && hook.thumbAlt) || hook.thumb;
@@ -605,7 +610,7 @@ function thumbSvg(hook, alt = false){
     const x = 420 + i * 150, y = BOTTOM + 20 + (i === 1 ? -14 : 16), rot = [-10, 0, 10][i];
     inner += `<g transform="rotate(${rot} ${x + CW / 2} ${y + CH / 2})"><rect x="${x + 6}" y="${y + 10}" width="${CW}" height="${CH}" rx="14" fill="#000" opacity="0.45"/><image href="${src}" x="${x}" y="${y}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/></g>`;
   });
-  if(hook.thumbChar) inner += `<image href="${hook.thumbChar.src}" x="-20" y="${H - Math.round(600 * hook.thumbChar.h / hook.thumbChar.w)}" width="600" height="${Math.round(600 * hook.thumbChar.h / hook.thumbChar.w)}"/>`;
+  if(char && hook.thumbChar) inner += `<image href="${hook.thumbChar.src}" x="-20" y="${H - Math.round(600 * hook.thumbChar.h / hook.thumbChar.w)}" width="600" height="${Math.round(600 * hook.thumbChar.h / hook.thumbChar.w)}"/>`;
   let y = TOP;
   // アリーナのロゴ
   inner += hook.arenaLogo ? `<image href="${hook.arenaLogo}" x="${W / 2 - 170}" y="${y}" width="340" height="110" preserveAspectRatio="xMidYMid meet"/>`
@@ -621,17 +626,22 @@ function thumbSvg(hook, alt = false){
   inner += `<rect x="${(W - rw) / 2}" y="${y}" width="${rw}" height="${Math.round(rs * 1.6)}" rx="20" fill="#D9412B" stroke="#FFFFFF" stroke-width="6"/>` +
     T(W / 2, y + Math.round(rs * 0.8 + rs * 0.36), ribbon, { size: rs, weight: 900, anchor: "middle", fill: "#FFFFFF" });
   y += Math.round(rs * 1.6) + 24;
-  if(!th) return frame(inner, null, { header: false });
+  if(!th) return inner;
   // 見出し（2行・黄色）と、下の一行（白）。全角の「！」は右に空きがあるので、その分だけ右へずらして真ん中に見せる
   const wide = JA ? 1 : 0.56, room = BOTTOM - y;
   if(th.sub2){
-    // 修正版：見出しは1行（カード名を「」で）。下に白い2行（何のカードか・勝率の変化）
+    // 修正版：見出しは1行（カード名を「」で）。下に白い行（何週間で・何のカードか）と、黄色の行（1週目 → 今の勝率）
     const u = t => JA ? units(t) : [...t].length * wide;   // 日本語の行は、半角（数字や%）を細めに数える
-    const subS = Math.min(76, Math.floor(980 / u(th.sub))), sub2S = Math.min(88, Math.floor(980 / u(th.sub2)));
+    const subs = th.subs || [th.sub];
+    const subS = Math.min(76, ...subs.map(t => Math.floor(980 / u(t)))), sub2S = Math.min(88, Math.floor(980 / u(th.sub2)));
     const mainS = Math.min(150, Math.floor(1000 / u(th.l1)));
-    const y1 = y + mainS + 10, y2 = y1 + subS + 46, y3 = y2 + sub2S + 34;
-    inner += TS(W / 2, y1, th.l1, { size: mainS, fill: "#FFD23F" }) + TS(W / 2, y2, th.sub, { size: subS }) + TS(W / 2, y3, th.sub2, { size: sub2S, fill: "#FFD23F" });
-    return frame(inner, null, { header: false });
+    let yy = y + mainS + 10;
+    inner += TS(W / 2, yy, th.l1, { size: mainS, fill: "#FFD23F" });
+    yy += 26;
+    for(const t of subs){ yy += subS + 16; inner += TS(W / 2, yy, t, { size: subS }); }
+    yy += sub2S + 30;
+    inner += TS(W / 2, yy, th.sub2, { size: sub2S, fill: "#FFD23F" });
+    return inner;
   }
   const subS = Math.min(74, Math.floor(980 / ([...th.sub].length * wide)));
   const mainS = Math.min(200, Math.floor(980 / (Math.max([...th.l1].length, [...th.l2].length) * wide)), Math.floor((room - subS - 60) / 2.08));
@@ -639,12 +649,16 @@ function thumbSvg(hook, alt = false){
   const y1 = y + mainS, y2 = y1 + Math.round(mainS * 1.04);
   inner += TS(W / 2 + nudge(th.l1), y1, th.l1, { size: mainS, fill: "#FFD23F" }) + TS(W / 2 + nudge(th.l2), y2, th.l2, { size: mainS, fill: "#FFD23F" }) +
            TS(W / 2, y2 + subS + 40, th.sub, { size: subS });
-  return frame(inner, null, { header: false });
+  return inner;
 }
 
 function sceneSvg(sc){
   switch(sc.kind){
     case "hook": {
+      // 修正版：サムネイルと同じ中身を冒頭に出す（サムネイルで見た答えを、そのまま動画でも見せる）。左上に「修正版」の札
+      if(sc.trend && sc.thumb) return frame(thumbInner(sc, false, { char: false }) +
+        `<g transform="rotate(-8 140 120)"><rect x="20" y="84" width="240" height="74" rx="37" fill="#E53935" stroke="#FFFFFF" stroke-width="5"/>` +
+        T(140, 136, UI.trendBadge, { size: JA ? 48 : 32, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>`, null, { header: false });
       // 一目で「何の動画か」が分かるように：大きな縁取り文字を、上下の暗い帯の上に置く。絵は真ん中に見せる
       const parts = String(sc.title).includes(" ") && JA ? String(sc.title).split(/\s+/) : [sc.title];
       const longest = Math.max(...parts.map(p => [...p].length));
@@ -794,7 +808,7 @@ function sceneSvg(sc){
       const capTop = captionTop(sc.say), Y0 = 236, up = sc.dir === "up", col = up ? UP : DOWN;
       const ROW = Math.min(420, Math.floor((capTop - 16 - Y0) / 3)), k = ROW / 358;
       const CH = ROW - 9, CW = Math.round(CH * 250 / 349), TX = 80 + CW + 42, TW = ZX - 20 - TX;
-      let s = T(80, 216, up ? UI.trendUpH : UI.trendDownH, { size: 36, fill: MUTED });
+      let s = T(80, 218, up ? UI.trendUpH : UI.trendDownH, { size: JA ? 42 : 34, weight: 900, fill: PAPER });   // 「コモン・アンコモン」だけで比べたことを、はっきり見せる
       sc.cards.forEach((c, i) => {
         const y = Y0 + i * ROW, cc = COLOR[(c.color || "")[0]] || MUTED;
         if(c.imgPath) s += `<image href="${c.imgPath}" x="80" y="${y}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/>`;
@@ -823,7 +837,7 @@ function sceneSvg(sc){
       const ROW = pairRow(sc);
       let s = T(80, 216, UI.trendPairsH, { size: 36, fill: MUTED });
       let lx = 80;
-      for(const [label, col] of [[UI.trendRise, UP], [UI.trendFall, DOWN], [UI.trendTop, GOLD]]){
+      for(const [label, col] of [[UI.trendRise, UP], [UI.trendFall, DOWN], [sc.keepTop ? UI.trendTopKeep : UI.trendTop, GOLD]]){
         s += `<rect x="${lx}" y="236" width="26" height="26" rx="6" fill="${col}"/>` + T(lx + 36, 259, label, { size: 28, weight: 700, fill: PAPER });
         lx += 36 + Math.round(units(label) * 28) + 34;
       }
@@ -1100,7 +1114,7 @@ async function main(){
   let artPath = null;
   {
     const cands = TREND
-      ? (d.cards || []).filter(c => c.rarity === "mythic" || c.rarity === "rare").map(c => ({ ...c, gih: c.last.gih })).sort((a, b) => b.gih - a.gih)   // 修正版：直近でいちばん勝っているレア
+      ? [...(d.risers || []), ...(d.cards || []).slice().sort((a, b) => b.last.gih - a.last.gih)]   // 修正版：いちばん上がったカード（冒頭・サムネイルの答え）のアート
       : [...((d.top && d.top.mythic) || []), ...((d.top && d.top.rare) || [])].sort((a, b) => b.gih - a.gih);
     for(const c of cands){
       const url = (names.images || {})[c.name] || (names.images || {})[String(c.name).split(" // ")[0]];
@@ -1140,6 +1154,9 @@ async function main(){
       }catch(e){}
     }
   }
+
+  // 修正版：冒頭の場面はサムネイルと同じ中身なので、上がったカードの画像を冒頭にも渡しておく
+  if(TREND){ const hk = scenes[0], upc = scenes.find(sc => sc.kind === "trendCards" && sc.dir === "up"); hk.thumbCards = upc ? upc.cards.slice(0, 3).map(c => c.imgPath) : []; }
 
   // 背景のプレイ映像。あれば長さを測っておき、場面をまたいで途切れずに流す
   let bgDur = 0;
@@ -1250,7 +1267,7 @@ async function main(){
     const len = Math.max(dur + (sc.tail || 0.35), sc.minDur || 0), pad = len - dur, N = Math.ceil(len * 30);   // minDur: 読み終わっても最低この長さは見せる   // 読み終わりに少し置く（カードを見せる場面は長め）
     const audio = `[${(sc.art && artPath) || HAS_BG ? 2 : 1}:a]apad=pad_dur=${pad.toFixed(2)},afade=t=in:d=0.012,afade=t=out:st=${(len - 0.03).toFixed(3)}:d=0.03,aformat=sample_rates=48000:channel_layouts=stereo[a]`;   // 頭と終わりを短くなだらかに（つなぎ目のプチ音対策）
     const audioIdx = (sc.art && artPath) || HAS_BG ? 2 : 1;
-    const zp = zundaPos();
+    const zp = zundaPos(sc);
     const ZF = ZUNDA ? `[${audioIdx + 1}:v]fps=30,scale=${ZW}:${ZH},format=rgba[zz];[vz][zz]overlay=x=${zp.x}:y=${zp.y}:shortest=1,format=yuv420p[v];` : `[vz]format=yuv420p[v];`;
     // ずんだもんは背景と情報の画面のあいだに入れる（情報や字幕が前に出るので、万一かさなっても文字は隠れない）
     const ZPRE = ZUNDA ? `[${audioIdx + 1}:v]fps=30,scale=${ZW}:${ZH},format=rgba[zz];[bg][zz]overlay=x=${zp.x}:y=${zp.y}:shortest=1[bgz];` : `[bg]null[bgz];`;

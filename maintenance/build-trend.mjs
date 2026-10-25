@@ -8,9 +8,10 @@
  *
  * 出力: data/trends/<SET>_draft.json
  *   window … 比べた2つの期間（日付・試合数・全体の勝率）
- *   risers / fallers … 1週目から勝率（引けた試合の勝率）が上がった／下がったカード（上位 TREND_TOP 枚）
+ *   risers / fallers … 1週目から勝率（引けた試合の勝率）が上がった／下がったコモン・アンコモン（上位 TREND_TOP 枚）
  *   pairs … 2色の組み合わせごとの、2つの期間の勝率と差（試合数が少ない組み合わせは除く）
- *   cards … 比べられたカードすべて（名前・レアリティ・色・2つの期間の勝率と試合数・差）
+ *   cards … 比べられたコモン・アンコモンすべて（名前・レアリティ・色・2つの期間の勝率と試合数・差）
+ *   rarities … 比べたレアリティ（["common", "uncommon"]）
  *
  * 考え方
  *   ・発売からの合計どうしで比べると、最近の変化が最初の大量の試合に薄まって見えなくなる。
@@ -18,6 +19,8 @@
  *   ・カードの勝率は「引けた試合の勝率」（開始時の手札か、引いたカードにあった試合。17Lands の GIH WR と同じ）。
  *   ・比べるのは同じデータセット（同じイベント）の中だけ。差は、そのまま「直近 − 1週目」（ポイント）。
  *   ・どちらかの期間の試合数が少ないカード・組み合わせは、揺れが大きいので除く。
+ *   ・比べるカードはコモンとアンコモンだけ。ドラフトで何枚も取れて、デッキの中身を左右するため。
+ *     レア・神話レアは1回のドラフトで出会う数が少なく、修正版で言う「評価の変化」の主役にはしない（色の組み合わせは、全カードの試合で数える）
  *   ・2つの期間が重ならないよう、データの期間が TREND_MIN_SPAN 日に満たないときは作らない（終了コード 2）。
  *
  * カードのレアリティ・色は、確定版の勝率一覧（data/ratings/events/<SET>_PremierDraft.json）から取る。
@@ -102,7 +105,9 @@ async function main(){
   // カードの属性（レアリティ・色・土地）。確定版の勝率一覧から
   const meta = new Map();
   try{ const r = JSON.parse(await readFile(eventFile(SET, FORMAT), "utf8")); for(const c of r.cards || []) meta.set(c.name, c); }
-  catch(e){ console.error(`  カードの属性が読めませんでした（${eventFile(SET, FORMAT)}）。レアリティ・色なしで作ります`); }
+  catch(e){}
+  if(!meta.size){ console.error(`${SET}: カードのレアリティが読めません（${eventFile(SET, FORMAT)}）。コモン・アンコモンを選べないので作りません`); process.exit(1); }
+  const RARITIES = ["common", "uncommon"];
 
   const r4 = v => Math.round(v * 10000) / 10000;
   const cards = [];
@@ -110,7 +115,7 @@ async function main(){
     const a = gG[0][i], b = gG[1][i];
     if(a < MIN_GAMES || b < MIN_GAMES) return;
     const m = meta.get(n) || {};
-    if(m.land) return;
+    if(m.land || !RARITIES.includes(m.rarity)) return;
     const first = gW[0][i] / a, last = gW[1][i] / b;
     const se = Math.sqrt(first * (1 - first) / a + last * (1 - last) / b) || 1;
     cards.push({ name: n, rarity: m.rarity || "", color: m.color || "", cmc: m.cmc ?? null,
@@ -127,7 +132,7 @@ async function main(){
   const out = {
     set: SET, mode: "draft", event: FORMAT, generated_at: new Date().toISOString(),
     source: "17Lands Public Data (CC BY 4.0)", source_url: "https://www.17lands.com/public_datasets",
-    data_from: iso(lo), data_to: iso(hi), days: DAYS, min_games: MIN_GAMES, min_pair_games: MIN_PAIR,
+    data_from: iso(lo), data_to: iso(hi), days: DAYS, min_games: MIN_GAMES, min_pair_games: MIN_PAIR, rarities: RARITIES,
     window: { first: win("first"), last: win("last") },
     // 上がった／下がったカードは、差の大きさを、試合数から見た揺れの大きさで割った値（z）の順に選ぶ。
     // 試合の少ないカードがたまたま大きく動いただけのものを、上に出さないため（画面とセリフで言うのは差そのもの）
@@ -141,7 +146,7 @@ async function main(){
   const pt = v => (v * 100).toFixed(1);
   console.error(`\n${file}`);
   console.error(`  1週目 ${out.window.first.from}〜${out.window.first.to}（${out.window.first.games.toLocaleString()}試合）／直近 ${out.window.last.from}〜${out.window.last.to}（${out.window.last.games.toLocaleString()}試合）`);
-  console.error(`  比べたカード ${cards.length} 枚・組み合わせ ${pairs.length} 通り`);
+  console.error(`  比べたコモン・アンコモン ${cards.length} 枚・組み合わせ ${pairs.length} 通り`);
   for(const [h, l] of [["上がった", out.risers], ["下がった", out.fallers]]) console.error(`  ${h}: ` + l.map(c => `${c.name} ${pt(c.first.gih)}→${pt(c.last.gih)}（${c.delta > 0 ? "+" : ""}${pt(c.delta)}）`).join(" / "));
   console.error(`  組み合わせ: ` + pairs.map(p => `${p.colors} ${pt(p.first.wr)}→${pt(p.last.wr)}`).join(" / "));
 }

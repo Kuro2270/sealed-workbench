@@ -3,16 +3,18 @@
  * 画面の描き方・読み上げ・動画の組み立ては build-short.mjs（MODE = trend のとき、この台本を使う）。
  *
  *   trendScript(d, ctx) → 場面の並び
- *     d   … data/trends/<SET>_draft.json（build-trend.mjs が作る）
+ *     d   … data/trends/<SET>_draft.json（build-trend.mjs が作る。カードはコモン・アンコモンだけ）
  *     ctx … { JA, nameJa, names（data/names/<SET>.json）, pairName（2色の名前） }
  *
- * 場面: 冒頭 → 上がったカード（3枚）→ 下がったカード（3枚）→ 2色の組み合わせの変化 → 締め
+ * 場面: 冒頭（サムネイルと同じ中身：いちばん上がったコモン・アンコモンと、1週目 → 今の勝率）
+ *       → 上がったコモン・アンコモン（3枚）→ 下がったコモン・アンコモン（3枚）→ 2色の組み合わせの変化 → 締め
  * 数字はセリフで言う分だけにする（1位のカードの差と、組み合わせの名前）。ほかは画面に任せる。
+ * 「上がった」「下がった」の読み（あがった・さがった）は short/yomi.json で直す。
  */
 const pt1 = v => (Math.abs(v) * 100).toFixed(1).replace(/\.0$/, "");
 const pct = v => (v * 100).toFixed(1);
 /* 発売（データの最初の日）から直近（データの最後の日）まで。7日の倍数に近ければ週で言う */
-function elapsed(d, JA){
+export function elapsed(d, JA){
   const days = Math.round((Date.parse(d.data_to) - Date.parse(d.data_from)) / 86400000) + 1;
   if(!(days > 0)) return "";
   const w = Math.round(days / 7);
@@ -26,43 +28,53 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
   const up = withLabel(d.risers), down = withLabel(d.fallers);
   const w = d.window || {};
   const games = (w.first ? w.first.games : 0) + (w.last ? w.last.games : 0);
+  const el = elapsed(d, JA);
   const scenes = [];
 
-  // 冒頭：何の動画か（セット・ドラフト・1週目と最近の比較）
-  scenes.push({ kind: "hook", art: true, trend: true, gamesN: games,
-    say: JA ? `MTGアリーナ、${nameJa}のドラフト。1週目と最近の1週間で、評価が変わったカードを1分でまとめました。`
-            : `${nameJa} Draft on MTG Arena: what changed between week one and the latest week, in one minute.`,
-    title: nameJa,
-    // サムネイル：帯は大きく「ドラフト環境の変化」。いちばん上がったカードを「」に入れて落ち着いて見せ（煽る言葉は使わない）、
-    //   その下に、発売から何週間でのことか・何の数字か（1週目と今の勝率）を言葉で添える
-    thumb: up[0] ? { ribbon: JA ? "ドラフト環境の変化" : "WHAT CHANGED IN DRAFT", bigRibbon: true,
-                     l1: JA ? `「${up[0].label}」` : `“${up[0].label}”`, l2: "",
-                     sub: JA ? `発売${elapsed(d, JA)}で一番上がったカード` : `Biggest riser, ${elapsed(d, JA)} in`,
-                     sub2: JA ? `1週目 ${pct(up[0].first.gih)}% → 今 ${pct(up[0].last.gih)}%` : `Week 1 ${pct(up[0].first.gih)}% → now ${pct(up[0].last.gih)}%` } : null });
+  // 冒頭：サムネイルと同じ中身（帯「ドラフト環境の変化」・いちばん上がったカード・何週間で・1週目 → 今の勝率）。セリフも、その答えから入る
+  const thumb = up[0] ? {
+    ribbon: JA ? "ドラフト環境の変化" : "WHAT CHANGED IN DRAFT", bigRibbon: true,
+    l1: JA ? `「${up[0].label}」` : `“${up[0].label}”`, l2: "",
+    subs: JA ? [el ? `発売${el}で一番上がった` : "1週目から一番上がった", "コモン・アンコモン"] : ["Top rising common/uncommon", el ? `${el} in` : "since week one"],
+    sub2: JA ? `1週目 ${pct(up[0].first.gih)}% → 今 ${pct(up[0].last.gih)}%` : `Week 1 ${pct(up[0].first.gih)}% → now ${pct(up[0].last.gih)}%`
+  } : null;
+  scenes.push({ kind: "hook", art: true, trend: true, gamesN: games, thumb,
+    say: up[0]
+      ? (JA ? `MTGアリーナ、${nameJa}のドラフト。発売${el ? "から" + el : "直後から"}で、一番評価が上がったコモン・アンコモンは、${up[0].label}でした。`
+            : `${nameJa} Draft on MTG Arena: ${el ? el + " in" : "since week one"}, the common or uncommon that rose the most is ${up[0].label}.`)
+      : (JA ? `MTGアリーナ、${nameJa}のドラフト。1週目と最近の1週間で、評価が変わったカードを1分でまとめました。`
+            : `${nameJa} Draft on MTG Arena: what changed between week one and the latest week, in one minute.`),
+    title: nameJa });
 
-  // 上がったカード・下がったカード（3枚ずつ。1位だけ、差を読む）
+  // 上がった・下がったコモン・アンコモン（3枚ずつ。1位だけ、差を読む）
   if(up.length){
     const rest = up.slice(1).map(c => c.label);
     scenes.push({ kind: "trendCards", dir: "up", cards: up, label: "trend-up", tail: 0.8, minDur: 6,
-      say: JA ? `1週目から一番上がったのは${up[0].label}。勝率が${pt1(up[0].delta)}ポイント上がりました。${rest.length ? rest.join("、") + "も上がっています。" : ""}`
-              : `The biggest riser since week one: ${up[0].label}, up ${pt1(up[0].delta)} points.${rest.length ? ` ${rest.join(" and ")} are climbing too.` : ""}` });
+      say: JA ? `${up[0].label}は、1週目から勝率が${pt1(up[0].delta)}ポイント上がりました。${rest.length ? "ほかに、" + rest.join("と") + "も上がっています。" : ""}`
+              : `${up[0].label} is up ${pt1(up[0].delta)} points since week one.${rest.length ? ` ${rest.join(" and ")} are climbing too.` : ""}` });
   }
   if(down.length){
     const rest = down.slice(1).map(c => c.label);
     scenes.push({ kind: "trendCards", dir: "down", cards: down, label: "trend-down", tail: 0.8, minDur: 6,
-      say: JA ? `逆に一番下がったのは${down[0].label}。${pt1(down[0].delta)}ポイント下がりました。${rest.length ? rest.join("、") + "も下がっています。" : ""}`
+      say: JA ? `逆に一番下がったのは${down[0].label}。${pt1(down[0].delta)}ポイント下がりました。${rest.length ? rest.join("と") + "も下がっています。" : ""}`
               : `The biggest faller: ${down[0].label}, down ${pt1(down[0].delta)} points.${rest.length ? ` ${rest.join(" and ")} dropped too.` : ""}` });
   }
 
-  // 2色の組み合わせ：いちばん伸びた・いちばん落ちた・今いちばん勝てている
+  // 2色の組み合わせ：いちばん伸びた・いちばん落ちた・1位（1週目から変わらないか、入れ替わったか）
   const pairs = (d.pairs || []).slice();
   if(pairs.length >= 3){
     const rise = pairs.slice().sort((a, b) => b.delta - a.delta)[0], fall = pairs.slice().sort((a, b) => a.delta - b.delta)[0], top = pairs[0];
-    const R = pairName(rise.colors), F = pairName(fall.colors), Tn = pairName(top.colors);
-    const sameTop = top === rise;
-    scenes.push({ kind: "trendPairs", pairs, rise, fall, top, tail: 0.8, minDur: 6,
-      say: JA ? `色の組み合わせでは、${R}が一番伸びて、${F}が一番落ちました。${sameTop ? `伸びた${R}が、今いちばん勝てています。` : `今いちばん勝てているのは${Tn}です。`}`
-              : `Among colour pairs, ${R} rose the most and ${F} fell the most. ${sameTop ? `${R} is now the best pair.` : `The best pair right now is ${Tn}.`}` });
+    const firstTop = pairs.slice().sort((a, b) => b.first.wr - a.first.wr)[0];
+    const keepTop = firstTop === top;
+    const R = pairName(rise.colors), F = pairName(fall.colors), Tn = pairName(top.colors), F1 = pairName(firstTop.colors);
+    const topLine = keepTop
+      ? (JA ? `1位は発売直後から変わらず、${Tn}です。` : `${Tn} has been the best pair since week one.`)
+      : top === rise
+        ? (JA ? `伸びた${R}が、${F1}を抜いて1位になりました。` : `${R} has overtaken ${F1} for first place.`)
+        : (JA ? `1週目の1位は${F1}でしたが、今は${Tn}が1位です。` : `${F1} was best in week one; now it's ${Tn}.`);
+    scenes.push({ kind: "trendPairs", pairs, rise, fall, top, keepTop, tail: 0.8, minDur: 6,
+      say: JA ? `色の組み合わせでは、${R}が一番伸びて、${F}が一番落ちました。${topLine}`
+              : `Among colour pairs, ${R} rose the most and ${F} fell the most. ${topLine}` });
   }
 
   scenes.push({ kind: "outro", art: true,

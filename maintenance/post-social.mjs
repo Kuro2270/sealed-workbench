@@ -293,8 +293,8 @@ function videoPost(ctx, lang, track, withVideo = !!VIDEO_FILE){
     const lines = [
       L ? `【${nm}】ドラフト環境の変化を1分で${withVideo ? "" : "（動画）"}` : `${nm} Draft: what changed since week 1${withVideo ? "" : " (video)"}`,
       "",
-      L ? `発売1週目と直近の1週間を比べて、勝率が上がったカード・下がったカードと、2色の組み合わせの変化をまとめました。` : `Week one vs the latest week: the cards that rose and fell the most, and how the colour pairs moved.`,
-      up ? (L ? `~いちばん上がったカード：${cardLabel(ctx, lang, up.name)}（${sg(up.delta)}pt）` : `~Biggest riser: ${cardLabel(ctx, lang, up.name)} (${sg(up.delta)}pt)`) : null,
+      L ? `発売1週目と直近の1週間を比べて、勝率が上がった・下がったコモン・アンコモンと、2色の組み合わせの変化をまとめました。` : `Week one vs the latest week: the commons and uncommons that rose and fell the most, and how the colour pairs moved.`,
+      up ? (L ? `~いちばん上がったコモン・アンコモン：${cardLabel(ctx, lang, up.name)}（${sg(up.delta)}pt）` : `~Biggest riser: ${cardLabel(ctx, lang, up.name)} (${sg(up.delta)}pt)`) : null,
       rise ? (L ? `~いちばん伸びた組み合わせ：${pairLabel(rise.colors)}（${sg(rise.delta)}pt）` : `~Most improved pair: ${pairLabel(rise.colors)} (${sg(rise.delta)}pt)`) : null,
       "",
       withVideo ? null : `https://www.youtube.com/shorts/${id}`,
