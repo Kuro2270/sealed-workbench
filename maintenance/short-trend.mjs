@@ -8,7 +8,7 @@
  *
  * 章立て
  *   冒頭（サムネイルと同じ見た目。セリフは短く「何の動画か」だけ）
- *   → 注目のカード（いちばん上がったコモン／アンコモンを大きく。引けた試合の勝率の 1週目 → 今）
+ *   → 注目のカード（いちばん上がったコモン／アンコモンを大きく。引けた試合の勝率の 1週目 → 最近）
  *   → コモン編 → アンコモン編 → レア編（それぞれ、上がった3枚・下がった3枚）
  *   → 色の組み合わせ編（2色デッキの勝率の変化 → 狙い目（勝率が高いのに使う人が少ない組み合わせ。あるときだけ））→ 締め
  * カードの勝率は、どれも「引けた試合の勝率」（17Lands の GIH WR）。何の数字かが分かるよう、章の頭でセリフでも言う。
@@ -16,14 +16,8 @@
  */
 const pt1 = v => (Math.abs(v) * 100).toFixed(1).replace(/\.0$/, "");
 const pct = v => (v * 100).toFixed(1);
-/* 発売（データの最初の日）から直近（データの最後の日）まで。7日の倍数に近ければ週で言う */
-export function elapsed(d, JA){
-  const days = Math.round((Date.parse(d.data_to) - Date.parse(d.data_from)) / 86400000) + 1;
-  if(!(days > 0)) return "";
-  const w = Math.round(days / 7);
-  if(Math.abs(days - w * 7) <= 1) return JA ? `${w}週間` : `${w} week${w > 1 ? "s" : ""}`;
-  return JA ? `${days}日` : `${days} days`;
-}
+/* 「発売から〇日」は言わない。データは集計した日までのもので、ショートは見る日によって日数がずれるため（2026年10月）。
+   「発売直後」と「最近（発売からしばらくたった今）」の比べとして言う。比べた期間の日付は、YouTube の説明欄に書く */
 const RN = { ja: { common: "コモン", uncommon: "アンコモン", rare: "レア" }, en: { common: "common", uncommon: "uncommon", rare: "rare" } };
 
 /* 狙い目：直近で勝率が高いのに、使っている人（2色デッキのうちの割合）が少ない組み合わせ。無理には選ばない
@@ -47,7 +41,6 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
   const withLabel = list => (list || []).slice(0, 3).map(c => ({ ...c, label: label(c), img: JA ? (names.images || {})[c.name] : null }));
   const and = list => JA ? list.join("と") : list.join(" and ");
   const cap = t => t[0].toUpperCase() + t.slice(1);
-  const el = elapsed(d, JA);
   const byR = d.by_rarity || {};
   const top = withLabel(d.risers)[0] || null;
   const R0 = top && RN[L][top.rarity] ? top.rarity : "uncommon";
@@ -57,17 +50,17 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
   const thumb = top ? {
     ribbon: JA ? "ドラフト環境の変化" : "WHAT CHANGED IN DRAFT", bigRibbon: true,
     l1: JA ? `「${top.label}」` : `“${top.label}”`, l2: "",
-    subs: JA ? [`発売${el || "直後"}で一番上がった${RN.ja[R0]}`, "引けた試合の勝率"] : [`Top rising ${RN.en[R0]}${el ? `, ${el} in` : ""}`, "Win rate when drawn"],
-    sub2: JA ? `1週目 ${pct(top.first.gih)}% → 今 ${pct(top.last.gih)}%` : `Week 1 ${pct(top.first.gih)}% → now ${pct(top.last.gih)}%`
+    subs: JA ? [`発売直後から一番上がった${RN.ja[R0]}`, "引けた試合の勝率"] : [`Top rising ${RN.en[R0]} since launch`, "Win rate when drawn"],
+    sub2: JA ? `1週目 ${pct(top.first.gih)}% → 最近 ${pct(top.last.gih)}%` : `Week 1 ${pct(top.first.gih)}% → recent ${pct(top.last.gih)}%`
   } : null;
   scenes.push({ kind: "hook", art: true, trend: true, thumb, title: nameJa,
-    say: JA ? `MTGアリーナ、${nameJa}のドラフト。${el ? `発売から${el}で` : "1週目から"}、評価が大きく変わったカードをまとめました。`
-            : `${nameJa} Draft on MTG Arena: the cards whose results changed the most${el ? `, ${el} in` : " since week one"}.` });
+    say: JA ? `MTGアリーナ、${nameJa}のドラフト。発売からしばらくたって、評価が大きく変わったカードをまとめました。`
+            : `${nameJa} Draft on MTG Arena: a while after launch, these are the cards whose results changed the most.` });
 
   // 注目のカード：いちばん上がったコモン／アンコモンを大きく見せて、答えを言う
   if(top) scenes.push({ kind: "trendFeature", card: top, cards: [top], label: "trend-feature", rarityName: RN[L][R0], tail: 0.6, minDur: 5,
-    say: JA ? `一番評価が上がった${RN.ja[R0]}は、${top.label}。引けた試合の勝率は、1週目の${pct(top.first.gih)}パーセントから、今は${pct(top.last.gih)}パーセントです。`
-            : `The ${RN.en[R0]} that rose the most: ${top.label}. Its win rate when drawn went from ${pct(top.first.gih)} percent in week one to ${pct(top.last.gih)} percent now.` });
+    say: JA ? `一番評価が上がった${RN.ja[R0]}は、${top.label}。引けた試合の勝率は、発売1週目の${pct(top.first.gih)}パーセントから、最近は${pct(top.last.gih)}パーセントです。`
+            : `The ${RN.en[R0]} that rose the most: ${top.label}. Its win rate when drawn went from ${pct(top.first.gih)} percent in launch week to ${pct(top.last.gih)} percent recently.` });
 
   // コモン編・アンコモン編・レア編（それぞれ、上がった3枚 → 下がった3枚。無い側は飛ばす）
   const chapterJa = { common: "コモン編", uncommon: "アンコモン編", rare: "レア編" };
@@ -115,8 +108,8 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
       ? (JA ? `1位は発売直後から変わらず、${Tn}です。` : `${Tn} has been the best pair since week one.`)
       : topP === rise
         ? (JA ? `伸びた${R}が、${F1}を抜いて1位になりました。` : `${R} has overtaken ${F1} for first place.`)
-        : (JA ? `1週目の1位は${F1}でしたが、今は${Tn}が1位です。` : `${F1} was best in week one; now it's ${Tn}.`);
-    const chapter = JA ? "色の組み合わせ編" : "COLOUR PAIRS", heading = JA ? "2色デッキの勝率の変化" : "Deck win rate, week 1 → now";
+        : (JA ? `発売1週目の1位は${F1}でしたが、最近は${Tn}が1位です。` : `${F1} was best in launch week; recently it's ${Tn}.`);
+    const chapter = JA ? "色の組み合わせ編" : "COLOUR PAIRS", heading = JA ? "2色デッキの勝率の変化" : "Deck win rate, week 1 → recent";
     // ここの勝率は、カードではなく2色デッキの勝率。取り違えないよう「デッキの勝率」と言う
     scenes.push({ kind: "trendPairs", pairs, rise, fall, top: topP, keepTop, chapter, heading, tail: 0.8, minDur: 6,
       say: JA ? `色の組み合わせ編。2色デッキの勝率では、${R}が一番伸びて、${F}が一番落ちました。${topLine}`

@@ -872,7 +872,7 @@ function sceneSvg(sc){
       const by = Y0 + CH + 60, lo = Math.min(0.40, Math.min(c.first.gih, c.last.gih) - 0.05), hi = Math.max(c.first.gih, c.last.gih) + 0.03;
       const BX = 250, BW = ZX - 170 - BX, len = v => Math.max(8, Math.round(BW * (v - lo) / (hi - lo)));
       s += T(80, by, JA ? "引けた試合の勝率" : "Win rate when drawn", { size: 32, weight: 700, fill: MUTED });
-      [[JA ? "1週目" : "Week 1", c.first.gih, "#7A8BA6"], [JA ? "今" : "Now", c.last.gih, GOLD]].forEach(([lab, v, col], k) => {
+      [[JA ? "1週目" : "Week 1", c.first.gih, "#7A8BA6"], [JA ? "最近" : "Recent", c.last.gih, GOLD]].forEach(([lab, v, col], k) => {
         const y = by + 30 + k * 78;
         s += T(80, y + 42, lab, { size: 36, weight: 900, fill: k ? GOLD : PAPER }) +
              `<rect x="${BX}" y="${y}" width="${len(v)}" height="56" rx="12" fill="${col}"/>` +
