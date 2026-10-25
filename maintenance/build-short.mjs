@@ -85,7 +85,7 @@ const UI = JA ? {
   earlyBadge: "速報", earlyHookC: "リミテッド速報",
   trendBadge: "修正版", trendHookC: "ドラフト環境の変化", trendHookD2: "評価が変わったカード",
   trendUpH: "1週目から上がったコモン・アンコモン", trendDownH: "1週目から下がったコモン・アンコモン", trendPairsH: "2色の組み合わせ（1週目 → 直近）",
-  trendFirst: "1週目", trendLast: "直近", trendRise: "一番伸びた", trendFall: "一番落ちた", trendTop: "今の1位", trendTopKeep: "ずっと1位"
+  trendFirst: "1週目", trendLast: "最近", trendRise: "一番伸びた", trendFall: "一番落ちた", trendTop: "今の1位", trendTopKeep: "ずっと1位"
 } : {
   analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute", hookA: "Limited in 1 minute", hookC: m => m ? "SEALED" : "DRAFT", hookD1: g => `${g} games analyzed`, hookD2: "Best colors & cards",
   tierH: "Colour-pair tier list", targetTag: "AIM FOR", bombsH: (a, b) => `Top 6 rare & mythic bombs (#${a}–${b})`, bombsTag: { mythic: "Mythic", rare: "Rare" },
@@ -102,7 +102,7 @@ const UI = JA ? {
   earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1",
   trendBadge: "UPDATE", trendHookC: "DRAFT · WHAT CHANGED", trendHookD2: "Cards that rose & fell",
   trendUpH: "Commons & uncommons rising since week one", trendDownH: "Commons & uncommons falling since week one", trendPairsH: "Colour pairs (week one → latest)",
-  trendFirst: "Week 1", trendLast: "Latest", trendRise: "Rose most", trendFall: "Fell most", trendTop: "No. 1 now", trendTopKeep: "No. 1 all along"
+  trendFirst: "Week 1", trendLast: "Recent", trendRise: "Rose most", trendFall: "Fell most", trendTop: "No. 1 now", trendTopKeep: "No. 1 all along"
 };
 const FONT = "'Noto Sans CJK JP','Noto Sans JP',sans-serif";
 
@@ -703,7 +703,7 @@ function sceneSvg(sc){
   switch(sc.kind){
     case "hook": {
       // 修正版：サムネイルと同じ中身を冒頭に出す（サムネイルで見た答えを、そのまま動画でも見せる）。左上に「修正版」の札
-      // 修正版：答え（カード名と数字）は次の「注目」の場面で出すので、冒頭はロゴと、大きな「ドラフト環境の変化」の帯だけ。帯は真ん中より少し下に
+      // 修正版：答え（カード名と数字）はそのカードの章で出すので、冒頭はロゴと、大きな「ドラフト環境の変化」の帯だけ。帯は真ん中より少し下に
       if(sc.trend) return frame(trendHookInner(sc) +
         `<g transform="rotate(-8 140 120)"><rect x="20" y="84" width="240" height="74" rx="37" fill="#E53935" stroke="#FFFFFF" stroke-width="5"/>` +
         T(140, 136, UI.trendBadge, { size: JA ? 48 : 32, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>`, null, { header: false });
@@ -852,31 +852,6 @@ function sceneSvg(sc){
         // 勝率の札は、名前のすぐ下に置く
         const nameBottom = y + Math.round((lines.length > 1 ? 168 : 196) * k) + (lines.length - 1) * (size + 8), bs = Math.round(46 * Math.min(1, Math.max(0.8, k)));
         s += gihBadge(TX, Math.min(nameBottom + Math.round(26 * k), y + CH - Math.round(bs * 1.4)), pt(c.gih), TW, bs);
-      });
-      return frame(s, sc.say);
-    }
-    case "trendFeature": {
-      // 修正版：注目のカード（いちばん上がったコモン／アンコモン）を大きく。右に名前と差、下に「引けた試合の勝率」の 1週目 → 今 を棒で
-      const c = sc.card, CW = 380, CH = Math.round(CW * 680 / 488), X0 = 80, Y0 = 290, TX = X0 + CW + 34, TW = ZX - 20 - TX;
-      let s = chapterHead(JA ? "注目" : "SPOTLIGHT", JA ? `一番上がった${sc.rarityName}` : `Top rising ${sc.rarityName}`);
-      s += c.imgPath ? `<image href="${c.imgPath}" x="${X0}" y="${Y0}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/>`
-                     : `<rect x="${X0}" y="${Y0}" width="${CW}" height="${CH}" rx="18" fill="${COLOR[(c.color || "")[0]] || MUTED}" opacity="0.85"/>`;
-      const pill = JA ? sc.rarityName : sc.rarityName.toUpperCase(), pw = Math.round(units(pill) * 30) + 36;
-      s += `<rect x="${TX}" y="${Y0 + 6}" width="${pw}" height="48" rx="24" fill="${GOLD}"/>` + T(TX + pw / 2, Y0 + 41, pill, { size: 30, weight: 900, anchor: "middle", fill: "#06101C" });
-      const lines = wrapName(c.label, JA ? 6 : 12).slice(0, 3);
-      const ns = Math.min(JA ? 50 : 42, Math.floor(TW / Math.max(...lines.map(l => units(l)), 1)));
-      lines.forEach((l, j) => { s += T(TX, Y0 + 120 + j * (ns + 10), l, { size: ns, weight: 900 }); });
-      const dy = Y0 + 120 + lines.length * (ns + 10) + 70;
-      s += T(TX, dy, `▲ +${(Math.abs(c.delta) * 100).toFixed(1)}pt`, { size: Math.min(76, Math.floor(TW / 4.6)), weight: 900, fill: UP });
-      // 棒：1週目（灰）と今（金）。差が見えるよう、40% から始める
-      const by = Y0 + CH + 60, lo = Math.min(0.40, Math.min(c.first.gih, c.last.gih) - 0.05), hi = Math.max(c.first.gih, c.last.gih) + 0.03;
-      const BX = 250, BW = ZX - 170 - BX, len = v => Math.max(8, Math.round(BW * (v - lo) / (hi - lo)));
-      s += T(80, by, JA ? "引けた試合の勝率" : "Win rate when drawn", { size: 32, weight: 700, fill: MUTED });
-      [[JA ? "1週目" : "Week 1", c.first.gih, "#7A8BA6"], [JA ? "最近" : "Recent", c.last.gih, GOLD]].forEach(([lab, v, col], k) => {
-        const y = by + 30 + k * 78;
-        s += T(80, y + 42, lab, { size: 36, weight: 900, fill: k ? GOLD : PAPER }) +
-             `<rect x="${BX}" y="${y}" width="${len(v)}" height="56" rx="12" fill="${col}"/>` +
-             T(BX + len(v) + 14, y + 42, `${pt(v)}%`, { size: 38, weight: 900, fill: k ? GOLD : PAPER });
       });
       return frame(s, sc.say);
     }
@@ -1228,7 +1203,7 @@ async function main(){
   }
 
   // カード画像（取れなければ名前の札のまま）。英語は Scryfall から英語版を引く
-  for(const sc of scenes) if(sc.kind === "top" || sc.kind === "bombs" || sc.kind === "trendCards" || sc.kind === "trendFeature"){
+  for(const sc of scenes) if(sc.kind === "top" || sc.kind === "bombs" || sc.kind === "trendCards"){
     for(const [i, c] of sc.cards.entries()){
       if(!JA && !c.img){
         try{
@@ -1250,13 +1225,12 @@ async function main(){
 
   // 修正版・速報：冒頭の場面はサムネイルと同じ中身なので、サムネイルに並べるカードの画像を冒頭にも渡しておく
   if(TREND || EARLY){
-    // 修正版は、注目のカードを真ん中にして、同じレアリティの上がったカードを左右に
-    const hk = scenes[0], feat = scenes.find(sc => sc.kind === "trendFeature");
-    const src = feat ? scenes.find(sc => sc.kind === "trendCards" && sc.dir === "up" && sc.cards[0].name === feat.card.name) || feat
-                     : scenes.find(sc => sc.kind === "bombs" || (sc.kind === "trendCards" && sc.dir === "up"));
+    // 修正版は、サムネイルの答えのカード（いちばん上がったカード）の章から取り、そのカードを真ん中に、同じ章の上がったカードを左右に
+    const hk = scenes[0];
+    const src = TREND ? scenes.find(sc => sc.kind === "trendCards" && sc.dir === "up" && sc.cards[0].name === hk.topName)
+                      : scenes.find(sc => sc.kind === "bombs");
     const imgs = src ? src.cards.slice(0, 3).map(c => c.imgPath) : [];
-    if(feat){ const f = feat.cards[0].imgPath || imgs[0]; imgs.splice(0, 1); hk.thumbCards = [imgs[0], f, imgs[1]].filter(Boolean); }
-    else hk.thumbCards = imgs;
+    hk.thumbCards = TREND ? [imgs[1], imgs[0], imgs[2]].filter(Boolean) : imgs;
   }
 
   // 背景のプレイ映像。あれば長さを測っておき、場面をまたいで途切れずに流す

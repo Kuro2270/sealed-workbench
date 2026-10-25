@@ -8,7 +8,6 @@
  *
  * 章立て
  *   冒頭（サムネイルと同じ見た目。セリフは短く「何の動画か」だけ）
- *   → 注目のカード（いちばん上がったコモン／アンコモンを大きく。引けた試合の勝率の 1週目 → 最近）
  *   → コモン編 → アンコモン編 → レア編（それぞれ、上がった3枚・下がった3枚）
  *   → 色の組み合わせ編（2色デッキの勝率の変化 → 狙い目（勝率が高いのに使う人が少ない組み合わせ。あるときだけ））→ 締め
  * カードの勝率は、どれも「引けた試合の勝率」（17Lands の GIH WR）。何の数字かが分かるよう、章の頭でセリフでも言う。
@@ -46,21 +45,17 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
   const R0 = top && RN[L][top.rarity] ? top.rarity : "uncommon";
   const scenes = [];
 
-  // 冒頭：サムネイルと同じ見た目（サムネイルで見た答えが、動画でもそのまま出る）。セリフは短く、何の動画かだけ。答えは次の場面で、カードを大きく見せながら言う
+  // 冒頭：セリフは短く、何の動画かだけ。thumb は YouTube 用サムネイルの中身（答えのカードと数字）。動画では、そのカードの章で言う
   const thumb = top ? {
     ribbon: JA ? "ドラフト環境の変化" : "WHAT CHANGED IN DRAFT", bigRibbon: true,
     l1: JA ? `「${top.label}」` : `“${top.label}”`, l2: "",
     subs: JA ? [`発売直後から一番上がった${RN.ja[R0]}`, "引けた試合の勝率"] : [`Top rising ${RN.en[R0]} since launch`, "Win rate when drawn"],
     sub2: JA ? `1週目 ${pct(top.first.gih)}% → 最近 ${pct(top.last.gih)}%` : `Week 1 ${pct(top.first.gih)}% → recent ${pct(top.last.gih)}%`
   } : null;
-  scenes.push({ kind: "hook", art: true, trend: true, thumb, title: nameJa,
+  // topName：サムネイルに並べるカードを、このカードの章から取るため（このカードを真ん中に）
+  scenes.push({ kind: "hook", art: true, trend: true, thumb, title: nameJa, topName: top ? top.name : null,
     say: JA ? `MTGアリーナ、${nameJa}のドラフト。発売からしばらくたって、評価が大きく変わったカードをまとめました。`
             : `${nameJa} Draft on MTG Arena: a while after launch, these are the cards whose results changed the most.` });
-
-  // 注目のカード：いちばん上がったコモン／アンコモンを大きく見せて、答えを言う
-  if(top) scenes.push({ kind: "trendFeature", card: top, cards: [top], label: "trend-feature", rarityName: RN[L][R0], tail: 0.6, minDur: 5,
-    say: JA ? `一番評価が上がった${RN.ja[R0]}は、${top.label}。引けた試合の勝率は、発売1週目の${pct(top.first.gih)}パーセントから、最近は${pct(top.last.gih)}パーセントです。`
-            : `The ${RN.en[R0]} that rose the most: ${top.label}. Its win rate when drawn went from ${pct(top.first.gih)} percent in launch week to ${pct(top.last.gih)} percent recently.` });
 
   // コモン編・アンコモン編・レア編（それぞれ、上がった3枚 → 下がった3枚。無い側は飛ばす）
   const chapterJa = { common: "コモン編", uncommon: "アンコモン編", rare: "レア編" };
@@ -74,16 +69,12 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
     const open = () => { const t = opened ? "" : intro[r] + (JA ? "" : " "); opened = true; return t; };
     if(up.length){
       const c0 = up[0], rest = up.slice(1).map(c => c.label);
-      const isTop = top && c0.name === top.name;
-      const lead = isTop
-        ? (rest.length ? (JA ? `${c0.label}に続いて、${and(rest)}も、引けた試合の勝率が上がっています。` : `After ${c0.label}, ${and(rest)} are also winning more when drawn.`)
-                       : (JA ? `${c0.label}のほかには、大きく上がった${rn}はありませんでした。` : `Beyond ${c0.label}, no other ${rn} rose much.`))
-        : r === "rare" && c0.underrated
-          ? (JA ? `発売直後は目立たなかった${c0.label}が、引けた試合の勝率${pct(c0.first.gih)}パーセントから${pct(c0.last.gih)}パーセントに上がりました。`
-                : `${c0.label}, overlooked at launch, went from ${pct(c0.first.gih)} to ${pct(c0.last.gih)} percent in win rate when drawn.`)
-          : (JA ? `一番上がったのは${c0.label}で、引けた試合の勝率は${pct(c0.first.gih)}パーセントから${pct(c0.last.gih)}パーセントです。`
-                : `The biggest riser is ${c0.label}: ${pct(c0.first.gih)} to ${pct(c0.last.gih)} percent in win rate when drawn.`);
-      const tail = isTop || !rest.length ? "" : (JA ? `${and(rest)}も上がっています。` : ` ${and(rest)} are up too.`);
+      const lead = r === "rare" && c0.underrated
+          ? (JA ? `発売直後は目立たなかった${c0.label}が、引けた試合の勝率が、1週目の${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントに上がりました。`
+                : `${c0.label}, overlooked at launch, went from ${pct(c0.first.gih)} percent in week one to ${pct(c0.last.gih)} percent recently in win rate when drawn.`)
+          : (JA ? `一番上がったのは${c0.label}で、引けた試合の勝率は、1週目の${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントです。`
+                : `The biggest riser is ${c0.label}: win rate when drawn went from ${pct(c0.first.gih)} percent in week one to ${pct(c0.last.gih)} percent recently.`);
+      const tail = !rest.length ? "" : (JA ? `${and(rest)}も上がっています。` : ` ${and(rest)} are up too.`);
       scenes.push({ kind: "trendCards", dir: "up", cards: up, label: `trend-${r}-up`, tail: 0.8, minDur: 6, rare: r === "rare",
         chapter: ch, heading: JA ? "引けた試合の勝率が上がった" : "Win rate when drawn: rising",
         say: open() + lead + tail });
