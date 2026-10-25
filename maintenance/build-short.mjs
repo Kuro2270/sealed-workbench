@@ -235,7 +235,11 @@ function buildScript(d, nameJa, names, avgs = {}){
   scenes.push({ kind: "hook", art: true,
     // 最初の一言で「誰のための、何の動画か」を短く言う（2026年10月：「マジック：ザ・ギャザリングの〜」から始めると長く、冒頭がもたつくため短くした）
     // 何試合のデータかも、セリフで言う（数字の裏付けが伝わるように）
-    say: JA ? `MTGアリーナ、${nameJa}の${EARLY ? "リミテッド" : d.mode === "sealed" ? "シールド" : "ドラフト"}環境を知りたい方に。${games}試合のデータを1分でまとめました。`
+    // 速報は、サムネイルで言い切った答え（最強の組み合わせと勝率）を、冒頭のセリフでもそのまま言う（2026年10月：動画に入ると情報が減って見えるため）
+    say: EARLY && best
+      ? (JA ? `MTGアリーナ、${nameJa}のリミテッド環境を知りたい方に。${games}試合のデータでは、${pairName(best.pair)}が最強。勝率${pt(best.wr)}パーセントです。`
+            : `${nameJa} Limited on MTG Arena, from ${gamesEn} games: ${pairName(best.pair)} is the best pair, at ${pt(best.wr)} percent.`)
+      : JA ? `MTGアリーナ、${nameJa}の${EARLY ? "リミテッド" : d.mode === "sealed" ? "シールド" : "ドラフト"}環境を知りたい方に。${games}試合のデータを1分でまとめました。`
             : `Want to know ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} ${EARLY ? "Limited" : d.mode === "sealed" ? "Sealed" : "Draft"} format on MTG Arena? ${gamesEn} games of data in one minute.`,
     title: nameJa, games, isSealed: d.mode === "sealed", early: EARLY,
     // YouTube 用サムネイルの見出し（thumbSvg）。最強の組み合わせを言い切る形。狙い目は差し替え用（thumbnail-alt.jpg）に
@@ -396,14 +400,14 @@ function wrapName(name, n){
   if(brk >= 2 && ch.length - brk - 1 <= n) return [ch.slice(0, brk + 1).join(""), ch.slice(brk + 1).join("")];
   return [ch.slice(0, n).join(""), ch.slice(n).join("")];
 }
-function wrap(s, n = 18){
+function wrap(s, n = 18, all = false){   // all: 5 行で切らずに全部の行を返す（入りきるかを調べるため）
   if(!JA){
     // 英語は単語で折り返す（1行 38 文字ほど）
     const words = s.split(/\s+/).filter(Boolean);
     const fit = n => { const out = []; let cur = ""; for(const w of words){ if(cur && (cur + " " + w).length > n){ out.push(cur); cur = w; } else cur = cur ? cur + " " + w : w; } if(cur) out.push(cur); return out; };
     let out = fit(32);
     if(out.length > 5) out = fit(38);        // 5 行に入らないときは 1 行を長くする（5 行のときは字も小さくなる）
-    return out.slice(0, 5);
+    return all ? out : out.slice(0, 5);
   }
   // 日本語は「、」「。」で区切った句を単位にして行に詰める（カード名や数字が行の途中で切れないように）。
   // 1 句が長すぎるときだけ、数字・英字のかたまりを壊さない位置で切る
@@ -443,7 +447,25 @@ function wrap(s, n = 18){
   };
   let out = fit(n);
   if(out.length > 5) out = fit(n + 2);        // 5 行に入らないときは 1 行を少し長く（5 行のときは字も小さくなる）
-  return out.slice(0, 5);
+  return all ? out : out.slice(0, 5);
+}
+/* 字幕が 5 行に入らないセリフは、文の切れ目で場面を2つ以上に分ける（画面は同じまま、字幕だけ送る。字幕が途中で切れないように）。
+   見せる時間（minDur）と読み終わりの間（tail）は、最後の場面に残す */
+function splitLongScenes(scenes){
+  const capText = t => String(t).replace(/パーセント/g, "%").replace(/ percent/g, "%");
+  const fits = t => wrap(capText(t), 18, true).length <= 5;
+  const out = [];
+  for(const sc of scenes){
+    if(!sc.say || sc.kind === "hook" || fits(sc.say)){ out.push(sc); continue; }
+    const sents = sc.say.split(JA ? /(?<=。)/ : /(?<=[.!?])\s+/).filter(Boolean);
+    const parts = []; let cur = "";
+    for(const s of sents){ const t = cur ? cur + (JA ? "" : " ") + s : s; if(cur && !fits(t)){ parts.push(cur); cur = s; } else cur = t; }
+    if(cur) parts.push(cur);
+    // 画面の配置（行の高さ）は字幕の高さで決まるので、いちばん長い字幕に合わせてそろえる（分けた場面のあいだで、カードが動かないように）
+    const layoutSay = parts.slice().sort((a, b) => wrap(capText(b), 18, true).length - wrap(capText(a), 18, true).length)[0];
+    parts.forEach((p, i) => out.push({ ...sc, say: p, layoutSay, minDur: 0, ...(i ? { nofade: true } : {}), ...(i < parts.length - 1 ? { tail: 0.15 } : {}) }));   // 分けたら、読み上げの合計で十分見せられるので最低の長さは付けない
+  }
+  return out;
 }
 /* YouTube Shorts は下 20% 弱にタイトルやボタンが重なるので、字幕はその上に置く */
 const SAFE_BOTTOM = 230;   // 2026年10月：270 → 230 に下げて、上の情報を大きくした（下 12% ほどは題名の帯に重なりうる）
@@ -519,7 +541,7 @@ function fitSize(str, w, max){
   return Math.max(24, Math.min(max, Math.floor(w / Math.max(units, 1))));
 }
 function zundaPos(sc){
-  if(sc && sc.kind === "hook" && sc.trend && sc.thumb) return { x: 40, y: 1600 };   // 修正版の冒頭（サムネイルと同じ配置）：左下。見出しの文字と重ねない
+  if(sc && sc.kind === "hook" && (sc.trend || sc.early) && sc.thumb) return { x: 40, y: 1600 };   // 修正版・速報の冒頭（サムネイルと同じ配置）：左下。見出しの文字と重ねない
   return { x: W - 24 - ZW, y: 1030 };   // 足もとが字幕の枠（最大 5 行）の上端にほぼ付く高さ
 }
 // 音声の大きさから、1/15 秒ごとの口の形を決める
@@ -561,7 +583,7 @@ function pairSymbols(pair, x, y, size){
 }
 /* 修正版の組み合わせの場面の行（sceneSvg と highlightsOf で同じ位置にするため） */
 const PAIR_Y0 = 284;
-const pairRow = sc => Math.min(96, Math.floor((captionTop(sc.say) - 24 - PAIR_Y0) / sc.pairs.length));
+const pairRow = sc => Math.min(96, Math.floor((captionTop(sc.layoutSay || sc.say) - 24 - PAIR_Y0) / sc.pairs.length));
 /* 画面の枠。サイト名やドメインは常時表示しない（締めの場面で音声つきで案内するので、それ以外はうるさくなる）。
    代わりに、冒頭以外の場面では上部にセットのロゴ（無ければセット名）と「リミテッド環境分析」を常に出し、
    途中から見た人にも何のセットの話か分かるようにする */
@@ -656,9 +678,10 @@ function sceneSvg(sc){
   switch(sc.kind){
     case "hook": {
       // 修正版：サムネイルと同じ中身を冒頭に出す（サムネイルで見た答えを、そのまま動画でも見せる）。左上に「修正版」の札
-      if(sc.trend && sc.thumb) return frame(thumbInner(sc, false, { char: false }) +
+      // 速報も同じ（2026年10月：サムネイルで見た情報が、動画に入ると消えて地味になるため）
+      if((sc.trend || sc.early) && sc.thumb) return frame(thumbInner(sc, false, { char: false }) +
         `<g transform="rotate(-8 140 120)"><rect x="20" y="84" width="240" height="74" rx="37" fill="#E53935" stroke="#FFFFFF" stroke-width="5"/>` +
-        T(140, 136, UI.trendBadge, { size: JA ? 48 : 32, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>`, null, { header: false });
+        T(140, 136, sc.trend ? UI.trendBadge : UI.earlyBadge, { size: JA ? 48 : 32, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>`, null, { header: false });
       // 一目で「何の動画か」が分かるように：大きな縁取り文字を、上下の暗い帯の上に置く。絵は真ん中に見せる
       const parts = String(sc.title).includes(" ") && JA ? String(sc.title).split(/\s+/) : [sc.title];
       const longest = Math.max(...parts.map(p => [...p].length));
@@ -805,10 +828,12 @@ function sceneSvg(sc){
     }
     case "trendCards": {
       // 修正版：1週目から上がった（下がった）カード 3 枚。左にカード、右に名前と「1週目 → 直近」の勝率、大きく差
-      const capTop = captionTop(sc.say), Y0 = 236, up = sc.dir === "up", col = up ? UP : DOWN;
+      const capTop = captionTop(sc.layoutSay || sc.say), Y0 = 236, up = sc.dir === "up", col = up ? UP : DOWN;
       const ROW = Math.min(420, Math.floor((capTop - 16 - Y0) / 3)), k = ROW / 358;
       const CH = ROW - 9, CW = Math.round(CH * 250 / 349), TX = 80 + CW + 42, TW = ZX - 20 - TX;
-      let s = T(80, 218, up ? UI.trendUpH : UI.trendDownH, { size: JA ? 42 : 34, weight: 900, fill: PAPER });   // 「コモン・アンコモン」だけで比べたことを、はっきり見せる
+      // 見出し：どのレアリティの、何の数字（引けた試合の勝率）が上がった／下がったか、をはっきり見せる
+      const hd = sc.heading || (up ? UI.trendUpH : UI.trendDownH);
+      let s = T(80, 218, hd, { size: Math.min(JA ? 42 : 34, Math.floor((ZX - 100) / Math.max(units(hd), 1))), weight: 900, fill: sc.rare ? GOLD : PAPER });
       sc.cards.forEach((c, i) => {
         const y = Y0 + i * ROW, cc = COLOR[(c.color || "")[0]] || MUTED;
         if(c.imgPath) s += `<image href="${c.imgPath}" x="80" y="${y}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/>`;
@@ -837,23 +862,28 @@ function sceneSvg(sc){
       const ROW = pairRow(sc);
       let s = T(80, 216, UI.trendPairsH, { size: 36, fill: MUTED });
       let lx = 80;
-      for(const [label, col] of [[UI.trendRise, UP], [UI.trendFall, DOWN], [sc.keepTop ? UI.trendTopKeep : UI.trendTop, GOLD]]){
+      // 狙い目を言う場面：見方の代わりに、狙い目の理由（勝率の順位・使用率）を金色で出す
+      if(sc.pick) s += T(80, 260, sc.pick.note, { size: Math.min(32, Math.floor((ZX - 100) / Math.max(units(sc.pick.note), 1))), weight: 900, fill: GOLD });
+      else for(const [label, col] of [[UI.trendRise, UP], [UI.trendFall, DOWN], [sc.keepTop ? UI.trendTopKeep : UI.trendTop, GOLD]]){
         s += `<rect x="${lx}" y="236" width="26" height="26" rx="6" fill="${col}"/>` + T(lx + 36, 259, label, { size: 28, weight: 700, fill: PAPER });
         lx += 36 + Math.round(units(label) * 28) + 34;
       }
       sc.pairs.forEach((p, i) => {
         const y = Y0 + i * ROW, cy = y + ROW / 2, sz = Math.round(ROW * 0.46), up = p.delta >= 0;
-        const markCol = p === sc.rise ? UP : p === sc.fall ? DOWN : p === sc.top ? GOLD : "";
-        s += `<rect x="70" y="${y + 4}" width="${ZX - 90}" height="${ROW - 8}" rx="14" fill="${DEEP}" fill-opacity="${HAS_BG ? 0.72 : 0.3}"${markCol ? ` stroke="${markCol}" stroke-width="4"` : ""}/>`;
+        const picked = sc.pick && sc.pick.pair === p;
+        const markCol = sc.pick ? (picked ? GOLD : "") : p === sc.rise ? UP : p === sc.fall ? DOWN : p === sc.top ? GOLD : "";
+        if(sc.pick && !picked) s += `<g opacity="0.3">`;   // 狙い目のときは、その行だけ残してほかは薄く
+        s += `<rect x="70" y="${y + 4}" width="${ZX - 90}" height="${ROW - 8}" rx="14" fill="${picked ? GOLD : DEEP}" fill-opacity="${picked ? 0.22 : HAS_BG ? 0.72 : 0.3}"${markCol ? ` stroke="${markCol}" stroke-width="${picked ? 6 : 4}"` : ""}/>`;
         s += pairSymbols(p.colors, 88, cy, sz);
         const nm = pairName(p.colors), ns = Math.min(JA ? 38 : 30, Math.floor(196 / Math.max(units(nm), 1)));
         s += T(200, cy + Math.round(ns * 0.36), nm, { size: ns, weight: 900 });
         s += T(520, cy + 11, `${pt(p.first.wr)}%`, { size: 30, fill: MUTED, anchor: "end" }) + T(548, cy + 11, "→", { size: 28, fill: MUTED, anchor: "middle" }) +
              T(672, cy + 12, `${pt(p.last.wr)}%`, { size: 36, weight: 900, anchor: "end", fill: p === sc.top ? GOLD : PAPER });
         const dt = `${up ? "+" : "−"}${(Math.abs(p.delta) * 100).toFixed(1)}`, dcol = up ? UP : DOWN;
-        if(p === sc.rise || p === sc.fall)
+        if(!sc.pick && (p === sc.rise || p === sc.fall))
           s += `<rect x="690" y="${cy - 24}" width="96" height="48" rx="24" fill="${dcol}"/>` + T(738, cy + 11, dt, { size: 32, weight: 900, anchor: "middle", fill: "#06101C" });
         else s += T(770, cy + 11, dt, { size: 32, weight: 900, anchor: "end", fill: dcol });
+        if(sc.pick && !picked) s += `</g>`;
       });
       return frame(s, sc.say);
     }
@@ -909,10 +939,11 @@ function highlightsOf(sc){
   }
   if(sc.kind === "trendCards"){
     // 1位のカードの話のあいだ、そのカードを光らせる
-    const capTop = captionTop(sc.say), Y0 = 236;
+    const capTop = captionTop(sc.layoutSay || sc.say), Y0 = 236;
     const ROW = Math.min(420, Math.floor((capTop - 16 - Y0) / 3)), CH = ROW - 9;
     return sc.cards.length > 1 ? [{ label: sc.cards[0].label, boxes: [{ x: 66, y: Y0 - 10, w: rowW, h: CH + 20 }] }] : [];
   }
+  if(sc.kind === "trendPairs" && sc.pick) return [];   // 狙い目の場面は、行そのものを金色にしてあるので光らせない
   if(sc.kind === "trendPairs"){
     // いちばん伸びた・いちばん落ちた組み合わせを、名前を言うあいだ光らせる（行の位置は sceneSvg と同じ計算）
     const ROW = pairRow(sc), row = p => ({ x: 62, y: PAIR_Y0 + sc.pairs.indexOf(p) * ROW - 2, w: ZX - 74, h: ROW + 4 });
@@ -1073,7 +1104,7 @@ async function main(){
   const rep = EARLY || TREND ? null : await loadReport(SET, MODE);
   const avgs = d.rarity_avg || (rep ? rarityAverages(rep.ratings.cards, MODE === "sealed" ? 300 : 1500) : {});
   console.error(`レア度ごとの平均: ${["common", "uncommon", "rare"].map(r => `${r} ${avgs[r] ? pt(avgs[r]) + "%" : "なし"}`).join(" / ")}`);
-  const scenes = TREND ? trendScript(d, { JA, nameJa, names, pairName }) : buildScript(d, nameJa, names, avgs);
+  const scenes = TREND ? splitLongScenes(trendScript(d, { JA, nameJa, names, pairName })) : buildScript(d, nameJa, names, avgs);
   if(TREND) scenes[0].games = man(scenes[0].gamesN);   // 冒頭の「〇試合を分析」（2つの期間の合計）
 
   // セット名のロゴ画像（置いてあれば使う）
@@ -1155,8 +1186,11 @@ async function main(){
     }
   }
 
-  // 修正版：冒頭の場面はサムネイルと同じ中身なので、上がったカードの画像を冒頭にも渡しておく
-  if(TREND){ const hk = scenes[0], upc = scenes.find(sc => sc.kind === "trendCards" && sc.dir === "up"); hk.thumbCards = upc ? upc.cards.slice(0, 3).map(c => c.imgPath) : []; }
+  // 修正版・速報：冒頭の場面はサムネイルと同じ中身なので、サムネイルに並べるカードの画像を冒頭にも渡しておく
+  if(TREND || EARLY){
+    const hk = scenes[0], src = scenes.find(sc => sc.kind === "bombs" || (sc.kind === "trendCards" && sc.dir === "up"));
+    hk.thumbCards = src ? src.cards.slice(0, 3).map(c => c.imgPath) : [];
+  }
 
   // 背景のプレイ映像。あれば長さを測っておき、場面をまたいで途切れずに流す
   let bgDur = 0;

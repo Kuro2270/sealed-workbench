@@ -8,10 +8,12 @@
  *
  * 出力: data/trends/<SET>_draft.json
  *   window … 比べた2つの期間（日付・試合数・全体の勝率）
- *   risers / fallers … 1週目から勝率（引けた試合の勝率）が上がった／下がったコモン・アンコモン（上位 TREND_TOP 枚）
- *   pairs … 2色の組み合わせごとの、2つの期間の勝率と差（試合数が少ない組み合わせは除く）
+ *   risers / fallers … 1週目から勝率（引けた試合の勝率）が上がった／下がったコモン・アンコモン（両方あわせて上位 TREND_TOP 枚）
+ *   by_rarity … レアリティごと（common / uncommon）の risers / fallers（上位 TREND_TOP 枚ずつ。動画はレアリティごとに章を分ける）
+ *   pairs … 2色の組み合わせごとの、2つの期間の勝率・試合数・使用率（2色デッキの試合のうちの割合）と差（試合数が少ない組み合わせは除く）
  *   cards … 比べられたコモン・アンコモンすべて（名前・レアリティ・色・2つの期間の勝率と試合数・差）
  *   rarities … 比べたレアリティ（["common", "uncommon"]）
+ *   rares_up … 発売直後は目立たなかった（1週目の勝率がレア・神話レアの真ん中以下）のに、大きく上がったレア・神話レア（無ければ空。動画では、あるときだけ章を立てる）
  *
  * 考え方
  *   ・発売からの合計どうしで比べると、最近の変化が最初の大量の試合に薄まって見えなくなる。
@@ -26,7 +28,8 @@
  * カードのレアリティ・色は、確定版の勝率一覧（data/ratings/events/<SET>_PremierDraft.json）から取る。
  * 環境変数: TREND_DAYS（1つの期間の日数。既定 7）、TREND_MIN_GAMES（カードの最低試合数。既定 2000）、
  *           TREND_MIN_PAIR（組み合わせの最低試合数。既定 1500）、TREND_TOP（上がった／下がったカードの数。既定 3）、TREND_MIN_DELTA（上がった／下がったと言う最低の差。既定 0.015）、
- *           TREND_MIN_SPAN（データの期間の最低日数。既定 TREND_DAYS × 2）、L17_DATASET（データセットの置き場所。確認用）
+ *           TREND_MIN_SPAN（データの期間の最低日数。既定 TREND_DAYS × 2）、L17_DATASET（データセットの置き場所。確認用）、
+ *           TREND_RARE_GAMES（レアの最低試合数。既定 800）、TREND_RARE_DELTA（見直されたレアと言う最低の差。既定 0.025）、TREND_RARE_Z（同じく、揺れを考えた最低の確かさ。既定 2）
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { csvRows, csvUrl, isWin } from "./l17-csv.mjs";
@@ -39,6 +42,7 @@ const DAYS = +(process.env.TREND_DAYS || 7), DAY = 86400000;
 const MIN_GAMES = +(process.env.TREND_MIN_GAMES || 2000), MIN_PAIR = +(process.env.TREND_MIN_PAIR || 1500);
 const MIN_DELTA = +(process.env.TREND_MIN_DELTA || 0.015);   // 上がった／下がったと言う最低の差（1.5 ポイント）
 const TOP = +(process.env.TREND_TOP || 3), MIN_SPAN = +(process.env.TREND_MIN_SPAN || DAYS * 2);
+const RARE_GAMES = +(process.env.TREND_RARE_GAMES || 800), RARE_DELTA = +(process.env.TREND_RARE_DELTA || 0.025), RARE_Z = +(process.env.TREND_RARE_Z || 2);
 const PAIRS = ["WU", "WB", "WR", "WG", "UB", "UR", "UG", "BR", "BG", "RG"];
 const ORDER = "WUBRG";
 const canon = s => [...String(s)].filter(c => ORDER.includes(c)).sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b)).join("");
@@ -110,23 +114,35 @@ async function main(){
   const RARITIES = ["common", "uncommon"];
 
   const r4 = v => Math.round(v * 10000) / 10000;
-  const cards = [];
+  const cards = [], rares = [];
   names.forEach((n, i) => {
     const a = gG[0][i], b = gG[1][i];
-    if(a < MIN_GAMES || b < MIN_GAMES) return;
     const m = meta.get(n) || {};
-    if(m.land || !RARITIES.includes(m.rarity)) return;
+    if(m.land) return;
+    const isRare = m.rarity === "rare" || m.rarity === "mythic";
+    if(!isRare && !RARITIES.includes(m.rarity)) return;
+    const min = isRare ? RARE_GAMES : MIN_GAMES;   // レアは1枚ずつしか出ないので、試合数の下限を下げる（揺れは z で見る）
+    if(a < min || b < min) return;
     const first = gW[0][i] / a, last = gW[1][i] / b;
     const se = Math.sqrt(first * (1 - first) / a + last * (1 - last) / b) || 1;
-    cards.push({ name: n, rarity: m.rarity || "", color: m.color || "", cmc: m.cmc ?? null,
+    (isRare ? rares : cards).push({ name: n, rarity: m.rarity || "", color: m.color || "", cmc: m.cmc ?? null,
                  first: { gih: r4(first), games: a }, last: { gih: r4(last), games: b }, delta: r4(last - first), z: Math.round((last - first) / se * 100) / 100 });
   });
+  // 見直されたレア：1週目の勝率がレア・神話レアの真ん中以下（目立たなかった）で、はっきり上がったもの
+  const rareMid = rares.map(c => c.first.gih).sort((x, y) => x - y)[Math.floor(rares.length / 2)] ?? 0;
+  const rares_up = rares.filter(c => c.first.gih <= rareMid && c.delta >= RARE_DELTA && c.z >= RARE_Z).sort((x, y) => y.z - x.z).slice(0, TOP);
   cards.sort((x, y) => y.delta - x.delta);
+  // 使用率：その期間の2色デッキ（10通りすべて）の試合のうち、その組み合わせの割合（狙い目＝勝てるのに使う人が少ない、を見るため）
+  const pairTotal = k => PAIRS.reduce((n, p) => n + ((pair[k].get(p) || {}).g || 0), 0);
+  const pt0 = pairTotal(0) || 1, pt1 = pairTotal(1) || 1;
   const pairs = PAIRS.map(p => {
     const a = pair[0].get(p), b = pair[1].get(p);
     if(!a || !b || a.g < MIN_PAIR || b.g < MIN_PAIR) return null;
-    return { colors: p, first: { wr: r4(a.w / a.g), games: a.g }, last: { wr: r4(b.w / b.g), games: b.g }, delta: r4(b.w / b.g - a.w / a.g) };
+    return { colors: p, first: { wr: r4(a.w / a.g), games: a.g, share: r4(a.g / pt0) }, last: { wr: r4(b.w / b.g), games: b.g, share: r4(b.g / pt1) }, delta: r4(b.w / b.g - a.w / a.g) };
   }).filter(Boolean).sort((x, y) => y.last.wr - x.last.wr);
+  const riseOf = list => list.filter(c => c.delta >= MIN_DELTA).sort((x, y) => y.z - x.z).slice(0, TOP);
+  const fallOf = list => list.filter(c => c.delta <= -MIN_DELTA).sort((x, y) => x.z - y.z).slice(0, TOP);
+  const by_rarity = Object.fromEntries(RARITIES.map(r => { const l = cards.filter(c => c.rarity === r); return [r, { risers: riseOf(l), fallers: fallOf(l) }]; }));
 
   const win = k => { const x = tot[k === "first" ? 0 : 1]; return { from: iso(W[k].from), to: iso(W[k].to), games: x.g, wr: r4(x.w / x.g) }; };
   const out = {
@@ -136,8 +152,7 @@ async function main(){
     window: { first: win("first"), last: win("last") },
     // 上がった／下がったカードは、差の大きさを、試合数から見た揺れの大きさで割った値（z）の順に選ぶ。
     // 試合の少ないカードがたまたま大きく動いただけのものを、上に出さないため（画面とセリフで言うのは差そのもの）
-    risers: cards.filter(c => c.delta >= MIN_DELTA).sort((x, y) => y.z - x.z).slice(0, TOP),
-    fallers: cards.filter(c => c.delta <= -MIN_DELTA).sort((x, y) => x.z - y.z).slice(0, TOP),
+    risers: riseOf(cards), fallers: fallOf(cards), by_rarity, rares_up,
     pairs, cards
   };
   await mkdir("data/trends", { recursive: true });
@@ -147,8 +162,9 @@ async function main(){
   console.error(`\n${file}`);
   console.error(`  1週目 ${out.window.first.from}〜${out.window.first.to}（${out.window.first.games.toLocaleString()}試合）／直近 ${out.window.last.from}〜${out.window.last.to}（${out.window.last.games.toLocaleString()}試合）`);
   console.error(`  比べたコモン・アンコモン ${cards.length} 枚・組み合わせ ${pairs.length} 通り`);
-  for(const [h, l] of [["上がった", out.risers], ["下がった", out.fallers]]) console.error(`  ${h}: ` + l.map(c => `${c.name} ${pt(c.first.gih)}→${pt(c.last.gih)}（${c.delta > 0 ? "+" : ""}${pt(c.delta)}）`).join(" / "));
-  console.error(`  組み合わせ: ` + pairs.map(p => `${p.colors} ${pt(p.first.wr)}→${pt(p.last.wr)}`).join(" / "));
+  for(const r of RARITIES) for(const [h, l] of [["上がった", by_rarity[r].risers], ["下がった", by_rarity[r].fallers]]) console.error(`  ${r === "common" ? "コモン" : "アンコモン"}・${h}: ` + l.map(c => `${c.name} ${pt(c.first.gih)}→${pt(c.last.gih)}（${c.delta > 0 ? "+" : ""}${pt(c.delta)}）`).join(" / "));
+  console.error(`  見直されたレア: ` + (rares_up.length ? rares_up.map(c => `${c.name} ${pt(c.first.gih)}→${pt(c.last.gih)}`).join(" / ") : "なし"));
+  console.error(`  組み合わせ: ` + pairs.map(p => `${p.colors} ${pt(p.first.wr)}→${pt(p.last.wr)}（使用率 ${pt(p.last.share)}%）`).join(" / "));
 }
 
 main().catch(e => { console.error("修正版のデータを作れませんでした:", e.message); process.exit(1); });
