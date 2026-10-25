@@ -492,7 +492,9 @@ function captionTop(say, bottom = SAFE_BOTTOM){
 }
 function caption(say, bottom = SAFE_BOTTOM){
   const lines = wrap(say.replace(/パーセント/g, "%").replace(/ percent/g, "%"));
-  const fs = lines.length >= 5 ? 44 : 50, lh = lines.length >= 5 ? 60 : 70;   // 5 行のときは少し詰めて、上のキャラクターに枠がかからないようにする
+  // 5 行のとき、または 1 行が長いとき（5 行に収めるため 1 行を長くしたとき）は少し小さくして、枠からはみ出さないようにする
+  const wide = Math.max(...lines.map(l => units(l))) > 18;
+  const fs = lines.length >= 5 || wide ? 44 : 50, lh = lines.length >= 5 ? 60 : 70;   // 5 行のときは少し詰めて、上のキャラクターに枠がかからないようにする
   const boxH = lines.length * lh + 64, y0 = H - bottom - 40 - boxH, x0 = 56, bw = W - 112;
   /* 1990年代のRPG風の青いメッセージウィンドウ（青のグラデーション＋白い二重の枠＋右下の送りカーソル）。ロゴや既存ゲームの素材は使わない */
   return `<defs><linearGradient id="ffw" x1="0" y1="0" x2="0" y2="1">` +
@@ -859,7 +861,7 @@ function sceneSvg(sc){
       // 修正版：発売直後から上がった（下がった）カード 3 枚。左にカード、右に名前と「発売直後 → 最近」の勝率、大きく差
       const capTop = captionTop(sc.layoutSay || sc.say), Y0 = sc.chapter ? CH_Y0 : 236, up = sc.dir === "up", col = up ? UP : DOWN;
       const ROW = Math.min(420, Math.floor((capTop - 16 - Y0) / 3)), k = ROW / 358;
-      const CH = ROW - 9, CW = Math.round(CH * 250 / 349), TX = 80 + CW + 42, TW = ZX - 20 - TX;
+      const CH = ROW - 9, CW = Math.round(CH * 250 / 349), TX = 80 + CW + 42, TW = ZX - 40 - TX;   // 文字は、光らせる枠（右端 ZX-10）の内側に余白を残す
       // 見出し：どのレアリティの、何の数字（引けた試合の勝率）が上がった／下がったか、をはっきり見せる
       const hd = sc.heading || (up ? UI.trendUpH : UI.trendDownH);
       let s = sc.chapter ? chapterHead(sc.chapter, hd, sc.rare ? "#E0B13A" : GOLD)
@@ -878,10 +880,13 @@ function sceneSvg(sc){
         const ny = y + Math.round(150 * k);
         lines.forEach((l, j) => { s += T(TX, ny + j * (size + 6), l, { size, weight: 900 }); });
         // 発売直後 → 最近 の勝率
-        const by = ny + (lines.length - 1) * (size + 6) + Math.round(58 * k), bs = Math.round(34 * Math.min(1, Math.max(0.8, k)));
-        s += T(TX, by, `${UI.trendFirst} ${pt(c.first.gih)}%`, { size: bs, fill: MUTED }) +
-             T(TX + Math.round(units(`${UI.trendFirst} ${pt(c.first.gih)}%`) * bs) + 16, by, "→", { size: bs, fill: MUTED }) +
-             T(TX + Math.round(units(`${UI.trendFirst} ${pt(c.first.gih)}%`) * bs) + 16 + Math.round(bs * 1.3), by, `${UI.trendLast} ${pt(c.last.gih)}%`, { size: bs, weight: 900, fill: GOLD });
+        // 行は、光らせる枠（右端 ZX-10）の内側に余白を残して収める（枠の線が数字にかからないように）
+        const a1 = `${UI.trendFirst} ${pt(c.first.gih)}%`, a2 = `${UI.trendLast} ${pt(c.last.gih)}%`, avail = ZX - 40 - TX;
+        const by = ny + (lines.length - 1) * (size + 6) + Math.round(58 * k);
+        const bs = Math.min(Math.round(34 * Math.min(1, Math.max(0.8, k))), Math.floor((avail - 16) / (units(a1) + units(a2) + 1.3)));
+        s += T(TX, by, a1, { size: bs, fill: MUTED }) +
+             T(TX + Math.round(units(a1) * bs) + 16, by, "→", { size: bs, fill: MUTED }) +
+             T(TX + Math.round(units(a1) * bs) + 16 + Math.round(bs * 1.3), by, a2, { size: bs, weight: 900, fill: GOLD });
       });
       return frame(s, sc.say);
     }
