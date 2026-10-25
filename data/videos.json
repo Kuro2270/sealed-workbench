@@ -166,26 +166,29 @@
   },
   "FRA": {
     "ja": {
-      "early": {
-        "id": "GEsQ0vuJVQc",
-        "mode": "early",
-        "title": "【リアリティ・フラクチャー】速報！発売直後のリミテッド環境を1分で｜MTGアリーナ #Shorts",
-        "poster": "assets/video/FRA-ja-early.jpg",
-        "uploadedAt": "2026-10-08",
+      "trend": {
+        "id": "rL0n0OdWaFI",
+        "mode": "trend",
+        "title": "【リアリティ・フラクチャー】評価が変わったカードは？コモン・アンコモン・レア別 ドラフト環境の変化｜MTGアリーナ #Shorts",
+        "poster": "assets/video/FRA-ja-trend.jpg",
+        "uploadedAt": "2026-10-25",
         "public": true,
-        "publishedAt": "2026-10-08",
+        "publishedAt": "2026-10-25",
         "comment2": true,
         "comment": true
       }
     },
     "en": {
-      "early": {
-        "id": "IAuKO3hUS8M",
-        "mode": "early",
+      "trend": {
+        "id": "6eMpbpY1jzU",
+        "mode": "trend",
+        "title": "Reality Fracture Draft: Cards That Changed Since Launch (Commons, Uncommons, Rares) | MTG Arena #Shorts",
+        "poster": "assets/video/FRA-en-trend.jpg",
+        "uploadedAt": "2026-10-25",
         "public": true,
-        "uploadedAt": "2026-10-08",
-        "publishedAt": "2026-10-08",
-        "comment2": true
+        "publishedAt": "2026-10-25",
+        "comment2": true,
+        "comment": true
       }
     }
   }
