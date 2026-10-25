@@ -1184,9 +1184,10 @@ async function main(){
   try{
     const { readdir } = await import("node:fs/promises");
     // 英語版は short/bgm-en/ を使う（無ければ short/bgm/）。チャンネルごとに曲の雰囲気を分けるため
-    // 修正版は、日英とも short/bgm-trend/（少しポップな別の曲。クレジットの英語は credits.en.json）
+    // 修正版は日英とも short/bgm-trend/、速報は日英とも short/bgm-early/（どちらも少しポップな別の曲。クレジットの英語は credits.en.json）
     const isAudio = f => /\.(mp3|m4a|wav|ogg)$/i.test(f);
-    let dir = TREND && existsSync("short/bgm-trend") ? "short/bgm-trend" : !JA ? "short/bgm-en" : "short/bgm", files = (await readdir(dir).catch(() => [])).filter(isAudio).sort();
+    const own = TREND ? "short/bgm-trend" : EARLY ? "short/bgm-early" : null;
+    let dir = own && existsSync(own) ? own : !JA ? "short/bgm-en" : "short/bgm", files = (await readdir(dir).catch(() => [])).filter(isAudio).sort();
     if(!files.length && dir !== "short/bgm"){ dir = "short/bgm"; files = (await readdir(dir)).filter(isAudio).sort(); }
     if(files.length){
       // セットコードから決まる1曲（同じセット・同じ言語なら、形式が違っても同じ曲になる）

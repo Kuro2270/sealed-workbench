@@ -5,8 +5,9 @@ short/*/
 !short/logo/
 !short/bgm/
 !short/bgm-en/
-# 修正版ショートの BGM
+# 修正版・速報のショートの BGM
 !short/bgm-trend/
+!short/bgm-early/
 # 英語版のキャラクター（四国めたん）の口パク素材
 !short/metan/
 node_modules/
