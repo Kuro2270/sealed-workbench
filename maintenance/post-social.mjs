@@ -25,7 +25,7 @@
  */
 
 import { readFile, readdir, writeFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import crypto from "node:crypto";
 import { xLength, fit } from "./x-text.mjs";
 import { loadArticle } from "./report-data.mjs";
@@ -278,9 +278,32 @@ function announcePost(ctx, lang, track){
 /* 動画を公開したときの案内。VIDEO_ID と VIDEO_LANG は環境変数で受け取る */
 function videoPost(ctx, lang, track, withVideo = !!VIDEO_FILE){
   const id = process.env.VIDEO_ID; if(!id) return null;
-  const vmode = process.env.VIDEO_MODE === "sealed" ? "sealed" : process.env.VIDEO_MODE === "early" ? "early" : "draft";
+  const vmode = ["sealed", "early", "trend"].includes(process.env.VIDEO_MODE) ? process.env.VIDEO_MODE : "draft";
   const nm = ctx.name[lang];
   const L = lang === "ja";
+  if(vmode === "trend"){
+    // 修正版：1週目 → 直近で、いちばん上がったカードと、いちばん伸びた組み合わせ（data/trends/<SET>_draft.json）
+    let t = null; try{ t = JSON.parse(readFileSync(`data/trends/${ctx.code}_draft.json`, "utf8")); }catch(e){}
+    const up = t && (t.risers || [])[0];
+    const rise = t && (t.pairs || []).slice().sort((a, b) => b.delta - a.delta)[0];
+    const CN = { W: "White", U: "Blue", B: "Black", R: "Red", G: "Green" };
+    const pairLabel = p => L ? [...p].map(k => COLOR.ja[k]).join("") : [...p].map(k => CN[k]).join("-");
+    const sg = v => `${v >= 0 ? "+" : "−"}${(Math.abs(v) * 100).toFixed(1)}`;
+    const url = ctx.url(lang) + `?from=${track}`;
+    const lines = [
+      L ? `【${nm}】ドラフト環境の変化を1分で${withVideo ? "" : "（動画）"}` : `${nm} Draft: what changed since week 1${withVideo ? "" : " (video)"}`,
+      "",
+      L ? `発売1週目と直近の1週間を比べて、勝率が上がったカード・下がったカードと、2色の組み合わせの変化をまとめました。` : `Week one vs the latest week: the cards that rose and fell the most, and how the colour pairs moved.`,
+      up ? (L ? `~いちばん上がったカード：${cardLabel(ctx, lang, up.name)}（${sg(up.delta)}pt）` : `~Biggest riser: ${cardLabel(ctx, lang, up.name)} (${sg(up.delta)}pt)`) : null,
+      rise ? (L ? `~いちばん伸びた組み合わせ：${pairLabel(rise.colors)}（${sg(rise.delta)}pt）` : `~Most improved pair: ${pairLabel(rise.colors)} (${sg(rise.delta)}pt)`) : null,
+      "",
+      withVideo ? null : `https://www.youtube.com/shorts/${id}`,
+      L ? `全カードの勝率はこちら ${url}` : `Every card's win rate: ${url}`,
+      TAGS[lang]
+    ].filter(x => x !== null);
+    const reply = withVideo ? (L ? `YouTube でも見られます → https://www.youtube.com/shorts/${id}` : `Also on YouTube → https://www.youtube.com/shorts/${id}`) : null;
+    return { text: fit(lines, track), cards: [], reply };
+  }
   if(vmode === "early"){
     // 先行版：サイトにはまだ載っていない（発売12日目から）ので、サイトのトップに誘導する
     const lines = [

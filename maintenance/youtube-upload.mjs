@@ -4,6 +4,7 @@
  *
  *   node maintenance/youtube-upload.mjs HOB            … short/HOB/ja.mp4 を日本語チャンネルへ
  *   node maintenance/youtube-upload.mjs HOB en         … short/HOB/en.mp4 を英語チャンネルへ（英語版ができてから）
+ *   node maintenance/youtube-upload.mjs HOB ja trend   … 修正版（1週目 → 直近の変化。short/HOB/ja-trend.mp4）
  *
  * 必要な環境変数
  *   YT_CLIENT_ID, YT_CLIENT_SECRET            … Google Cloud の OAuth クライアント
@@ -24,8 +25,9 @@ const SET = (process.argv[2] || "").toUpperCase();
 const LANG = (process.argv[3] || "ja").toLowerCase();
 const MODE = (process.argv[4] || "draft").toLowerCase();
 const TAG = MODE === "draft" ? LANG : `${LANG}-${MODE}`;
-if(!SET || !["draft", "sealed", "early"].includes(MODE)){ console.error("使い方: node maintenance/youtube-upload.mjs <SET> [ja|en] [draft|sealed|early]"); process.exit(1); }
+if(!SET || !["draft", "sealed", "early", "trend"].includes(MODE)){ console.error("使い方: node maintenance/youtube-upload.mjs <SET> [ja|en] [draft|sealed|early|trend]"); process.exit(1); }
 const EARLY = MODE === "early";   // 先行版（発売直後。データは 17Lands のカード勝率・色別勝率。サイトにはまだ載っていない）
+const TREND = MODE === "trend";   // 修正版（確定版のあと。ドラフトの1週目と直近の1週間の比較。データは data/trends/<SET>_draft.json）
 
 const SITE = process.env.SITE_URL || "https://sealed-workbench.com";
 const ID = process.env.YT_CLIENT_ID, SECRET = process.env.YT_CLIENT_SECRET;
@@ -41,12 +43,66 @@ if(!size){ console.error(`${FILE} がありません。先に動画を作って�
 
 const name = await setName(SET);   // maintenance/set-name.mjs（長いセット名は後半だけ）
 let games = 0, mode = MODE;
-try{ const d = JSON.parse(await readFile(`data/articles/${SET}_${MODE}.json`, "utf8")); games = d.total_games || 0; }catch(e){}
+let win = null;   // 修正版：比べた2つの期間
+if(TREND){
+  try{ const d = JSON.parse(await readFile(`data/trends/${SET}_draft.json`, "utf8")); win = d.window || null; games = win ? (win.first.games || 0) + (win.last.games || 0) : 0; }catch(e){}
+}else{
+  try{ const d = JSON.parse(await readFile(`data/articles/${SET}_${MODE}.json`, "utf8")); games = d.total_games || 0; }catch(e){}
+}
 const bgmCredit = (await readFile(`short/${SET}/${TAG}/bgm.txt`, "utf8").catch(() => "")).trim();
 const gamesTxt = games ? games.toLocaleString(LANG === "ja" ? "ja-JP" : "en-US") : "";
 
 const pageUrl = `${SITE}/sets/${SET}${LANG === "en" ? ".en" : ""}.html`;
-const meta = EARLY ? (LANG === "ja" ? {
+const md = s => { const [, m, d] = String(s).split("-").map(Number); return LANG === "ja" ? `${m}/${d}` : new Date(Date.UTC(2000, m - 1, d)).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }); };
+const span = k => win && win[k] ? `${md(win[k].from)}${LANG === "ja" ? "〜" : "–"}${md(win[k].to)}` : "";
+const FAN = `Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.`;
+const trendMeta = () => LANG === "ja" ? {
+  title: `【${name.ja}】評価が変わったカードは？ドラフト環境の変化を1分で｜MTGアリーナ #Shorts`,
+  description: [
+    `MTGアリーナ『${name.ja}』のドラフト（プレミアドラフト）で、発売1週目と直近の1週間を比べて、勝率が上がったカード・下がったカードと、2色の組み合わせの変化を1分でまとめました。`,
+    ...(win ? [`比べた期間: 1週目 ${span("first")}／直近 ${span("last")}${gamesTxt ? "（合わせて" + gamesTxt + "試合）" : ""}`] : []),
+    `カードの勝率は、引けた試合の勝率（GIH WR）です。`,
+    ``,
+    `▼ 全カードの勝率・環境レポート（無料）`,
+    pageUrl,
+    ``,
+    `▼ シールド／ドラフトの構築練習・対戦卓（無料・登録なし）`,
+    SITE,
+    ``,
+    `データ: 17Lands Public Data（CC BY 4.0） https://www.17lands.com/`,
+    `音声: VOICEVOX:ずんだもん`,
+    ...(bgmCredit ? [`BGM: ${bgmCredit}`] : []),
+    `カード画像・マナシンボル: Scryfall`,
+    ``,
+    FAN,
+    ``,
+    `#MTGアリーナ #MTGA #ドラフト #${name.ja.replace(/[\s・]/g, "")}`
+  ].join("\n"),
+  tags: ["MTGアリーナ", "MTGA", "マジック：ザ・ギャザリング", "リミテッド", "ドラフト", "環境の変化", name.ja, "17Lands"]
+} : {
+  title: `${name.en} Draft: What Changed Since Week 1 | MTG Arena #Shorts`,
+  description: [
+    `How the ${name.en} Premier Draft format on MTG Arena has shifted: the cards whose win rate rose or fell the most between week one and the latest week, and how the colour pairs moved.`,
+    ...(win ? [`Compared: week one ${span("first")} vs latest ${span("last")}${gamesTxt ? " (" + gamesTxt + " games combined)" : ""}`] : []),
+    `Card win rates are games-in-hand win rates (GIH WR).`,
+    ``,
+    `▼ Every card's win rate and the full format report (free)`,
+    pageUrl,
+    ``,
+    `▼ Sealed / Draft practice and the play table (free, no sign-up)`,
+    SITE,
+    ``,
+    `Data: 17Lands Public Data (CC BY 4.0) https://www.17lands.com/`,
+    `Card images and mana symbols: Scryfall`,
+    `Character: Shikoku Metan (VOICEVOX / Tohoku Zunko project; illustration by Sakamoto Ahiru, recoloured)`,
+    ``,
+    FAN,
+    ``,
+    `#MTGArena #MTGA #MTGDraft`
+  ].join("\n"),
+  tags: ["MTG Arena", "MTGA", "Magic: The Gathering", "Limited", "Draft", "Metagame", name.en, "17Lands"]
+};
+const meta = TREND ? trendMeta() : EARLY ? (LANG === "ja" ? {
   title: `【${name.ja}】速報！発売直後のリミテッド環境を1分で｜MTGアリーナ #Shorts`,
   description: [
     `MTGアリーナ『${name.ja}』のリミテッド環境を、発売直後${gamesTxt ? "・" + gamesTxt + "試合時点" : ""}のデータ（ドラフトとシールドを合算）から速報でまとめました。`,

@@ -91,7 +91,7 @@ async function privacy(lang, id){
 /* 公開した動画に、サイトへの案内コメントを付ける（固定は YouTube Studio で手で。API には固定の機能が無い）。
    許可（YT_REFRESH_TOKEN_*）に force-ssl が無いと 403 になるので、その場合は案内だけ出して続ける */
 const SITE = process.env.SITE_URL || "https://sealed-workbench.com";
-const MODES = ["draft", "sealed", "early"];   // early = 先行版（発売直後のショート）
+const MODES = ["draft", "sealed", "early", "trend"];   // early = 先行版（発売直後のショート）、trend = 修正版（確定版のあとの、ドラフトの変化）
 const shortName = n => { const m = String(n).replace(/^Magic:\s*The Gathering\s*[:|｜-]?\s*/i, "").split(/\s*[｜|]\s*/); return (m[m.length - 1] || "").trim() || String(n); };
 async function setNameFor(S, lang){
   try{
@@ -107,6 +107,10 @@ async function commentText(lang, S, mode){
   if(mode === "early") return lang === "ja"
     ? `見てくれてありがとうございます。\n\nこれは発売直後の速報です。データは 17Lands のカード勝率・色別勝率で、順位はこれから動きます。\n全カードの勝率ページはアリーナ配信の12日目から、環境まとめの解説動画は2週間ほどで出します。\n\nシールド／ドラフトの構築練習はこちら（無料・登録不要）→ ${SITE}\n\n「この色が強いのは意外だった」「自分の体感と違う」などあれば、コメントで教えてください。`
     : `Thanks for watching.\n\nThis is an early look from the first days of the format. Data: 17Lands card and colour win rates — rankings will move.\nThe all-cards win rate page follows on day 12 after the Arena release, and the full review video about two weeks in.\n\nFree Sealed / Draft practice → ${SITE}\n\nIf a colour surprised you, or the data doesn't match your experience, tell me in the comments.`;
+  // 修正版：1週目 → 直近の変化。全カードの勝率（いまの値）はサイトで見られる
+  if(mode === "trend") return lang === "ja"
+    ? `見てくれてありがとうございます。\n\nこれは、発売1週目と直近の1週間のドラフトのデータ（17Lands）を比べた修正版です。\n${name}の全カードの勝率・2色の組み合わせは、こちらで見られます（無料・登録不要）\n${page}\n\nシールド／ドラフトの構築練習もできます → ${SITE}\n\n「このカード、最近よく見る」「評価が変わったと感じる」などあれば、コメントで教えてください。`
+    : `Thanks for watching.\n\nThis update compares week one with the latest week of ${name} Draft data from 17Lands.\nEvery card's win rate and the colour pairs are here (free, no sign-up):\n${page}\n\nFree Sealed / Draft practice too → ${SITE}\n\nNoticed a card that's been overperforming lately? Tell me in the comments.`;
   const text = lang === "ja"
     ? `見てくれてありがとうございます。\n\n動画で触れた色の勝率・2色の組み合わせ・コモンやレアの評価は、こちらで${name}の${modeName}の全カード分を見られます（無料・登録不要）\n${page}\n\nシールド／ドラフトの構築練習もできます → ${SITE}\n\n「この色が強いのは意外だった」「自分の体感と違う」などあれば、コメントで教えてください。次のセットの動画の参考にします。`
     : `Thanks for watching.\n\nEvery card's win rate for ${name} ${modeName} — colours, two-colour pairs, the best commons and rares — is here (free, no sign-up):\n${page}\n\nFree Sealed / Draft practice too → ${SITE}\n\nIf a colour surprised you, or the data doesn't match your experience, tell me in the comments. It helps shape the next set's video.`;
@@ -136,7 +140,7 @@ const comments = [], posted = [];
 /* 案内（1件目）と呼びかけ（2件目）を、付いていないほうだけ付ける。付けられなければ文面をまとめに出す */
 async function addComments(S, L, M, v){
   // 速報（early）は1件目だけ。1件目の最後に感想の呼びかけが入っているので、2件目は付けない（くどくなる）
-  if(M === "early" && !v.comment2) v.comment2 = true;
+  if((M === "early" || M === "trend") && !v.comment2) v.comment2 = true;   // 修正版も、1件目の最後に呼びかけが入っている
   const steps = [["comment", await (!v.comment ? commentText(L, S, M) : "")], ["comment2", await (!v.comment2 ? commentText2(L, S, M) : "")]];
   let blocked = null;
   for(const [key, text] of steps){

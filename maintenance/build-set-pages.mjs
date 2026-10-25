@@ -49,7 +49,7 @@ const L = {
     desc: (s, g, c, sp) => `MTGアリーナ「${s}（${c}）」のリミテッド（ドラフト・シールド）で強いカードを、実戦データ（${g}試合）の勝率で採点。コモン・アンコモン・レア別のカード点数ランキングに加えて、${sp ? "環境の速さ、" : ""}強い色、勝率の高い2色の組み合わせも分かります。`,
     h1: s => `${s}｜リミテッド カード点数ランキングと環境レポート`,
     lead: "マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、実戦のデータを集計した勝率です。カードの点数（評価）は、この勝率で見られます。",
-    mode: { draft: "ドラフト", sealed: "シールド", early: "発売直後の速報" },
+    mode: { draft: "ドラフト", sealed: "シールド", early: "発売直後の速報", trend: "ドラフト環境の変化" },
     games: (n, d) => `総試合数 ${n}／全体勝率 ${d}`,
     built: d => `集計 ${d}`,
     speedH: "環境の速さ",
@@ -80,7 +80,7 @@ const L = {
     colorName: { W:"白", U:"青", B:"黒", R:"赤", G:"緑" },
     pointsH: "この環境のポイント",
     longH: "リミテッド環境まとめ（長尺動画）", longLead: "ドラフトとシールドの両方のデータで、強い色・狙い目の色・ボム・罠・色別のおすすめカードまでまとめました。目次を押すと、その場面から再生します。",
-    videoH: "1分でわかる環境（動画）", videoLead: "この環境の要点を1分のショート動画にまとめました。再生ボタンで YouTube の動画を読み込みます。", videoEarlyH: "発売直後の速報（動画）", videoEarlyLead: "発売直後の数日分のデータから作った速報です。順位はこの後のデータで動いています。", videoPlay: "再生", videoOpen: "YouTube で見る",
+    videoH: "1分でわかる環境（動画）", videoLead: "この環境の要点を1分のショート動画にまとめました。再生ボタンで YouTube の動画を読み込みます。", videoEarlyH: "発売直後の速報（動画）", videoEarlyLead: "発売直後の数日分のデータから作った速報です。順位はこの後のデータで動いています。", videoTrendH: "ドラフト環境の変化（動画）", videoTrendLead: "発売1週目と直近の1週間を比べて、評価が上がったカード・下がったカードと、2色の組み合わせの変化を1分にまとめました。", videoPlay: "再生", videoOpen: "YouTube で見る",
     links: "関連ページ",
     linkRatings: "このセットの全カードの勝率一覧",
     linkReports: "環境レポート（他のセットに切り替え）",
@@ -104,7 +104,7 @@ const L = {
     desc: (s, g, c, sp) => `Which cards are best in ${s} (${c}) Limited on MTG Arena? Card ratings by win rate from ${g} games of real match data, ranked by rarity — plus ${sp ? "format speed, " : ""}the strongest colours and the best two-colour pairs.`,
     h1: s => `${s} | Limited card ratings and format report`,
     lead: "Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from match data. Use them as card ratings: the higher the win rate, the stronger the card.",
-    mode: { draft: "Draft", sealed: "Sealed", early: "Early look" },
+    mode: { draft: "Draft", sealed: "Sealed", early: "Early look", trend: "What changed in Draft" },
     games: (n, d) => `${n} games · overall win rate ${d}`,
     built: d => `Built ${d}`,
     speedH: "Format speed",
@@ -135,7 +135,7 @@ const L = {
     colorName: { W:"White", U:"Blue", B:"Black", R:"Red", G:"Green" },
     pointsH: "Key points of this format",
     longH: "Format overview (long video)", longLead: "We covered the strongest colour pairs, sleeper pairs, the best bombs, trap rares and the top commons and uncommons for each colour, using both Draft and Sealed data. Press a chapter to jump to that part of the video.",
-    videoH: "The format in 60 seconds (video)", videoLead: "The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.", videoEarlyH: "Early look (video)", videoEarlyLead: "Made from the first days of data. Rankings have moved since.", videoPlay: "Play", videoOpen: "Watch on YouTube",
+    videoH: "The format in 60 seconds (video)", videoLead: "The key points of this format in a one-minute Short. Pressing play loads the video from YouTube.", videoEarlyH: "Early look (video)", videoEarlyLead: "Made from the first days of data. Rankings have moved since.", videoTrendH: "What changed in Draft (video)", videoTrendLead: "Week one against the latest week: the cards that rose and fell the most, and how the colour pairs moved, in one minute.", videoPlay: "Play", videoOpen: "Watch on YouTube",
     links: "Related pages",
     linkRatings: "All card win rates for this set",
     linkReports: "Set reports (switch sets)",
@@ -592,7 +592,7 @@ function modeSection(lang, code, mode, d, speedIndex, names, setDisplay, videos,
   <h2>${esc(T.mode[mode])} <small>${esc(T.games((d.total_games || 0).toLocaleString(), pct(d.overall_win_rate)))}</small></h2>
   <p class="built">${esc(T.built((d.data_generated_at || d.generated_at || "").slice(0, 10)))}</p>
   <p class="summary">${esc(summaryText(lang, mode, d, setDisplay, cn, pairLabel, colorLabel))}</p>
-${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoSection(lang, code, "early", setDisplay, videos) : ""}`;
+${videoSection(lang, code, mode, setDisplay, videos)}${mode === "draft" ? videoSection(lang, code, "trend", setDisplay, videos) + videoSection(lang, code, "early", setDisplay, videos) : ""}`;
 
   // 環境の速さ（まとめの一文と、デッキの平均マナ総量ごとの勝率。試合ごとのデータから作るので、17Lands の毎日の集計で作ったページには無い）
   const speedRows = (d.speed || []).filter(s => s.wr != null);
@@ -767,8 +767,8 @@ function videoSection(lang, code, mode, setDisplay, videos){
   v = v && v[mode];
   if(!v || !v.id || v.public === false) return "";
   const T = L[lang];
-  const early = mode === "early";
-  const vH = early ? T.videoEarlyH : T.videoH, vLead = early ? T.videoEarlyLead : T.videoLead;
+  const early = mode === "early", trend = mode === "trend";
+  const vH = early ? T.videoEarlyH : trend ? T.videoTrendH : T.videoH, vLead = early ? T.videoEarlyLead : trend ? T.videoTrendLead : T.videoLead;
   const id = String(v.id);
   // 自前のサムネイル（冒頭のタイトル場面）があればそれを。無ければ YouTube の自動サムネイル
   const posterFile = `assets/video/${code}-${mode === "draft" ? lang : lang + "-" + mode}.jpg`;

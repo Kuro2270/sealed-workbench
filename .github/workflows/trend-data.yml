@@ -1,0 +1,73 @@
+name: データ｜修正版の集計（手動）
+
+# 修正版ショート（確定版のあと）のためのデータを作る。役割はこれだけ（動画は「ショート｜修正版ショートを作る（手動）」）。
+#   17Lands 公開データセット（PremierDraft。1試合ごとの記録）を試合の日付で区切り、
+#   「1週目」と「直近の1週間」の、カードの勝率（引けた試合の勝率）と2色の組み合わせの勝率を比べる。
+#   結果は data/trends/<SET>_draft.json にコミットする。
+# 公開データの期間が 2 週間に満たないとき（1週目と直近が重なるとき）は作らない。
+# データセットは数百MBあるので、10〜30分ほどかかる。
+
+on:
+  workflow_dispatch:
+    inputs:
+      set:
+        description: "セットコード（例: FRA）"
+        required: true
+
+permissions:
+  contents: write        # data/trends をコミットするため
+
+jobs:
+  trend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 1週目と直近の1週間を比べる
+        env:
+          SET_IN: ${{ inputs.set }}
+        run: |
+          SET_CODE="$(echo "$SET_IN" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z0-9')"
+          echo "SET_CODE=$SET_CODE" >> "$GITHUB_ENV"
+          set +e
+          node maintenance/build-trend.mjs "$SET_CODE" 2> trend.log
+          code=$?
+          set -e
+          cat trend.log
+          if [ "$code" = "2" ]; then
+            echo "::warning::${SET_CODE} の修正版のデータは作りませんでした（公開データが無いか、期間が足りない）。"
+            { echo "## ${SET_CODE} の修正版のデータは作りませんでした"; echo; echo '```'; cat trend.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+            echo "SKIP=1" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          [ "$code" = "0" ] || exit "$code"
+          {
+            echo "## ${SET_CODE} の修正版のデータができました"
+            echo
+            echo '```'
+            sed -n '/^data\/trends/,$p' trend.log
+            echo '```'
+            echo
+            echo "続けて「ショート｜修正版ショートを作る（手動）」を、同じセットコードで実行してください。"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: データをコミット
+        if: env.SKIP != '1'
+        run: |
+          if [ -n "$(git status --porcelain -- data/trends)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A -- data/trends
+            git commit -m "修正版のデータ（$SET_CODE）"
+            for i in 1 2 3; do
+              git pull --rebase --autostash origin main && git push origin main && break
+              echo "再試行 $i"; sleep 5
+            done
+          else
+            echo "変更はありませんでした。"
+          fi

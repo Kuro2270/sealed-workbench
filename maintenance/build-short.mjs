@@ -5,6 +5,7 @@
  *   node maintenance/build-short.mjs HOB        … 日本語（VOICEVOX）
  *   node maintenance/build-short.mjs HOB en     … 英語（Kokoro。KOKORO_DIR にモデルを置く）
  *   node maintenance/build-short.mjs HOB ja sealed … シールドのデータで（既定は draft）
+ *   node maintenance/build-short.mjs FRA ja trend  … 修正版（確定版のあと。ドラフトの1週目と直近1週間の変化。data/trends/<SET>_draft.json から。台本は short-trend.mjs）
  *
  * 出力: short/<SET>/<lang>.mp4（シールドは <lang>-sealed.mp4）と、途中生成物（台本 script.json・場面ごとの png/wav）
  *
@@ -38,12 +39,14 @@ import { splitSay } from "./highlight-split.mjs";
 import { lookupOutside } from "./outside-cards.mjs";
 import { loadReport } from "./report-data.mjs";
 import { rarityAverages, isBombLevel } from "./card-level.mjs";
+import { trendScript } from "./short-trend.mjs";
 
 const SET = process.argv[2];
 const LANG = (process.argv[3] || "ja").toLowerCase();
-const MODE = (process.argv[4] || "draft").toLowerCase();        // draft | sealed | early（どのデータで作るか。early = 発売直後の先行版。build-early.mjs が作る）
-if(!SET || !["ja", "en"].includes(LANG) || !["draft", "sealed", "early"].includes(MODE)){ console.error("使い方: node maintenance/build-short.mjs <SET> [ja|en] [draft|sealed|early]"); process.exit(1); }
+const MODE = (process.argv[4] || "draft").toLowerCase();        // draft | sealed | early | trend（どのデータで作るか。early = 発売直後の先行版。build-early.mjs が作る。trend = 修正版。build-trend.mjs が作る）
+if(!SET || !["ja", "en"].includes(LANG) || !["draft", "sealed", "early", "trend"].includes(MODE)){ console.error("使い方: node maintenance/build-short.mjs <SET> [ja|en] [draft|sealed|early|trend]"); process.exit(1); }
 const EARLY = MODE === "early";
+const TREND = MODE === "trend";
 const MINP = EARLY ? 0.2 : 1;                                      // 先行版は試合数が少ないので、組み合わせを選ぶ最低試合数を下げる
 const TAG = MODE === "draft" ? LANG : `${LANG}-${MODE}`;         // 出力名: short/<SET>/ja.mp4, short/<SET>/en-sealed.mp4 など
 const JA = LANG === "ja";
@@ -78,7 +81,10 @@ const UI = JA ? {
   surpriseH: "意外な事実", nobody: "誰も組んでいない", strongerTogether: "組むと強くなる", weakerTogether: "組むと弱くなる",
   wrRank: (v, r) => `勝率 ${v}%（${r}位）`, wr: v => `勝率 ${v}%`, usedOnly: (g, p) => `使われた試合は ${g}。全体の${p}%だけ`, vsAvg2: (sign, n) => `2色それぞれの平均より ${sign}${n}pt`,
   outroA: "チャンネル登録を", outroB: "お願いします", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん",
-  earlyBadge: "速報", earlyHookC: "リミテッド速報"
+  earlyBadge: "速報", earlyHookC: "リミテッド速報",
+  trendBadge: "修正版", trendHookC: "ドラフト環境の変化", trendHookD2: "評価が変わったカード",
+  trendUpH: "1週目から上がったカード", trendDownH: "1週目から下がったカード", trendPairsH: "2色の組み合わせ（1週目 → 直近）",
+  trendFirst: "1週目", trendLast: "直近", trendRise: "一番伸びた", trendFall: "一番落ちた", trendTop: "今の1位"
 } : {
   analysis: "Limited format analysis", arena: "MTG Arena", report: "Limited format report", games: g => `${g} games`, inOneMinute: "of data, in one minute", hookA: "Limited in 1 minute", hookC: m => m ? "SEALED" : "DRAFT", hookD1: g => `${g} games analyzed`, hookD2: "Best colors & cards",
   tierH: "Colour-pair tier list", targetTag: "AIM FOR", bombsH: (a, b) => `Top 6 rare & mythic bombs (#${a}–${b})`, bombsTag: { mythic: "Mythic", rare: "Rare" },
@@ -92,7 +98,10 @@ const UI = JA ? {
   surpriseH: "One surprise", nobody: "Nobody plays it", strongerTogether: "Better together", weakerTogether: "Worse together",
   wrRank: (v, r) => `${v}% win rate (#${r})`, wr: v => `${v}% win rate`, usedOnly: (g, p) => `Only ${g} games — ${p}% of all decks`, vsAvg2: (sign, n) => `${sign}${n}pt vs each colour's average`,
   outroA: "Please subscribe", outroB: "", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS",
-  earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1"
+  earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1",
+  trendBadge: "UPDATE", trendHookC: "DRAFT · WHAT CHANGED", trendHookD2: "Cards that rose & fell",
+  trendUpH: "Rising since week one", trendDownH: "Falling since week one", trendPairsH: "Colour pairs (week one → latest)",
+  trendFirst: "Week 1", trendLast: "Latest", trendRise: "Rose most", trendFall: "Fell most", trendTop: "No. 1 now"
 };
 const FONT = "'Noto Sans CJK JP','Noto Sans JP',sans-serif";
 
@@ -547,6 +556,9 @@ function symbol(c, x, y, size){
 function pairSymbols(pair, x, y, size){
   return [...pair].map((c, i) => symbol(c, x + i * (size + 12) + size / 2, y, size)).join("");
 }
+/* 修正版の組み合わせの場面の行（sceneSvg と highlightsOf で同じ位置にするため） */
+const PAIR_Y0 = 284;
+const pairRow = sc => Math.min(96, Math.floor((captionTop(sc.say) - 24 - PAIR_Y0) / sc.pairs.length));
 /* 画面の枠。サイト名やドメインは常時表示しない（締めの場面で音声つきで案内するので、それ以外はうるさくなる）。
    代わりに、冒頭以外の場面では上部にセットのロゴ（無ければセット名）と「リミテッド環境分析」を常に出し、
    途中から見た人にも何のセットの話か分かるようにする */
@@ -603,14 +615,24 @@ function thumbSvg(hook, alt = false){
   if(hook.logo){ inner += `<image href="${hook.logo}" x="150" y="${y}" width="780" height="220" preserveAspectRatio="xMidYMid meet"/>`; y += 232; }
   else{ const sz = Math.min(120, Math.floor(940 / (Math.max([...String(hook.title)].length, 4) * (JA ? 1 : 0.6)))); inner += TS(W / 2, y + sz, hook.title, { size: sz, fill: "#FFFFFF" }); y += sz + 50; }
   // 何の動画かの帯（赤）：「1分でわかる ドラフト環境」など
-  const ribbon = hook.early ? (JA ? `1分でわかる ${UI.earlyHookC}` : UI.earlyHookC) : (JA ? `1分でわかる ${UI.hookC(hook.isSealed)}` : `${UI.hookC(hook.isSealed)} IN 1 MINUTE`);
-  const rs = Math.min(64, Math.floor(900 / ([...ribbon].length * (JA ? 1 : 0.62)))), rw = Math.round([...ribbon].length * rs * (JA ? 1 : 0.62) + 80);
+  const ribbon = hook.trend ? ((hook.thumb && hook.thumb.ribbon) || (JA ? `1分でわかる ${UI.trendHookC}` : UI.trendHookC))
+               : hook.early ? (JA ? `1分でわかる ${UI.earlyHookC}` : UI.earlyHookC) : (JA ? `1分でわかる ${UI.hookC(hook.isSealed)}` : `${UI.hookC(hook.isSealed)} IN 1 MINUTE`);
+  const rs = Math.min(hook.thumb && hook.thumb.bigRibbon ? 96 : 64, Math.floor(900 / ([...ribbon].length * (JA ? 1 : 0.62)))), rw = Math.round([...ribbon].length * rs * (JA ? 1 : 0.62) + 80);
   inner += `<rect x="${(W - rw) / 2}" y="${y}" width="${rw}" height="${Math.round(rs * 1.6)}" rx="20" fill="#D9412B" stroke="#FFFFFF" stroke-width="6"/>` +
     T(W / 2, y + Math.round(rs * 0.8 + rs * 0.36), ribbon, { size: rs, weight: 900, anchor: "middle", fill: "#FFFFFF" });
   y += Math.round(rs * 1.6) + 24;
   if(!th) return frame(inner, null, { header: false });
   // 見出し（2行・黄色）と、下の一行（白）。全角の「！」は右に空きがあるので、その分だけ右へずらして真ん中に見せる
   const wide = JA ? 1 : 0.56, room = BOTTOM - y;
+  if(th.sub2){
+    // 修正版：見出しは1行（カード名を「」で）。下に白い2行（何のカードか・勝率の変化）
+    const u = t => JA ? units(t) : [...t].length * wide;   // 日本語の行は、半角（数字や%）を細めに数える
+    const subS = Math.min(76, Math.floor(980 / u(th.sub))), sub2S = Math.min(88, Math.floor(980 / u(th.sub2)));
+    const mainS = Math.min(150, Math.floor(1000 / u(th.l1)));
+    const y1 = y + mainS + 10, y2 = y1 + subS + 46, y3 = y2 + sub2S + 34;
+    inner += TS(W / 2, y1, th.l1, { size: mainS, fill: "#FFD23F" }) + TS(W / 2, y2, th.sub, { size: subS }) + TS(W / 2, y3, th.sub2, { size: sub2S, fill: "#FFD23F" });
+    return frame(inner, null, { header: false });
+  }
   const subS = Math.min(74, Math.floor(980 / ([...th.sub].length * wide)));
   const mainS = Math.min(200, Math.floor(980 / (Math.max([...th.l1].length, [...th.l2].length) * wide)), Math.floor((room - subS - 60) / 2.08));
   const nudge = t => /！$/.test(t) ? Math.round(mainS * 0.19) : 0;
@@ -650,16 +672,17 @@ function sceneSvg(sc){
         TS(W / 2, 372, UI.hookA, { size: 96, fill: "#FFFFFF" }) +
         titleSvg +
         `<rect x="${W / 2 - 280}" y="${modeY - 62}" width="560" height="100" rx="50" fill="${BLUE}" stroke="#FFFFFF" stroke-width="6"/>` +
-        T(W / 2, modeY + 8, sc.early ? UI.earlyHookC : UI.hookC(sc.isSealed), { size: sc.early && !JA ? 56 : 66, weight: 900, anchor: "middle", fill: "#06101C" }) +
-        (sc.early ? `<g transform="rotate(-8 140 120)"><rect x="20" y="84" width="240" height="74" rx="37" fill="#E53935" stroke="#FFFFFF" stroke-width="5"/>` +
-                    T(140, 136, UI.earlyBadge, { size: JA ? 48 : 32, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>` : "") +
+        T(W / 2, modeY + 8, sc.trend ? UI.trendHookC : sc.early ? UI.earlyHookC : UI.hookC(sc.isSealed), { size: sc.trend ? (JA ? 58 : 44) : sc.early && !JA ? 56 : 66, weight: 900, anchor: "middle", fill: "#06101C" }) +
+        (sc.early || sc.trend ? `<g transform="rotate(-8 140 120)"><rect x="20" y="84" width="240" height="74" rx="37" fill="#E53935" stroke="#FFFFFF" stroke-width="5"/>` +
+                    T(140, 136, sc.trend ? UI.trendBadge : UI.earlyBadge, { size: JA ? 48 : 32, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>` : "") +
         (() => {
-          const g = UI.hookD1(sc.games), n1 = String(sc.games), l1 = [...g].length, l2 = [...UI.hookD2].length;
+          const D2 = sc.trend ? UI.trendHookD2 : UI.hookD2;
+          const g = UI.hookD1(sc.games), n1 = String(sc.games), l1 = [...g].length, l2 = [...D2].length;
           const s1 = JA ? Math.min(150, Math.floor(1000 / l1)) : Math.min(116, Math.floor(1000 / (l1 * 0.58)));
           const s2 = JA ? Math.min(120, Math.floor(1000 / l2)) : Math.min(104, Math.floor(1000 / (l2 * 0.58)));
           const i = g.indexOf(n1), head = i >= 0 ? g.slice(0, i) : "", tail = i >= 0 ? g.slice(i + n1.length) : g;
           return `<text x="${W / 2}" y="1420" font-size="${s1}" fill="#FFFFFF" font-weight="900" text-anchor="middle" stroke="#06101C" stroke-width="${Math.round(s1 * 0.16)}" stroke-linejoin="round" paint-order="stroke">${esc(head)}<tspan fill="#FFD23F">${esc(n1)}</tspan>${esc(tail)}</text>` +
-                 TS(W / 2, 1420 + Math.round(s2 * 1.35), UI.hookD2, { size: s2 });
+                 TS(W / 2, 1420 + Math.round(s2 * 1.35), D2, { size: s2 });
         })(), null, { header: false });
     }
     case "tier": {
@@ -766,6 +789,60 @@ function sceneSvg(sc){
       });
       return frame(s, sc.say);
     }
+    case "trendCards": {
+      // 修正版：1週目から上がった（下がった）カード 3 枚。左にカード、右に名前と「1週目 → 直近」の勝率、大きく差
+      const capTop = captionTop(sc.say), Y0 = 236, up = sc.dir === "up", col = up ? UP : DOWN;
+      const ROW = Math.min(420, Math.floor((capTop - 16 - Y0) / 3)), k = ROW / 358;
+      const CH = ROW - 9, CW = Math.round(CH * 250 / 349), TX = 80 + CW + 42, TW = ZX - 20 - TX;
+      let s = T(80, 216, up ? UI.trendUpH : UI.trendDownH, { size: 36, fill: MUTED });
+      sc.cards.forEach((c, i) => {
+        const y = Y0 + i * ROW, cc = COLOR[(c.color || "")[0]] || MUTED;
+        if(c.imgPath) s += `<image href="${c.imgPath}" x="80" y="${y}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/>`;
+        else s += `<rect x="80" y="${y}" width="${CW}" height="${CH}" rx="16" fill="${cc}" opacity="0.85"/>`;
+        // 差（いちばん大きく）
+        const dz = Math.round(78 * Math.min(1, Math.max(0.75, k)));
+        s += T(TX, y + Math.round(88 * k), `${up ? "▲ +" : "▼ −"}${(Math.abs(c.delta) * 100).toFixed(1)}pt`, { size: dz, weight: 900, fill: col });
+        // 名前（長ければ 2 行）
+        const lines = wrapName(c.label, JA ? 10 : 20).slice(0, 2);
+        let size = lines.length > 1 ? (JA ? 42 : 36) : (JA ? 50 : 44);
+        size = Math.min(size, Math.floor(TW / Math.max(...lines.map(l => JA ? [...l].length : l.length * 0.58), 1)));
+        const ny = y + Math.round(150 * k);
+        lines.forEach((l, j) => { s += T(TX, ny + j * (size + 6), l, { size, weight: 900 }); });
+        // 1週目 → 直近 の勝率
+        const by = ny + (lines.length - 1) * (size + 6) + Math.round(58 * k), bs = Math.round(34 * Math.min(1, Math.max(0.8, k)));
+        s += T(TX, by, `${UI.trendFirst} ${pt(c.first.gih)}%`, { size: bs, fill: MUTED }) +
+             T(TX + Math.round(units(`${UI.trendFirst} ${pt(c.first.gih)}%`) * bs) + 16, by, "→", { size: bs, fill: MUTED }) +
+             T(TX + Math.round(units(`${UI.trendFirst} ${pt(c.first.gih)}%`) * bs) + 16 + Math.round(bs * 1.3), by, `${UI.trendLast} ${pt(c.last.gih)}%`, { size: bs, weight: 900, fill: GOLD });
+      });
+      return frame(s, sc.say);
+    }
+    case "trendPairs": {
+      // 修正版：2色の組み合わせ 10 通りを今の勝率の順に。1週目 → 直近 と差。
+      // いちばん伸びた・落ちた・今の1位は、行の枠と差の札の色で示し、見出しの下に色の見方を出す（行の中に文字の札を足すと、英語で重なるため）
+      const capTop = captionTop(sc.say), Y0 = PAIR_Y0, n = sc.pairs.length;
+      const ROW = pairRow(sc);
+      let s = T(80, 216, UI.trendPairsH, { size: 36, fill: MUTED });
+      let lx = 80;
+      for(const [label, col] of [[UI.trendRise, UP], [UI.trendFall, DOWN], [UI.trendTop, GOLD]]){
+        s += `<rect x="${lx}" y="236" width="26" height="26" rx="6" fill="${col}"/>` + T(lx + 36, 259, label, { size: 28, weight: 700, fill: PAPER });
+        lx += 36 + Math.round(units(label) * 28) + 34;
+      }
+      sc.pairs.forEach((p, i) => {
+        const y = Y0 + i * ROW, cy = y + ROW / 2, sz = Math.round(ROW * 0.46), up = p.delta >= 0;
+        const markCol = p === sc.rise ? UP : p === sc.fall ? DOWN : p === sc.top ? GOLD : "";
+        s += `<rect x="70" y="${y + 4}" width="${ZX - 90}" height="${ROW - 8}" rx="14" fill="${DEEP}" fill-opacity="${HAS_BG ? 0.72 : 0.3}"${markCol ? ` stroke="${markCol}" stroke-width="4"` : ""}/>`;
+        s += pairSymbols(p.colors, 88, cy, sz);
+        const nm = pairName(p.colors), ns = Math.min(JA ? 38 : 30, Math.floor(196 / Math.max(units(nm), 1)));
+        s += T(200, cy + Math.round(ns * 0.36), nm, { size: ns, weight: 900 });
+        s += T(520, cy + 11, `${pt(p.first.wr)}%`, { size: 30, fill: MUTED, anchor: "end" }) + T(548, cy + 11, "→", { size: 28, fill: MUTED, anchor: "middle" }) +
+             T(672, cy + 12, `${pt(p.last.wr)}%`, { size: 36, weight: 900, anchor: "end", fill: p === sc.top ? GOLD : PAPER });
+        const dt = `${up ? "+" : "−"}${(Math.abs(p.delta) * 100).toFixed(1)}`, dcol = up ? UP : DOWN;
+        if(p === sc.rise || p === sc.fall)
+          s += `<rect x="690" y="${cy - 24}" width="96" height="48" rx="24" fill="${dcol}"/>` + T(738, cy + 11, dt, { size: 32, weight: 900, anchor: "middle", fill: "#06101C" });
+        else s += T(770, cy + 11, dt, { size: 32, weight: 900, anchor: "end", fill: dcol });
+      });
+      return frame(s, sc.say);
+    }
     case "surprise":
     case "target": {
       return frame(
@@ -815,6 +892,17 @@ function highlightsOf(sc){
     // 2 画面目は、特別枠のカードの話をするときだけ、そのカードを光らせる
     return sc.page === 0 ? sc.cards.slice(0, 3).map((c, i) => ({ label: JA ? c.label : c.name, boxes: [row(i)] }))
                          : sc.cards.map((c, i) => c.outside ? { label: JA ? c.label : c.name, boxes: [row(i)] } : null).filter(Boolean);
+  }
+  if(sc.kind === "trendCards"){
+    // 1位のカードの話のあいだ、そのカードを光らせる
+    const capTop = captionTop(sc.say), Y0 = 236;
+    const ROW = Math.min(420, Math.floor((capTop - 16 - Y0) / 3)), CH = ROW - 9;
+    return sc.cards.length > 1 ? [{ label: sc.cards[0].label, boxes: [{ x: 66, y: Y0 - 10, w: rowW, h: CH + 20 }] }] : [];
+  }
+  if(sc.kind === "trendPairs"){
+    // いちばん伸びた・いちばん落ちた組み合わせを、名前を言うあいだ光らせる（行の位置は sceneSvg と同じ計算）
+    const ROW = pairRow(sc), row = p => ({ x: 62, y: PAIR_Y0 + sc.pairs.indexOf(p) * ROW - 2, w: ZX - 74, h: ROW + 4 });
+    return [{ label: pairName(sc.rise.colors), boxes: [row(sc.rise)] }, { label: pairName(sc.fall.colors), boxes: [row(sc.fall)] }];
   }
   if(sc.kind === "top"){
     const capTop = captionTop(sc.say), Y0 = 236;
@@ -940,8 +1028,9 @@ async function addOutsideCards(d, names){
 /* ------------------------------------------------------------ 実行 */
 
 async function main(){
-  const d = await readJson(`data/articles/${SET}_${MODE}.json`, null);
-  if(!d){ console.error(`${SET}: ${MODE} の記事データ（data/articles/${SET}_${MODE}.json）がありません`); process.exit(1); }
+  const dataFile = TREND ? `data/trends/${SET}_draft.json` : `data/articles/${SET}_${MODE}.json`;
+  const d = await readJson(dataFile, null);
+  if(!d){ console.error(`${SET}: ${MODE} のデータ（${dataFile}）がありません`); process.exit(1); }
   const names = await readJson(`data/names/${SET}.json`, { names: {}, images: {} });
   const nameJa = shortName(JA ? ((await setNameJa(SET)) || names.set || SET) : (names.set || SET));   // 英語のときは英語のセット名
   const sharp = (await import("sharp")).default;
@@ -967,10 +1056,11 @@ async function main(){
   await addOutsideCards(d, names);
   // レア度ごとの平均勝率（ボム級や「平均より何ポイント高いか」を言うため）。速報は記事データ（build-early.mjs の rarity_avg）、
   // ドラフト・シールドは勝率一覧から出す
-  const rep = EARLY ? null : await loadReport(SET, MODE);
+  const rep = EARLY || TREND ? null : await loadReport(SET, MODE);
   const avgs = d.rarity_avg || (rep ? rarityAverages(rep.ratings.cards, MODE === "sealed" ? 300 : 1500) : {});
   console.error(`レア度ごとの平均: ${["common", "uncommon", "rare"].map(r => `${r} ${avgs[r] ? pt(avgs[r]) + "%" : "なし"}`).join(" / ")}`);
-  const scenes = buildScript(d, nameJa, names, avgs);
+  const scenes = TREND ? trendScript(d, { JA, nameJa, names, pairName }) : buildScript(d, nameJa, names, avgs);
+  if(TREND) scenes[0].games = man(scenes[0].gamesN);   // 冒頭の「〇試合を分析」（2つの期間の合計）
 
   // セット名のロゴ画像（置いてあれば使う）
   {
@@ -1009,8 +1099,9 @@ async function main(){
   // セットの顔になるカードのアート（冒頭・締めの背景）。神話レア→レアの順に勝率上位から探す
   let artPath = null;
   {
-    const cands = [...((d.top && d.top.mythic) || []), ...((d.top && d.top.rare) || [])]
-      .sort((a, b) => b.gih - a.gih);
+    const cands = TREND
+      ? (d.cards || []).filter(c => c.rarity === "mythic" || c.rarity === "rare").map(c => ({ ...c, gih: c.last.gih })).sort((a, b) => b.gih - a.gih)   // 修正版：直近でいちばん勝っているレア
+      : [...((d.top && d.top.mythic) || []), ...((d.top && d.top.rare) || [])].sort((a, b) => b.gih - a.gih);
     for(const c of cands){
       const url = (names.images || {})[c.name] || (names.images || {})[String(c.name).split(" // ")[0]];
       if(!url) continue;
@@ -1030,7 +1121,7 @@ async function main(){
   }
 
   // カード画像（取れなければ名前の札のまま）。英語は Scryfall から英語版を引く
-  for(const sc of scenes) if(sc.kind === "top" || sc.kind === "bombs"){
+  for(const sc of scenes) if(sc.kind === "top" || sc.kind === "bombs" || sc.kind === "trendCards"){
     for(const [i, c] of sc.cards.entries()){
       if(!JA && !c.img){
         try{
@@ -1064,7 +1155,7 @@ async function main(){
       ? (artPath ? ["-loop", "1", "-i", artPath] : ["-ss", "1.0", "-i", BG]).concat(["-i", png, "-filter_complex",
          `[0:v]scale=iw*sar:ih,setsar=1,scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},eq=saturation=${artPath ? 1.0 : 0.7}${artPath ? "" : ",gblur=sigma=5"},setsar=1[bg0];` +
          `color=c=0x0A2038@${artPath ? 0.12 : 0.6}:s=${W}x${H}[tint];[bg0][tint]overlay=shortest=1[bg];[1:v]scale=${W}:${H},format=rgba[fg];[bg][fg]overlay=shortest=1,scale=${outW}:${outH}[v]`])
-      : ["-f", "lavfi", "-i", `color=c=0x0A2038:s=${W}x${H}`, "-i", png, "-filter_complex", `[0:v][1:v]overlay=shortest=1,scale=${outW}:${outH}[v]`];
+      : ["-f", "lavfi", "-i", `color=c=0x0A2038:s=${W}x${H}`, "-i", png, "-filter_complex", `[1:v]scale=${W}:${H},format=rgba[fg];[0:v][fg]overlay=shortest=1,scale=${outW}:${outH}[v]`];
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...args, "-map", "[v]", "-frames:v", "1", "-q:v", String(q), out]);
   };
   // YouTube 用のサムネイル（1080×1920。一覧で切れない配置）。動画と一緒に作り、youtube-upload.mjs が使う
@@ -1072,7 +1163,7 @@ async function main(){
   //   キャラクター：日本語はフード付きのずんだもん（short/zunda-hoodie/thumb.png）、英語は四国めたん。出さないとき：SHORT_THUMB_CHAR=0
   const makeThumbnail = async () => {
     const hook = scenes[0];
-    const bombs = scenes.find(sc => sc.kind === "bombs");
+    const bombs = scenes.find(sc => sc.kind === "bombs" || (sc.kind === "trendCards" && sc.dir === "up"));   // 修正版は、上がったカード
     hook.thumbCards = bombs ? bombs.cards.slice(0, 3).map(c => c.imgPath) : [];
     const cf = process.env.SHORT_THUMB_CHAR === "0" ? null : (JA ? ["short/zunda-hoodie/thumb.png", "short/zunda-hoodie/open_open.png", "short/zunda/open_open.png"] : ["short/metan/open_open.png"]).find(f => existsSync(f));
     if(cf){ const buf = await readFile(cf), m = await sharp(buf).metadata(); hook.thumbChar = { src: "data:image/png;base64," + buf.toString("base64"), w: m.width, h: m.height }; }
