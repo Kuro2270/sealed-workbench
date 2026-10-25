@@ -119,8 +119,8 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
     const chapter = JA ? "色の組み合わせ編" : "COLOUR PAIRS", heading = JA ? "2色デッキの勝率の変化" : "Deck win rate, week 1 → now";
     // ここの勝率は、カードではなく2色デッキの勝率。取り違えないよう「デッキの勝率」と言う
     scenes.push({ kind: "trendPairs", pairs, rise, fall, top: topP, keepTop, chapter, heading, tail: 0.8, minDur: 6,
-      say: JA ? `最後は色の組み合わせ編。2色デッキの勝率では、${R}が一番伸びて、${F}が一番落ちました。${topLine}`
-              : `Finally, colour pairs. By deck win rate, ${R} rose the most and ${F} fell the most. ${topLine}` });
+      say: JA ? `色の組み合わせ編。2色デッキの勝率では、${R}が一番伸びて、${F}が一番落ちました。${topLine}`
+              : `Colour pairs. By deck win rate, ${R} rose the most and ${F} fell the most. ${topLine}` });
     const t = pickTarget(pairs);
     if(t){
       const P = pairName(t.pair.colors), sh = Math.round(t.pair.last.share * 100), av = Math.round(t.avgShare * 100);

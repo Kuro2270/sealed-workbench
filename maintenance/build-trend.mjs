@@ -26,7 +26,7 @@
  *
  * カードのレアリティ・色は、確定版の勝率一覧（data/ratings/events/<SET>_PremierDraft.json）から取る。
  * 環境変数: TREND_DAYS（1つの期間の日数。既定 7）、TREND_MIN_GAMES（カードの最低試合数。既定 2000）、
- *           TREND_MIN_PAIR（組み合わせの最低試合数。既定 1500）、TREND_TOP（上がった／下がったカードの数。既定 3）、TREND_MIN_DELTA（上がった／下がったと言う最低の差。既定 0.01）、
+ *           TREND_MIN_PAIR（組み合わせの最低試合数。既定 1500）、TREND_TOP（上がった／下がったカードの数。既定 3）、TREND_MIN_DELTA（上がった／下がったと言う最低の差。既定 0.003）、
  *           TREND_MIN_SPAN（データの期間の最低日数。既定 TREND_DAYS × 2）、L17_DATASET（データセットの置き場所。確認用）、
  *           TREND_RARE_GAMES（レアの最低試合数。既定 800）
  */
@@ -39,7 +39,9 @@ if(!/^[A-Z0-9]{2,6}$/.test(SET)){ console.error("使い方: node maintenance/bui
 const FORMAT = "PremierDraft";
 const DAYS = +(process.env.TREND_DAYS || 7), DAY = 86400000;
 const MIN_GAMES = +(process.env.TREND_MIN_GAMES || 2000), MIN_PAIR = +(process.env.TREND_MIN_PAIR || 1500);
-const MIN_DELTA = +(process.env.TREND_MIN_DELTA || 0.01);   // 上がった／下がったと言う最低の差（1 ポイント）
+// 上がった／下がったと言う最低の差（0.3 ポイント）。環境が進むと全体の勝率が下がる（うまい人が残る）ので、上がったカードは少なくなりがち。
+// 1 ポイントで切ると上がった側が1枚しか残らないことがあったため（FRA：コモンで 1pt 以上上がったのは1枚）、下限は低くし、並びは z（揺れを考えた確かさ）で決める
+const MIN_DELTA = +(process.env.TREND_MIN_DELTA || 0.003);
 const TOP = +(process.env.TREND_TOP || 3), MIN_SPAN = +(process.env.TREND_MIN_SPAN || DAYS * 2);
 const RARE_GAMES = +(process.env.TREND_RARE_GAMES || 800);
 const PAIRS = ["WU", "WB", "WR", "WG", "UB", "UR", "UG", "BR", "BG", "RG"];

@@ -1160,14 +1160,15 @@ async function main(){
   try{
     const { readdir } = await import("node:fs/promises");
     // 英語版は short/bgm-en/ を使う（無ければ short/bgm/）。チャンネルごとに曲の雰囲気を分けるため
+    // 修正版は、日英とも short/bgm-trend/（少しポップな別の曲。クレジットの英語は credits.en.json）
     const isAudio = f => /\.(mp3|m4a|wav|ogg)$/i.test(f);
-    let dir = !JA ? "short/bgm-en" : "short/bgm", files = (await readdir(dir).catch(() => [])).filter(isAudio).sort();
+    let dir = TREND && existsSync("short/bgm-trend") ? "short/bgm-trend" : !JA ? "short/bgm-en" : "short/bgm", files = (await readdir(dir).catch(() => [])).filter(isAudio).sort();
     if(!files.length && dir !== "short/bgm"){ dir = "short/bgm"; files = (await readdir(dir)).filter(isAudio).sort(); }
     if(files.length){
       // セットコードから決まる1曲（同じセット・同じ言語なら、形式が違っても同じ曲になる）
       const pick = files[[...SET].reduce((n, ch) => n + ch.charCodeAt(0), 0) % files.length];
       bgm = `${dir}/${pick}`;
-      const credits = await readJson(`${dir}/credits.json`, {});
+      const credits = (!JA && await readJson(`${dir}/credits.en.json`, null)) || await readJson(`${dir}/credits.json`, {});
       bgmCredit = credits[pick] || "";
       console.error(`BGM: ${pick}${bgmCredit ? `（${bgmCredit}）` : ""}`);
     }else console.error("BGM: 無し（short/bgm/ に曲が無い）");
