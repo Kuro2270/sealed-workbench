@@ -22,9 +22,7 @@
  * 役割はこれだけ（勝率の集計は build-ratings.mjs、画面は reports.html）。
  */
 
-import { createGunzip } from "node:zlib";
-import { Readable } from "node:stream";
-import { createInterface } from "node:readline";
+import { openLines, retryNetwork } from "./l17-csv.mjs";
 import { mkdir, writeFile, readdir } from "node:fs/promises";
 import path from "node:path";
 
@@ -86,10 +84,8 @@ const pairKey = s => "WUBRG".split("").filter(x => String(s || "").includes(x)).
 async function readEvents(set, fmt, meta){
   const url = `${BASE}/game_data_public.${set}.${fmt.event}.csv.gz`;
   process.stderr.write(`取得中: ${url}\n`);
-  const res = await fetch(url);
-  if(res.status === 403 || res.status === 404){ if(res.body) await res.body.cancel(); return null; }
-  if(!res.ok) throw new Error(`ダウンロードに失敗しました（HTTP ${res.status}）`);
-  const rl = createInterface({ input: Readable.fromWeb(res.body).pipe(createGunzip()), crlfDelay: Infinity });
+  const rl = await openLines(url);       // 通信が途中で切れたら、下の for await がエラーで止まる（呼ぶ側で読み直す）
+  if(!rl) return null;
 
   let header = null, ix = {}, cardIdx = [], cardName = [], cardLand = [];
   const events = new Map();      // draft_id → { m: {match: [勝ち, 負け]}, t, b, deck, lands, colors, splash, rank }
@@ -228,7 +224,7 @@ async function main(){
     const meta = await cardMeta(set);
     for(const mode of Object.keys(FORMATS)){
       try{
-        const out = await buildMode(set, mode, meta);
+        const out = await retryNetwork(() => buildMode(set, mode, meta), `${set} ${mode}`);
         if(!out){ process.stderr.write(`見送り: ${set} ${mode}（データなし）\n`); continue; }
         const file = path.join(OUT_DIR, `${set}_${mode}.json`);
         await writeFile(file, JSON.stringify(out), "utf8");

@@ -13,12 +13,10 @@
  * ファイルは数百MBになるため、gzip を展開しながら1行ずつ読んで集計する。
  */
 
-import { createGunzip } from "node:zlib";
-import { Readable } from "node:stream";
-import { createInterface } from "node:readline";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
 import path from "node:path";
 import { eventFile, moveLegacyEventFiles } from "./ratings-files.mjs";
+import { openLines, retryNetwork } from "./l17-csv.mjs";
 
 const BASE = "https://17lands-public.s3.amazonaws.com/analysis_data/game_data";
 const SCRY = "https://api.scryfall.com";
@@ -126,12 +124,8 @@ async function build(set, format, metaCache){
   const url = `${BASE}/game_data_public.${set}.${format}.csv.gz`;
   process.stderr.write(`取得中: ${url}\n`);
 
-  const res = await fetch(url);
-  if(res.status === 403 || res.status === 404){
-    if(res.body) await res.body.cancel();
-    return null;                                  // 公開データセットに無い組み合わせ
-  }
-  if(!res.ok) throw new Error(`ダウンロードに失敗しました（HTTP ${res.status}）: ${url}`);
+  const rl = await openLines(url);                // 通信が途中で切れたら、下の for await がエラーで止まる（呼ぶ側で読み直す）
+  if(!rl) return null;                            // 公開データセットに無い組み合わせ
 
   if(!RELEASED.has(set)){
     try{
@@ -142,11 +136,6 @@ async function build(set, format, metaCache){
 
   if(!metaCache.has(set)) metaCache.set(set, await cardMeta(set));
   const meta = metaCache.get(set);
-
-  const rl = createInterface({
-    input: Readable.fromWeb(res.body).pipe(createGunzip()),
-    crlfDelay: Infinity
-  });
 
   let header = null, wonIdx = -1, colorsIdx = -1, turnsIdx = -1;
   let names = [];              // カード名
@@ -382,15 +371,19 @@ async function main(){
     : await listTargets();
   const metaCache = new Map();
 
-  const done = [], skipped = [];
+  const done = [], skipped = [], failed = [];
   for(const [set, format] of targets){
     try{
-      const r = await build(set, format, metaCache);
+      // 通信が途中で切れたときは、そのセット・形式を最初から読み直す（集計の途中の数字は build の中だけにあるので、混ざらない）
+      const r = await retryNetwork(() => build(set, format, metaCache), `${set} ${format}`);
       if(r) done.push(r); else skipped.push(`${set} ${format}`);
     }catch(e){
+      failed.push({ set, format });
       process.stderr.write(`失敗: ${set} ${format} — ${e.message}\n`);
     }
   }
+  // 読み直しても失敗した組み合わせは、前回の集計ファイルをそのまま使う（Actions の画面に注意として出す）
+  for(const f of failed) console.log(`::warning::${f.set} ${f.format} の集計に失敗したので、前回のデータのままにしました（次の実行でまた試します）`);
 
   process.stderr.write(`\n集計: ${done.length}件 ／ 見送り: ${skipped.length}件\n`);
   if(skipped.length) process.stderr.write(`  見送り: ${skipped.join(", ")}\n`);
@@ -402,6 +395,13 @@ async function main(){
 
   // 一覧ファイル（サイト側がどの組み合わせを持っているか知るため）
   const index = done.map(d => ({ set: d.set, event: d.format, total_games: d.rows, count: d.cards }));
+  // 失敗した組み合わせは、前回の一覧の行を残す（一覧から消えると、サイトでそのセットが選べなくなるため）
+  if(failed.length){
+    try{
+      const prev = JSON.parse(await readFile(path.join(OUT_DIR, "index.json"), "utf8")).datasets || [];
+      for(const f of failed){ const old = prev.find(p => p.set === f.set && p.event === f.format); if(old) index.push(old); }
+    }catch(e){ /* 前回の一覧が無ければ何もしない */ }
+  }
   await writeFile(path.join(OUT_DIR, "index.json"),
     JSON.stringify({ generated_at: new Date().toISOString(), datasets: index }), "utf8");
 }

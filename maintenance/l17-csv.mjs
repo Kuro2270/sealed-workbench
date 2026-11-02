@@ -1,16 +1,21 @@
 /*
  * 17Lands 公開データセット（game_data の CSV。gzip）を1行ずつ読むための道具。役割はこれだけ。
- * 修正版の集計（build-trend.mjs）から使う。
+ * 勝率の集計（build-ratings.mjs）・全勝デッキの集計（build-trophies.mjs）・修正版の集計（build-trend.mjs）から使う。
  *
  *   for await (const cols of csvRows(url)) { … }   … 1行目（見出し）も含めて、列の配列を順に返す
+ *   openLines(url)                                  … 展開した1行ずつの文字列を返す読み口（無いとき null）
+ *   retryNetwork(fn, label)                         … 通信が途中で切れたときに、最初から読み直す
  *   csvUrl(set, format)                             … データセットの場所
+ *
+ * 通信が途中で切れたときは、読んでいる側（for await）にエラーとして届くようにしている（2026年11月）。
+ * 以前は .pipe() でつないでいたため、切れたときのエラーがどこにも届かず、プログラムごと止まっていた。
  *
  * ファイルは数百MBになるため、展開しながら1行ずつ読む（全部をメモリに載せない）。
  * カード名にカンマが入るため、見出しの行は引用符を見て分ける。データの行は数字と短い文字だけなので、カンマで分ける。
  * 環境変数 L17_DATASET … データセットの置き場所を差し替える（確認用。file:// やローカルのパスも使える）
  */
 import { createGunzip } from "node:zlib";
-import { Readable } from "node:stream";
+import { Readable, pipeline } from "node:stream";
 import { createInterface } from "node:readline";
 import { createReadStream, existsSync } from "node:fs";
 
@@ -47,11 +52,44 @@ async function openStream(url){
   return existsSync(p) ? createReadStream(p) : null;
 }
 
+/* 展開した1行ずつの読み口（readline）。データセットが無ければ null。
+   pipeline でつなぐので、通信が切れると展開側にもエラーが伝わり、for await (const line of rl) がエラーで止まる（try/catch で受けられる） */
+export async function openLines(url){
+  const src = await openStream(url);
+  if(!src) return null;
+  const gz = createGunzip();
+  pipeline(src, gz, () => {});         // エラーは gz に伝わり、readline から読む側に届く。ここでは何もしない
+  return createInterface({ input: gz, crlfDelay: Infinity });
+}
+
+/* 通信の失敗かどうか（読み直せば直るもの）。データの中身の問題は読み直しても同じなので、ここには入れない */
+export function isNetworkError(e){
+  const codes = new Set(["UND_ERR_SOCKET", "UND_ERR_CONNECT_TIMEOUT", "UND_ERR_HEADERS_TIMEOUT", "UND_ERR_BODY_TIMEOUT",
+                         "ECONNRESET", "ETIMEDOUT", "EPIPE", "EAI_AGAIN", "Z_BUF_ERROR"]);
+  for(let x = e; x; x = x.cause){
+    if(codes.has(x.code)) return true;
+    if(/terminated|fetch failed|other side closed|unexpected end of file/i.test(String(x.message || ""))) return true;
+    if(/HTTP 5\d\d/.test(String(x.message || ""))) return true;
+  }
+  return false;
+}
+
+/* fn を実行し、通信の失敗なら少し待って最初からやり直す（全部で tries 回）。それ以外のエラーはそのまま投げる */
+export async function retryNetwork(fn, label, { tries = 3, waitSec = 30 } = {}){
+  for(let i = 1; ; i++){
+    try{ return await fn(); }
+    catch(e){
+      if(i >= tries || !isNetworkError(e)) throw e;
+      process.stderr.write(`  通信が途中で切れました（${label}：${e.message}）。${waitSec}秒後に読み直します（${i + 1}/${tries}回目）\n`);
+      await new Promise(r => setTimeout(r, waitSec * 1000));
+    }
+  }
+}
+
 /* 1行ずつ列の配列を返す。データセットが無ければ何も返さずに終わる（呼ぶ側は見出しが来たかで判断する） */
 export async function* csvRows(url){
-  const src = await openStream(url);
-  if(!src) return;
-  const rl = createInterface({ input: src.pipe(createGunzip()), crlfDelay: Infinity });
+  const rl = await openLines(url);
+  if(!rl) return;
   let first = true;
   for await (const line of rl){
     if(!line) continue;
