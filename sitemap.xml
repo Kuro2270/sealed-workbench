@@ -550,6 +550,24 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/TMT"/>
   </url>
   <url>
+    <loc>https://sealed-workbench.com/sets/TRK.profile</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/TRK.profile"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/TRK.profile.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/TRK.profile"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/sets/TRK.profile.en</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sets/TRK.profile"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sets/TRK.profile.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sets/TRK.profile"/>
+  </url>
+  <url>
     <loc>https://sealed-workbench.com/sets/</loc>
     <lastmod>2026-10-21</lastmod>
     <changefreq>monthly</changefreq>
