@@ -8,7 +8,7 @@
  *                                                   セット名を i18n.js の SET_JA に追記する
  *
  * 日本語のセット名は機械的に取れる元が無いので、ここだけは人が入れる。
- * 未登録のセットは点検で見つかり、Actions の「セット名を登録」から追記できる。
+ * 未登録のセットは点検で見つかり（発売日の30日前から）、Actions の「セット名を登録」から追記できる。
  *
  * Node 18 以降で動きます。外部パッケージは使いません。
  */
@@ -21,6 +21,7 @@ const HTML = process.env.TOOL_HTML || "i18n.js";        // SET_JA がある場�
 const UA = "SealedWorkbench-Maintenance/1.0";
 const MONTHS_BACK = 24;      // 何か月前までのセットを対象にするか
 const MIN_CARDS = 100;       // リミテッドに使えるセットの目安
+const DAYS_AHEAD = 30;       // セット名の点検は、発売日まであと何日のセットから対象にするか（速報ショートは発売日ごろに自動で作られるため、その前に登録できるように）
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const log = [];
@@ -49,21 +50,25 @@ async function readSetJa(file){
   return { src, block: m[0], codes };
 }
 
-/* ---------- 対象セットを調べる ---------- */
+/* ---------- 対象セットを調べる ----------
+   直近 MONTHS_BACK か月に発売されたセットと、発売日まで DAYS_AHEAD 日以内のセット（新しい順）。
+   発売前のセットは収録枚数がまだ揃っていないことがあるので、枚数の条件は発売済みのセットにだけかける */
 async function listSets(){
   const data = await api("/sets");
   const today = new Date();
   const limit = new Date(today);
   limit.setMonth(limit.getMonth() - MONTHS_BACK);
+  const ahead = new Date(today);
+  ahead.setDate(ahead.getDate() + DAYS_AHEAD);
   const iso = d => d.toISOString().slice(0, 10);
 
   return data.data.filter(s =>
     ["expansion", "core"].includes(s.set_type) &&
     s.released_at &&
-    s.released_at <= iso(today) &&
+    s.released_at <= iso(ahead) &&
     s.released_at >= iso(limit) &&
-    s.card_count > MIN_CARDS
-  );
+    (s.released_at > iso(today) || s.card_count > MIN_CARDS)
+  ).map(s => ({ ...s, upcoming: s.released_at > iso(today) }));
 }
 
 /* ---------- セット単位の点検 ---------- */
@@ -134,7 +139,8 @@ async function main(){
   say(`登録済みのセット名: ${codes.size}件`);
 
   const sets = await listSets();
-  say(`直近${MONTHS_BACK}か月の対象セット: ${sets.length}件`);
+  const upcoming = sets.filter(s => s.upcoming).length;
+  say(`直近${MONTHS_BACK}か月の対象セット: ${sets.length - upcoming}件（ほかに発売前 ${upcoming}件）`);
   say("");
 
   const missing = sets.filter(s => !codes.has(s.code.toLowerCase()));
@@ -153,7 +159,7 @@ async function main(){
     say("| コード | 英語名 | 発売日 | 収録枚数 |");
     say("| --- | --- | --- | --- |");
     for(const s of missing){
-      say(`| ${s.code.toUpperCase()} | ${s.name} | ${s.released_at} | ${s.card_count} |`);
+      say(`| ${s.code.toUpperCase()} | ${s.name} | ${s.released_at}${s.upcoming ? "（発売前）" : ""} | ${s.card_count} |`);
     }
     say("");
   }else{
@@ -163,12 +169,12 @@ async function main(){
     say("");
   }
 
-  // 最新3セットの動作点検
-  say("## 動作点検（最新3セット）");
+  // 最新3セットの動作点検（発売済みのセットだけ。発売前はカードや画像がまだ揃っていないため）
+  say("## 動作点検（発売済みの最新3セット）");
   say("");
   say("| コード | 取得件数 | レアリティ | 日本語版 | 画像 |");
   say("| --- | --- | --- | --- | --- |");
-  for(const s of sets.slice(0, 3)){
+  for(const s of sets.filter(s => !s.upcoming).slice(0, 3)){
     try{
       const r = await inspect(s.code);
       const rarOk = ["common", "uncommon", "rare"].every(x => r.rarities.includes(x));
