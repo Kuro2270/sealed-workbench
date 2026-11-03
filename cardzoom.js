@@ -77,7 +77,10 @@
       "  line-height:0;backdrop-filter:blur(1.5px);transition:background .12s}",
       ".czbtn svg{width:17px;height:17px;display:block}",
       ".czbtn:hover,.czbtn:focus-visible{background:rgba(8,18,30,.78)}",
-      ".czbtn:focus-visible{outline:2px solid #FFD640;outline-offset:1px}"
+      ".czbtn:focus-visible{outline:2px solid #FFD640;outline-offset:1px}",
+      /* 幅の狭いカード（デッキ欄・スマホ）では、下の真ん中に出る勝率と重なるので、その少し上に上げる */
+      ".tile:has(> .czbtn){container-type:inline-size}",
+      "@container (max-width:150px){.czbtn{bottom:30px}}"
     ].join("\n");
     document.head.appendChild(s);
   }
