@@ -11,8 +11,10 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
 <meta name="twitter:card" content="summary">
-<script src="./i18n.js?v=18"></script>
-<script src="./cardzoom.js"></script>
+<script src="./i18n.js?v=19"></script>
+<script src="./cardzoom.js?v=2"></script>
+<script src="./color-tally.js?v=1"></script>
+<link rel="stylesheet" href="/assets/mana/mana.min.css">
 <script src="./analytics.js"></script>
 <script src="/navmenu.js" defer></script>
 <script src="/poolsave.js?v=2"></script>
@@ -189,7 +191,7 @@
   .deck-actions[hidden]{display:none}
   .deck-actions button{width:100%}
   .deck-actions button + button{margin-top:6px}
-  .deck-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+  .deck-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline}
   .deck-head h2{font-size:16px;margin:0}
   .count{font-size:26px;font-variant-numeric:tabular-nums}
   .count.ok{color:#1E7A52}
@@ -209,6 +211,7 @@
       background:rgba(24,36,31,.85);color:#F5F8FC;font-size:13px;line-height:22px;padding:0;cursor:pointer;
       opacity:0;transition:opacity .12s}
   .tile:hover .mv,.tile:focus-within .mv{opacity:1}
+  .tile .mv{left:36px;top:7px}                     /* 左上は虫眼鏡（cardzoom.js）なので、その右 */
   .card-row .mv{position:static;width:24px;height:22px;opacity:1;background:var(--paper-2);color:var(--ink);border:1px solid var(--line);flex:none}
   .deck-body ul + ul{margin-top:7px}
   .deck-sec{display:flex;align-items:baseline;justify-content:space-between;margin:10px 0 3px;padding-bottom:3px;border-bottom:1px solid var(--line)}
@@ -420,6 +423,7 @@
     <div class="deck-head">
       <h2 data-i18n="deck.title">デッキ</h2>
       <div class="count" id="deckCount" data-dock-count>0<span style="font-size:14px;color:var(--muted)"> / 40</span></div>
+      <div id="deckColors" hidden></div>
     </div>
     <div class="target">
       <span data-i18n="deck.target">追加先</span>
@@ -969,6 +973,7 @@ function cardTile(entry, where){
     li.appendChild(b);
   }
 
+  li.appendChild(CardZoom.button(c));              // 左上の虫眼鏡：押すと大きく見る
   if(inDeck) li.appendChild(moveBtn(c, where));
 
   const act = () => { inDeck ? removeCard(c, where) : addCard(c); };
@@ -1040,6 +1045,7 @@ function renderDeck(){
   const cnt = $("deckCount");
   cnt.innerHTML = total + '<span style="font-size:14px;color:var(--muted)"> / 40</span>';
   cnt.className = "count" + (total === 40 ? " ok" : "");
+  ColorTally.render($("deckColors"), deck);       // 色ごとの枚数（マナシンボルと数字）
 
   const body = $("deckBody");
   body.innerHTML = "";

@@ -1,12 +1,15 @@
 /*
- * カードを長押しして大きく見る（スマホ・タブレット向け）。
- * シールド構築とドラフト構築の両方から読むので、1か所に置いてある。
+ * カードを大きく見る。シールド構築とドラフト構築の両方から読むので、1か所に置いてある。
+ *   ・スマホ・タブレット：カードを長押しする
+ *   ・どの端末でも：カードの画像の左上の虫眼鏡ボタン（CardZoom.button(カード) で作る）を押す
+ *     （2026年11月：パソコンでは、デッキに入れた小さなカードの文字が読めなかったため）
  *
- * ページ側でやることは2つだけ。
+ * ページ側でやることは3つだけ。
  *   1) CardZoom.setup({ images, name, sub }) を呼ぶ
  *   2) カードの要素（.card-row / .tile）に el._card = カード を入れておく
+ *   3) 画像で並べるカード（.tile）には、el.appendChild(CardZoom.button(カード)) で虫眼鏡ボタンを付ける
  *
- * パソコンはカーソルを乗せれば拡大画像が出るので、指とペンのときだけ働く。
+ * 長押しは、指とペンのときだけ働く（マウスのときは何もしない）。
  */
 (function () {
   "use strict";
@@ -67,7 +70,14 @@
       "  max-width:88vw;background:rgba(13,27,42,.94);color:#EAF1F9;font-size:12.5px;line-height:1.6;",
       "  padding:10px 16px;border-radius:999px;box-shadow:0 10px 28px rgba(0,0,0,.35);",
       "  opacity:0;transition:opacity .25s}",
-      ".cztoast.on{opacity:1}"
+      ".cztoast.on{opacity:1}",
+      /* 虫眼鏡ボタン（カードの画像の左上）。カードの絵をなるべく隠さないよう、透ける地に黄色の虫眼鏡 */
+      ".czbtn{position:absolute;top:4px;left:4px;z-index:1;width:28px;height:28px;padding:0;border:0;border-radius:7px;",
+      "  background:rgba(8,18,30,.5);color:#FFD640;cursor:zoom-in;display:flex;align-items:center;justify-content:center;",
+      "  line-height:0;backdrop-filter:blur(1.5px);transition:background .12s}",
+      ".czbtn svg{width:17px;height:17px;display:block}",
+      ".czbtn:hover,.czbtn:focus-visible{background:rgba(8,18,30,.78)}",
+      ".czbtn:focus-visible{outline:2px solid #FFD640;outline-offset:1px}"
     ].join("\n");
     document.head.appendChild(s);
   }
@@ -82,7 +92,7 @@
     box.setAttribute("aria-modal", "true");
     box.innerHTML = '<div class="czbody"></div>'
       + '<button type="button" class="czclose" aria-label="' + esc(tr("zoom.closeLabel", "閉じる")) + '">×</button>'
-      + '<div class="czfoot">' + esc(tr("zoom.close", "画面をタップすると閉じます")) + "</div>";
+      + '<div class="czfoot">' + esc(matchMedia("(pointer: fine)").matches ? tr("zoom.closePc", "画面をクリックすると閉じます") : tr("zoom.close", "画面をタップすると閉じます")) + "</div>";
     box.addEventListener("click", function () { close(); });
     document.body.appendChild(box);
     return box;
@@ -155,6 +165,7 @@
   function onDown(ev) {
     if (ev.pointerType === "mouse") return;          // パソコンはカーソルを乗せれば出る
     if (box && !box.hidden) return;                  // 開いているときは何もしない
+    if (ev.target && ev.target.closest && ev.target.closest(".czbtn")) return;   // 虫眼鏡ボタンは押せば開くので、長押しの判定はしない
     fired = false;
     cancel();
     var el = ev.target && ev.target.closest ? ev.target.closest(SEL) : null;
@@ -216,6 +227,25 @@
     showToast();
   }
 
+  /* ---------- 虫眼鏡ボタン ---------- */
+  /* カードの要素（.tile）に付けるボタンを返す。押すと拡大する。カードを足す・戻す操作にはつながらない */
+  var LENS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true">'
+           + '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>';
+  function button(c) {
+    addStyle();
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "czbtn";
+    b.innerHTML = LENS;
+    b.title = tr("zoom.btn", "大きく見る");
+    b.setAttribute("aria-label", b.title);
+    b.addEventListener("click", function (ev) { ev.preventDefault(); ev.stopPropagation(); open(c); });
+    b.addEventListener("keydown", function (ev) {                               // Enter・スペースでカードが動かないように（Esc などはそのまま通す）
+      if (ev.key === "Enter" || ev.key === " ") ev.stopPropagation();
+    });
+    return b;
+  }
+
   /* ---------- 組み込み ---------- */
   document.addEventListener("pointerdown", onDown, true);
   document.addEventListener("pointermove", onMove, true);
@@ -234,6 +264,7 @@
       if (o && o.sub) api.sub = o.sub;
     },
     hint: maybeHint,
+    button: button,
     open: open,
     close: close
   };
