@@ -206,13 +206,6 @@
   .count.small{font-size:20px}
   .count.over{color:#A24B32}
   .side-body{padding:10px 16px;max-height:26vh;overflow:auto}
-  /* メインとサイドの間で移す小さなボタン */
-  .mv{position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:6px;border:none;
-      background:rgba(24,36,31,.85);color:#F5F8FC;font-size:13px;line-height:22px;padding:0;cursor:pointer;
-      opacity:0;transition:opacity .12s}
-  .tile:hover .mv,.tile:focus-within .mv{opacity:1}
-  .tile .mv{left:36px;top:7px}                     /* 左上は虫眼鏡（cardzoom.js）なので、その右 */
-  .card-row .mv{position:static;width:24px;height:22px;opacity:1;background:var(--paper-2);color:var(--ink);border:1px solid var(--line);flex:none}
   .deck-body ul + ul{margin-top:7px}
   .deck-sec{display:flex;align-items:baseline;justify-content:space-between;margin:10px 0 3px;padding-bottom:3px;border-bottom:1px solid var(--line)}
   .deck-sec:first-child{margin-top:0}
@@ -853,7 +846,6 @@ function cardRow(entry, where){
   li.onkeydown = ev => {
     if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); li.click(); }
   };
-  if(inDeck) li.appendChild(moveBtn(c, where));
   li._card = c;                                    // 長押しで拡大するときに使う
   li.onclick = () => { hidePreview(); inDeck ? removeCard(c, where) : addCard(c); };
   return li;
@@ -923,17 +915,6 @@ const gridMode = () => $("imgToggle").checked && !$("textToggle").checked;
 function cardNode(entry, where){
   return gridMode() ? cardTile(entry, where) : cardRow(entry, where);
 }
-/* メイン⇄サイドの移動ボタン */
-function moveBtn(c, where){
-  const b = document.createElement("button");
-  b.type = "button";
-  b.className = "mv";
-  b.textContent = where === "side" ? "↑" : "↓";
-  b.title = t(where === "side" ? "deck.moveToMain" : "deck.moveToSide");
-  b.setAttribute("aria-label", b.title);
-  b.onclick = ev => { ev.stopPropagation(); hidePreview(); moveCard(c, where); };
-  return b;
-}
 
 function cardTile(entry, where){
   const inDeck = where !== "pool";
@@ -974,7 +955,6 @@ function cardTile(entry, where){
   }
 
   li.appendChild(CardZoom.button(c));              // 左上の虫眼鏡：押すと大きく見る
-  if(inDeck) li.appendChild(moveBtn(c, where));
 
   const act = () => { inDeck ? removeCard(c, where) : addCard(c); };
   li.onclick = act;
@@ -1161,13 +1141,6 @@ function removeCard(c, from){
   const arr = from === "side" ? side : deck;
   const i = arr.findIndex(x => x.id === c.id);
   if(i >= 0) arr.splice(i, 1);
-  render();
-}
-/* メインとサイドの間で移す */
-function moveCard(c, from){
-  const src = from === "side" ? side : deck, dst = from === "side" ? deck : side;
-  const i = src.findIndex(x => x.id === c.id);
-  if(i >= 0){ src.splice(i, 1); dst.push(c); }
   render();
 }
 function setTarget(v){
