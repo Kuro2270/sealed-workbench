@@ -135,6 +135,7 @@
     background:rgba(24,36,31,.92);color:#F5F8FC;font-size:12px;font-weight:700;line-height:1;
     padding:4px 9px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.3);
   }
+  .tile .wrbadge{left:calc(50% + 14px)}           /* 左下の虫眼鏡（cardzoom.js）と重ならないよう、少し右へ */
   .tile .noimg{
     display:flex;align-items:center;justify-content:center;text-align:center;aspect-ratio:5/7;
     background:var(--paper-2);border:1px solid var(--line);border-radius:7px;
@@ -716,7 +717,7 @@ function tile(c, onClick){
     d.className = "noimg"; d.textContent = name;
     li.appendChild(d);
   }
-  li.appendChild(CardZoom.button(c));              // 左上の虫眼鏡：押すと大きく見る
+  li.appendChild(CardZoom.button(c));              // 左下の虫眼鏡：押すと大きく見る
   const w = wrOf(c);
   if(w){
     const b = document.createElement("span");

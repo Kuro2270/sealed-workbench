@@ -1,7 +1,7 @@
 /*
  * カードを大きく見る。シールド構築とドラフト構築の両方から読むので、1か所に置いてある。
  *   ・スマホ・タブレット：カードを長押しする
- *   ・どの端末でも：カードの画像の左上の虫眼鏡ボタン（CardZoom.button(カード) で作る）を押す
+ *   ・どの端末でも：カードの画像の左下の虫眼鏡ボタン（CardZoom.button(カード) で作る）を押す
  *     （2026年11月：パソコンでは、デッキに入れた小さなカードの文字が読めなかったため）
  *
  * ページ側でやることは3つだけ。
@@ -71,8 +71,8 @@
       "  padding:10px 16px;border-radius:999px;box-shadow:0 10px 28px rgba(0,0,0,.35);",
       "  opacity:0;transition:opacity .25s}",
       ".cztoast.on{opacity:1}",
-      /* 虫眼鏡ボタン（カードの画像の左上）。カードの絵をなるべく隠さないよう、透ける地に黄色の虫眼鏡 */
-      ".czbtn{position:absolute;top:4px;left:4px;z-index:1;width:28px;height:28px;padding:0;border:0;border-radius:7px;",
+      /* 虫眼鏡ボタン（カードの画像の左下。左上だとカード名に重なるため）。透ける地に黄色の虫眼鏡 */
+      ".czbtn{position:absolute;bottom:4px;left:4px;z-index:1;width:28px;height:28px;padding:0;border:0;border-radius:7px;",
       "  background:rgba(8,18,30,.5);color:#FFD640;cursor:zoom-in;display:flex;align-items:center;justify-content:center;",
       "  line-height:0;backdrop-filter:blur(1.5px);transition:background .12s}",
       ".czbtn svg{width:17px;height:17px;display:block}",
