@@ -16,7 +16,6 @@
  */
 import { createGunzip } from "node:zlib";
 import { Readable, pipeline } from "node:stream";
-import { createInterface } from "node:readline";
 import { createReadStream, existsSync } from "node:fs";
 
 const BASE = process.env.L17_DATASET || "https://17lands-public.s3.amazonaws.com/analysis_data/game_data";
@@ -52,14 +51,31 @@ async function openStream(url){
   return existsSync(p) ? createReadStream(p) : null;
 }
 
-/* 展開した1行ずつの読み口（readline）。データセットが無ければ null。
-   pipeline でつなぐので、通信が切れると展開側にもエラーが伝わり、for await (const line of rl) がエラーで止まる（try/catch で受けられる） */
+/* 展開した1行ずつの読み口（for await (const line of …) で読む）。データセットが無ければ null。
+   ・readline は使わない。readline は作った時点で読み始めるため、開いてから読み始めるまでに間があると（Scryfall を待つなど）
+     見出しの行を取りこぼし、その間に通信が切れるとエラーの受け手がおらず、プログラムごと止まった（2026年11月）
+   ・ここでは、読み始めるまで展開側で待たせておき、通信が切れたら、そのエラーを読む側（for await）に投げる（try/catch で受けられる） */
 export async function openLines(url){
   const src = await openStream(url);
   if(!src) return null;
   const gz = createGunzip();
-  pipeline(src, gz, () => {});         // エラーは gz に伝わり、readline から読む側に届く。ここでは何もしない
-  return createInterface({ input: gz, crlfDelay: Infinity });
+  let failed = null;
+  pipeline(src, gz, e => { if(e) failed = e; });     // pipeline がどちらのエラーも受けるので、読み始める前に切れても止まらない
+  return (async function* (){
+    if(failed) throw failed;
+    gz.setEncoding("utf8");
+    let rest = "";
+    const cut = t => t.endsWith("\r") ? t.slice(0, -1) : t;
+    try{
+      for await (const chunk of gz){
+        const parts = (rest + chunk).split("\n");
+        rest = parts.pop();
+        for(const p of parts) yield cut(p);
+      }
+    }catch(e){ throw failed || e; }
+    if(failed) throw failed;                          // 途中で切れて、展開側が黙って終わった場合も、失敗として扱う
+    if(rest) yield cut(rest);
+  })();
 }
 
 /* 通信の失敗かどうか（読み直せば直るもの）。データの中身の問題は読み直しても同じなので、ここには入れない */
