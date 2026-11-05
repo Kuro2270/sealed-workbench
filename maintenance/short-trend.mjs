@@ -108,7 +108,7 @@ export function trendScript(d, { JA, nameJa, names, pairName, cta }){
   const intro = { common: JA ? "続いてコモン編。" : "Next, commons. ", uncommon: JA ? "次はアンコモン編。" : "Then uncommons. ", rare: JA ? "そしてレア編。" : "And rares. " };
   // 1枚目に添える一言（2026年11月）：発売直後と最近のそれぞれで、同じレアリティの平均（比べたカード全体。試合数で重みづけ。レアは神話レアを含む）と比べて、
   //   どういう上がり方をしたかを言う。画面にも同じ内容の札を出す（tags）
-  //   ・climbing   … 最近も平均より下（まだ平均には届かないが、上げてきている）
+  //   ・climbing   … 最近も平均より下（発売直後は軽く見られていたが、じわじわ上げてきている）
   //   ・reversal   … 発売直後は平均より 0.5pt 以上下 → 最近は平均より 0.5pt 以上上（逆転）
   //   ・strongMore … 発売直後から平均より 1pt 以上上（もともと強かったのが、さらに上がった）
   //   ・fromAvg    … 発売直後は平均並み → 最近は平均より 1pt 以上上
@@ -123,23 +123,26 @@ export function trendScript(d, { JA, nameJa, names, pairName, cta }){
     const key = l < 0 ? "climbing" : f < -0.005 && l >= 0.005 ? "reversal" : f >= 0.01 ? "strongMore" : l >= 0.01 ? "fromAvg" : null;
     const top = !!best && best.name === c.name && key !== "climbing";
     if(!key && !top) return null;
-    const rn = RN[L][r];
+    // 何の平均かを必ず言う（「コモンの平均勝率」など。2026年11月：「平均」だけでは何の平均か分からなかったため）
+    const rn = RN[L][r], av = JA ? `${rn}の平均勝率` : `the average ${rn}`;
     const say = JA ? ({
-        strongMore: top ? `発売直後から平均以上でしたが、環境が成熟して、今では${rn}で一番勝てるカードになりました。` : "発売直後から平均以上でしたが、環境が成熟して、さらに評価を上げました。",
-        reversal: top ? `発売直後は平均以下でしたが、今では${rn}で一番勝てるカードに。評価が大逆転しました。` : "発売直後は平均以下でしたが、今では平均を超える一枚に。評価が逆転しました。",
-        fromAvg: top ? `発売直後は平均並みでしたが、今では${rn}で一番勝てるカードです。` : "発売直後は平均並みでしたが、今でははっきり平均以上です。",
-        climbing: "まだ平均には届きませんが、評価を上げてきています。"
+        strongMore: top ? `発売直後から${av}を上回っていましたが、環境が成熟して、今では${rn}で一番勝てるカードになりました。` : `発売直後から${av}を上回る十分な評価でしたが、環境が成熟して、さらに評価を上げました。`,
+        reversal: top ? `発売直後は${av}を下回っていましたが、今では${rn}で一番勝てるカードに。評価が大逆転しました。` : `発売直後は${av}を下回っていましたが、今では平均を超える一枚に。評価が逆転しました。`,
+        fromAvg: top ? `発売直後は${av}並みでしたが、今では${rn}で一番勝てるカードです。` : `発売直後は${av}並みでしたが、今でははっきり上回っています。`,
+        climbing: `発売直後は${av}を下回り、軽く見られていましたが、使い方が浸透して、じわじわ評価を上げています。`
       }[key] || `今では${rn}で一番勝てるカードです。`)
       : (" " + ({
-        strongMore: top ? `Already above average at launch, it's now the top ${rn} by win rate.` : "Already above average at launch, it climbed even higher as the format matured.",
-        reversal: top ? `Below average at launch, it's now the top ${rn}: a big turnaround.` : "Below average at launch, it's now above average: a real turnaround.",
-        fromAvg: top ? `About average at launch, it's now the top ${rn}.` : "About average at launch, it's now clearly above average.",
-        climbing: "Still below average, but climbing."
+        strongMore: top ? `Already above ${av} at launch, it's now the top ${rn} by win rate.` : `Already above ${av} at launch, it climbed even higher as the format matured.`,
+        reversal: top ? `Below ${av} at launch, it's now the top ${rn}: a big turnaround.` : `Below ${av} at launch, it's now above average: a real turnaround.`,
+        fromAvg: top ? `About ${av} at launch, it's now the top ${rn}.` : `About ${av} at launch, it's now clearly above it.`,
+        climbing: `Below ${av} at launch and easy to overlook, it's slowly gaining ground as players learn how to use it.`
       }[key] || `It's now the top ${rn} by win rate.`));
-    const TAG = JA ? { strongMore: "さらに評価アップ", reversal: "評価が逆転", fromAvg: "平均並み→平均以上", climbing: "追い上げ中" }
-                   : { strongMore: "Even stronger", reversal: "Turnaround", fromAvg: "Average → above", climbing: "Catching up" };
+    const TAG = JA ? { strongMore: "さらに評価アップ", reversal: "評価が逆転", fromAvg: "平均並み→平均以上", climbing: "じわじわ上昇中" }
+                   : { strongMore: "Even stronger", reversal: "Turnaround", fromAvg: "Average → above", climbing: "Slowly rising" };
     const tags = [...(key ? [TAG[key]] : []), ...(top ? [JA ? `今の${rn}1位` : `#1 ${rn} now`] : [])];
-    return { key, top, say, tags };
+    // 画面にも、比べた平均（発売直後 → 最近）を出す
+    const avgLine = JA ? `${rn}の平均 ${pct(aF)}% → ${pct(aL)}%` : `Avg ${rn} ${pct(aF)}% → ${pct(aL)}%`;
+    return { key, top, say, tags, avgLine };
   };
   let firstCh = true;
   for(const r of ["common", "uncommon", "rare"]){
@@ -153,7 +156,7 @@ export function trendScript(d, { JA, nameJa, names, pairName, cta }){
     // どのレアリティかは直前の「〇〇編」で言っているので、ここでは繰り返さない
     // 発売直後に目立たなかったかどうかは、下の一言（noteOf）で言う（2026年11月から。以前はレアだけ「発売直後は目立たなかった〜」と言っていた）
     const note = noteOf(c0, r);
-    if(note) c0.tags = note.tags;
+    if(note){ c0.tags = note.tags; c0.avgLine = note.avgLine; }
     const lead = (JA ? `引けた試合の勝率が一番上がったのは${c0.label}。発売直後の${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントです。`
                      : `The biggest rise in win rate when drawn is ${c0.label}: from ${pct(c0.first.gih)} percent at launch to ${pct(c0.last.gih)} percent recently.`)
                + (note ? note.say : "");

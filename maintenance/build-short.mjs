@@ -690,6 +690,8 @@ function trendFocusSvg(sc){
     if(px + p.w > R) break;
     s += p.svg; px += p.w + 14;
   }
+  // 比べた平均（「コモンの平均 56.8% → 56.4%」）。札の右に、小さく
+  if(c.avgLine && px < R - 120) s += T(px + 6, dy + 30 + Math.round((JA ? 38 : 32) * 1.1), c.avgLine, { size: fitSize(c.avgLine, R - px - 6, 32), fill: MUTED });
   return s;
 }
 /* 残りの2枚の位置（sceneSvg と highlightsOf で同じにする） */
