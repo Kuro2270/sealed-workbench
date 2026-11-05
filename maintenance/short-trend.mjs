@@ -66,10 +66,10 @@ export function trendScript(d, { JA, nameJa, names, pairName, cta }){
   scenes.push({ kind: "hook", art: true, trend: true, thumb, title: nameJa, topName: top ? top.name : null,
     games, gamesLabel: games ? man(games) : "",
     say: games
-      ? (JA ? `MTGアリーナ、${nameJa}のドラフト環境の変化。${gSay}試合を分析して、勝てる色の組み合わせと、評価が上がったカードを解説します。`
-            : `What changed in ${nameJa} Draft on MTG Arena? We analyzed ${gSay} games: the colour pairs that win, and the cards that rose.`)
-      : (JA ? `MTGアリーナ、${nameJa}のドラフト環境の変化。勝てる色の組み合わせと、評価が上がったカードを解説します。`
-            : `What changed in ${nameJa} Draft on MTG Arena? The colour pairs that win, and the cards that rose.`) });
+      ? (JA ? `MTGアリーナ、${nameJa}のドラフト環境の変化。${gSay}試合を分析して、勝てる色の組み合わせと、引けた試合の勝率が上がったカードを解説します。`
+            : `What changed in ${nameJa} Draft on MTG Arena? We analyzed ${gSay} games: the colour pairs that win, and the cards whose win rate when drawn rose.`)
+      : (JA ? `MTGアリーナ、${nameJa}のドラフト環境の変化。勝てる色の組み合わせと、引けた試合の勝率が上がったカードを解説します。`
+            : `What changed in ${nameJa} Draft on MTG Arena? The colour pairs that win, and the cards whose win rate when drawn rose.`) });
 
   // 色の組み合わせ編：いちばん伸びた・いちばん落ちた・1位（発売直後から変わらないか、入れ替わったか）→ 狙い目（あるときだけ）
   const pairs = (d.pairs || []).slice();
@@ -112,13 +112,15 @@ export function trendScript(d, { JA, nameJa, names, pairName, cta }){
     if(!up.length) continue;
     const open = firstCh ? (JA ? `さて、まずは${chapterJa[r]}。` : `First up, ${r}s. `) : intro[r];   // 直前のお願いで「レアリティ別のカード評価を見る前に」と言っているので、短くつなぐ
     firstCh = false;
-    const rn = RN[L][r], rns = rn + "s", ch = JA ? chapterJa[r] : chapterEn[r];
+    const ch = JA ? chapterJa[r] : chapterEn[r];
     const c0 = up[0], rest = up.slice(1).map(c => c.label);
+    // 何が上がったのか（引けた試合の勝率）を、文の前半で先に言う（2026年11月：「一番上がったのは〜」だけでは、何が上がったのか分からなかったため）。
+    // どのレアリティかは直前の「〇〇編」で言っているので、ここでは繰り返さない
     const lead = r === "rare" && c0.underrated
-        ? (JA ? `発売直後は目立たなかった${c0.label}が、引けた試合の勝率${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントに上がりました。`
-              : `${c0.label}, overlooked at launch, went from ${pct(c0.first.gih)} percent at launch to ${pct(c0.last.gih)} percent recently in win rate when drawn.`)
-        : (JA ? `${rn}の中で一番上がったのは${c0.label}で、引けた試合の勝率は、発売直後の${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントです。`
-              : `The biggest riser among ${rns} is ${c0.label}: win rate when drawn went from ${pct(c0.first.gih)} percent at launch to ${pct(c0.last.gih)} percent recently.`);
+        ? (JA ? `引けた試合の勝率が一番上がったのは、発売直後は目立たなかった${c0.label}。${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントです。`
+              : `The biggest rise in win rate when drawn is ${c0.label}, overlooked at launch: from ${pct(c0.first.gih)} percent to ${pct(c0.last.gih)} percent recently.`)
+        : (JA ? `引けた試合の勝率が一番上がったのは${c0.label}。発売直後の${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントです。`
+              : `The biggest rise in win rate when drawn is ${c0.label}: from ${pct(c0.first.gih)} percent at launch to ${pct(c0.last.gih)} percent recently.`);
     const tail = !rest.length ? "" : (JA ? `${and(rest)}も上がっています。` : ` ${and(rest)} are up too.`);
     // 2026年11月：1枚目を大きく映す場面と、残りの2枚の場面に分けた（3枚並びはスマホで読めなかったため）。cards は両方とも同じ並び
     const base = { kind: "trendCards", dir: "up", cards: up, label: `trend-${r}-up`, rare: r === "rare",
