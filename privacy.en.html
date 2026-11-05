@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" data-page-lang="en" data-title="page.privacy.title" data-desc="desc.privacy">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Limited Workbench</title>
+<!-- seo:start（maintenance/build-en-pages.mjs が書く。手で直さない。文言は i18n.js） -->
+<meta name="description" content="How Limited Workbench handles analytics, advertising, third-party services and the information they involve.">
+<link rel="canonical" href="https://sealed-workbench.com/privacy.en">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/privacy">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/privacy.en">
+<link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/privacy">
+<meta property="og:title" content="Privacy Policy — Limited Workbench">
+<meta property="og:description" content="How Limited Workbench handles analytics, advertising, third-party services and the information they involve.">
+<meta property="og:url" content="https://sealed-workbench.com/privacy.en">
+<meta property="og:image" content="https://sealed-workbench.com/ogp-en.png">
+<meta property="og:locale" content="en_US">
+<!-- seo:end -->
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="./i18n.js?v=20"></script>
+<script src="./analytics.js"></script>
+<script src="/navmenu.js" defer></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#10304F">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Workbench">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
+<style>
+  :root{
+    --pine:#10304F; --pine-deep:#0A2038;
+    --paper:#F5F8FC; --paper-2:#E8EEF6;
+    --ink:#0D1B2A; --muted:#5C7185;
+    --gold:#2F7DF6; --line:#D3DFEB;
+    --radius:8px;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  /* 内容の長さでスクロールバーが出たり消えたりしても、位置が動かないようにする */
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.85}
+  h1,h2{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+
+  header{background:linear-gradient(135deg,var(--pine-deep) 0%,var(--pine) 55%,#17466F 100%);color:var(--paper);padding:24px 24px 16px;border-bottom:3px solid var(--gold);box-shadow:0 10px 30px -18px rgba(8,26,48,.9)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .head-top{display:block}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:#9CC8FF;line-height:24px;margin:0 0 12px}
+
+  /* 言語の切り替えは、どのページでも見出しの右上に置く */
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+  .brandrow .brand{margin:0}
+  select.langsel{min-width:112px;padding:6px 10px;font-size:13px}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{
+    display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;
+    font-size:13px;font-weight:500;line-height:1;white-space:nowrap;
+    color:#C6D9EE;text-decoration:none;background:rgba(255,255,255,.05);
+    border:1px solid #2C4D74;transition:background .12s,color .12s;
+  }
+  nav a:hover{background:#1A4A79;color:var(--paper);border-color:#2F5E8F}
+  nav a.on{background:var(--gold);border-color:var(--gold);color:#FFFFFF;font-weight:700}
+
+  /* ナビはカテゴリごとにまとめる。小さな見出しを付けて、探す場所を分かりやすくする */
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end}
+  .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
+  .ng:first-of-type{padding-left:0;border-left:none}
+  .ng{position:relative;padding-top:17px}
+  .ng:has(.ngs){padding-top:35px}
+  .ngl{position:absolute;left:16px;top:0;white-space:nowrap;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6;text-transform:uppercase}
+  .ng:first-of-type .ngl,.ng:first-of-type .ngs{left:0}
+  .ngs{position:absolute;left:16px;top:17px;white-space:nowrap;font-size:11px;color:#8FA9C6;line-height:1.3}
+  nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
+  nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
+  @media (max-width:760px){
+    .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0}
+  }
+  .controls{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  select{background:var(--pine-deep);color:var(--paper);border:1px solid #2C4D74;padding:9px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px;min-width:120px}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  main{max-width:760px;margin:0 auto;padding:26px 24px 70px}
+  section{margin-bottom:34px}
+  h2{font-size:19px;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  p{margin:0 0 14px}
+  ol{margin:0 0 14px;padding-left:1.4em}
+  ol li{margin-bottom:5px}
+  a{color:#1E7A52}
+
+  .updated{color:var(--muted);font-size:12.5px;margin:0 0 22px}
+  .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .cta a{
+    display:inline-block;background:var(--gold);color:#FFFFFF;font-weight:700;
+    text-decoration:none;padding:10px 18px;border-radius:var(--radius);font-size:14px;
+  }
+  .cta a:hover{background:#1F6AE0}
+
+  footer{max-width:760px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+
+  /* ---------- スマートフォン ---------- */
+  @media (max-width:720px){
+    header p{min-height:0}
+    html,body{overflow-x:hidden}
+    body{font-size:14px}
+    header{padding:16px 14px 12px}
+    header h1{font-size:20px}
+    header p{font-size:12px;max-width:none}
+    main{padding:18px 14px 50px}
+    footer{padding:0 14px 40px}
+    .head-top{flex-direction:column;align-items:stretch;gap:12px}
+    .controls select{width:100%}
+    nav{margin:0 0 14px;gap:6px;font-size:12px}
+    nav a{white-space:nowrap}
+    .cta a{flex:1 1 100%;text-align:center}
+  }
+  /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
+  .ng{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;column-gap:7px;row-gap:5px;justify-content:start;align-items:center;padding-top:0}
+  .ng:has(.ngs){padding-top:0}
+  .ngl,.ngs{position:static;grid-column:1/-1;white-space:nowrap}
+  .ngl{grid-row:1;left:auto}
+  .ngs{grid-row:2;left:auto;top:auto;font-size:11.5px;color:#A9BFD8;margin-top:-2px}
+  nav a{grid-row:3;padding:8px 16px;border-radius:10px;font-weight:700;background:linear-gradient(180deg,#2A5F96,#1C4A7C);border:1px solid #4A83BF;color:#FFFFFF;box-shadow:0 2px 0 #12365C,0 4px 10px rgba(0,0,0,.28);-webkit-font-smoothing:auto;text-shadow:none;letter-spacing:.02em}
+  nav a:not(.on):hover{background:linear-gradient(180deg,#3573B3,#25609F);border-color:#6FA3DA}
+  nav a:active{box-shadow:0 1px 0 #12365C}
+  nav a.on{box-shadow:0 2px 0 rgba(0,0,0,.35),0 4px 10px rgba(0,0,0,.28)}
+  @media (max-width:760px){
+    .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+    .ngl,.ngs{flex:0 0 100%}
+  }
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brandrow">
+      <div class="brand"><a href="/index.en.html" class="brandhome" aria-label="Home" style="display:inline-block;margin:0 12px 0 0;vertical-align:middle"><img class="brandlogo" src="/assets/logo/arena.png" alt="MTG Arena" width="97" height="34" style="height:34px;width:auto;display:block;margin-top:-5px" onerror="this.parentNode.remove()"></a><a href="./index.en.html" data-i18n="site.name" style="color:inherit;text-decoration:none">リミテッド・ワークベンチ</a></div>
+      <select id="langSelect" class="langsel" data-i18n-label="lang.label"><option value="ja">日本語</option><option value="en">English</option></select>
+    </div>
+    <nav>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span><span class="ngs" data-i18n="navsub.start">MTGの基本と、このサイトの使い方</span>
+        <a href="./start/index.en.html" data-start-link data-i18n="nav.start">MTGとは</a>
+        <a href="./start/limited.en.html" data-limited-link data-i18n="nav.limited">リミテッドとは</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.build">仮想パックで練習する</span><span class="ngs" data-i18n="navsub.build">6パック開封・8人ドラフト</span>
+        <a href="./sealed.en.html" data-i18n="nav.sealed">シールド練習</a>
+        <a href="./draft.en.html" data-i18n="nav.draft">ドラフト練習（CPU戦）</a>
+        <a href="./draftroom.en.html" data-i18n="nav.room">ドラフト練習（対人戦）</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.assist">デッキ構築補助</span><span class="ngs" data-i18n="navsub.assist">アリーナの本番中に、デッキ案とピックのおすすめを出す・PC専用</span>
+        <a href="./sealed-assist.en.html"><span data-i18n="nav.sassist">シールドのデッキ構築補助</span><b class="pcb" data-i18n="nav.pc">PC</b></a>
+        <a href="./assistant.en.html"><span data-i18n="nav.assist">ドラフトのデッキ構築補助</span><b class="pcb" data-i18n="nav.pc">PC</b></a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.data">データを見る</span><span class="ngs" data-i18n="navsub.data">セットごとの強さ・速さを確認</span>
+        <a href="./reports.en.html" data-i18n="nav.reports">環境レポート</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.play">対戦する</span><span class="ngs" data-i18n="navsub.play">友達との対戦・大会の進行</span>
+        <a href="./table.en.html" data-i18n="nav.table">対戦卓</a>
+        <a href="./swiss.en.html" data-i18n="nav.swiss">スイスドロー</a></div>
+    <div class="ng"><span class="ngl" data-i18n="navgrp.shop">買う</span><span class="ngs" data-i18n="navsub.shop">日本で買えるMTG用品</span>
+        <a href="./goods/index.en.html" data-goods-link data-i18n="nav.goods">日本のサプライ</a></div>
+    </nav>
+    <div class="head-top">
+      <div>
+        <h1 data-i18n="privacy.h1">プライバシーポリシー</h1>
+        <p data-i18n="privacy.lead">取得する情報とその使い道、データの出典と権利表示をまとめます。</p>
+      </div>
+      <div class="controls">
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <p class="updated" data-i18n="privacy.updated">最終更新：2026年10月23日</p>
+
+  <section>
+    <h2 data-i18n="privacy.s1.h">はじめに</h2>
+    <div data-i18n-html="privacy.s1.body"><p>リミテッド・ワークベンチ（以下「当サイト」）は、個人を特定する情報の登録を求めません。アカウント登録もログインも不要で、使うために氏名やメールアドレスを入力する場面はありません（お問い合わせをいただく場合を除きます）。ドラフト練習（対人戦）と対戦卓では、ほかの参加者に見せる表示名を入れますが、本名である必要はありません。</p><p>一方で、アクセス状況の把握や外部サービスの利用にともない、いくつかの情報が自動的に扱われます。以下でその内容を説明します。</p></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="privacy.s2.h">アクセス解析</h2>
+    <div data-i18n-html="privacy.s2.body"><p>当サイトは、閲覧状況を把握するために <b>Cloudflare Web Analytics</b> を利用しています。これはCookieを使わず、個人を追跡しない仕組みです。訪問数、閲覧されたページ、参照元、おおまかな地域、ブラウザの種類といった集計情報のみを扱います。</p><p>取得した情報は、どのページが役に立っているかを判断し、当サイトを改善する目的にのみ使用します。</p></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="privacy.s3.h">ブラウザに保存される情報</h2>
+    <div data-i18n-html="privacy.s3.body"><p>選択した言語（日本語／英語）を、お使いのブラウザの<b>ローカルストレージ</b>に保存します。次回訪問時に同じ言語で表示するためのものです。</p><p>シールド練習・ドラフト練習では、開けたプールと組んだデッキ、その履歴も、同じくローカルストレージに保存します。ページを閉じても続きから組めるようにするためです。ドラフト練習（対人戦）では表示名を、対戦卓では表示名・部屋の合言葉・貼り付けたデッキを、次回の入力を省くために保存します。</p><p>スイスドロー対戦表では、入力した参加者の名前と進行中の大会の内容も、同じくローカルストレージに保存します。次回に参加者を呼び出したり、ページを閉じても大会を続けられるようにするためです。</p><p>これらは、当サイトの運営者を含む誰かに送信されることはありません（ドラフト練習（対人戦）と対戦卓で、同じ部屋の参加者と共有する内容は、次の「外部サービス」のとおりです）。ブラウザの設定から削除できます。</p></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="privacy.s4.h">広告について</h2>
+    <div data-i18n-html="privacy.s4.body"><p>当サイトでは、第三者配信の広告サービス（Google AdSense）を利用しています。広告配信事業者がCookieを使用して、利用者の過去のアクセス情報に基づく広告を表示することがあります。</p><p>Googleが広告Cookieを使用することにより、利用者が当サイトや他のサイトにアクセスした際の情報に基づいて広告を配信します。利用者は <a href="https://myadcenter.google.com/" target="_blank" rel="noopener">広告設定</a> でパーソナライズ広告を無効にできます。また <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener">aboutads.info</a> で第三者配信事業者のCookieを無効にすることもできます。</p><p>広告の掲載有無や配信内容は、当サイトが個別に指定するものではありません。広告に関するお問い合わせは、お問い合わせページからご連絡ください。</p></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="privacy.s11.h">アフィリエイトについて</h2>
+    <div data-i18n-html="privacy.s11.body"><p>当サイトの「日本の TCG サプライ」ページなどには、アフィリエイトリンク（楽天アフィリエイト、Buyee（Indoleads 経由）、Amazon アソシエイト）が含まれます。リンク先で商品を購入された場合、当サイトに紹介料が支払われます。購入者の負担が増えることはありません。</p><p>当サイトは、Amazon.co.jp を宣伝しリンクすることによってサイトが紹介料を獲得できる手段を提供することを目的に設定されたアフィリエイトプログラムである、Amazon アソシエイト・プログラムの参加者です。</p><p>商品の価格・在庫・仕様は、リンク先の表示が正となります。紹介する商品の選定は当サイトの判断で行い、広告主から内容の指示を受けていません。</p></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="privacy.s5.h">外部サービス</h2>
+    <div data-i18n-html="privacy.s5.body"><p>当サイトは次の外部サービスを利用しています。これらのサービスを読み込む際、利用者のIPアドレスなどの通信情報が各事業者に送信されます。</p><ul><li><b>Scryfall</b>：カードの情報と画像の取得</li><li><b>17Lands</b>：公開データセットと毎日の集計の取得（当サイトの自動処理が定期的に行うもので、利用者のブラウザからは接続しません）</li><li><b>Cloudflare</b>：サイトの配信とアクセス解析。ドラフト練習（対人戦）と対戦卓では、表示名と卓の内容（ピックしたカード・盤面）を、同じ部屋の参加者と同期するために当サイトの同期サーバー（Cloudflare Workers）へ送ります。部屋に入れるのは招待リンクを知っている人だけで、ドラフトの部屋は最後の操作から3日で消えます</li><li><b>Google Fonts</b>：書体の読み込み</li><li><b>YouTube</b>：環境レポートや入門ページの動画の埋め込み（再生ボタンを押したときだけ読み込みます。Cookie を使わない youtube-nocookie.com を利用）</li><li><b>Google フォーム</b>：お問い合わせの受け付け（お問い合わせページでフォームを開いたときだけ読み込みます）</li><li><b>楽天市場</b>：商品ページの商品情報と画像（週1回、当サイトの自動処理が取得します。画像は楽天のサーバーから読み込みます）</li></ul><p>各サービスにおける情報の取り扱いは、それぞれの事業者の方針に従います。</p></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="privacy.s8.h">出典と権利表示</h2>
+    <div data-i18n-html="privacy.s8.body"><p>カードの情報と画像は <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a> から取得しています。画像は加工せず、そのままの形で表示しています。</p><p>カード勝率は <a href="https://www.17lands.com/public_datasets" target="_blank" rel="noopener">17Lands Public Data</a>（<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>）を当サイトが集計したものです。公開データセットがまだ出ていない新しいセットは、<a href="https://www.17lands.com" target="_blank" rel="noopener">17Lands</a> の毎日の集計をもとにしています。</p><p>当サイトは、ファンコンテンツ・ポリシーに基づく非公式のファンコンテンツです。ウィザーズ・オブ・ザ・コースト社の認可・許可を受けていません。題材の一部に同社の財産を含みます。&copy;Wizards of the Coast LLC.</p><p>色を示すマナシンボルは <a href="https://mana.andrewgioia.com" target="_blank" rel="noopener">Mana</a>（Andrew Gioia 氏作。フォントは SIL OFL 1.1、CSS は MIT ライセンス）を使っています。</p></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="privacy.s9.h">当サイトの内容の引用について</h2>
+    <div data-i18n-html="privacy.s9.body"><p>当サイトが集計した勝率データや環境レポートの内容は、個人・法人を問わず自由に引用していただけます。</p><p>引用される際は、出典として <a href="https://sealed-workbench.com">https://sealed-workbench.com</a> へのリンクを記載してください。</p><p>なお、元データである17Landsの公開データセットはCC BY 4.0で提供されています。数値をそのまま転載する場合は、あわせて17Landsへの出典表示もお願いします。</p></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="privacy.s10.h">利用条件</h2>
+    <div data-i18n-html="privacy.s10.body"><p>当サイトのプログラム、文章、デザイン、および当サイトが作成した集計データ（勝率一覧・環境レポートの内容）の著作権は、当サイトの運営者に帰属します。</p><p>個人でご利用いただくのは自由です。集計データや記事の内容を引用される場合は、上の「当サイトの内容の引用について」のとおり、出典として当サイトへのリンクを記載してください。</p><p>次の行為はご遠慮ください。</p><ul><li>サイト全体、またはプログラム・デザインを複製し、他のサイトやサービスとして公開すること</li><li>当サイトのデータファイルを、他のサイトやプログラムから直接読み込んで利用すること</li><li>当サイトの内容を改変して再配布すること</li><li>営利目的での利用（事前にご相談ください）</li></ul><p>カードの情報と画像はウィザーズ・オブ・ザ・コースト社の財産であり、Scryfallを通じて表示しています。集計の元データである17Landsの公開データセットは、17Landsから直接取得できます。</p></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="privacy.s6.h">免責事項</h2>
+    <div data-i18n-html="privacy.s6.body"><p>当サイトが表示するカード勝率は、17Landsが公開しているデータを当サイトが独自に集計したものです。正確性を期していますが、内容を保証するものではありません。</p><p>当サイトの利用によって生じた損害について、運営者は責任を負いかねます。</p><p>当サイトは非公式のファンコンテンツであり、ウィザーズ・オブ・ザ・コースト社および17Landsとは関係ありません。</p></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="privacy.s12.h">お問い合わせで取得する情報</h2>
+    <div data-i18n-html="privacy.s12.body"><p>お問い合わせには、<b>Google フォーム</b>を使っています。フォームに入力された内容（本文と、任意で入力されたメールアドレス）は、Google のサービス上で保存され、運営者が確認します。</p><p>いただいた情報は、お返事と、不具合の確認・サイトの改善のためだけに使います。法令に基づく場合を除き、本人の同意なく第三者に提供することはありません。お返事が済んだ内容は、必要がなくなった時点で削除します。</p><p>フォームを開くと、Google に利用者のIPアドレスなどの通信情報が送信されます。取り扱いは Google の方針に従います。個人情報を入力する必要はありません。名前やメールアドレスの入力は任意です。</p></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="privacy.s7.h">お問い合わせと改定</h2>
+    <div data-i18n-html="privacy.s7.body"><p>本ポリシーおよび当サイトに関するお問い合わせは、X（旧Twitter）の <a href="https://x.com/MTGtbg" target="_blank" rel="noopener">@MTGtbg</a> へのダイレクトメッセージ、または投稿への返信でお願いします。個人で運営しているため、返信までお時間をいただくことがあります。</p><p>本ポリシーは、必要に応じて予告なく改定することがあります。改定した場合は、本ページの最終更新日を変更します。</p></div>
+  </section>
+</main>
+
+<div id="goodsStrip"></div>
+
+<footer>
+  <span data-i18n-html="foot.short">データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="./privacy.en.html">プライバシーポリシー</a>にまとめています。<br><a href="./faq.en.html">よくある質問</a>・<a href="./contact.en.html">お問い合わせ</a>・<a href="./about.en.html">運営者情報</a></span>
+</footer>
+
+<script>
+const sel = document.getElementById("langSelect");
+sel.value = I18N.lang;
+sel.onchange = e => I18N.set(e.target.value);
+</script>
+<script src="./goods-widget.js?v=6" defer></script>
+</body>
+</html>

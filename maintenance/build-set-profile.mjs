@@ -16,6 +16,7 @@
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { enLinks } from "./en-pages.mjs";
 const manaI = k => `<i class="ms ms-cost ${k === "M" ? "ms-multicolor mfi-m" : "ms-" + (k === "L" ? "c" : k.toLowerCase())} mfi" aria-hidden="true"></i>`;   // 色の見出しはマナシンボルで（mana-font）
 import { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE, pretty, videoSection } from "./build-set-pages.mjs";
 
@@ -454,5 +455,5 @@ await writeFile(`data/profiles/${SET}.json`, JSON.stringify({ ...p, nameJa, gene
   await writeFile("data/profiles/index.json", JSON.stringify({ profiles: list }), "utf8");
 }
 await writeFile(`sets/${SET}.profile.html`, page("ja", p, nameJa), "utf8");
-await writeFile(`sets/${SET}.profile.en.html`, page("en", p, nameJa), "utf8");
+await writeFile(`sets/${SET}.profile.en.html`, enLinks(page("en", p, nameJa), "sets"), "utf8");   // 英語のページのリンクは英語版へ
 console.error(`${SET}: ${p.counts.total} 枚（C ${p.counts.common} / U ${p.counts.uncommon} / R ${p.counts.rare} / M ${p.counts.mythic}）、除去 ${p.counts.removal}、飛行 ${p.counts.flyers} → sets/${SET}.profile.html`);

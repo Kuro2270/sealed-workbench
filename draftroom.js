@@ -363,7 +363,7 @@ async function finish(){
   const meta = {v:1, setCode: view.set, phase:"build", packNo:0, pickNo:0, target:"main", landCount:{}, ts:Date.now(), n:pool.length};
   PoolSave.save(key, PoolSave.pack(meta, {pool, deck:[], side:[], basic:Object.values(basicCards)}));
   setStatus(t("room.toBuild"), false, true);
-  const url = "./draft.html?from=room" + (TEST ? "&as=" + AS + (params.get("embed") === "1" ? "&embed=1" : "") : "");
+  const url = I18N.href("./draft.html") + "?from=room" + (TEST ? "&as=" + AS + (params.get("embed") === "1" ? "&embed=1" : "") : "");
   $("buildLink").querySelector("a").href = url;
   $("buildLink").hidden = false;
   try{ ws.close(); }catch(e){}

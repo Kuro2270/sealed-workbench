@@ -7,7 +7,16 @@
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/index.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/index.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/index.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/"/>
   </url>
   <url>
@@ -16,7 +25,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/reports"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/reports"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/reports.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/reports"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/reports.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/reports"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/reports.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/reports"/>
   </url>
   <url>
@@ -25,7 +43,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sealed"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sealed"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sealed.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sealed"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/sealed.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sealed"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sealed.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sealed"/>
   </url>
   <url>
@@ -34,7 +61,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/draft"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/draft"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/draft.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/draft"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/draft.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/draft"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/draft.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/draft"/>
   </url>
   <url>
@@ -43,7 +79,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/assistant"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/assistant"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/assistant.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/assistant"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/assistant.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/assistant"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/assistant.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/assistant"/>
   </url>
   <url>
@@ -52,7 +97,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/draftroom"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/draftroom"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/draftroom.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/draftroom"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/draftroom.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/draftroom"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/draftroom.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/draftroom"/>
   </url>
   <url>
@@ -61,7 +115,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sealed-assist"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sealed-assist"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sealed-assist.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sealed-assist"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/sealed-assist.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/sealed-assist"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/sealed-assist.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/sealed-assist"/>
   </url>
   <url>
@@ -70,7 +133,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/swiss"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/swiss"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/swiss.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/swiss"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/swiss.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/swiss"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/swiss.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/swiss"/>
   </url>
   <url>
@@ -79,7 +151,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/table"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/table"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/table.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/table"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/table.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/table"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/table.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/table"/>
   </url>
   <url>
@@ -88,7 +169,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/faq"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/faq"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/faq.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/faq"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/faq.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/faq"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/faq.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/faq"/>
   </url>
   <url>
@@ -97,7 +187,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/arena"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/arena"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/arena.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/arena"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/arena.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/arena"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/arena.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/arena"/>
   </url>
   <url>
@@ -106,7 +205,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/begin"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/begin"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/begin.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/begin"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/begin.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/begin"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/begin.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/begin"/>
   </url>
   <url>
@@ -124,7 +232,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/play"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/play"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/play.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/play"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/play.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/play"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/play.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/play"/>
   </url>
   <url>
@@ -133,7 +250,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/practice"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/practice"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/practice.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/practice"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/practice.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/practice"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/practice.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/practice"/>
   </url>
   <url>
@@ -142,7 +268,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/about"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/about"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/about.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/about"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/about.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/about"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/about.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/about"/>
   </url>
   <url>
@@ -151,7 +286,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/contact"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/contact"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/contact.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/contact"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/contact.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/contact"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/contact.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/contact"/>
   </url>
   <url>
@@ -160,7 +304,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/privacy"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/privacy.en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/privacy"/>
+  </url>
+  <url>
+    <loc>https://sealed-workbench.com/privacy.en</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealed-workbench.com/privacy.en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/privacy"/>
   </url>
   <url>

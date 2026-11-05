@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en" data-page-lang="en" data-title="page.swiss.title" data-desc="desc.swiss">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swiss pairings — Run a casual tournament with friends</title>
+<!-- seo:start（maintenance/build-en-pages.mjs が書く。手で直さない。文言は i18n.js） -->
+<meta name="description" content="A Swiss pairing tool for casual tournaments with friends. Players are saved in your browser, and the round-one bye can be assigned by hand.">
+<link rel="canonical" href="https://sealed-workbench.com/swiss.en">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/swiss">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/swiss.en">
+<link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/swiss">
+<meta property="og:title" content="Swiss pairings — Run a casual tournament with friends">
+<meta property="og:description" content="A Swiss pairing tool for casual tournaments with friends. Players are saved in your browser, and the round-one bye can be assigned by hand.">
+<meta property="og:url" content="https://sealed-workbench.com/swiss.en">
+<meta property="og:image" content="https://sealed-workbench.com/ogp-en.png">
+<meta property="og:locale" content="en_US">
+<!-- seo:end -->
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="./i18n.js?v=20"></script>
+<script src="./analytics.js"></script>
+<script src="/navmenu.js" defer></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#10304F">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Workbench">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
+<style>
+  :root{
+    --pine:#10304F; --pine-deep:#0A2038;
+    --paper:#F5F8FC; --paper-2:#E8EEF6;
+    --ink:#0D1B2A; --muted:#5C7185;
+    --gold:#2F7DF6; --line:#D3DFEB;
+    --radius:8px;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  /* 内容の長さでスクロールバーが出たり消えたりしても、位置が動かないようにする */
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+
+  header{background:linear-gradient(135deg,var(--pine-deep) 0%,var(--pine) 55%,#17466F 100%);color:var(--paper);padding:24px 24px 16px;border-bottom:3px solid var(--gold);box-shadow:0 10px 30px -18px rgba(8,26,48,.9)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .head-top{display:block}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:#9CC8FF;line-height:24px;margin:0 0 12px}
+
+  /* 言語の切り替えは、どのページでも見出しの右上に置く */
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+  .brandrow .brand{margin:0}
+  select.langsel{min-width:112px;padding:6px 10px;font-size:13px}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{
+    display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;
+    font-size:13px;font-weight:500;line-height:1;white-space:nowrap;
+    color:#C6D9EE;text-decoration:none;background:rgba(255,255,255,.05);
+    border:1px solid #2C4D74;transition:background .12s,color .12s;
+  }
+  nav a:hover{background:#1A4A79;color:var(--paper);border-color:#2F5E8F}
+  nav a.on{background:var(--gold);border-color:var(--gold);color:#FFFFFF;font-weight:700}
+
+  /* ナビはカテゴリごとにまとめる。小さな見出しを付けて、探す場所を分かりやすくする */
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end}
+  .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
+  .ng:first-of-type{padding-left:0;border-left:none}
+  .ng{position:relative;padding-top:17px}
+  .ng:has(.ngs){padding-top:35px}
+  .ngl{position:absolute;left:16px;top:0;white-space:nowrap;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6;text-transform:uppercase}
+  .ng:first-of-type .ngl,.ng:first-of-type .ngs{left:0}
+  .ngs{position:absolute;left:16px;top:17px;white-space:nowrap;font-size:11px;color:#8FA9C6;line-height:1.3}
+  nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
+  nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
+  @media (max-width:760px){
+    .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0}
+  }
+  .controls{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  header select{background:var(--pine-deep);color:var(--paper);border:1px solid #2C4D74;padding:9px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px;min-width:120px}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  main{max-width:1000px;margin:0 auto;padding:22px 24px 70px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px}
+  .card h2{font-size:17px;margin:0 0 10px}
+  .hint{color:var(--muted);font-size:12.5px;margin:0 0 10px}
+
+  /* 入力・ボタン */
+  input[type=text],input[type=number],main select{
+    font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;color:var(--ink)
+  }
+  input[type=number]{width:72px}
+  button{border:none;border-radius:var(--radius);padding:9px 16px;cursor:pointer;background:var(--gold);color:#FFFFFF;font-weight:700;font-family:inherit;font-size:14px}
+  button:hover{background:#1F6AE0}
+  button:disabled{background:#B9C1BC;color:#F5F8FC;cursor:not-allowed}
+  button.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);font-weight:600}
+  button.ghost:hover{background:var(--paper-2)}
+  button.danger{background:#fff;color:#A24B32;border:1px solid #D8B4AA;font-weight:600}
+  button.danger:hover{background:#F8ECE8}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .row + .row{margin-top:10px}
+  .row label{display:inline-flex;align-items:center;gap:6px;font-size:13.5px}
+  .grow{flex:1 1 220px}
+
+  /* 参加者一覧 */
+  ul.people{list-style:none;margin:0 0 12px;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 14px}
+  ul.people li{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:14px}
+  ul.people li .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  ul.people li .x{background:transparent;color:var(--muted);border:none;padding:2px 6px;font-size:16px;line-height:1}
+  ul.people li .x:hover{color:#A24B32;background:transparent}
+  ul.people li.off .nm{color:var(--muted)}
+  .tag{font-size:11px;padding:1px 6px;border-radius:3px;background:var(--paper-2);color:var(--muted)}
+  .subh{font-size:13px;color:var(--muted);margin:14px 0 6px;font-weight:700}
+  /* 参加／不参加の切り替え */
+  .sw{flex:none;padding:4px 11px;font-size:12px;font-weight:700;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--muted);min-width:64px}
+  .sw.in{background:var(--pine);color:var(--paper);border-color:var(--pine)}
+  .sw:hover{background:var(--paper-2)}
+  .sw.in:hover{background:#2E4239}
+  .join{flex:none;padding:4px 11px;font-size:12px;font-weight:700;border-radius:999px;border:1px solid var(--gold);background:#fff;color:#7A5E14}
+  .join:hover{background:#FBF3DC}
+
+  /* 対戦表 */
+  .round-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .round-head h2{margin:0}
+  .round-head .sub{color:var(--muted);font-size:13px;flex:1}
+  button.small{padding:6px 12px;font-size:12.5px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+  td{padding:7px 8px;border-bottom:1px solid var(--paper-2);vertical-align:middle}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  td.tbl{width:38px;color:var(--muted);font-variant-numeric:tabular-nums}
+  tr.done td{background:#F7F9F5}
+  .who{font-weight:600}
+  .who.win{color:#1E7A52}
+  .res{display:inline-flex;gap:3px;flex-wrap:wrap}
+  .res button{padding:5px 8px;font-size:12.5px;background:#fff;color:var(--ink);border:1px solid var(--line);font-weight:600;min-width:38px}
+  .res button:hover{background:var(--paper-2)}
+  .res button.on{background:var(--pine);color:var(--paper);border-color:var(--pine)}
+  .bye{color:var(--muted);font-style:normal}
+  .warn{color:#A24B32;font-size:12.5px;margin:8px 0 0}
+
+  /* 順位表 */
+  #standings th.num,#standings td.num{text-align:right}
+  #standings td.rank{width:36px;color:var(--muted)}
+  #standings tr.top td.rank{color:var(--gold);font-weight:700}
+  #standings tr.champ td{background:#FBF6E3}
+  #standings tr.champ td.rank{font-size:16px}
+  .champ-tag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:var(--gold);color:#FFFFFF;font-size:11px;font-weight:700;vertical-align:1px}
+  .pct{color:var(--muted);font-size:12.5px}
+
+  details summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--muted);padding:4px 0}
+  .hist h3{font-size:13px;margin:12px 0 4px;color:var(--muted)}
+  .hist table{font-size:13px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+  .status{background:var(--paper-2);border-left:4px solid var(--pine);padding:10px 14px;margin:0 0 14px;font-size:13.5px;color:#33506B}
+  .status.share{border-left-color:var(--gold);background:#FBF6E3}
+  body.view .edit-only{display:none !important}
+
+  footer{max-width:1000px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+
+  /* ---------- スマートフォン ---------- */
+  @media (max-width:720px){
+    header p{min-height:0}
+    html,body{overflow-x:hidden}
+    body{font-size:14px}
+    header{padding:16px 14px 12px}
+    header h1{font-size:20px}
+    header p{font-size:12px;max-width:none}
+    main{padding:16px 12px 50px}
+    footer{padding:0 14px 40px}
+    .head-top{flex-direction:column;align-items:stretch;gap:12px}
+    .controls select{width:100%}
+    nav{margin:0 0 14px;gap:6px;font-size:12px}
+    nav a{white-space:nowrap}
+    .card{padding:14px 12px}
+    ul.people{grid-template-columns:1fr}
+    table{font-size:13px}
+    td,th{padding:6px 5px}
+    .res button{min-width:34px;padding:5px 6px}
+    #standings .pct{display:none}
+  }
+  /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
+  .ng{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;column-gap:7px;row-gap:5px;justify-content:start;align-items:center;padding-top:0}
+  .ng:has(.ngs){padding-top:0}
+  .ngl,.ngs{position:static;grid-column:1/-1;white-space:nowrap}
+  .ngl{grid-row:1;left:auto}
+  .ngs{grid-row:2;left:auto;top:auto;font-size:11.5px;color:#A9BFD8;margin-top:-2px}
+  nav a{grid-row:3;padding:8px 16px;border-radius:10px;font-weight:700;background:linear-gradient(180deg,#2A5F96,#1C4A7C);border:1px solid #4A83BF;color:#FFFFFF;box-shadow:0 2px 0 #12365C,0 4px 10px rgba(0,0,0,.28);-webkit-font-smoothing:auto;text-shadow:none;letter-spacing:.02em}
+  nav a:not(.on):hover{background:linear-gradient(180deg,#3573B3,#25609F);border-color:#6FA3DA}
+  nav a:active{box-shadow:0 1px 0 #12365C}
+  nav a.on{box-shadow:0 2px 0 rgba(0,0,0,.35),0 4px 10px rgba(0,0,0,.28)}
+  @media (max-width:760px){
+    .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+    .ngl,.ngs{flex:0 0 100%}
+  }
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brandrow">
+      <div class="brand"><a href="/index.en.html" class="brandhome" aria-label="Home" style="display:inline-block;margin:0 12px 0 0;vertical-align:middle"><img class="brandlogo" src="/assets/logo/arena.png" alt="MTG Arena" width="97" height="34" style="height:34px;width:auto;display:block;margin-top:-5px" onerror="this.parentNode.remove()"></a><a href="./index.en.html" data-i18n="site.name" style="color:inherit;text-decoration:none">リミテッド・ワークベンチ</a></div>
+      <select id="langSelect" class="langsel" data-i18n-label="lang.label"><option value="ja">日本語</option><option value="en">English</option></select>
+    </div>
+    <nav>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span><span class="ngs" data-i18n="navsub.start">MTGの基本と、このサイトの使い方</span>
+        <a href="./start/index.en.html" data-start-link data-i18n="nav.start">MTGとは</a>
+        <a href="./start/limited.en.html" data-limited-link data-i18n="nav.limited">リミテッドとは</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.build">仮想パックで練習する</span><span class="ngs" data-i18n="navsub.build">6パック開封・8人ドラフト</span>
+        <a href="./sealed.en.html" data-i18n="nav.sealed">シールド練習</a>
+        <a href="./draft.en.html" data-i18n="nav.draft">ドラフト練習（CPU戦）</a>
+        <a href="./draftroom.en.html" data-i18n="nav.room">ドラフト練習（対人戦）</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.assist">デッキ構築補助</span><span class="ngs" data-i18n="navsub.assist">アリーナの本番中に、デッキ案とピックのおすすめを出す・PC専用</span>
+        <a href="./sealed-assist.en.html"><span data-i18n="nav.sassist">シールドのデッキ構築補助</span><b class="pcb" data-i18n="nav.pc">PC</b></a>
+        <a href="./assistant.en.html"><span data-i18n="nav.assist">ドラフトのデッキ構築補助</span><b class="pcb" data-i18n="nav.pc">PC</b></a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.data">データを見る</span><span class="ngs" data-i18n="navsub.data">セットごとの強さ・速さを確認</span>
+        <a href="./reports.en.html" data-i18n="nav.reports">環境レポート</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.play">対戦する</span><span class="ngs" data-i18n="navsub.play">友達との対戦・大会の進行</span>
+        <a href="./table.en.html" data-i18n="nav.table">対戦卓</a>
+        <a href="./swiss.en.html" class="on" data-i18n="nav.swiss">スイスドロー</a></div>
+    <div class="ng"><span class="ngl" data-i18n="navgrp.shop">買う</span><span class="ngs" data-i18n="navsub.shop">日本で買えるMTG用品</span>
+        <a href="./goods/index.en.html" data-goods-link data-i18n="nav.goods">日本のサプライ</a></div>
+    </nav>
+    <div class="head-top">
+      <div>
+        <h1 data-i18n="swiss.h1">スイスドロー対戦表</h1>
+        <p data-i18n="swiss.lead">友人との対戦会の組み合わせと順位を管理します。参加者はこのブラウザに保存され、次回もそのまま呼び出せます。</p>
+      </div>
+      <div class="controls">
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ========== 準備 ========== -->
+  <div id="setup">
+    <section class="card">
+      <h2 data-i18n="swiss.players">参加者</h2>
+      <p class="hint" data-i18n="swiss.playersHint">一度登録した名前はこのブラウザに残ります。次回は「過去の参加者から追加」で押すだけで呼び出せます。</p>
+      <h3 class="subh" style="margin-top:0"><span data-i18n="swiss.today">今回の参加者</span> <span class="tag" id="rosterCount"></span></h3>
+      <ul class="people" id="roster"></ul>
+      <p class="hint" id="todayEmpty" data-i18n="swiss.todayEmpty" hidden>まだ誰もいません。下の名簿から選ぶか、名前を入力してください。</p>
+
+      <h3 class="subh" data-i18n="swiss.past">過去の参加者から追加</h3>
+      <ul class="people" id="pastRoster"></ul>
+      <p class="hint" id="pastEmpty" data-i18n="swiss.pastEmpty" hidden>名簿の全員が今回の参加者に入っています。</p>
+      <div class="row">
+        <button class="ghost" id="checkAllBtn" data-i18n="swiss.checkAll">名簿の全員を参加にする</button>
+        <button class="ghost" id="uncheckAllBtn" data-i18n="swiss.uncheckAll">全員を外す</button>
+      </div>
+
+      <h3 class="subh" data-i18n="swiss.newName">名簿にない人を追加</h3>
+      <div class="row">
+        <input type="text" id="nameInput" class="grow" data-i18n-ph="swiss.namePh" placeholder="名前（Enterで追加）" autocomplete="off">
+        <button id="addBtn" data-i18n="swiss.add">追加</button>
+      </div>
+
+      <h3 class="subh" data-i18n="swiss.import">名簿をファイルから読み込む</h3>
+      <p class="hint" data-i18n="swiss.importHint">1行に1人の名前を書いたテキストファイル（.txt）を読み込みます。すでに名簿にある名前は重複しません。</p>
+      <div class="row">
+        <input type="file" id="importFile" accept=".txt,text/plain" hidden>
+        <button class="ghost" id="importBtn" data-i18n="swiss.importBtn">ファイルを選んで読み込む</button>
+        <button class="ghost" id="sampleBtn" data-i18n="swiss.sample">サンプルをダウンロード</button>
+        <button class="ghost" id="exportBtn" data-i18n="swiss.export">いまの名簿を書き出す</button>
+        <span class="hint" id="importMsg" style="margin:0"></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 data-i18n="swiss.setup">大会の設定</h2>
+      <div class="row">
+        <label><span data-i18n="swiss.rounds">ラウンド数</span> <input type="number" id="rounds" min="1" max="12" value="3"></label>
+        <span class="hint" id="roundsHint" style="margin:0"></span>
+      </div>
+      <div class="row">
+        <label><span data-i18n="swiss.firstBye">初戦のバイ</span>
+          <select id="firstBye"><option value="" data-i18n="swiss.byeAuto">自動（順位の低い人）</option></select>
+        </label>
+        <span class="hint" style="margin:0" id="firstByeHint" data-i18n="swiss.firstByeHint">遅れて来る人が決まっているときに指定します。人数が奇数のときだけバイが出ます。</span>
+      </div>
+      <div class="actions">
+        <button id="startBtn" data-i18n="swiss.start">大会を始める</button>
+        <span class="warn" id="setupWarn" hidden></span>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========== 進行中 ========== -->
+  <div id="live" hidden>
+    <div class="status" id="liveStatus"></div>
+    <div class="status share" id="viewNote" hidden></div>
+
+    <section class="card">
+      <div class="round-head">
+        <h2 id="roundTitle"></h2>
+        <span class="sub" id="roundSub"></span>
+        <button class="ghost small" id="roundImgBtn" data-i18n="swiss.saveImage">画像で保存</button>
+      </div>
+      <table id="pairings">
+        <thead><tr>
+          <th class="tbl" data-i18n="swiss.table">卓</th>
+          <th data-i18n="swiss.playerA">プレイヤー</th>
+          <th data-i18n="swiss.result">結果（左の勝ち数 − 右の勝ち数）</th>
+          <th data-i18n="swiss.playerB">プレイヤー</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="actions edit-only" id="nextRow">
+        <label style="font-size:13.5px"><span data-i18n="swiss.nextBye">次のラウンドのバイ</span>
+          <select id="nextBye"><option value="" data-i18n="swiss.byeAuto">自動（順位の低い人）</option></select>
+        </label>
+        <span class="hint" id="nextByeNote" style="margin:0"></span>
+        <button id="nextBtn" data-i18n="swiss.next">次のラウンドを組む</button>
+        <button id="finishBtn" class="ghost" data-i18n="swiss.finish">ここで大会を終える</button>
+      </div>
+      <p class="warn" id="liveWarn" hidden></p>
+    </section>
+
+    <section class="card">
+      <h2 data-i18n="swiss.standings">順位表</h2>
+      <table id="standings">
+        <thead><tr>
+          <th class="rank">#</th>
+          <th data-i18n="swiss.name">名前</th>
+          <th class="num" data-i18n="swiss.record">勝-敗-分</th>
+          <th class="num" data-i18n="swiss.points">Pt</th>
+          <th class="num pct">OMW%</th>
+          <th class="num pct">GW%</th>
+          <th class="num pct">OGW%</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="hint" style="margin-top:8px" data-i18n="swiss.tiebreakHint">同点のときは OMW%（対戦相手の勝率）、GW%（自分のゲーム勝率）、OGW%（対戦相手のゲーム勝率）の順で比べます。マジックの公式大会と同じ基準です。</p>
+      <div class="actions">
+        <button class="ghost" id="copyBtn" data-i18n="swiss.copy">順位表をコピー</button>
+        <button class="ghost" id="imgBtn" data-i18n="swiss.saveImage">画像で保存</button>
+        <button class="ghost edit-only" id="shareBtn" data-i18n="swiss.share">共有用URLをコピー</button>
+      </div>
+      <p class="hint edit-only" id="shareHint" data-i18n="swiss.shareHint">共有用URLを開いた人は、この時点の対戦表と順位表を見ることだけができます。結果の入力や組み合わせの変更はできません。更新したら、もう一度URLを作って送ってください。</p>
+      <canvas id="shot" hidden></canvas>
+    </section>
+
+    <section class="card edit-only">
+      <h2 data-i18n="swiss.attendance">参加者の出入り</h2>
+      <p class="hint" data-i18n="swiss.attendanceHint">ボタンで参加と不参加を切り替えます。遅れて来た人は「参加させる」を押すと、次のラウンドから組み込まれます。進行中のラウンドには影響しません。</p>
+      <ul class="people" id="liveRoster"></ul>
+
+      <h3 class="subh" data-i18n="swiss.fromRoster">名簿から途中参加させる</h3>
+      <ul class="people" id="benchRoster"></ul>
+      <p class="hint" id="benchEmpty" data-i18n="swiss.benchEmpty" hidden>名簿の全員がすでに参加しています。</p>
+
+      <h3 class="subh" data-i18n="swiss.newLate">名簿にない人を途中参加させる</h3>
+      <div class="row">
+        <input type="text" id="lateInput" class="grow" data-i18n-ph="swiss.latePh" placeholder="名前" autocomplete="off">
+        <button class="ghost" id="lateBtn" data-i18n="swiss.lateAdd">途中参加を追加</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <details>
+        <summary data-i18n="swiss.history">これまでのラウンド</summary>
+        <div class="hist" id="history"></div>
+      </details>
+      <div class="actions edit-only">
+        <button class="danger" id="resetBtn" data-i18n="swiss.reset">この大会を消して最初から</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div id="goodsStrip"></div>
+
+<footer>
+  <span data-i18n-html="foot.short">データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="./privacy.en.html">プライバシーポリシー</a>にまとめています。<br><a href="./faq.en.html">よくある質問</a>・<a href="./contact.en.html">お問い合わせ</a>・<a href="./about.en.html">運営者情報</a></span>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const t = (k, v) => I18N.t(k, v);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+
+/* ---------- 保存 ----------
+   参加者名簿と進行中の大会は、このブラウザのローカルストレージにだけ保存します。 */
+const KEY_ROSTER = "sw.roster";     // 名簿：[{name, on}]  on = 今回参加するか
+const KEY_STATE  = "sw.state";      // 大会：{players, rounds, total, done}
+const WIN = 3, DRAW = 1;            // マッチポイント
+
+let roster = [];
+let T = null;                       // 進行中の大会。無ければ null
+let viewOnly = false;               // 共有URLで開いた閲覧専用の表示か
+
+function load(){
+  try{ roster = JSON.parse(localStorage.getItem(KEY_ROSTER) || "[]"); }catch(e){ roster = []; }
+  try{ T = JSON.parse(localStorage.getItem(KEY_STATE) || "null"); }catch(e){ T = null; }
+  if(!Array.isArray(roster)) roster = [];
+}
+function saveRoster(){ try{ localStorage.setItem(KEY_ROSTER, JSON.stringify(roster)); }catch(e){} }
+function saveState(){
+  if(viewOnly) return;              // 共有された表示は、この端末の大会を上書きしない
+  try{ T ? localStorage.setItem(KEY_STATE, JSON.stringify(T)) : localStorage.removeItem(KEY_STATE); }catch(e){}
+}
+
+/* ---------- 共有URL ----------
+   大会の中身を小さくまとめて URL の # の後ろに載せる。サーバーには何も置かない。
+   開いた側は見るだけで、結果の入力や組み合わせの変更はできない。 */
+function packState(){
+  const idx = new Map(T.players.map((p, i) => [p.id, i]));
+  return {
+    p: T.players.map(p => [p.name, p.active ? 1 : 0]),
+    r: T.rounds.map(r => r.matches.map(m => [idx.get(m.a), m.b == null ? -1 : idx.get(m.b), m.ga, m.gb])),
+    t: T.total, d: T.done ? 1 : 0, s: T.startedAt || ""
+  };
+}
+function unpackState(o){
+  const players = o.p.map((x, i) => ({ id: i + 1, name: String(x[0]), active: !!x[1] }));
+  const rounds = o.r.map(ms => ({ matches: ms.map(m => ({
+    a: m[0] + 1, b: m[1] < 0 ? null : m[1] + 1, ga: m[2] ?? null, gb: m[3] ?? null })) }));
+  return { players, rounds, total: o.t || rounds.length, done: !!o.d, startedAt: o.s || "" };
+}
+const b64u = { enc: b => btoa(String.fromCharCode(...b)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""),
+               dec: s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0)) };
+async function encodeShare(){
+  const json = JSON.stringify(packState());
+  const bytes = new TextEncoder().encode(json);
+  if(typeof CompressionStream === "function"){
+    const cs = new CompressionStream("deflate-raw");
+    const buf = await new Response(new Blob([bytes]).stream().pipeThrough(cs)).arrayBuffer();
+    return "z" + b64u.enc(new Uint8Array(buf));
+  }
+  return "j" + b64u.enc(bytes);
+}
+async function decodeShare(str){
+  const kind = str[0], body = str.slice(1);
+  let bytes = b64u.dec(body);
+  if(kind === "z"){
+    const ds = new DecompressionStream("deflate-raw");
+    bytes = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(ds)).arrayBuffer());
+  }
+  return unpackState(JSON.parse(new TextDecoder().decode(bytes)));
+}
+
+/* ---------- 名簿 ---------- */
+function addName(raw){
+  const name = (raw || "").trim();
+  if(!name) return false;
+  if(roster.some(p => p.name === name)) return false;
+  roster.push({ name, on: true });
+  saveRoster();
+  return true;
+}
+
+function renderRoster(){
+  // 今回の参加者
+  const ul = $("roster");
+  ul.innerHTML = "";
+  roster.filter(p => p.on).forEach(p => {
+    const li = document.createElement("li");
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = p.name;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "sw in"; b.textContent = t("swiss.in");
+    b.title = t("swiss.setOut", {n: p.name});
+    b.onclick = () => { p.on = false; saveRoster(); renderRoster(); };
+    li.append(nm, b);
+    ul.appendChild(li);
+  });
+  const on = roster.filter(p => p.on).length;
+  $("todayEmpty").hidden = on > 0;
+  $("rosterCount").textContent = t("swiss.rosterCount", {n: on});
+
+  // 過去の参加者（名簿にいて、今回はまだ入っていない人）
+  const pl = $("pastRoster");
+  pl.innerHTML = "";
+  const past = roster.filter(p => !p.on);
+  past.forEach(p => {
+    const li = document.createElement("li");
+    li.className = "off";
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = p.name;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "join"; b.textContent = t("swiss.joinNow");
+    b.title = t("swiss.setIn", {n: p.name});
+    b.onclick = () => { p.on = true; saveRoster(); renderRoster(); };
+    const x = document.createElement("button"); x.className = "x"; x.textContent = "×";
+    x.title = t("swiss.remove"); x.setAttribute("aria-label", t("swiss.removeLabel", {n: p.name}));
+    x.onclick = () => { roster.splice(roster.indexOf(p), 1); saveRoster(); renderRoster(); };
+    li.append(nm, b, x);
+    pl.appendChild(li);
+  });
+  $("pastEmpty").hidden = past.length > 0 || roster.length === 0;
+
+  // 初戦のバイの候補と、ラウンド数の目安
+  const sel = $("firstBye"), keep = sel.value;
+  sel.innerHTML = `<option value="">${esc(t("swiss.byeAuto"))}</option>`;
+  roster.filter(p => p.on).forEach(p => {
+    const o = document.createElement("option"); o.value = p.name; o.textContent = p.name; sel.appendChild(o);
+  });
+  if([...sel.options].some(o => o.value === keep)) sel.value = keep;
+  const even = on > 0 && on % 2 === 0;
+  sel.disabled = even;
+  $("firstByeHint").textContent = even ? t("swiss.byeEven") : t("swiss.firstByeHint");
+  const rec = suggestRounds(on);
+  $("roundsHint").textContent = on >= 2 ? t("swiss.roundsHint", {n: on, r: rec}) : "";
+  if(!$("rounds").dataset.touched) $("rounds").value = rec;
+  $("startBtn").disabled = on < 2;
+}
+
+function suggestRounds(n){
+  if(n <= 2) return 1;
+  if(n <= 4) return 2;
+  if(n <= 8) return 3;
+  if(n <= 16) return 4;
+  if(n <= 32) return 5;
+  return 6;
+}
+
+/* ---------- 大会 ---------- */
+function startTournament(){
+  const names = roster.filter(p => p.on).map(p => p.name);
+  const warn = $("setupWarn");
+  if(names.length < 2){ warn.textContent = t("swiss.needTwo"); warn.hidden = false; return; }
+  const total = Math.max(1, Math.min(12, parseInt($("rounds").value, 10) || suggestRounds(names.length)));
+  T = {
+    players: names.map((name, i) => ({ id: i + 1, name, active: true })),
+    rounds: [],
+    total,
+    done: false,
+    startedAt: new Date().toISOString()
+  };
+  const bye = $("firstBye").value;
+  const byeId = bye ? (T.players.find(p => p.name === bye) || {}).id : null;
+  makeRound(byeId);
+  saveState();
+  renderAll();
+}
+
+/* 成績の集計 */
+function computeStats(){
+  const S = {};
+  T.players.forEach(p => { S[p.id] = { id: p.id, name: p.name, mp: 0, w: 0, l: 0, d: 0, gw: 0, gl: 0, rounds: 0, opps: [], byes: 0 }; });
+  T.rounds.forEach(r => r.matches.forEach(m => {
+    if(m.b == null){                           // バイ：不戦勝（2-0）。そのラウンドの全卓が終わってから数える
+      const s = S[m.a]; if(!s) return;
+      s.byes++;
+      if(!roundComplete(r)) return;
+      s.mp += WIN; s.w++; s.gw += 2; s.rounds++;
+      return;
+    }
+    if(m.ga == null || m.gb == null) return;   // 未入力
+    const a = S[m.a], b = S[m.b]; if(!a || !b) return;
+    a.gw += m.ga; a.gl += m.gb; b.gw += m.gb; b.gl += m.ga;
+    a.rounds++; b.rounds++;
+    a.opps.push(b.id); b.opps.push(a.id);
+    if(m.ga > m.gb){ a.mp += WIN; a.w++; b.l++; }
+    else if(m.gb > m.ga){ b.mp += WIN; b.w++; a.l++; }
+    else { a.mp += DRAW; b.mp += DRAW; a.d++; b.d++; }
+  }));
+  // マッチ勝率・ゲーム勝率（下限 1/3 は公式ルールと同じ）
+  const floor = v => Math.max(1/3, v);
+  Object.values(S).forEach(s => {
+    s.mwp = s.rounds ? floor(s.mp / (WIN * s.rounds)) : null;
+    s.gwp = (s.gw + s.gl) ? floor(s.gw / (s.gw + s.gl)) : null;
+  });
+  Object.values(S).forEach(s => {
+    const o = s.opps.map(id => S[id]).filter(Boolean);
+    s.omwp = o.length ? o.reduce((a, x) => a + (x.mwp ?? 1/3), 0) / o.length : null;
+    s.ogwp = o.length ? o.reduce((a, x) => a + (x.gwp ?? 1/3), 0) / o.length : null;
+  });
+  return S;
+}
+
+function standings(){
+  const S = computeStats();
+  const z = v => v ?? 0;
+  return Object.values(S).sort((a, b) =>
+    b.mp - a.mp || z(b.omwp) - z(a.omwp) || z(b.gwp) - z(a.gwp) || z(b.ogwp) - z(a.ogwp) || a.name.localeCompare(b.name, "ja"));
+}
+
+/* これまでに当たった組（再戦を避けるため） */
+function playedPairs(){
+  const set = new Set();
+  T.rounds.forEach(r => r.matches.forEach(m => { if(m.b != null){ set.add(m.a + "|" + m.b); set.add(m.b + "|" + m.a); } }));
+  return set;
+}
+
+/* 再戦を避けながら上から順に組む。無理なら再戦を許して組む。 */
+function pairUp(order, played){
+  const res = [];
+  let budget = 20000;
+  function bt(list){
+    if(!list.length) return true;
+    if(--budget < 0) return false;
+    const a = list[0];
+    for(let i = 1; i < list.length; i++){
+      const b = list[i];
+      if(played.has(a + "|" + b)) continue;
+      res.push([a, b]);
+      if(bt(list.filter((_, k) => k !== 0 && k !== i))) return true;
+      res.pop();
+    }
+    return false;
+  }
+  if(bt(order)) return res;
+  res.length = 0;
+  for(let i = 0; i + 1 < order.length; i += 2) res.push([order[i], order[i + 1]]);
+  return res;
+}
+
+function makeRound(manualByeId){
+  const active = T.players.filter(p => p.active).map(p => p.id);
+  let order;
+  if(!T.rounds.length){
+    order = active.slice();
+    for(let i = order.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  }else{
+    const st = standings().map(s => s.id);
+    order = st.filter(id => active.includes(id));
+  }
+  const matches = [];
+  const byes = [];
+
+  // 奇数のときだけバイが出る。指定があればその人、無ければまだバイを受けていない中で最下位の人。
+  if(order.length % 2 === 1 && manualByeId && order.includes(manualByeId)){
+    byes.push(manualByeId);
+    order = order.filter(id => id !== manualByeId);
+  }
+  if(order.length % 2 === 1){
+    const S = computeStats();
+    const pick = order.slice().reverse().find(id => !S[id].byes) ?? order[order.length - 1];
+    byes.push(pick);
+    order = order.filter(id => id !== pick);
+  }
+  pairUp(order, playedPairs()).forEach(([a, b]) => matches.push({ a, b, ga: null, gb: null }));
+  byes.forEach(id => matches.push({ a: id, b: null, ga: 2, gb: 0 }));
+  T.rounds.push({ matches });
+}
+
+function currentRound(){ return T.rounds[T.rounds.length - 1]; }
+function roundComplete(r){ return r.matches.every(m => m.b == null || (m.ga != null && m.gb != null)); }
+function nameOf(id){ return (T.players.find(p => p.id === id) || {}).name || "?"; }
+
+/* ---------- 描画 ---------- */
+function renderAll(){
+  const live = !!T;
+  $("setup").hidden = live;
+  $("live").hidden = !live;
+  if(!live){ renderRoster(); return; }
+  renderRound();
+  renderStandings();
+  renderLiveRoster();
+  renderHistory();
+}
+
+function renderRound(){
+  const r = currentRound(), no = T.rounds.length;
+  $("roundTitle").textContent = T.done ? t("swiss.final") : t("swiss.round", {n: no});
+  const started = T.startedAt ? new Date(T.startedAt).toLocaleString(I18N.lang === "ja" ? "ja-JP" : "en-US", {month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit"}) : "";
+  $("roundSub").textContent = t("swiss.roundOf", {n: no, total: T.total}) + (started ? "　" + t("swiss.startedAt", {d: started}) : "");
+  $("liveStatus").textContent = T.done
+    ? t("swiss.statusDone", {n: no})
+    : (roundComplete(r) ? t("swiss.statusReady") : t("swiss.statusEnter"));
+  if(viewOnly){
+    $("liveStatus").textContent = T.done ? t("swiss.statusDone", {n: no}) : t("swiss.viewStatus");
+    $("viewNote").textContent = t("swiss.viewNote");
+    $("viewNote").hidden = false;
+  }
+
+  const tb = $("pairings").querySelector("tbody");
+  tb.innerHTML = "";
+  r.matches.forEach((m, i) => {
+    const tr = document.createElement("tr");
+    const done = m.b == null || (m.ga != null && m.gb != null);
+    if(done) tr.className = "done";
+    if(m.b == null){
+      tr.innerHTML = `<td class="tbl">—</td><td class="who">${esc(nameOf(m.a))}</td>` +
+                     `<td colspan="2" class="bye">${esc(t("swiss.byeRow"))}</td>`;
+      tb.appendChild(tr); return;
+    }
+    const aw = m.ga != null && m.ga > m.gb, bw = m.gb != null && m.gb > m.ga;
+    const tdA = `<td class="who${aw ? " win" : ""}">${esc(nameOf(m.a))}</td>`;
+    const tdB = `<td class="who${bw ? " win" : ""}">${esc(nameOf(m.b))}</td>`;
+    const opts = [[2,0],[2,1],[1,1],[1,2],[0,2]];
+    const btns = viewOnly
+      ? `<b>${m.ga == null ? "vs" : `${m.ga} - ${m.gb}`}</b>`
+      : opts.map(([ga, gb]) =>
+          `<button type="button" data-i="${i}" data-ga="${ga}" data-gb="${gb}" class="${m.ga === ga && m.gb === gb ? "on" : ""}"${T.done ? " disabled" : ""}>${ga}-${gb}</button>`).join("");
+    tr.innerHTML = `<td class="tbl">${i + 1}</td>${tdA}<td><span class="res">${btns}</span></td>${tdB}`;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll("button[data-i]").forEach(b => {
+    b.onclick = () => {
+      const m = r.matches[+b.dataset.i];
+      m.ga = +b.dataset.ga; m.gb = +b.dataset.gb;
+      saveState(); renderAll();
+    };
+  });
+
+  // 次ラウンドの操作
+  const last = T.rounds.length >= T.total;
+  $("nextRow").hidden = T.done;
+  $("nextBtn").disabled = !roundComplete(r);
+  $("nextBtn").textContent = last ? t("swiss.addRound") : t("swiss.next");
+  $("finishBtn").textContent = roundComplete(r) && last ? t("swiss.finishFinal") : t("swiss.finish");
+  const sel = $("nextBye"), keep = sel.value;
+  const active = T.players.filter(p => p.active);
+  sel.innerHTML = `<option value="">${esc(t("swiss.byeAuto"))}</option>`;
+  active.forEach(p => {
+    const o = document.createElement("option"); o.value = p.id; o.textContent = p.name; sel.appendChild(o);
+  });
+  if([...sel.options].some(o => o.value === keep)) sel.value = keep;
+  const even = active.length % 2 === 0;
+  sel.disabled = even;
+  $("nextByeNote").textContent = even ? t("swiss.byeEven") : "";
+  $("liveWarn").hidden = true;
+}
+
+function renderStandings(){
+  const tb = $("standings").querySelector("tbody");
+  tb.innerHTML = "";
+  const pct = v => v == null ? "—" : (v * 100).toFixed(1) + "%";
+  standings().forEach((s, i) => {
+    const p = T.players.find(x => x.id === s.id);
+    const tr = document.createElement("tr");
+    const champ = T.done && i === 0;
+    if(i === 0) tr.className = "top" + (champ ? " champ" : "");
+    tr.innerHTML =
+      `<td class="rank">${champ ? "🏆" : i + 1}</td>` +
+      `<td>${esc(s.name)}${champ ? ` <span class="champ-tag">${esc(t("swiss.champion"))}</span>` : ""}${p && !p.active ? ` <span class="tag">${esc(t("swiss.out"))}</span>` : ""}${s.byes ? ` <span class="tag">${esc(t("swiss.byeTag"))}</span>` : ""}</td>` +
+      `<td class="num">${s.w}-${s.l}-${s.d}</td>` +
+      `<td class="num"><b>${s.mp}</b></td>` +
+      `<td class="num pct">${pct(s.omwp)}</td>` +
+      `<td class="num pct">${pct(s.gwp)}</td>` +
+      `<td class="num pct">${pct(s.ogwp)}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+/* 途中参加：名簿にも残しつつ、大会に加える */
+function joinLate(name){
+  if(!name || T.done) return;
+  if(T.players.some(p => p.name === name)) return;
+  const id = Math.max(0, ...T.players.map(p => p.id)) + 1;
+  T.players.push({ id, name, active: true });
+  if(!roster.some(p => p.name === name)){ roster.push({ name, on: true }); saveRoster(); }
+  saveState(); renderAll();
+}
+
+function renderLiveRoster(){
+  // 今日の参加者：ボタンで参加／不参加を切り替える
+  const ul = $("liveRoster");
+  ul.innerHTML = "";
+  T.players.forEach(p => {
+    const li = document.createElement("li");
+    if(!p.active) li.className = "off";
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = p.name;
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "sw" + (p.active ? " in" : "");
+    b.textContent = p.active ? t("swiss.in") : t("swiss.out");
+    b.title = t(p.active ? "swiss.setOut" : "swiss.setIn", {n: p.name});
+    b.setAttribute("aria-pressed", String(p.active));
+    b.disabled = T.done;
+    b.onclick = () => { p.active = !p.active; saveState(); renderAll(); };
+    li.append(nm, b);
+    ul.appendChild(li);
+  });
+
+  // 名簿にいて、まだ今日の大会に入っていない人
+  const bench = roster.filter(r => !T.players.some(p => p.name === r.name));
+  const bl = $("benchRoster");
+  bl.innerHTML = "";
+  bench.forEach(r => {
+    const li = document.createElement("li");
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = r.name;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "join";
+    b.textContent = t("swiss.joinNow");
+    b.disabled = T.done;
+    b.onclick = () => joinLate(r.name);
+    li.append(nm, b);
+    bl.appendChild(li);
+  });
+  $("benchEmpty").hidden = bench.length > 0;
+  $("lateBtn").disabled = T.done;
+}
+
+function renderHistory(){
+  const box = $("history");
+  box.innerHTML = "";
+  T.rounds.slice(0, -1).forEach((r, i) => {
+    const h = document.createElement("h3"); h.textContent = t("swiss.round", {n: i + 1});
+    const tbl = document.createElement("table");
+    tbl.innerHTML = r.matches.map(m => m.b == null
+      ? `<tr><td class="who">${esc(nameOf(m.a))}</td><td colspan="2" class="bye">${esc(t("swiss.byeRow"))}</td></tr>`
+      : `<tr><td class="who${m.ga > m.gb ? " win" : ""}">${esc(nameOf(m.a))}</td><td class="num">${m.ga}-${m.gb}</td><td class="who${m.gb > m.ga ? " win" : ""}">${esc(nameOf(m.b))}</td></tr>`
+    ).join("");
+    box.append(h, tbl);
+  });
+  if(!T.rounds.length || T.rounds.length === 1) box.innerHTML = `<p class="hint">${esc(t("swiss.noHistory"))}</p>`;
+}
+
+/* ---------- 操作 ---------- */
+function addFromInput(inputId){
+  const el = $(inputId);
+  const ok = addName(el.value);
+  if(ok) el.value = "";
+  return ok;
+}
+
+$("addBtn").onclick = () => { addFromInput("nameInput"); renderRoster(); $("nameInput").focus(); };
+$("nameInput").onkeydown = ev => { if(ev.key === "Enter"){ ev.preventDefault(); $("addBtn").click(); } };
+$("checkAllBtn").onclick = () => { roster.forEach(p => p.on = true); saveRoster(); renderRoster(); };
+$("uncheckAllBtn").onclick = () => { roster.forEach(p => p.on = false); saveRoster(); renderRoster(); };
+$("rounds").oninput = () => { $("rounds").dataset.touched = "1"; };
+$("startBtn").onclick = startTournament;
+
+$("nextBtn").onclick = () => {
+  const r = currentRound();
+  if(!roundComplete(r)) return;
+  const active = T.players.filter(p => p.active).length;
+  if(active < 2){ $("liveWarn").textContent = t("swiss.needTwo"); $("liveWarn").hidden = false; return; }
+  if(T.rounds.length >= T.total) T.total = T.rounds.length + 1;   // 予定を超えて続ける
+  const byeId = $("nextBye").value ? +$("nextBye").value : null;
+  makeRound(byeId);
+  $("nextBye").value = "";
+  saveState(); renderAll();
+  window.scrollTo({top: 0, behavior: "smooth"});
+};
+
+$("finishBtn").onclick = () => {
+  if(!confirm(t("swiss.finishConfirm"))) return;
+  T.done = true;
+  saveState(); renderAll();
+};
+
+$("lateBtn").onclick = () => {
+  const name = $("lateInput").value.trim();
+  if(!name) return;
+  joinLate(name);
+  $("lateInput").value = "";
+};
+$("lateInput").onkeydown = ev => { if(ev.key === "Enter"){ ev.preventDefault(); $("lateBtn").click(); } };
+
+$("resetBtn").onclick = () => {
+  if(!confirm(t("swiss.resetConfirm"))) return;
+  T = null;
+  saveState();
+  delete $("rounds").dataset.touched;
+  renderAll();
+};
+
+/* ---------- 名簿のファイル入出力 ---------- */
+function parseNames(text){
+  return text.replace(/^\uFEFF/, "").split(/[\r\n,、，;]+/).map(x => x.trim()).filter(Boolean);
+}
+function downloadText(name, text){
+  const blob = new Blob(["\uFEFF" + text], {type: "text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$("importBtn").onclick = () => $("importFile").click();
+$("importFile").onchange = async () => {
+  const f = $("importFile").files[0];
+  if(!f) return;
+  const text = await f.text();
+  let added = 0;
+  parseNames(text).forEach(n => { if(addName(n)) added++; });
+  $("importMsg").textContent = t("swiss.imported", {n: added});
+  $("importFile").value = "";
+  renderRoster();
+};
+$("sampleBtn").onclick = () => downloadText(t("swiss.sampleFile"), t("swiss.sampleBody"));
+$("exportBtn").onclick = () => {
+  if(!roster.length) return;
+  downloadText(t("swiss.exportFile"), roster.map(p => p.name).join("\n"));
+};
+
+/* ---------- 順位表を画像に ---------- */
+function standingsImage(){
+  const rows = standings();
+  const scale = 2;                                  // 高解像度で描く
+  const W = 720, rowH = 44, headH = 96, footH = 40;
+  const H = headH + 34 + rows.length * rowH + footH;
+  const cv = $("shot");
+  cv.width = W * scale; cv.height = H * scale;
+  const g = cv.getContext("2d");
+  g.scale(scale, scale);
+  const font = '"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif';
+
+  // 背景と見出し
+  g.fillStyle = "#F5F8FC"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#10304F"; g.fillRect(0, 0, W, headH);
+  g.fillStyle = "#2F7DF6"; g.fillRect(0, headH - 4, W, 4);
+  g.fillStyle = "#2F7DF6"; g.font = "700 13px " + font;
+  g.fillText(t("site.name"), 24, 30);
+  g.fillStyle = "#F5F8FC"; g.font = "800 24px " + font;
+  g.fillText(T.done ? t("swiss.final") : t("swiss.copyTitle", {n: T.rounds.length}), 24, 62);
+  g.fillStyle = "#A9C2DE"; g.font = "400 12px " + font;
+  const started = T.startedAt ? new Date(T.startedAt).toLocaleDateString(I18N.lang === "ja" ? "ja-JP" : "en-US") : "";
+  g.fillText(started + (started ? "　" : "") + t("swiss.roundOf", {n: T.rounds.length, total: T.total}), 24, 82);
+
+  // 列見出し
+  const colX = { rank: 24, name: 72, rec: 470, pt: 560, omw: 680 };
+  let y = headH + 24;
+  g.fillStyle = "#5C7185"; g.font = "500 12px " + font;
+  g.fillText("#", colX.rank, y);
+  g.fillText(t("swiss.name"), colX.name, y);
+  g.textAlign = "right";
+  g.fillText(t("swiss.record"), colX.rec, y);
+  g.fillText(t("swiss.points"), colX.pt, y);
+  g.fillText("OMW%", colX.omw, y);
+  g.textAlign = "left";
+  y += 10;
+  g.strokeStyle = "#D3DFEB"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
+
+  // 行
+  rows.forEach((s, i) => {
+    const top = y;
+    const champ = T.done && i === 0;
+    if(champ){ g.fillStyle = "#FBF6E3"; g.fillRect(16, top + 2, W - 32, rowH - 4); }
+    const base = top + rowH / 2 + 5;
+    g.fillStyle = i === 0 ? "#2F7DF6" : "#5C7185"; g.font = "700 14px " + font;
+    g.fillText(champ ? "🏆" : String(i + 1), colX.rank, base);
+    g.fillStyle = "#0D1B2A"; g.font = (champ ? "700 " : "500 ") + "15px " + font;
+    let nameX = colX.name;
+    g.fillText(s.name, nameX, base);
+    if(champ){
+      const w = g.measureText(s.name).width;
+      const label = t("swiss.champion");
+      g.font = "700 11px " + font;
+      const lw = g.measureText(label).width + 14;
+      g.fillStyle = "#2F7DF6"; roundRect(g, nameX + w + 8, base - 12, lw, 17, 8); g.fill();
+      g.fillStyle = "#FFFFFF"; g.fillText(label, nameX + w + 15, base);
+    }
+    g.textAlign = "right";
+    g.fillStyle = "#0D1B2A"; g.font = "500 14px " + font;
+    g.fillText(`${s.w}-${s.l}-${s.d}`, colX.rec, base);
+    g.font = "700 15px " + font;
+    g.fillText(String(s.mp), colX.pt, base);
+    g.fillStyle = "#5C7185"; g.font = "400 12px " + font;
+    g.fillText(s.omwp == null ? "—" : (s.omwp * 100).toFixed(1) + "%", colX.omw, base);
+    g.textAlign = "left";
+    y += rowH;
+    g.strokeStyle = "#E8EEF6"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
+  });
+
+  // 脚注
+  g.fillStyle = "#5C7185"; g.font = "400 11px " + font;
+  g.fillText("sealed-workbench.com", 24, H - 14);
+  return cv;
+}
+function roundRect(g, x, y, w, h, r){
+  g.beginPath();
+  g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+}
+function roundImage(){
+  const r = currentRound(), no = T.rounds.length;
+  const scale = 2;
+  const W = 720, rowH = 46, headH = 96, footH = 40;
+  const H = headH + 34 + r.matches.length * rowH + footH;
+  const cv = $("shot");
+  cv.width = W * scale; cv.height = H * scale;
+  const g = cv.getContext("2d");
+  g.scale(scale, scale);
+  const font = '"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif';
+
+  g.fillStyle = "#F5F8FC"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#10304F"; g.fillRect(0, 0, W, headH);
+  g.fillStyle = "#2F7DF6"; g.fillRect(0, headH - 4, W, 4);
+  g.fillStyle = "#2F7DF6"; g.font = "700 13px " + font;
+  g.fillText(t("site.name"), 24, 30);
+  g.fillStyle = "#F5F8FC"; g.font = "800 24px " + font;
+  g.fillText(t("swiss.round", {n: no}), 24, 62);
+  g.fillStyle = "#A9C2DE"; g.font = "400 12px " + font;
+  const started = T.startedAt ? new Date(T.startedAt).toLocaleDateString(I18N.lang === "ja" ? "ja-JP" : "en-US") : "";
+  g.fillText(started + (started ? "　" : "") + t("swiss.roundOf", {n: no, total: T.total}), 24, 82);
+
+  // 列見出し：卓／左／結果／右
+  const cx = { tbl: 24, a: 70, res: W / 2, b: W - 24 };
+  let y = headH + 24;
+  g.fillStyle = "#5C7185"; g.font = "500 12px " + font;
+  g.fillText(t("swiss.table"), cx.tbl, y);
+  g.fillText(t("swiss.playerA"), cx.a, y);
+  g.textAlign = "center"; g.fillText(t("swiss.resultShort"), cx.res, y);
+  g.textAlign = "right";  g.fillText(t("swiss.playerB"), cx.b, y);
+  g.textAlign = "left";
+  y += 10;
+  g.strokeStyle = "#D3DFEB"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
+
+  r.matches.forEach((m, i) => {
+    const base = y + rowH / 2 + 5;
+    const done = m.b == null || (m.ga != null && m.gb != null);
+    if(done){ g.fillStyle = "#F7F9F5"; g.fillRect(16, y + 2, W - 32, rowH - 4); }
+    g.fillStyle = "#5C7185"; g.font = "500 13px " + font;
+    g.fillText(m.b == null ? "—" : String(i + 1), cx.tbl, base);
+    if(m.b == null){
+      g.fillStyle = "#0D1B2A"; g.font = "700 15px " + font;
+      g.fillText(nameOf(m.a), cx.a, base);
+      g.fillStyle = "#5C7185"; g.font = "400 13px " + font;
+      g.textAlign = "center"; g.fillText(t("swiss.byeRow"), cx.res, base); g.textAlign = "left";
+    }else{
+      const aw = m.ga != null && m.ga > m.gb, bw = m.gb != null && m.gb > m.ga;
+      g.fillStyle = aw ? "#1E7A52" : "#0D1B2A"; g.font = "700 15px " + font;
+      g.fillText(nameOf(m.a), cx.a, base);
+      g.fillStyle = bw ? "#1E7A52" : "#0D1B2A";
+      g.textAlign = "right"; g.fillText(nameOf(m.b), cx.b, base);
+      g.textAlign = "center";
+      g.fillStyle = m.ga == null ? "#B9C1BC" : "#0D1B2A"; g.font = "700 16px " + font;
+      g.fillText(m.ga == null ? "vs" : `${m.ga} - ${m.gb}`, cx.res, base);
+      g.textAlign = "left";
+    }
+    y += rowH;
+    g.strokeStyle = "#E8EEF6"; g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
+  });
+
+  g.fillStyle = "#5C7185"; g.font = "400 11px " + font;
+  g.fillText("sealed-workbench.com", 24, H - 14);
+  return cv;
+}
+
+function saveCanvas(cv, filename){
+  cv.toBlob(blob => {
+    if(!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }, "image/png");
+}
+$("roundImgBtn").onclick = () => {
+  saveCanvas(roundImage(), t("swiss.roundImageFile", {n: T.rounds.length, d: new Date().toISOString().slice(0, 10)}));
+};
+
+$("imgBtn").onclick = () => {
+  saveCanvas(standingsImage(), t("swiss.imageFile", {d: new Date().toISOString().slice(0, 10)}));
+};
+$("shareBtn").onclick = async () => {
+  try{
+    const code = await encodeShare();
+    const url = location.origin + location.pathname + "#v=" + code;
+    try{ await navigator.clipboard.writeText(url); $("shareBtn").textContent = t("swiss.shared"); }
+    catch(e){ prompt(t("swiss.copyManual"), url); }
+  }catch(e){
+    $("shareBtn").textContent = t("swiss.shareFailed");
+  }
+  setTimeout(() => { $("shareBtn").textContent = t("swiss.share"); }, 2200);
+};
+
+$("copyBtn").onclick = async () => {
+  const lines = [t("swiss.copyTitle", {n: T.rounds.length})];
+  standings().forEach((s, i) => lines.push(`${i + 1}. ${s.name}  ${s.w}-${s.l}-${s.d}  ${s.mp}pt`));
+  const text = lines.join("\n");
+  try{ await navigator.clipboard.writeText(text); $("copyBtn").textContent = t("swiss.copied"); }
+  catch(e){ prompt(t("swiss.copyManual"), text); }
+  setTimeout(() => { $("copyBtn").textContent = t("swiss.copy"); }, 2000);
+};
+
+/* ---------- 言語 ---------- */
+const sel = $("langSelect");
+sel.value = I18N.lang;
+sel.onchange = e => I18N.set(e.target.value);
+I18N.onChange(() => renderAll());
+
+load();
+(async () => {
+  const m = location.hash.match(/^#v=(.+)$/);
+  if(m){
+    try{
+      T = await decodeShare(m[1]);
+      viewOnly = true;
+      document.body.classList.add("view");
+    }catch(e){
+      // 壊れたURLなら、通常の自分の大会を表示する
+      load();
+    }
+  }
+  renderAll();
+})();
+</script>
+<script src="./goods-widget.js?v=6" defer></script>
+</body>
+</html>

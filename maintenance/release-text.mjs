@@ -29,7 +29,7 @@ export function releaseTexts(name){
     "~・Also: Draft vs 7 CPUs, Sealed",
     "・Take your deck to MTG Arena, play via Direct Challenge",
     "",
-    `${SITE}/draftroom?from=bsky-release`,
+    `${SITE}/draftroom.en?from=bsky-release`,   // 英語の投稿は英語版へ
     `#MTGArena ${tagOf(name.en)}`
   ], "bsky");
   return { x, bsky, link: `${SITE}/draftroom` };

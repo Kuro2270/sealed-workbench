@@ -17,6 +17,7 @@
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { enLinks } from "./en-pages.mjs";
 import { shell, L, esc, readJson, SITE, pretty } from "./build-set-pages.mjs";
 import { createBuyeeChecker } from "./buyee-check.mjs";
 
@@ -293,5 +294,5 @@ if(PAGES_ONLY){
 RATE = data.usdRate || RATE;
 await mkdir("goods", { recursive: true });
 await writeFile("goods/index.html", page("ja", data), "utf8");
-await writeFile("goods/index.en.html", page("en", data), "utf8");
+await writeFile("goods/index.en.html", enLinks(page("en", data), "goods"), "utf8");   // 英語のページのリンクは英語版へ
 console.error(`goods/index.html, goods/index.en.html を作りました（定番 ${data.fixed.length}、週替わり ${Object.values(data.rotating).flat().length}）`);

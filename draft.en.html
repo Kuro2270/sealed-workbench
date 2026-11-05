@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en" data-page-lang="en" data-title="page.draft.title" data-desc="desc.draft">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Draft practice (vs CPU) — Practice MTG Arena drafts against 7 CPU players</title>
+<!-- seo:start（maintenance/build-en-pages.mjs が書く。手で直さない。文言は i18n.js） -->
+<meta name="description" content="Free draft practice for Magic: The Gathering Arena against seven CPU drafters at an eight-seat table. The CPUs pick using real win-rate data. Finish 42 picks, build your deck, and import it into Arena.">
+<link rel="canonical" href="https://sealed-workbench.com/draft.en">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/draft">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/draft.en">
+<link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/draft">
+<meta property="og:title" content="Draft practice (vs CPU) — Practice MTG Arena drafts against 7 CPU players">
+<meta property="og:description" content="Free draft practice for Magic: The Gathering Arena against seven CPU drafters at an eight-seat table. The CPUs pick using real win-rate data. Finish 42 picks, build your deck, and import it into Arena.">
+<meta property="og:url" content="https://sealed-workbench.com/draft.en">
+<meta property="og:image" content="https://sealed-workbench.com/ogp-en.png">
+<meta property="og:locale" content="en_US">
+<!-- seo:end -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta name="twitter:card" content="summary">
+<script src="./i18n.js?v=20"></script>
+<script src="./cardzoom.js?v=2"></script>
+<script src="./color-tally.js?v=1"></script>
+<script src="./analytics.js"></script>
+<script src="/navmenu.js" defer></script>
+<script src="/poolsave.js?v=2"></script>
+<script src="./draft-core.js?v=1"></script>
+<script src="./draft-view.js?v=1"></script>
+<link rel="stylesheet" href="/assets/mana/mana.min.css">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#10304F">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Workbench">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
+<style>
+  :root{
+    --pine:#10304F; --pine-deep:#0A2038;
+    --paper:#F5F8FC; --paper-2:#E8EEF6;
+    --ink:#0D1B2A; --muted:#5C7185;
+    --gold:#2F7DF6; --line:#D3DFEB;
+    --w:#FAF4E2; --u:#7FB4D8; --b:#2C2833; --r:#DB8068; --g:#79A87F; --m:#C3A03B; --c:#C6CCC9;
+    --hot:#1E7A52; --cold:#A24B32;
+    --radius:8px;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  /* 内容の長さでスクロールバーが出たり消えたりしても、位置が動かないようにする */
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.7}
+  h1,h2,h3,h4{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.15}
+
+  header{background:linear-gradient(135deg,var(--pine-deep) 0%,var(--pine) 55%,#17466F 100%);color:var(--paper);padding:24px 24px 16px;border-bottom:3px solid var(--gold);box-shadow:0 10px 30px -18px rgba(8,26,48,.9)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .head-top{display:block}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:#9CC8FF;line-height:24px;margin:0 0 12px}
+
+  /* 言語の切り替えは、どのページでも見出しの右上に置く */
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+  .brandrow .brand{margin:0}
+  select.langsel{min-width:112px;padding:6px 10px;font-size:13px}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{
+    display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;
+    font-size:13px;font-weight:500;line-height:1;white-space:nowrap;
+    color:#C6D9EE;text-decoration:none;background:rgba(255,255,255,.05);
+    border:1px solid #2C4D74;transition:background .12s,color .12s;
+  }
+  nav a:hover{background:#1A4A79;color:var(--paper);border-color:#2F5E8F}
+  nav a.on{background:var(--gold);border-color:var(--gold);color:#FFFFFF;font-weight:700}
+
+  /* ナビはカテゴリごとにまとめる。小さな見出しを付けて、探す場所を分かりやすくする */
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end}
+  .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
+  .ng:first-of-type{padding-left:0;border-left:none}
+  .ng{position:relative;padding-top:17px}
+  .ng:has(.ngs){padding-top:35px}
+  .ngl{position:absolute;left:16px;top:0;white-space:nowrap;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6;text-transform:uppercase}
+  .ng:first-of-type .ngl,.ng:first-of-type .ngs{left:0}
+  .ngs{position:absolute;left:16px;top:17px;white-space:nowrap;font-size:11px;color:#8FA9C6;line-height:1.3}
+  nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
+  nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
+  @media (max-width:760px){
+    .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0}
+  }
+
+  .controls{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  select,button{font-family:inherit;font-size:14px}
+  select{background:var(--pine-deep);color:var(--paper);border:1px solid #2C4D74;padding:9px 12px;border-radius:var(--radius);min-width:210px}
+  button{border:none;border-radius:var(--radius);padding:10px 18px;cursor:pointer;background:var(--gold);color:#FFFFFF;font-weight:700}
+  button:hover:not(:disabled){background:#1F6AE0}
+  button:disabled{background:#8FA3B5;color:#C6CCC9;cursor:not-allowed}
+  button.ghost{background:transparent;color:var(--paper);border:1px solid #4A6157;font-weight:500}
+  button.ghost:hover{background:#2E4239}
+  label.toggle{display:flex;align-items:center;gap:7px;color:var(--paper);font-size:13px;cursor:pointer;user-select:none}
+  label.toggle input{width:15px;height:15px;accent-color:var(--gold)}
+  /* セット名が入る前後で幅が動かないよう固定する */
+  #setSelect{width:300px}
+
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  main{max-width:1180px;margin:0 auto;padding:20px 24px 70px;display:grid;grid-template-columns:1fr 340px;gap:26px;align-items:start}
+  @media (max-width:980px){main{grid-template-columns:1fr}}
+
+  .status{padding:14px 16px;background:var(--paper-2);border-left:3px solid var(--muted);font-size:14px;color:var(--muted);margin-bottom:16px}
+  /* 読み込み中を示す回転 */
+  .status.busy{display:flex;align-items:center;gap:10px}
+  .status.busy::before{
+    content:"";flex:none;width:15px;height:15px;border-radius:50%;
+    border:2px solid rgba(15,28,23,.18);border-top-color:var(--gold);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){ .status.busy::before{animation-duration:2.4s} }
+  .status.err{border-left-color:#B4432E;color:#8A3422;background:#F6E9E5}
+
+  .phase{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+  .phase h2{font-size:19px;margin:0}
+  .phase .sub{font-size:13px;color:var(--muted)}
+  .bar{height:4px;background:var(--paper-2);border-radius:2px;overflow:hidden;margin-bottom:16px}
+  .bar i{display:block;height:100%;background:var(--gold);transition:width .25s}
+
+  ul{list-style:none;margin:0;padding:0}
+  ul.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;padding:4px 0 2px}
+  .side ul.grid{grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:7px}
+  .tile{position:relative;cursor:pointer;border-radius:8px;line-height:0}
+  .tile img{width:100%;height:auto;border-radius:7px;display:block}
+  .tile:hover img,.tile:focus-visible img{outline:2px solid var(--gold);outline-offset:2px}
+
+  /* 同じセットの平均より5ポイント以上高い勝率（ボム級）は、金色に光らせる */
+  .tile .wrbadge.bomb{background:linear-gradient(180deg,#FBE08A,#E0AE2E);color:#2A1D00;box-shadow:0 0 0 2px #FFF3C4,0 0 10px 2px rgba(242,190,50,.8),0 1px 4px rgba(0,0,0,.35)}
+  .wr.bomb{color:#6B4600;font-weight:700;background:#FFF1C2;border-radius:6px;padding:0 6px;box-shadow:inset 0 0 0 1px #E0AE2E}
+  .tile .wrbadge{
+    position:absolute;left:50%;transform:translateX(-50%);bottom:6px;
+    background:rgba(24,36,31,.92);color:#F5F8FC;font-size:12px;font-weight:700;line-height:1;
+    padding:4px 9px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.3);
+  }
+  .tile .noimg{
+    display:flex;align-items:center;justify-content:center;text-align:center;aspect-ratio:5/7;
+    background:var(--paper-2);border:1px solid var(--line);border-radius:7px;
+    font-size:12px;line-height:1.5;padding:8px;color:var(--muted);
+  }
+
+  .side{position:sticky;top:16px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+  @media (min-width:981px){
+    .side{max-height:calc(100vh - 32px);overflow:auto;overscroll-behavior:contain}
+    .side > .side-head:first-child{position:sticky;top:0;z-index:2;background:#fff;border-radius:var(--radius) var(--radius) 0 0}
+    .side .side-body,.side .sb-body{max-height:none}
+  }
+
+  /* デッキの枠は画面の高さに収めて、枠の中だけをスクロールする。枚数（上）とコピーのボタン（下）は枠に固定して、いつでも見える・押せるようにする
+     （2026年10月：コピーのボタンがページの一番下までスクロールしないと見えず、気付きにくかったため）。狭い画面では deck-dock.js が画面下に帯を出す */
+  .deck-actions{position:sticky;bottom:0;z-index:2;background:#fff;padding:10px 16px 12px;border-top:1px solid var(--line);box-shadow:0 -8px 16px -12px rgba(13,27,42,.45);border-radius:0 0 var(--radius) var(--radius)}
+  .deck-actions[hidden]{display:none}
+  .deck-actions button{width:100%}
+  .deck-actions button + button{margin-top:6px}
+  .side-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline}
+  .side-head h3{font-size:16px;margin:0}
+  .count{font-size:24px;font-variant-numeric:tabular-nums}
+  .count.ok{color:var(--hot)}
+  .side-body{padding:12px 16px;max-height:40vh;overflow:auto}
+  /* 追加先の切り替えと、サイドボード */
+  .target{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+  .target .seg{display:inline-flex;gap:2px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:2px}
+  .target .seg button{background:transparent;border:none;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit}
+  .target .seg button.on{background:var(--pine);color:var(--paper)}
+  .side-head.sub{border-top:1px solid var(--line);padding:10px 16px}
+  .side-head.sub h3{font-size:14px}
+  .count.small{font-size:20px}
+  .count.over{color:#A24B32}
+  .sb-body{padding:10px 16px;max-height:24vh;overflow:auto}
+  .empty{color:var(--muted);font-size:13px;padding:18px 0;text-align:center}
+
+  .crow{display:grid;grid-template-columns:20px 1fr 34px;gap:7px;align-items:center;padding:1px 0;font-size:13px}
+  .crow .track{height:7px;background:var(--paper-2);border-radius:4px;overflow:hidden}
+  .crow .track i{display:block;height:100%;border-radius:4px}
+  .crow .n{text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  /* マナシンボル（draft-view.js） */
+  .mcost{display:inline-flex;align-items:center;gap:1px;white-space:nowrap}
+  .mcost .ms{font-size:12px;margin:0}
+  .mcost .msep{font-size:11px;color:var(--muted);margin:0 2px}
+  .crow .mfi{font-size:15px;vertical-align:-2px;margin:0}
+  .sec h4 .mfi{margin-right:5px}
+  .land-item .mfi{font-size:15px;margin-right:6px;vertical-align:-2px}
+
+  .sec{display:flex;align-items:baseline;justify-content:space-between;margin:10px 0 3px;padding-bottom:3px;border-bottom:1px solid var(--line)}
+  .sec:first-child{margin-top:0}
+  .sec h4{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:13px;margin:0}
+  .sec span{font-size:11.5px;color:var(--muted)}
+
+  .card-row{display:grid;grid-template-columns:22px 1fr auto auto;gap:9px;align-items:center;padding:5px 7px;border-radius:var(--radius);cursor:pointer}
+  .card-row:hover{background:var(--paper-2)}
+  .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+  .wr{font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);text-align:right}
+  .rar{width:6px;height:14px;border-radius:1px;background:#2A3B4C}
+  .rar.uncommon{background:#9FB3C4}.rar.rare{background:var(--gold)}.rar.mythic{background:#C4552C}
+  /* レアリティ：カードの外ふち（スマホで小さなアイコン色が見分けにくいため） */
+  .tile.r-common img,.tile.r-common .noimg{box-shadow:0 0 0 2px #1E2933}
+  .tile.r-uncommon img,.tile.r-uncommon .noimg{box-shadow:0 0 0 4px #A3B8CA,0 0 8px 3px rgba(163,184,202,.75)}
+  .tile.r-rare img,.tile.r-rare .noimg{box-shadow:0 0 0 3px #E0AE2E}
+  .tile.r-mythic img,.tile.r-mythic .noimg{box-shadow:0 0 0 3px #E8582B}
+  .card-row.r-common{box-shadow:inset 0 0 0 1.5px rgba(30,41,51,.6)}
+  .card-row.r-uncommon{box-shadow:inset 0 0 0 3px #A3B8CA}
+  .card-row.r-rare{box-shadow:inset 0 0 0 1.5px #E0AE2E}
+  .card-row.r-mythic{box-shadow:inset 0 0 0 1.5px #E8582B}
+  .hist{margin-top:10px;font-size:13px}
+  .hist summary{cursor:pointer;color:#C6D9EE;font-weight:700}
+  .hist ul{margin:8px 0 0;display:grid;gap:6px}
+  .hist li{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#0D1B2A}
+  .hist li span{flex:1;min-width:150px;font-size:14px;font-weight:700;color:#0D1B2A}
+  .hist button{font-size:12px;padding:5px 10px;min-height:0}
+
+  .lands{padding:10px 16px;border-top:1px solid var(--line)}
+  .lands-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .lands-head h4{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:13px;margin:0}
+  .lands-head span{font-size:11.5px;color:var(--muted)}
+  .land-item{display:grid;grid-template-columns:1fr 28px 30px 28px;align-items:center;gap:4px;padding:1px 0}
+  .land-item .l-num{text-align:center;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+  .step{width:28px;height:28px;padding:0;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:17px;font-weight:700;line-height:1;border-radius:var(--radius)}
+  .step:hover:not(:disabled){background:var(--paper-2)}
+  .step:disabled{color:#CFDAE5;background:#fff;cursor:not-allowed}
+
+  .export{padding:12px 16px;border-top:1px solid var(--line)}
+  textarea{width:100%;height:100px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:12px;border:1px solid var(--line);border-radius:var(--radius);padding:8px;resize:vertical;background:var(--paper)}
+
+  #preview{position:fixed;z-index:50;pointer-events:none;display:none;filter:drop-shadow(0 10px 24px rgba(15,28,23,.35))}
+  #preview img{display:block;width:244px;height:auto;border-radius:11px}
+
+  footer{max-width:1180px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+  .note{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;font-size:12.5px;color:var(--muted);margin-bottom:16px}
+  .note b{color:var(--ink)}
+
+  /* ---------- スマートフォン ---------- */
+  @media (max-width:720px){
+    header p{min-height:0}
+    html,body{overflow-x:hidden}
+    body{font-size:14px}
+    header{padding:16px 14px 12px}
+    header h1{font-size:20px}
+    header p{font-size:12px;max-width:none}
+    main{padding:14px 14px 50px;gap:16px}
+    footer{padding:0 14px 40px}
+
+    /* 操作部分を縦積みにして、はみ出しをなくす */
+    .head-top{flex-direction:column;align-items:stretch;gap:12px}
+    .controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center}
+    .controls select{min-width:0;width:100%}
+    #setSelect{width:100%}
+    .controls button{width:100%;padding:11px 10px}
+    .controls > select:first-of-type{grid-column:1 / -1}
+    .controls label.toggle{grid-column:auto;font-size:12px;gap:6px}
+
+    nav{margin:0 0 14px;gap:6px;font-size:12px}
+    nav a{white-space:nowrap}
+
+    /* カード画像を小さめに並べる */
+    ul.grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:7px}
+    .deck-body ul.grid,.side ul.grid{grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
+    .tile .wrbadge{font-size:10px;padding:3px 6px;bottom:4px}
+
+    /* 右のパネルは固定せず、下に流す */
+    .deck,.side{position:static;max-width:100%}
+    .deck-body,.side-body{max-height:none}
+
+    /* 表は表だけ横スクロールさせる */
+    .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    table{min-width:640px}
+
+    /* 画像プレビューは指で隠れるので出さない */
+    #preview{display:none !important}
+  }
+  /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
+  .ng{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;column-gap:7px;row-gap:5px;justify-content:start;align-items:center;padding-top:0}
+  .ng:has(.ngs){padding-top:0}
+  .ngl,.ngs{position:static;grid-column:1/-1;white-space:nowrap}
+  .ngl{grid-row:1;left:auto}
+  .ngs{grid-row:2;left:auto;top:auto;font-size:11.5px;color:#A9BFD8;margin-top:-2px}
+  nav a{grid-row:3;padding:8px 16px;border-radius:10px;font-weight:700;background:linear-gradient(180deg,#2A5F96,#1C4A7C);border:1px solid #4A83BF;color:#FFFFFF;box-shadow:0 2px 0 #12365C,0 4px 10px rgba(0,0,0,.28);-webkit-font-smoothing:auto;text-shadow:none;letter-spacing:.02em}
+  nav a:not(.on):hover{background:linear-gradient(180deg,#3573B3,#25609F);border-color:#6FA3DA}
+  nav a:active{box-shadow:0 1px 0 #12365C}
+  nav a.on{box-shadow:0 2px 0 rgba(0,0,0,.35),0 4px 10px rgba(0,0,0,.28)}
+  @media (max-width:760px){
+    .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+    .ngl,.ngs{flex:0 0 100%}
+  }
+  /* ページ下の読み物（文言は i18n.js の read.*）。見出しはトップページの h2、箱はサイト共通の白いカードに合わせる */
+  .readmore{max-width:1180px;margin:0 auto;padding:6px 24px 36px}
+  /* 説明文は「説明」の折りたたみの中。普段は閉じておき、ツールを主役にする（中身はページにあるので検索・審査では読まれる） */
+  .readmore > summary{display:inline-flex;align-items:center;gap:6px;cursor:pointer;list-style:none;font-size:13px;font-weight:700;color:var(--muted,#8a8f98);padding:6px 12px;border:1px solid var(--line);border-radius:999px;user-select:none}
+  .readmore > summary::-webkit-details-marker{display:none}
+  .readmore > summary::before{content:"▶";font-size:10px;transition:transform .15s}
+  .readmore[open] > summary::before{transform:rotate(90deg)}
+  .readmore[open] > summary{margin-bottom:18px}
+  .readmore section{margin:0 0 30px}
+  .readmore h2{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;font-size:19px;line-height:1.3;letter-spacing:-.01em;color:var(--ink);margin:0 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  .readmore p{margin:0 0 12px;font-size:14px;line-height:1.85}
+  .readmore a{color:var(--gold);font-weight:700;text-decoration:none}
+  .readmore a:hover{text-decoration:underline}
+  .rm-steps{list-style:none;counter-reset:rmst;margin:0 0 14px;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+  .rm-steps li{counter-increment:rmst;background:#fff;border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:var(--radius);padding:14px 16px;font-size:13px;line-height:1.75;margin:0}
+  .rm-steps li::before{content:counter(rmst);display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--pine);color:#fff;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:12.5px;margin:0 0 8px}
+  .rm-steps b{display:block;font-size:14.5px;line-height:1.45;color:var(--pine);margin:0 0 4px}
+  .rm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin:0 0 14px}
+  .rm-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+  .rm-card h3,.rm-note h3{margin:0 0 6px;font-size:15px;font-weight:700;line-height:1.45;color:var(--pine)}
+  .rm-card p,.rm-note p{font-size:13px;line-height:1.8;margin:0 0 8px}
+  .rm-card p:last-child,.rm-note p:last-child{margin:0}
+  .rm-note{background:var(--paper-2);border-left:4px solid var(--gold);border-radius:4px;padding:12px 16px;margin:0 0 14px}
+  @media (max-width:720px){ .readmore{padding:4px 14px 28px} .rm-steps,.rm-grid{grid-template-columns:1fr} }
+  /* なぜアリーナではなくここで練習するか（見出しの下） */
+  header ul.perks{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 8px;max-width:90ch}
+  header ul.perks li{font-size:12.5px;line-height:1.4;color:#E6EEF7;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:4px 11px 4px 9px}
+  header ul.perks li::before{content:"✓";color:#7FB6FF;font-weight:700;margin-right:6px}
+  header p:has(+ ul.perks){min-height:0}
+  @media (max-width:640px){ header ul.perks li{font-size:12px} }
+  /* 勝率のチェック：何の数字かを下に小さく */
+  label.toggle.wr > span{display:block;text-align:left}
+  label.toggle.wr small{display:block;font-size:11px;line-height:1.35;color:#A9C2DE;margin-top:1px}
+  /* 手順（番号つき） */
+  .note .steps{list-style:none;counter-reset:st;margin:8px 0 0;padding:0;display:grid;gap:6px}
+  .note .steps li{counter-increment:st;position:relative;padding-left:28px;line-height:1.6;color:var(--ink)}
+  .note .steps li::before{content:counter(st);position:absolute;left:0;top:2px;width:19px;height:19px;border-radius:50%;background:var(--pine);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .note .sub{margin:10px 0 0;padding-top:8px;border-top:1px dashed var(--line)}
+  .gem{height:1.2em;width:auto;vertical-align:-.25em;margin:0 .12em 0 0}
+  /* カードの勝率の表示：ピックの画面で、カードのすぐ上に */
+  .opt-row{margin:0 0 12px}
+  .opt-row label.toggle{color:var(--ink);display:inline-flex}
+  .opt-row label.toggle.wr > span{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px}
+  .opt-row label.toggle.wr small{color:var(--muted);margin:0}
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous" data-overlays="bottom"></script>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brandrow">
+      <div class="brand"><a href="/index.en.html" class="brandhome" aria-label="Home" style="display:inline-block;margin:0 12px 0 0;vertical-align:middle"><img class="brandlogo" src="/assets/logo/arena.png" alt="MTG Arena" width="97" height="34" style="height:34px;width:auto;display:block;margin-top:-5px" onerror="this.parentNode.remove()"></a><a href="./index.en.html" data-i18n="site.name" style="color:inherit;text-decoration:none">リミテッド・ワークベンチ</a></div>
+      <select id="langSelect" class="langsel" data-i18n-label="lang.label"><option value="ja">日本語</option><option value="en">English</option></select>
+    </div>
+    <nav>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span><span class="ngs" data-i18n="navsub.start">MTGの基本と、このサイトの使い方</span>
+        <a href="./start/index.en.html" data-start-link data-i18n="nav.start">MTGとは</a>
+        <a href="./start/limited.en.html" data-limited-link data-i18n="nav.limited">リミテッドとは</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.build">仮想パックで練習する</span><span class="ngs" data-i18n="navsub.build">6パック開封・8人ドラフト</span>
+        <a href="./sealed.en.html" data-i18n="nav.sealed">シールド練習</a>
+        <a href="./draft.en.html" class="on" data-i18n="nav.draft">ドラフト練習（CPU戦）</a>
+        <a href="./draftroom.en.html" data-i18n="nav.room">ドラフト練習（対人戦）</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.assist">デッキ構築補助</span><span class="ngs" data-i18n="navsub.assist">アリーナの本番中に、デッキ案とピックのおすすめを出す・PC専用</span>
+        <a href="./sealed-assist.en.html"><span data-i18n="nav.sassist">シールドのデッキ構築補助</span><b class="pcb" data-i18n="nav.pc">PC</b></a>
+        <a href="./assistant.en.html"><span data-i18n="nav.assist">ドラフトのデッキ構築補助</span><b class="pcb" data-i18n="nav.pc">PC</b></a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.data">データを見る</span><span class="ngs" data-i18n="navsub.data">セットごとの強さ・速さを確認</span>
+        <a href="./reports.en.html" data-i18n="nav.reports">環境レポート</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.play">対戦する</span><span class="ngs" data-i18n="navsub.play">友達との対戦・大会の進行</span>
+        <a href="./table.en.html" data-i18n="nav.table">対戦卓</a>
+        <a href="./swiss.en.html" data-i18n="nav.swiss">スイスドロー</a></div>
+    <div class="ng"><span class="ngl" data-i18n="navgrp.shop">買う</span><span class="ngs" data-i18n="navsub.shop">日本で買えるMTG用品</span>
+        <a href="./goods/index.en.html" data-goods-link data-i18n="nav.goods">日本のサプライ</a></div>
+    </nav>
+    <div class="head-top">
+      <div>
+        <h1 data-i18n="draft.h1">ドラフト練習（CPU戦）</h1>
+        <p data-i18n-html="draft.lead"><img class="gem" src="/assets/icon/gem.png" alt="">ジェムを使わずに、CPU 7人と8人卓のドラフトを何度でも練習できます。</p>
+        <ul class="perks" data-i18n-html="perks.arena"></ul>
+      </div>
+      <div class="controls">
+        <select id="setSelect" data-i18n-label="sel.set"><option value="">…</option></select>
+        <button id="startBtn" disabled data-i18n="draft.start">ドラフト開始</button>
+      </div>
+      <div class="hist" id="histBox" hidden></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div id="status" class="status" data-i18n="draft.ready">セットを選んで「ドラフト開始」を押してください。</div>
+
+    <div class="note" id="intro" data-i18n-html="draft.howto"><b>進め方</b><ol class="steps"><li>セットを選んで「ドラフト開始」を押す</li><li>14枚のパックから1枚選ぶと、残りは隣へ回ります（CPU 7人も同時にピック）</li><li>3パック（42手）を終えると、デッキ構築の画面に切り替わります</li></ol><p class="sub"><b>CPUのピック</b>：カードの勝率を基本に、後半ほど自分の色を優先します。</p></div>
+
+    <div id="phase" class="phase" hidden>
+      <h2 id="phaseTitle"></h2>
+      <span class="sub" id="phaseSub"></span>
+    </div>
+    <div class="bar" id="bar" hidden><i style="width:0"></i></div>
+
+    <div class="opt-row" id="optRow" hidden>
+      <label class="toggle wr" data-i18n-title="wr.gih.tip"><input type="checkbox" id="wrToggle" checked><span><span data-i18n="opt.wr">カードの勝率を表示</span><small data-i18n="opt.wrHint">そのカードを引いた試合の勝率。高いほど強いカード</small></span></label>
+    </div>
+    <div id="board"></div>
+  </section>
+
+  <aside class="side" data-dock-panel="980">
+    <div class="side-head">
+      <h3 id="sideTitle" data-i18n="draft.picked">ピック済み</h3>
+      <div class="count" id="sideCount" data-dock-count>0</div>
+      <div id="deckColors" hidden></div>
+    </div>
+    <div class="target" id="targetRow" hidden>
+      <span data-i18n="deck.target">追加先</span>
+      <span class="seg" id="targetSeg">
+        <button type="button" class="on" data-target="main" data-i18n="deck.targetMain">メイン</button>
+        <button type="button" data-target="side" data-i18n="deck.targetSide">サイド</button>
+      </span>
+    </div>
+    <div class="side-body" id="sideBody"><div class="empty" data-i18n="draft.pickedEmpty">まだ何も取っていません</div></div>
+    <div class="side-head sub" id="sbHead" hidden>
+      <h3 data-i18n="deck.side">サイドボード</h3>
+      <div class="count small" id="sbCount">0<span style="font-size:12px;color:var(--muted)"> / 15</span></div>
+    </div>
+    <div class="sb-body" id="sbBody" hidden><div class="empty" data-i18n="deck.sideEmpty">追加先を「サイド」にしてプールのカードを押すと加わります</div></div>
+
+
+    <div class="lands" id="lands" hidden></div>
+    <div class="export" id="exportWrap" hidden>
+      <textarea id="exportBox" readonly data-i18n-ph="deck.exportPh"></textarea>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:6px" data-i18n="deck.exportNote">インポート用のカード名は、表示設定にかかわらず英語名で出力します。</div>
+    </div>
+    <div class="deck-actions" id="exportActions" hidden>
+      <button id="copyBtn" data-i18n="deck.copy">アリーナ用テキストをコピー</button>
+    </div>
+  </aside>
+</main>
+
+<details class="readmore"><summary data-i18n="read.summary">説明</summary><div data-i18n-html="read.draft"><section><h2>ここで練習する理由</h2><div class="rm-grid"><div class="rm-card"><h3>無料で何度でも</h3><p>アリーナのシールドやドラフトは、参加するたびにゴールドかジェムがかかります。ここなら無料で、何度でも練習できます。</p></div><div class="rm-card"><h3>完成したデッキはアリーナへ</h3><p>組んだデッキはテキストでコピーして、アリーナにインポートできます。持っていないカードはワイルドカードで作れるので、ワイルドカードがあれば無料です。</p></div><div class="rm-card"><h3>アリーナで対戦</h3><p>取り込んだデッキで、アリーナのダイレクトチャレンジを使ってほかのプレイヤーと対戦できます。ワイルドカードが足りないときは、<a href="./table.en.html">対戦卓</a>でも遊べます。</p></div></div></section><section><h2>ドラフト練習の使い方</h2><p>セットを選んで「ドラフト開始」を押すと、8人卓のドラフトが始まります。14枚のパックから1枚選ぶと、残りは隣の人に回り、隣から別のパックが回ってきます。3パック分（全部で42回）選び終えると、構築画面に切り替わります。組み方とアリーナへの書き出しは、シールド練習と同じです。</p><p>ほかの7人は、カードの勝率をもとに選び、ピックが進むほど自分の色を優先するようになっています。実際の卓と同じように、強いカードは早くなくなり、人気のない色のカードが後まで残ります。途中でページを閉じても、続きから再開できます。</p><p>友達と同じ卓でドラフトしたいときは、<a href="./draftroom.en.html">ドラフト練習（対人戦）</a>を使います。</p></section><section><h2>ピックで意識すること</h2><div class="rm-grid"><div class="rm-card"><h3>最初の数枚は強いカードを取る</h3><p>序盤で色を決めすぎると、強いカードが流れてきたときに乗り換えられません。色にこだわらず、強いカードを取ります。</p></div><div class="rm-card"><h3>流れてくる色を読む</h3><p>1パック目の後半に、ある色の良いカードが遅い順番で来るなら、上流の人がその色を取っていない合図です。「ピック済み」の色の内訳も見ながら、方向を決めていきます。</p></div><div class="rm-card"><h3>終盤はデッキの穴を埋める</h3><p>2色が決まったら、足りない軽いクリーチャーや除去を優先します。</p></div></div><p>どの色が強いか、どの組み合わせが「ねらい目」かは、<a href="./reports.en.html">環境レポート</a>で確かめられます。練習の前に一度読んでおくと、ピックの迷いが減ります。</p><div class="rm-note"><h3>実戦で使うには</h3><p>PCでアリーナを遊ぶときは、「<a href="./assistant.en.html">ドラフトのデッキ構築補助</a>」が使えます。アリーナの「詳細ログ」を読み取り、いま見ているパックのおすすめを理由つきで示します。練習で身につけた判断と、補助のおすすめを見比べながら使うのがおすすめです。</p></div></section></div></details>
+
+<div id="preview" aria-hidden="true"></div>
+
+<div id="goodsStrip"></div>
+
+<footer>
+  <span data-i18n-html="foot.short">データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="./privacy.en.html">プライバシーポリシー</a>にまとめています。<br><a href="./faq.en.html">よくある質問</a>・<a href="./contact.en.html">お問い合わせ</a>・<a href="./about.en.html">運営者情報</a></span>
+</footer>
+
+<script>
+let packsAll = [], seats = [], phase = "idle";
+let packNo = 0, pickNo = 0, current = [];
+let pool = [], deck = [], side = [], landCount = {};
+let target = "main";           // 構築画面でカードを押したときの追加先（main / side）
+let poolSet = "";              // いまのドラフトのセット
+const SIDE_MAX = 15;
+
+const $ = id => document.getElementById(id);
+const esc = s => (s || "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+
+/* 友達とドラフトのあとの構築（draft.html?from=room）は、CPU戦とは保存場所を分ける。
+   画面は同じ構築画面を使うが、見出し・メニューを「友達とドラフト」にし、CPU戦を始める操作は出さない */
+const FROM_ROOM = new URLSearchParams(location.search).get("from") === "room";
+/* 動作確認ページ（draftroom-test.html）から来たときは ?as=1,2,… が付く。1つのブラウザに何人分も入るので、席ごとに保存場所を分ける */
+const ROOM_AS = (new URLSearchParams(location.search).get("as") || "").toLowerCase();
+const ROOM_TEST = FROM_ROOM && /^[a-z0-9]{1,8}$/.test(ROOM_AS);
+const SAVE_KEY = FROM_ROOM ? "room" + (ROOM_TEST ? "." + ROOM_AS : "") : "draft";
+if(ROOM_TEST && new URLSearchParams(location.search).get("embed") === "1"){
+  ["header", "footer", ".readmore", "#goodsStrip"].forEach(q => { const el = document.querySelector(q); if(el) el.style.display = "none"; });
+}
+if(FROM_ROOM){
+  document.documentElement.setAttribute("data-title", "page.room.title");
+  document.documentElement.setAttribute("data-desc", "desc.room");
+  document.querySelector(".head-top h1").setAttribute("data-i18n", "room.h1");
+  document.querySelector(".head-top p").setAttribute("data-i18n", "room.lead");
+  $("setSelect").hidden = true; $("startBtn").hidden = true; $("intro").hidden = true;
+  document.querySelectorAll('nav a[href="./draft.en.html"]').forEach(a => a.classList.remove("on"));
+  document.querySelectorAll('nav a[href="./draftroom.en.html"]').forEach(a => a.classList.add("on"));
+}
+/* 友達とドラフトのプールが、以前は CPU 戦の保存場所に入っていた。見分けて移す
+   （友達とドラフトから来たものは「構築中・パック0」。CPU 戦を終えたものはパック3） */
+(function moveRoomPools(){
+  const fromRoom = s => s && s.phase === "build" && !s.packNo;
+  const get = k => { try{ return JSON.parse(localStorage.getItem(k) || "null"); }catch(e){ return null; } };
+  const put = (k, v) => { try{ v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+  const cur = get("sw.cur.draft");
+  if(fromRoom(cur)){
+    const old = get("sw.cur.room");
+    if(old && old.n && old.ts !== cur.ts) PoolSave.archive("room", old);
+    put("sw.cur.room", cur); put("sw.cur.draft", null);
+  }
+  const hist = get("sw.hist.draft") || [];
+  const moving = hist.filter(fromRoom);
+  if(moving.length){
+    moving.slice().reverse().forEach(s => PoolSave.archive("room", s));
+    put("sw.hist.draft", hist.filter(s => !fromRoom(s)));
+  }
+})();
+
+/* 右の見出し（ピック済み／デッキ）。翻訳の処理があとから元に戻さないよう、キーごと差し替える */
+function setSideTitle(key){ const h = $("sideTitle"); h.setAttribute("data-i18n", key); h.textContent = t(key); }
+
+function setStatus(msg, isErr, busy){
+  const el = $("status");
+  el.removeAttribute("data-i18n");     // 画面の翻訳処理が、あとから初期の案内文に戻さないように
+  el.textContent = msg;
+  el.className = "status" + (isErr ? " err" : "") + (busy ? " busy" : "");
+}
+
+/* ---------- セット一覧 ---------- */
+async function loadSets(){
+  try{
+    const res = await fetch(SCRY + "/sets");
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const d = await res.json();
+    // アリーナは紙の発売日より数日早く始まるので、発売日の1週間前から出す
+    const today = new Date(Date.now() + 7*86400000).toISOString().slice(0,10);
+    sets = d.data.filter(s => ["expansion","core"].includes(s.set_type) && s.released_at
+                           && s.released_at <= today && s.card_count > 100).slice(0, 30);
+    renderSetOptions();
+    $("startBtn").disabled = !$("setSelect").value;
+  }catch(e){
+    setStatus((pool.length ? t("save.restored", {n: pool.length}) + " " : (PoolSave.retired ? t("save.retired") + " " : "")) + t("err.sets", {e: e.message}), !pool.length);
+  }
+}
+
+function renderSetOptions(){
+  const sel = $("setSelect");
+  let remembered = ""; try{ remembered = sessionStorage.getItem("sw.set.draft") || ""; }catch(e){}
+  const keep = sel.value || remembered;   // 再読み込みしても、選んでいたセットのまま
+  if(!sel.dataset.mem){ sel.dataset.mem = "1"; sel.addEventListener("change", () => { try{ sessionStorage.setItem("sw.set.draft", sel.value); }catch(e){} }); }
+  sel.innerHTML = "";
+  sets.forEach(s => {
+    const o = document.createElement("option");
+    o.value = s.code;
+    o.textContent = (I18N.setLabel ? I18N.setLabel(s.code, s.name) : (I18N.setName ? I18N.setName(s.code, s.name) : s.name));
+    sel.appendChild(o);
+  });
+  // 選び直しのときだけ元の選択を戻す。初回や該当が無いときは最新セットのまま。
+  const codes = sets.map(s => s.code);
+  sel.value = codes.includes(keep) ? keep : (codes[0] || "");
+}
+
+/* ---------- ドラフト進行 ---------- */
+async function start(){
+  const code = $("setSelect").value;
+  if(!code){ setStatus(t("err.noSet"), true); return; }   // セット未選択のまま押された場合
+  $("startBtn").disabled = true;
+  $("intro").hidden = true;
+  setStatus(t("index.loading"), false, true);
+  try{
+    if(code !== setCode){
+      await loadCards(code);
+      setStatus(t("index.loadingJa"), false, true);
+      await loadJapanese(code);
+      setStatus(t("index.loadingWr"), false, true);
+      await loadWinRates(code);
+      setCode = code;
+    }
+
+    archiveCurrent();                       // 始め直す前に、いまのプールを残す
+    poolSet = code;
+    seats = Array.from({length: PLAYERS}, (_, i) => ({
+      id: i, picked: [], colorScore: {W:0,U:0,B:0,R:0,G:0}
+    }));
+    packsAll = [];
+    for(let p = 0; p < PACKS; p++){
+      packsAll.push(Array.from({length: PLAYERS}, () => buildPack()));
+    }
+    pool = []; deck = []; side = []; landCount = {};
+    packNo = 0; pickNo = 0;
+    phase = "draft";
+
+    $("phase").hidden = false;
+    $("bar").hidden = false;
+    $("optRow").hidden = false;
+    $("targetRow").hidden = true;
+    $("sbHead").hidden = true;
+    $("sbBody").hidden = true;
+    target = "main";
+    document.querySelectorAll("#targetSeg button").forEach(x => x.classList.toggle("on", x.dataset.target === "main"));
+    setSideTitle("draft.picked");
+
+    const wrN = Object.keys(wrMap).length;
+    setStatus(t("draft.started", {
+      set: code.toUpperCase(),
+      wr: wrN ? t("draft.wrFrom", {src: wrSource, n: wrN}) : t("draft.wrNone")
+    }));
+
+    startPack();
+  }catch(e){
+    setStatus(e.message, true);
+    $("startBtn").disabled = false;
+  }
+}
+
+function startPack(){
+  pickNo = 0;
+  current = packsAll[packNo];
+  render();
+}
+
+function humanPick(card){
+  if(phase !== "draft") return;
+
+  // 自分のピック
+  const myPack = current[0];
+  const i = myPack.indexOf(card);
+  if(i < 0) return;
+  myPack.splice(i, 1);
+  pool.push(card);
+  const w = Math.max(0, ratingOf(card) - 50);
+  cardColors(card).forEach(k => { seats[0].colorScore[k] += w; });
+
+  // 他の7人も同時にピック
+  for(let s = 1; s < PLAYERS; s++) botPick(seats[s], current[s], pickNo);
+
+  pickNo++;
+
+  // パックを回す（1・3パック目は左へ、2パック目は右へ）
+  const dir = (packNo % 2 === 0) ? 1 : -1;
+  const rotated = new Array(PLAYERS);
+  for(let s = 0; s < PLAYERS; s++){
+    rotated[(s + dir + PLAYERS) % PLAYERS] = current[s];
+  }
+  current = rotated;
+  packsAll[packNo] = current;
+
+  if(!current[0].length){
+    packNo++;
+    if(packNo >= PACKS){ finishDraft(); return; }
+    startPack();
+    return;
+  }
+  render();
+}
+
+function finishDraft(){
+  phase = "build";
+  $("phase").hidden = true;
+  $("bar").hidden = true;
+  $("lands").hidden = false;
+  $("exportWrap").hidden = false; $("exportActions").hidden = false;
+  $("targetRow").hidden = false;
+  $("sbHead").hidden = false;
+  $("sbBody").hidden = false;
+  setSideTitle("deck.title");
+  setStatus(t("draft.done", {n: pool.length}));
+  render();
+}
+
+
+/* ---------- 途中経過の保存と復元（リロード・電波切れ対策） ---------- */
+function snapDraft(){
+  const arrs = {pool, deck, side, basic:Object.values(basicCards)};
+  const meta = {v:1, setCode:poolSet, phase, packNo, pickNo, target, landCount, ts:Date.now(), n:pool.length};
+  if(phase === "draft"){                 // ドラフト途中は、卓の全パックも保存して続きから再開できるようにする
+    packsAll.forEach((pk, p) => pk.forEach((a, s) => { arrs["p" + p + "_" + s] = a; }));
+    seats.forEach((st, i) => { arrs["s" + i] = st.picked; });
+    meta.colorScore = seats.map(st => st.colorScore);
+    meta.np = packsAll.length;
+  }
+  return PoolSave.pack(meta, arrs);
+}
+function persistDraft(){ if(pool.length && (phase === "draft" || phase === "build")) PoolSave.save(SAVE_KEY, snapDraft()); }
+function archiveCurrent(){
+  if(!pool.length || (phase !== "draft" && phase !== "build")) return;
+  PoolSave.archive(SAVE_KEY, snapDraft());
+  if(PoolSave.redraw) PoolSave.redraw();
+}
+function applySnap(s, msgKey){
+  const u = PoolSave.unpack(s);
+  pool = u.pool || []; deck = u.deck || []; side = u.side || [];
+  basicCards = {}; (u.basic || []).forEach(c => { basicCards[c.name] = c; });
+  landCount = s.landCount || {};
+  poolSet = s.setCode || ""; setCode = "";
+  phase = s.phase; packNo = s.packNo || 0; pickNo = s.pickNo || 0;
+  packsAll = []; seats = [];
+  if(phase === "draft"){
+    for(let p = 0; p < (s.np || 0); p++) packsAll.push(Array.from({length: PLAYERS}, (_, i) => u["p" + p + "_" + i] || []));
+    seats = Array.from({length: PLAYERS}, (_, i) => ({id:i, picked:u["s" + i] || [], colorScore:(s.colorScore && s.colorScore[i]) || {W:0,U:0,B:0,R:0,G:0}}));
+    current = packsAll[packNo];
+  }
+  $("intro").hidden = true;
+  const building = phase === "build";
+  $("startBtn").disabled = !$("setSelect").value;
+  $("phase").hidden = building; $("bar").hidden = building;
+  $("optRow").hidden = false;
+  $("lands").hidden = !building; $("exportWrap").hidden = !building; $("exportActions").hidden = !building;
+  $("targetRow").hidden = !building; $("sbHead").hidden = !building; $("sbBody").hidden = !building;
+  setSideTitle(building ? "deck.title" : "draft.picked");
+  target = s.target || "main";
+  document.querySelectorAll("#targetSeg button").forEach(x => x.classList.toggle("on", x.dataset.target === target));
+  setStatus(t(msgKey, {n: pool.length}));
+  render();
+  if(poolSet){
+    Promise.resolve().then(async () => {
+      try{ await loadJapanese(poolSet); await loadWinRates(poolSet); render(); }catch(e){}
+    });
+  }
+}
+function restoreCurrent(){
+  if(PoolSave.retireStale(SAVE_KEY)){ setStatus(t("save.retired")); return false; }   // 1日以上前のプールは履歴へ
+  const s = PoolSave.load(SAVE_KEY);
+  if(s && s.n && (s.phase === "draft" || s.phase === "build")){ applySnap(s, "save.restored"); return true; }
+  return false;
+}
+
+/* ---------- 表示 ---------- */
+function wrOf(c){
+  if(!$("wrToggle").checked) return null;
+  return wrEntry(c);
+}
+
+
+function tile(c, onClick){
+  const li = document.createElement("li");
+  li.className = "tile r-" + c.rarity;
+  li.tabIndex = 0;
+  li._card = c;                                    // 長押しで拡大するときに使う
+  const name = displayName(c);
+  li.title = name + (c.type_line ? "\n" + c.type_line : "");
+  const urls = imageUrls(c);
+  if(urls.length){
+    const img = document.createElement("img");
+    img.src = urls[0]; img.alt = name; img.loading = "lazy";
+    li.appendChild(img);
+  }else{
+    const d = document.createElement("div");
+    d.className = "noimg"; d.textContent = name;
+    li.appendChild(d);
+  }
+  li.appendChild(CardZoom.button(c));              // 左下の虫眼鏡：押すと大きく見る
+  const w = wrOf(c);
+  if(w){
+    const b = document.createElement("span");
+    b.className = "wrbadge" + (isBomb(w) ? " bomb" : "");
+    b.textContent = (w.gih * 100).toFixed(1) + "%";
+    b.title = t("tip.gih", {p: (w.gih * 100).toFixed(1), n: w.games.toLocaleString()}) + "\n" + t("wr.gih.tip") + (isBomb(w) ? "\n" + t("tip.bomb") : "");
+    li.appendChild(b);
+  }
+  li.onclick = onClick;
+  li.onkeydown = ev => { if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); onClick(); } };
+  return li;
+}
+
+function render(){
+  const board = $("board");
+  board.innerHTML = "";
+
+  if(phase === "draft"){
+    const total = PACKS * PACK_SIZE;
+    const done = packNo * PACK_SIZE + pickNo;
+    $("phaseTitle").textContent = t("draft.phase", {p: packNo + 1, i: pickNo + 1});
+    $("phaseSub").textContent = t("draft.phaseSub", {n: current[0].length, t: total, d: done + 1});
+    $("bar").firstElementChild.style.width = (done / total * 100) + "%";
+
+    const ul = document.createElement("ul");
+    ul.className = "grid";
+    current[0].slice()
+      .sort(byRarity)
+      .forEach(c => ul.appendChild(tile(c, () => humanPick(c))));
+    board.appendChild(ul);
+  }else if(phase === "build"){
+    const remaining = pool.slice();
+    deck.concat(side).forEach(d => {
+      const i = remaining.findIndex(c => c.id === d.id);
+      if(i >= 0) remaining.splice(i, 1);
+    });
+    COLORS.forEach(col => {
+      const list = remaining.filter(c => colorKey(c) === col.key);
+      if(!list.length) return;
+      const h = document.createElement("div");
+      h.className = "sec";
+      h.innerHTML = `<h4>${manaIcon(col.key)}${colorLabel(col.key)}</h4><span>${t("unit.cards", {n: list.length})}</span>`;
+      board.appendChild(h);
+      const ul = document.createElement("ul");
+      ul.className = "grid";
+      list.sort(byRarity)
+          .forEach(c => ul.appendChild(tile(c, () => { (target === "side" ? side : deck).push(c); render(); })));
+      board.appendChild(ul);
+    });
+  }
+
+  renderSide();
+}
+
+/* 並び順：神話レア→レア→アンコモン→コモン。同じレアリティ内は勝率の高い順。 */
+const RARITY_RANK = {mythic:0, special:0, bonus:0, rare:1, uncommon:2, common:3};
+function byRarity(a, b){
+  const ra = RARITY_RANK[a.rarity] ?? 4, rb = RARITY_RANK[b.rarity] ?? 4;
+  return ra - rb || ratingOf(b) - ratingOf(a);
+}
+
+function colorKey(c){
+  if((c.type_line || "").includes("Land")) return "C";
+  const ci = (c.color_identity || []).filter(x => "WUBRG".includes(x));
+  if(!ci.length) return "C";
+  if(ci.length > 1) return "M";
+  return ci[0];
+}
+
+/* クリーチャー／スペル／土地の区分け、色の内訳、マナシンボルは draft-view.js（友達とドラフトと共通） */
+
+function renderSide(){
+  persistDraft();
+  const list = phase === "build" ? deck : pool;
+  const lands = Object.values(landCount).reduce((a,b) => a+b, 0);
+  const cnt = $("sideCount");
+  if(phase === "build"){
+    const total = deck.length + lands;
+    cnt.innerHTML = total + '<span style="font-size:13px;color:var(--muted)"> / 40</span>';
+    cnt.className = "count" + (total === 40 ? " ok" : "");
+  }else{
+    cnt.textContent = pool.length;
+    cnt.className = "count";
+  }
+
+  const body = $("sideBody");
+  body.innerHTML = "";
+  if(!list.length){
+    body.innerHTML = '<div class="empty">' + t(phase === "build" ? "deck.empty" : "draft.pickedEmpty") + '</div>';
+  }else{
+    renderSections(body, list, c => sideRow(c, phase === "build" ? "main" : "pick"));
+  }
+
+  // サイドボード（構築画面のみ）
+  if(phase === "build"){
+    const sc = $("sbCount");
+    sc.innerHTML = side.length + '<span style="font-size:12px;color:var(--muted)"> / ' + SIDE_MAX + '</span>';
+    sc.className = "count small" + (side.length > SIDE_MAX ? " over" : "");
+    const sb = $("sbBody");
+    sb.innerHTML = "";
+    if(!side.length){
+      sb.innerHTML = '<div class="empty">' + t("deck.sideEmpty") + '</div>';
+    }else{
+      const ul = document.createElement("ul");
+      side.slice().sort((a,b) => (a.cmc ?? 0) - (b.cmc ?? 0) || displayName(a).localeCompare(displayName(b), "ja"))
+          .forEach(c => ul.appendChild(sideRow(c, "side")));
+      sb.appendChild(ul);
+    }
+  }
+
+  ColorTally.render($("deckColors"), list);       // 色ごとの枚数（マナシンボルと数字）。ドラフト中は取ったカード、構築ではデッキ
+  if(phase === "build") renderLands();
+}
+
+/* 右欄の1行。where は pick（ドラフト中）／ main／ side */
+function sideRow(c, where){
+  const li = document.createElement("li");
+  li.className = "card-row r-" + c.rarity;
+  li._card = c;                                    // 長押しで拡大するときに使う
+  const w = wrOf(c);
+  li.innerHTML =
+    `<span class="rar ${c.rarity}"></span>` +
+    `<span class="name">${esc(displayName(c))}</span>` +
+    `<span class="wr${isBomb(w) ? " bomb" : ""}"${w ? ` title="${t("wr.gih.tip")}${isBomb(w) ? "\n" + t("tip.bomb") : ""}"` : ""}>${w ? (w.gih*100).toFixed(1) + "%" : ""}</span>` +
+    manaCostHtml(c);
+  li.onmouseenter = ev => showPreview(c, ev.clientX, ev.clientY);
+  li.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
+  li.onmouseleave = hidePreview;
+  if(where === "pick") return li;
+
+  // 行そのものを押すとプールへ戻す
+  li.onclick = () => {
+    const arr = where === "side" ? side : deck;
+    const i = arr.findIndex(x => x.id === c.id);
+    if(i >= 0) arr.splice(i, 1);
+    hidePreview(); render();
+  };
+  return li;
+}
+
+function renderLands(){
+  const lands = Object.values(landCount).reduce((a,b) => a+b, 0);
+  const lw = $("lands");
+  lw.innerHTML = `<div class="lands-head"><h4>${t("deck.lands")}</h4><span>${t("unit.total", {n: lands})}</span></div>`;
+  BASICS.forEach(en => {
+    const ja = landLabel(en);
+    const n = landCount[en] || 0;
+    const row = document.createElement("div");
+    row.className = "land-item";
+    const minus = document.createElement("button");
+    minus.className = "step"; minus.textContent = "−"; minus.disabled = n === 0;
+    minus.setAttribute("aria-label", t("deck.minus", {c: ja}));
+    minus.onclick = () => { landCount[en] = Math.max(0, n-1); renderSide(); };
+    const plus = document.createElement("button");
+    plus.className = "step"; plus.textContent = "＋";
+    plus.setAttribute("aria-label", t("deck.plus", {c: ja}));
+    plus.onclick = () => { landCount[en] = n+1; renderSide(); };
+    const name = document.createElement("span"); name.innerHTML = manaIcon("WUBRG"[BASICS.indexOf(en)]) + esc(ja);
+    const num = document.createElement("span"); num.className = "l-num"; num.textContent = n;
+    row.append(name, minus, num, plus);
+    lw.appendChild(row);
+  });
+  renderExport();
+}
+
+function renderExport(){
+  const m = new Map();
+  deck.forEach(c => m.set(c.id, {card:c, n:(m.get(c.id)?.n || 0) + 1}));
+  const lines = ["Deck"];
+  m.forEach(e => lines.push(`${e.n} ${e.card.name} (${e.card.set.toUpperCase()}) ${e.card.collector_number}`));
+  BASICS.forEach(en => {
+    const n = landCount[en] || 0;
+    if(!n) return;
+    const bc = basicCards[en];
+    lines.push(bc ? `${n} ${en} (${bc.set.toUpperCase()}) ${bc.collector_number}` : `${n} ${en}`);
+  });
+  if(side.length){
+    const sm = new Map();
+    side.forEach(c => sm.set(c.id, {card:c, n:(sm.get(c.id)?.n || 0) + 1}));
+    lines.push("", "Sideboard");
+    sm.forEach(e => lines.push(`${e.n} ${e.card.name} (${e.card.set.toUpperCase()}) ${e.card.collector_number}`));
+  }
+  const lands = Object.values(landCount).reduce((a,b) => a+b, 0);
+  $("exportBox").value = (deck.length || side.length || lands) ? lines.join("\n") : "";
+}
+
+/* ---------- プレビュー ---------- */
+function showPreview(c, x, y){
+  const urls = imageUrls(c);
+  if(!urls.length) return;
+  const box = $("preview");
+  box.innerHTML = "";
+  urls.forEach(u => {
+    const img = document.createElement("img");
+    img.src = u; img.alt = displayName(c); img.loading = "lazy";
+    box.appendChild(img);
+  });
+  box.style.display = "block";
+  movePreview(x, y);
+}
+
+function movePreview(x, y){
+  const box = $("preview");
+  if(box.style.display !== "block") return;
+  const w = 252, h = box.offsetHeight || 350;
+  let left = x + 18, top = y - h/2;
+  if(left + w > window.innerWidth - 8) left = x - w - 18;
+  if(left < 8) left = 8;
+  top = Math.min(Math.max(8, top), window.innerHeight - h - 8);
+  box.style.left = left + "px";
+  box.style.top = top + "px";
+}
+
+function hidePreview(){
+  const box = $("preview");
+  box.style.display = "none";
+  box.innerHTML = "";
+}
+
+/* ---------- イベント ---------- */
+$("startBtn").onclick = start;
+$("langSelect").value = I18N.lang;
+$("langSelect").onchange = e => I18N.set(e.target.value);
+I18N.onChange(() => { hidePreview(); renderSetOptions(); if(phase !== "idle") render(); });
+$("wrToggle").onchange = () => { hidePreview(); if(phase !== "idle") render(); };
+window.addEventListener("scroll", hidePreview, {passive:true});
+
+/* 指で長押ししたら、カードを画面いっぱいに出す（スマホで文章が読めないため）。
+   画像・名前・その下に出す説明は、ページごとに持っているものを渡す。 */
+CardZoom.setup({
+  images: imageUrls,
+  name: displayName,
+  sub: c => {
+    const w = wrOf(c);
+    return [c.type_line || "", w ? "GIH " + (w.gih * 100).toFixed(1) + "%" : ""].filter(Boolean).join("　");
+  }
+});
+CardZoom.hint();
+document.querySelectorAll("#targetSeg button").forEach(b => {
+  b.onclick = () => {
+    target = b.dataset.target;
+    document.querySelectorAll("#targetSeg button").forEach(x => x.classList.toggle("on", x.dataset.target === target));
+  };
+});
+$("copyBtn").onclick = async () => {
+  const t = $("exportBox").value;
+  if(!t) return;
+  try{
+    await navigator.clipboard.writeText(t);
+    $("copyBtn").textContent = t("deck.copied");
+  }catch(e){
+    $("exportBox").select();
+    $("copyBtn").textContent = t("deck.copyManual");
+  }
+  setTimeout(() => { $("copyBtn").textContent = t("deck.copy"); }, 2200);
+};
+
+if(!FROM_ROOM) loadSets();
+PoolSave.mountHistory(SAVE_KEY, $("histBox"), snap => { archiveCurrent(); applySnap(snap, "save.switched"); });
+if(!restoreCurrent() && FROM_ROOM && !PoolSave.history(SAVE_KEY).length) location.replace(I18N.href("./draftroom.html"));   // 組むプールが無ければ部屋の画面へ
+</script>
+<script src="./goods-widget.js?v=6" defer></script>
+<script src="./deck-dock.js?v=1" defer></script>
+</body>
+</html>

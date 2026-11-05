@@ -20,6 +20,7 @@
  */
 
 import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
+import { enLinks } from "./en-pages.mjs";
 import { existsSync, readFileSync } from "node:fs";
 import { loadArticle } from "./report-data.mjs";
 
@@ -44,8 +45,9 @@ const pct = v => v == null ? "—" : (v * 100).toFixed(1) + "%";
 const L = {
   ja: {
     site: "リミテッド・ワークベンチ",            // ヘッダーの文字（左のロゴが「MTGアリーナ」を担う）
-    siteFull: "MTGアリーナ リミテッド・ワークベンチ",   // <title> 用（検索向けに「MTGアリーナ」を残す）
-    title: (s, c) => `${s}（${c}）リミテッド カード点数ランキング・評価｜勝率で見る強いカード`,
+    siteFull: "MTGアリーナ リミテッド・ワークベンチ",   // 一覧ページの <title> 用（検索向けに「MTGアリーナ」を残す）
+    // セットのページの <title>。検索結果では30字ほどで切れるので、探される言葉（セット名・評価・点数ランキング）を前に置き、サイト名は付けない（2026年11月）
+    title: (s, c) => `${s}（${c}）カード評価・点数ランキング｜MTGアリーナ リミテッド`,
     desc: (s, g, c, sp) => `MTGアリーナ「${s}（${c}）」のリミテッド（ドラフト・シールド）で強いカードを、実戦データ（${g}試合）の勝率で採点。コモン・アンコモン・レア別のカード点数ランキングに加えて、${sp ? "環境の速さ、" : ""}強い色、勝率の高い2色の組み合わせも分かります。`,
     h1: s => `${s}｜リミテッド カード点数ランキングと環境レポート`,
     lead: "マジック：ザ・ギャザリング アリーナのドラフトとシールドについて、実戦のデータを集計した勝率です。カードの点数（評価）は、この勝率で見られます。",
@@ -100,7 +102,7 @@ const L = {
   en: {
     site: "Limited Workbench",
     siteFull: "MTG Arena Limited Workbench",
-    title: (s, c) => `${s} (${c}) Limited card ratings — best cards ranked by win rate (MTG Arena)`,
+    title: (s, c) => `${s} (${c}) Limited card ratings & tier list | MTG Arena`,
     desc: (s, g, c, sp) => `Which cards are best in ${s} (${c}) Limited on MTG Arena? Card ratings by win rate from ${g} games of real match data, ranked by rarity — plus ${sp ? "format speed, " : ""}the strongest colours and the best two-colour pairs.`,
     h1: s => `${s} | Limited card ratings and format report`,
     lead: "Real win rates for Magic: The Gathering Arena Draft and Sealed, aggregated from match data. Use them as card ratings: the higher the win rate, the stronger the card.",
@@ -526,7 +528,6 @@ ${GOODS_CSS}
       ${nav}
     </nav>
 ${body.header}
-    <link rel="alternate" hreflang="${lang === "ja" ? "en" : "ja"}" href="${other}">
   </div>
 </header>
 <main>
@@ -705,7 +706,7 @@ function setPage(lang, code, setDisplay, info, arts, speedIndex, names, videos, 
   const canonical = pretty(`${SITE}/${OUT}/${code}${lang === "en" ? ".en" : ""}.html`);
   const altJa = pretty(`${SITE}/${OUT}/${code}.html`), altEn = pretty(`${SITE}/${OUT}/${code}.en.html`);
   const title = T.title(setDisplay, code);
-  const head = `<title>${esc(title)} — ${esc(T.siteFull)}</title>
+  const head = `<title>${esc(title)}</title>
 <meta name="description" content="${esc(T.desc(setDisplay, totalGames, code, hasSpeed))}">
 <link rel="canonical" href="${canonical}">
 <link rel="alternate" hreflang="ja" href="${altJa}">
@@ -861,7 +862,7 @@ async function main(){
       // 拡大表示の画像は、日本語のページは日本語版、英語のページは英語版（無ければ日本語版）
       const full = lang === "en" ? { ...(cache.images || {}), ...(cache.imagesEn || {}) } : (cache.images || {});
       const html = setPage(lang, code, name[lang], info, arts, speedIndex, cache.names || {}, videos, long, cache.images || {}, full);
-      await writeFile(`${OUT}/${code}${lang === "en" ? ".en" : ""}.html`, html, "utf8");
+      await writeFile(`${OUT}/${code}${lang === "en" ? ".en" : ""}.html`, lang === "en" ? enLinks(html, OUT) : html, "utf8");   // 英語のページのリンクは英語版へ
     }
     await sleep(120);
   }
@@ -880,7 +881,7 @@ async function main(){
   }catch(e){}
   profileOnly.sort((a, b) => (b.released_at || "").localeCompare(a.released_at || ""));
   await writeFile(`${OUT}/index.html`, indexPage("ja", rows, profileOnly), "utf8");
-  await writeFile(`${OUT}/index.en.html`, indexPage("en", rows, profileOnly), "utf8");
+  await writeFile(`${OUT}/index.en.html`, enLinks(indexPage("en", rows, profileOnly), OUT), "utf8");
   console.error(`セット別ページを生成: ${rows.length}セット × 2言語`);
 }
 

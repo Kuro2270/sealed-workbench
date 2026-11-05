@@ -10,6 +10,12 @@
  *
  * 文言を足すときは STRINGS に ja と en を両方書く。
  * 選んだ言語は localStorage に残る。
+ *
+ * 日本語と英語で URL を分けているページ（EN_PAGES。英語版は <名前>.en.html。2026年11月から）
+ *   ・英語版は maintenance/build-en-pages.mjs が日本語版から作る。<html data-page-lang="ja|en"> が付く
+ *   ・このページの言語は URL で決まる（ブラウザの言語では変えない。検索エンジンが英語の設定で見に来ても、日本語版は日本語のまま載るように）
+ *   ・言語を選び直すと、もう片方の URL へ移る。前に選んだ言語があれば、その言語のページへ移る
+ *   ・ページの中のリンクは、いまの言語のページを指すように直す（I18N.href(url) でも直せる）
  */
 (function(){
   const STRINGS = {
@@ -1090,13 +1096,57 @@
   const KEY = "sw.lang";
   const listeners = [];
 
+  /* 日本語と英語で URL を分けているページ（サイトの直下の <名前>.html と <名前>.en.html）。
+     maintenance/build-en-pages.mjs もこの並びを読んで英語版を作る */
+  const EN_PAGES = ["index", "sealed", "draft", "draftroom", "reports", "assistant", "sealed-assist", "arena", "swiss", "table",
+                    "begin", "practice", "play", "faq", "about", "contact", "privacy"];
+  const PAGE_LANG = (document.documentElement && document.documentElement.dataset.pageLang) || null;   // "ja" / "en"。URL で言語が決まるページだけ
+  const SPLIT_DIRS = ["start", "goods", "sets"];   // この下のページは、もともと日本語（.html）と英語（.en.html）で分かれている
+
+  function saved(){
+    try{ const v = localStorage.getItem(KEY); if(v === "ja" || v === "en") return v; }catch(e){ /* 保存できない環境でも動かす */ }
+    return null;
+  }
   function detect(){
-    try{
-      const saved = localStorage.getItem(KEY);
-      if(saved === "ja" || saved === "en") return saved;
-    }catch(e){ /* 保存できない環境でも動かす */ }
+    if(PAGE_LANG) return PAGE_LANG;
+    const s = saved();
+    if(s) return s;
     const nav = (navigator.language || "en").toLowerCase();
     return nav.startsWith("ja") ? "ja" : "en";
+  }
+
+  /* url（このサイトの中のページ）を、to の言語のページの URL にする。言語で分かれていないページはそのまま返す */
+  function hrefFor(url, to){
+    let u;
+    try{ u = new URL(url, location.href); }catch(e){ return url; }
+    if(u.origin !== location.origin || !/^https?:$/.test(u.protocol)) return url;
+    const m = u.pathname.match(/^\/(?:([a-z]+)\/)?([^\/]*)$/);
+    if(!m) return url;
+    const dir = m[1] || "", file = m[2] || "index.html";
+    const f = file.match(/^(.+?)(\.en)?(\.html)?$/);
+    if(!f || (!f[3] && file.includes(".") && !f[2])) return url;          // .html でないファイル（画像・データ）は触らない
+    const base = f[1];
+    if(dir ? !SPLIT_DIRS.includes(dir) : !EN_PAGES.includes(base)) return url;
+    const name = base + (to === "en" ? ".en" : "") + (f[3] || "");
+    u.pathname = "/" + (dir ? dir + "/" : "") + (!dir && base === "index" && to !== "en" ? "" : name);   // 日本語のトップは「/」
+    return u.href;
+  }
+  /* ページの中のリンク（a[href]）を、いまの言語のページへ向ける */
+  function fixLinks(scope){
+    if(!PAGE_LANG) return;
+    scope.querySelectorAll("a[href]").forEach(a => {
+      if(a.hasAttribute("data-keep-lang")) return;
+      const h = a.getAttribute("href");
+      if(!h || /^(#|mailto:|tel:|javascript:)/i.test(h)) return;
+      const n = hrefFor(h, lang);
+      if(n !== h && n !== new URL(h, location.href).href) a.setAttribute("href", n);
+    });
+  }
+
+  /* 前に選んだ言語と、このページの言語が違えば、選んだ言語のページへ移る（検索エンジンは選んだ言語を持たないので、移らない） */
+  if(PAGE_LANG){
+    const s = saved();
+    if(s && s !== PAGE_LANG){ const to = hrefFor(location.href, s); if(to !== location.href) location.replace(to); }
   }
 
   let lang = detect();
@@ -1155,6 +1205,7 @@
     setMeta("property", "og:image", location.origin + "/" + ogp + "-" + lang + ".png");
     setMeta("name", "twitter:image", location.origin + "/" + ogp + "-" + lang + ".png");
     document.documentElement.lang = lang;
+    fixLinks(scope);
     setJsonLd();
   }
 
@@ -1201,8 +1252,10 @@
 
   function set(next){
     if(next !== "ja" && next !== "en") return;
+    try{ localStorage.setItem(KEY, next); }catch(e){ /* 保存できなくても続行 */ }
+    // URL で言語が決まるページは、もう片方の言語のページへ移る（入力中の内容は、各ページの保存の仕組みで残る）
+    if(PAGE_LANG){ if(next !== PAGE_LANG) location.href = hrefFor(location.href, next); return; }
     lang = next;
-    try{ localStorage.setItem(KEY, lang); }catch(e){ /* 保存できなくても続行 */ }
     apply();
     listeners.forEach(fn => fn(lang));
   }
@@ -1211,9 +1264,17 @@
     get lang(){ return lang; },
     isJa(){ return lang === "ja"; },
     t, set, apply, setName, setLabel,
+    href(url){ return hrefFor(url, lang); },        // サイトの中の URL を、いまの言語のページにする（スクリプトでページを移るとき用）
+    get pageLang(){ return PAGE_LANG; },
     onChange(fn){ listeners.push(fn); }
   };
   window.t = t;
 
   document.addEventListener("DOMContentLoaded", () => apply());
+  // あとから描かれたリンク（一覧の中のリンクなど）も、押したときにいまの言語のページへ向ける
+  document.addEventListener("click", e => {
+    if(!PAGE_LANG || !e.target.closest) return;
+    const a = e.target.closest("a[href]");
+    if(a && !a.hasAttribute("data-keep-lang")) fixLinks(a.parentNode || document);
+  }, true);
 })();

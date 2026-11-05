@@ -98,9 +98,9 @@
     groups.forEach(function(g){
       var lab = g.querySelector(".ngl"), href = lab && catOf(g);
       if (!href) return;
-      g._href = href;
+      g._href = window.I18N && I18N.href ? I18N.href(href) : href;   // 英語のページでは英語版へ
       lab.classList.add("ngcat");
-      if (herePath === href.replace(/\.html$/, "")) g.classList.add("has-on");
+      if (herePath === new URL(g._href, location.href).pathname.replace(/\.html$/, "")) g.classList.add("has-on");
     });
     var desk = window.matchMedia ? matchMedia("(min-width:1025px)") : { matches: false };
     function closeAll(except){

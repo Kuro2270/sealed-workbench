@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en" data-page-lang="en" data-title="page.reports.title" data-desc="desc.reports">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Set reports and card ratings — MTG Arena Limited in win-rate data</title>
+<!-- seo:start（maintenance/build-en-pages.mjs が書く。手で直さない。文言は i18n.js） -->
+<meta name="description" content="Which cards are best in Magic: The Gathering Arena Limited? Card ratings by win rate from real game data, ranked by rarity, plus format speed, colour pair strength, the best cards at each rarity, how the mana curve performs, and 7-win decks for each colour pair — set by set.">
+<link rel="canonical" href="https://sealed-workbench.com/reports.en">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/reports">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/reports.en">
+<link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/reports">
+<meta property="og:title" content="Set reports and card ratings — MTG Arena Limited in win-rate data">
+<meta property="og:description" content="Which cards are best in Magic: The Gathering Arena Limited? Card ratings by win rate from real game data, ranked by rarity, plus format speed, colour pair strength, the best cards at each rarity, how the mana curve performs, and 7-win decks for each colour pair — set by set.">
+<meta property="og:url" content="https://sealed-workbench.com/reports.en">
+<meta property="og:image" content="https://sealed-workbench.com/ogp-en.png">
+<meta property="og:locale" content="en_US">
+<!-- seo:end -->
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MTG Arena Limited Workbench">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="./i18n.js?v=20"></script>
+<script src="./analytics.js"></script>
+<script src="./tip.js" defer></script>
+<script src="./trophies.js?v=12"></script>
+<script src="/navmenu.js" defer></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#10304F">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Workbench">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>
+<style>
+  :root{
+    --pine:#10304F; --pine-deep:#0A2038;
+    --paper:#F5F8FC; --paper-2:#E8EEF6;
+    --ink:#0D1B2A; --muted:#5C7185;
+    --gold:#2F7DF6; --line:#D3DFEB;
+    --w:#FAF4E2; --u:#7FB4D8; --b:#2C2833; --r:#DB8068; --g:#79A87F; --m:#C3A03B; --c:#C6CCC9;
+    --hot:#1E7A52; --cold:#A24B32;
+    --radius:8px;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  /* 内容の長さでスクロールバーが出たり消えたりしても、位置が動かないようにする */
+  html{overflow-y:scroll;scrollbar-gutter:stable}
+  body{background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.8}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+
+  header{background:linear-gradient(135deg,var(--pine-deep) 0%,var(--pine) 55%,#17466F 100%);color:var(--paper);padding:24px 24px 16px;border-bottom:3px solid var(--gold);box-shadow:0 10px 30px -18px rgba(8,26,48,.9)}
+  .wrap{max-width:1180px;margin:0 auto}
+  .head-top{display:block}
+  .brand{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em;color:#9CC8FF;line-height:24px;margin:0 0 12px}
+
+  /* 言語の切り替えは、どのページでも見出しの右上に置く */
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+  .brandrow .brand{margin:0}
+  select.langsel{min-width:112px;padding:6px 10px;font-size:13px}
+  header h1{font-size:24px;margin:0}
+  header p{margin:6px 0 0;color:#A9C2DE;font-size:13px;line-height:1.55;max-width:80ch;min-height:41px}
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+  nav a{
+    display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;
+    font-size:13px;font-weight:500;line-height:1;white-space:nowrap;
+    color:#C6D9EE;text-decoration:none;background:rgba(255,255,255,.05);
+    border:1px solid #2C4D74;transition:background .12s,color .12s;
+  }
+  nav a:hover{background:#1A4A79;color:var(--paper);border-color:#2F5E8F}
+  nav a.on{background:var(--gold);border-color:var(--gold);color:#FFFFFF;font-weight:700}
+
+  /* ナビはカテゴリごとにまとめる。小さな見出しを付けて、探す場所を分かりやすくする */
+  nav{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end}
+  .ng{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:16px;border-left:1px solid rgba(255,255,255,.16)}
+  .ng:first-of-type{padding-left:0;border-left:none}
+  .ng{position:relative;padding-top:17px}
+  .ng:has(.ngs){padding-top:35px}
+  .ngl{position:absolute;left:16px;top:0;white-space:nowrap;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#8FA9C6;text-transform:uppercase}
+  .ng:first-of-type .ngl,.ng:first-of-type .ngs{left:0}
+  .ngs{position:absolute;left:16px;top:17px;white-space:nowrap;font-size:11px;color:#8FA9C6;line-height:1.3}
+  nav a .pcb{display:inline-block;margin-left:6px;padding:0 5px;border-radius:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;line-height:16px;vertical-align:1px;background:rgba(255,255,255,.14);color:#CFE3FA}
+  nav a.on .pcb{background:rgba(255,255,255,.28);color:#fff}
+  @media (max-width:760px){
+    .ng{padding-left:0;border-left:none;width:100%} .ngl,.ngs{left:0}
+  }
+  .controls{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  select{background:var(--pine-deep);color:var(--paper);border:1px solid #2C4D74;padding:9px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px;min-width:190px}
+  /* セット名が入る前後で幅が動かないよう固定する */
+  #setSelect{width:300px}
+
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  main{max-width:900px;margin:0 auto;padding:22px 24px 70px}
+  /* 記事内の形式切り替え */
+  /* 形式の切り替えタブ */
+  .tabs{display:inline-flex;gap:3px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .tab{background:transparent;border:none;border-radius:999px;padding:8px 22px;font-family:inherit;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;line-height:1.4}
+  .tab:hover:not(:disabled):not(.on){color:var(--ink);background:#fff}
+  .tab.on{background:var(--pine);color:var(--paper)}
+  .tab:disabled{opacity:.38;cursor:not-allowed}
+  .modebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+  .modebar .lbl{font-size:13px;color:var(--muted)}
+  .modebar select{background:#fff;color:var(--ink);border:1px solid var(--line);min-width:150px;padding:8px 12px;border-radius:var(--radius);font-family:inherit;font-size:14px}
+
+  .status{padding:14px 16px;background:var(--paper-2);border-left:3px solid var(--muted);font-size:14px;color:var(--muted);margin-bottom:8px}
+  .status.preview{border-left-color:var(--gold);color:var(--ink)}
+  /* 下見（固定ページの本文を差し込んだもの） */
+  .profile .early-note{margin:12px 0 18px;padding:14px 18px;border:1px solid var(--gold,#F2C94C);border-left:6px solid var(--gold,#F2C94C);border-radius:10px;background:#FFFBEA}
+  .profile .early-note h3{margin:0 0 6px;font-size:15px}
+  .profile .early-note p{margin:0 0 6px;line-height:1.7}
+  .profile .early-note p.lead{margin:0;font-size:12.5px}
+  .profile .early-note p.when{margin:10px 0 0;padding-top:10px;border-top:1px dashed #E3C96A;color:var(--muted);font-size:13px}
+  .profile .early-note .etop{margin:10px 0 4px}
+  .profile .early-note .etop h4{margin:0 0 6px;font-size:13.5px}
+  .profile .early-note .etop ul{list-style:none;margin:0;padding:0;display:flex;gap:12px;flex-wrap:wrap}
+  .profile .early-note .etop li{width:146px;text-align:center;font-size:12.5px;line-height:1.4}
+  .profile .early-note .etop img{width:146px;height:auto;border-radius:7px;display:block;margin:0 0 4px;box-shadow:0 2px 8px rgba(15,28,23,.2)}
+  .profile .dot{display:inline-block;margin-right:6px;vertical-align:-1px}
+  .profile td.num,.profile th.num{text-align:right}
+  .profile td{text-align:left}
+  .profile .rar{font-size:11px;border-radius:2px;padding:1px 5px;font-weight:700;color:#fff;background:#2A3B4C;margin-right:6px}
+  .profile .rar.uncommon{background:#8496A0}.profile .rar.rare{background:var(--gold)}.profile .rar.mythic{background:#C4552C}
+  .profile svg{max-width:100%;height:auto}
+  .profile .cn{border-bottom:1px dotted var(--line);cursor:default}
+  .profile .mana{display:inline-flex;gap:2px;vertical-align:middle}
+  .profile .ms{width:16px;height:16px;display:block}
+  .profile .ctabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+  .profile .ctab{font:inherit;font-size:13.5px;font-weight:700;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);cursor:pointer}
+  .profile .ctab.on{background:var(--navy, #0F2A44);color:#fff;border-color:var(--navy, #0F2A44)}
+  .profile .ctab .dot{display:inline-block;margin-right:5px}
+  .profile .grp{margin:0 0 18px;border:1px solid var(--line);border-radius:var(--radius);padding:6px 12px;background:#fff}
+  .profile .grp[hidden]{display:none}
+  .profile .grp h4{margin:12px 0 4px;font-size:13px}
+  .profile .grp small{color:var(--muted);font-weight:400}
+  .profile table.cards td{padding:4px 6px;text-align:left}
+  .profile table.cards td.cost{width:96px;white-space:nowrap}
+  .profile table.cards td.type{color:var(--muted);font-size:12.5px;white-space:nowrap}
+  .profile table.cards td.num{width:48px;text-align:right}
+  .profile .tag{font-size:10.5px;border:1px solid var(--line);color:var(--ink);border-radius:3px;padding:0 4px;margin-left:6px;vertical-align:1px}
+  @media (max-width:640px){ .profile table.cards td.type{display:none} .profile small.en{display:none} }
+  .profile small.en{color:var(--muted);margin-left:6px}
+  /* 読み込み中を示す回転 */
+  .status.busy{display:flex;align-items:center;gap:10px}
+  .status.busy::before{
+    content:"";flex:none;width:15px;height:15px;border-radius:50%;
+    border:2px solid rgba(15,28,23,.18);border-top-color:var(--gold);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){ .status.busy::before{animation-duration:2.4s} }
+  .status.err{border-left-color:#B4432E;color:#8A3422;background:#F6E9E5}
+  .built{font-size:12px;color:var(--muted);margin:0 0 22px}
+  .longvideo{margin:0 0 22px}
+  .longvideo h3{margin:0 0 4px;font-size:16px}
+  .longvideo p.lead{margin:0 0 10px;color:var(--muted);font-size:13px}
+  .longvideo .lv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .longvideo .yt{position:relative;flex:1 1 440px;min-width:0;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#0A2038}
+  .longvideo .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .longvideo .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .longvideo .yt button span{width:64px;height:64px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .longvideo .yt button span::after{content:"";border-left:22px solid #0B1E33;border-top:13px solid transparent;border-bottom:13px solid transparent;margin-left:5px}
+  .longvideo .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .longvideo .chap{flex:1 1 220px;min-width:0;margin:0;padding:0;list-style:none;font-size:14px}
+  .longvideo .chap a{display:flex;gap:10px;padding:5px 8px;border-radius:8px;text-decoration:none;color:inherit}
+  .longvideo .chap a:hover{background:rgba(47,125,246,.12)}
+  .longvideo .chap time{flex:none;width:3.2em;color:#2F7DF6;font-variant-numeric:tabular-nums;font-weight:700}
+  .video{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;margin:0 0 22px}
+  .video .yt{position:relative;width:min(240px,100%);aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#0A2038;flex:none}
+  .video .yt img{width:100%;height:100%;object-fit:cover;display:block}
+  .video .yt button{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(10,32,56,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .video .yt button span{width:60px;height:60px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .video .yt button span::after{content:"";border-left:20px solid #0B1E33;border-top:12px solid transparent;border-bottom:12px solid transparent;margin-left:5px}
+  .video .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .video .vtext{flex:1 1 240px;min-width:0}
+  .video .vtext h3{margin:0 0 4px;font-size:16px}
+  .video .vtext p{margin:0 0 8px;color:var(--muted);font-size:13px}
+  .video .vtext a{font-size:13px}
+
+  section{margin-bottom:36px}
+  h2{font-size:19px;margin:0 0 6px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  .lead{font-size:13.5px;color:var(--muted);margin:0 0 14px}
+  .verdict{background:#fff;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:var(--radius);padding:13px 16px;margin-bottom:14px;font-size:14.5px}
+  /* 表示件数の切り替え */
+  .chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 12px}
+  .chips .lbl{font-size:12.5px;color:var(--muted);margin-right:4px}
+  .chip{font:inherit;font-size:12.5px;line-height:1;padding:7px 13px;border-radius:999px;cursor:pointer;
+        background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .chip:hover{border-color:var(--gold)}
+  .chip[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
+  .verdict .gap{display:block;font-size:12.5px;color:var(--muted);margin-top:5px}
+
+  /* 横棒グラフ */
+  .bars{display:grid;gap:7px}
+  .bar{display:grid;grid-template-columns:150px 1fr 62px 78px;gap:10px;align-items:center;font-size:13.5px}
+  .bar .track{height:20px;background:var(--paper-2);border-radius:3px;overflow:hidden}
+  .bar .track i{display:block;height:100%;background:var(--pine);border-radius:3px}
+  .bar .track i.hot{background:var(--hot)}
+  .bar .track i.cold{background:var(--cold)}
+  .bar .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+  .bar .n{text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .bar .lbl{display:flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(15,28,23,.22)}
+  @media (max-width:620px){ .bar{grid-template-columns:96px 1fr 54px} .bar .n{display:none} }
+  /* Tier表（色の強さ・色の組み合わせ） */
+  .tiers{display:grid;gap:6px}
+  .trow{display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:stretch}
+  .tlab{display:flex;align-items:center;justify-content:center;border-radius:8px;font:800 24px/1 "Bricolage Grotesque",sans-serif;color:#fff}
+  .tlab.S{background:#C9472E}.tlab.A{background:#D98A1E}.tlab.B{background:#4F8A4A}.tlab.C{background:#6B7A8A}
+  .tcells{display:flex;flex-wrap:wrap;gap:6px;padding:6px;background:var(--paper-2);border-radius:8px;min-height:46px;align-items:center}
+  .tchip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:13.5px}
+  .tchip b{font-variant-numeric:tabular-nums}
+  .tchip small{color:var(--muted);font-size:11.5px}
+  .tchip .slp{font-size:11px;font-weight:700;color:#fff;background:var(--gold);border-radius:4px;padding:0 6px}
+  .tchip.sleeper{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+  /* 色の組み合わせのTier表：押すと、その組み合わせの全勝デッキのサンプルを下に出す */
+  button.tchip.pick{font:inherit;font-size:13.5px;color:inherit;cursor:pointer;transition:transform .12s, box-shadow .12s}
+  button.tchip.pick:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(16,48,79,.18)}
+  button.tchip.pick.on{border-color:var(--pine);background:var(--pine);color:#fff;box-shadow:0 3px 8px rgba(16,48,79,.25)}
+  button.tchip.pick:focus-visible{outline:3px solid rgba(47,125,246,.45);outline-offset:2px}
+  .trophy .thead{font-size:16px;margin:22px 0 4px;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .tavg{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+  .tlab.D{background:#8C5E58}
+  /* カードのティア表 */
+  .ctier .tcells{gap:5px}
+  .ctier .tchip{font-size:13px;padding:4px 9px;cursor:default}
+  .ctier .tchip b{font-size:12px;font-weight:700;color:var(--muted)}
+  .ctier .tempty{font-size:12px;color:var(--muted);padding:0 4px}
+  /* ティア表：レアリティの切り替え（大きめのタブ）と、色の絞り込み */
+  .ctabs{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--pine);border-radius:12px;overflow:hidden;margin:4px 0 12px;background:#fff}
+  .ctabs button{font:inherit;font-size:15px;font-weight:700;padding:10px 6px;background:#fff;color:var(--pine);border:0;border-left:1px solid var(--line);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.25}
+  .ctabs button:first-child{border-left:0}
+  .ctabs button:hover{background:var(--paper-2)}
+  .ctabs button .n{font-size:11.5px;font-weight:500;color:var(--muted)}
+  .ctabs button[aria-pressed="true"]{background:var(--pine);color:#fff}
+  .ctabs button[aria-pressed="true"] .n{color:#BFD3EA}
+  .ctabs .rd{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:0}
+  .ctabs .rd.mr{background:linear-gradient(135deg,#E0A23B,#C4552C)}.ctabs .rd.u{background:#9AAAB4}.ctabs .rd.c{background:#2A3B4C;box-shadow:0 0 0 1px #fff inset}
+  @media (max-width:520px){ .ctabs button{font-size:13px;padding:9px 4px} }
+  @media (max-width:420px){ .ctabs .rd{display:none} }
+  .ccolors{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 12px}
+  .ccolors .lbl{font-size:12.5px;color:var(--muted);margin-right:2px}
+  .ccolors .chip{padding:6px 10px}
+  /* カード表の絞り込み */
+  .cfilter{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 14px}
+  .cfilter .chips{margin:0}
+  .cfilter select{font:inherit;font-size:12.5px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink)}
+  .chip .ms{margin:0}
+  details.others{margin-top:12px} details.others summary{cursor:pointer;font-size:13px;color:var(--muted)}
+  details.others .bars{margin-top:8px}
+  /* 全勝デッキ */
+  .trophy .ttabs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+  .trophy .ttab{font:inherit;font-size:13.5px;font-weight:700;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+  .trophy .ttab.on{background:var(--pine);color:#fff;border-color:var(--pine)}
+  .trophy .ttab .slp{font-size:10.5px;color:#fff;background:var(--gold);border-radius:4px;padding:0 5px}
+  .trophy .tstat{font-size:13px;color:var(--muted);margin:0 0 8px}
+  .trophy .tnav{display:flex;align-items:center;gap:12px;margin:0 0 10px;font-size:14px;font-weight:600}
+  /* サンプルの切り替え：青い丸ボタン。カーソルを当てると矢印の向きに少し動く */
+  .trophy .tnav button{width:40px;height:40px;border:0;border-radius:50%;background:var(--gold);color:#fff;font-size:24px;font-weight:700;line-height:1;padding:0 0 3px;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(47,125,246,.35);transition:transform .15s ease,box-shadow .15s ease,background .15s ease}
+  .trophy .tnav button:hover:not(:disabled){background:#1F68D8;box-shadow:0 4px 12px rgba(47,125,246,.5)}
+  .trophy .tnav button[data-nav="1"]:hover:not(:disabled){transform:translateX(3px) scale(1.08)}
+  .trophy .tnav button[data-nav="-1"]:hover:not(:disabled){transform:translateX(-3px) scale(1.08)}
+  .trophy .tnav button:active:not(:disabled){transform:scale(.95)}
+  .trophy .tnav button:focus-visible{outline:3px solid rgba(47,125,246,.45);outline-offset:3px}
+  .trophy .tnav button:disabled{background:#B8C6D6;box-shadow:none;cursor:default}
+  .trophy .tdeck{overflow-x:auto;padding-bottom:4px}
+  .trophy .tsect{margin:10px 0 0;min-width:460px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:8px 12px 12px}
+  .trophy .tsect h3{font-size:14px;margin:0 0 4px;color:var(--ink)}
+  .trophy .tavgmv{display:inline-block;margin:8px 0 0;font-size:13px;color:var(--muted);background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:3px 12px}
+  .trophy .tavgmv b{color:var(--ink);font-size:15px}
+  /* カードは文字が読める範囲で少し小さめ（1列 最大165px） */
+  .trophy .tcurve{display:grid;grid-template-columns:repeat(5,minmax(0,165px));gap:12px;align-items:start}
+  .trophy .tcol{min-width:0}
+  .trophy .tcol .ch{font-size:12px;color:var(--muted);text-align:center;margin:0 0 4px;font-weight:600}
+  .trophy .tcol .ch b{color:var(--ink)}
+  .trophy .tcol.empty .ch{opacity:.5}
+  /* 同じ列のカードは上部（名前とマナコスト）が見えるように重ねる。列の高さがそのままマナカーブになる */
+  .trophy .tcard{position:relative;border-radius:6px;overflow:hidden;background:var(--paper-2);aspect-ratio:488/680;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+  .trophy .tcard + .tcard{margin-top:-118%}
+  .trophy .tcard:hover{z-index:2}
+  /* レアリティ：カードの外ふち（構築画面と同じ色） */
+  .trophy .tcard.r-common{box-shadow:0 0 0 2px #1E2933}
+  .trophy .tcard.r-uncommon{box-shadow:0 0 0 3px #A3B8CA,0 0 6px 2px rgba(163,184,202,.75)}
+  .trophy .tcard.r-rare{box-shadow:0 0 0 3px #E0AE2E}
+  .trophy .tcard.r-mythic{box-shadow:0 0 0 3px #E8582B}
+  .trophy .tlands{display:flex;flex-wrap:wrap;gap:12px}
+  .trophy .tlands .tcard{width:min(165px,calc((100% - 48px) / 5));margin:0}
+  .trophy .tcard .cnt{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(15,28,40,.85);color:#fff;font-weight:800;font-size:18px;border-radius:8px;padding:3px 12px;white-space:nowrap}
+  .trophy .tcard img{width:100%;height:100%;object-fit:cover;display:block}
+  .trophy .tcard .nm{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;padding:6px;text-align:center;font-size:12px}
+  .trophy .tnote{font-size:12px;color:var(--muted);margin:8px 0 0}
+
+
+  /* カード表 */
+  .rar-group{margin-bottom:22px}
+  .rar-group h3{font-size:15px;margin:0 0 6px}
+  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+  th{text-align:right;font-size:12px;font-weight:700;color:var(--muted);padding:6px 8px;border-bottom:2px solid var(--line);white-space:nowrap}
+  th:first-child{text-align:left}
+  td{padding:5px 8px;border-bottom:1px solid var(--paper-2);text-align:right;font-size:13.5px}
+  td:first-child{text-align:left}
+  tbody tr:hover{background:var(--paper-2)}
+  .cname{display:flex;align-items:center;gap:7px}
+  .cname .nm{border-bottom:1px dotted var(--line);cursor:default}
+  .cname .art{width:40px;height:30px;flex:none;display:block;border-radius:4px;object-fit:cover;background:var(--paper-2)}
+  .tchip .tpic{position:relative;flex:none;display:block}
+  .tchip .tpic .art{width:30px;height:22px;display:block;border-radius:3px;object-fit:cover;background:var(--paper-2)}
+  .tchip .tpic > :last-child{position:absolute;right:-5px;bottom:-4px;transform:scale(.72)}
+  .ctier .tchip{padding:3px 9px 3px 4px}
+  .cname .pic{display:flex;align-items:center;gap:7px;flex:none}
+  /* スマホ：名前の幅を空けるため、色の記号は絵の右下に重ねる */
+  @media (max-width:720px){
+    .cname .art{width:34px;height:25px}
+    .cname .pic{position:relative;margin-right:4px}
+    .cname .pic > :last-child{position:absolute;right:-6px;bottom:-5px;transform:scale(.8)}
+    .rar-group td{padding:5px 5px}
+  }
+  .wr.hot{color:var(--hot);font-weight:700}
+  .wr.cold{color:var(--cold)}
+  .thin{color:var(--muted);font-size:12px}
+
+  .notes{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px}
+  .notes p{margin:0 0 10px}
+  .notes p:last-child{margin:0}
+
+  #preview{position:fixed;z-index:50;pointer-events:none;display:none;filter:drop-shadow(0 10px 24px rgba(15,28,23,.35))}
+  #preview img{display:block;width:244px;height:auto;border-radius:11px}
+
+  footer{max-width:900px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:11.5px;line-height:1.9}
+  footer a{color:var(--muted)}
+
+  /* ---------- スマートフォン ---------- */
+  @media (max-width:720px){
+    header p{min-height:0}
+    html,body{overflow-x:hidden}
+    body{font-size:14px}
+    header{padding:16px 14px 12px}
+    header h1{font-size:20px}
+    header p{font-size:12px;max-width:none}
+    main{padding:16px 14px 50px}
+    footer{padding:0 14px 40px}
+    .head-top{flex-direction:column;align-items:stretch;gap:12px}
+    .controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .controls select{min-width:0;width:100%}
+    #setSelect{width:100%}
+    .controls > select:first-of-type{grid-column:1 / -1}
+    nav{margin:0 0 14px;gap:6px;font-size:12px}
+    nav a{white-space:nowrap}
+    #preview{display:none !important}
+    #preview.tap{display:block !important}
+  }
+  /* スマホのタップ表示：画面中央に出し、後ろに膜を敷く */
+  #preview.tap{display:block;left:50% !important;top:50% !important;transform:translate(-50%,-50%);pointer-events:auto}
+  #preview.tap img{width:min(300px, 78vw)}
+  /* パソコンで全勝デッキのカードをクリックしたときは、さらに大きく出す */
+  @media (hover: hover){ #preview.tap img{width:min(460px, 42vw, calc((100vh - 40px) * 488 / 680))} #preview.tap{cursor:zoom-out} }
+  /* スマホ：長押しで文字の選択やメニューが出ないようにする（長押しでカード画像を出すため） */
+  @media (hover: none){ tr[data-card], .tchip[data-card]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none} }
+  #tapdim{display:none;position:fixed;inset:0;z-index:49;background:rgba(15,28,23,.55)}
+  #tapdim.on{display:block}
+  /* ナビ: 見出し→補足→ボタンの順に縦に並べ、ボタンは文字と見分けやすい立体的な見た目にする */
+  .ng{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;column-gap:7px;row-gap:5px;justify-content:start;align-items:center;padding-top:0}
+  .ng:has(.ngs){padding-top:0}
+  .ngl,.ngs{position:static;grid-column:1/-1;white-space:nowrap}
+  .ngl{grid-row:1;left:auto}
+  .ngs{grid-row:2;left:auto;top:auto;font-size:11.5px;color:#A9BFD8;margin-top:-2px}
+  nav a{grid-row:3;padding:8px 16px;border-radius:10px;font-weight:700;background:linear-gradient(180deg,#2A5F96,#1C4A7C);border:1px solid #4A83BF;color:#FFFFFF;box-shadow:0 2px 0 #12365C,0 4px 10px rgba(0,0,0,.28);-webkit-font-smoothing:auto;text-shadow:none;letter-spacing:.02em}
+  nav a:not(.on):hover{background:linear-gradient(180deg,#3573B3,#25609F);border-color:#6FA3DA}
+  nav a:active{box-shadow:0 1px 0 #12365C}
+  nav a.on{box-shadow:0 2px 0 rgba(0,0,0,.35),0 4px 10px rgba(0,0,0,.28)}
+  @media (max-width:760px){
+    .ng{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+    .ngl,.ngs{flex:0 0 100%}
+  }
+  /* ページ下の読み物（文言は i18n.js の read.*）。見出しはトップページの h2、箱はサイト共通の白いカードに合わせる */
+  .readmore{max-width:900px;margin:0 auto;padding:6px 24px 36px}
+  /* 説明文は「説明」の折りたたみの中。普段は閉じておき、ツールを主役にする（中身はページにあるので検索・審査では読まれる） */
+  .readmore > summary{display:inline-flex;align-items:center;gap:6px;cursor:pointer;list-style:none;font-size:13px;font-weight:700;color:var(--muted,#8a8f98);padding:6px 12px;border:1px solid var(--line);border-radius:999px;user-select:none}
+  .readmore > summary::-webkit-details-marker{display:none}
+  .readmore > summary::before{content:"▶";font-size:10px;transition:transform .15s}
+  .readmore[open] > summary::before{transform:rotate(90deg)}
+  .readmore[open] > summary{margin-bottom:18px}
+  .readmore section{margin:0 0 30px}
+  .readmore h2{font-family:"Bricolage Grotesque","Zen Kaku Gothic New",sans-serif;font-weight:800;font-size:19px;line-height:1.3;letter-spacing:-.01em;color:var(--ink);margin:0 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  .readmore p{margin:0 0 12px;font-size:14px;line-height:1.85}
+  .readmore a{color:var(--gold);font-weight:700;text-decoration:none}
+  .readmore a:hover{text-decoration:underline}
+  .rm-steps{list-style:none;counter-reset:rmst;margin:0 0 14px;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+  .rm-steps li{counter-increment:rmst;background:#fff;border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:var(--radius);padding:14px 16px;font-size:13px;line-height:1.75;margin:0}
+  .rm-steps li::before{content:counter(rmst);display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--pine);color:#fff;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:12.5px;margin:0 0 8px}
+  .rm-steps b{display:block;font-size:14.5px;line-height:1.45;color:var(--pine);margin:0 0 4px}
+  .rm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin:0 0 14px}
+  .rm-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+  .rm-card h3,.rm-note h3{margin:0 0 6px;font-size:15px;font-weight:700;line-height:1.45;color:var(--pine)}
+  .rm-card p,.rm-note p{font-size:13px;line-height:1.8;margin:0 0 8px}
+  .rm-card p:last-child,.rm-note p:last-child{margin:0}
+  .rm-note{background:var(--paper-2);border-left:4px solid var(--gold);border-radius:4px;padding:12px 16px;margin:0 0 14px}
+  /* 環境レポートは本文の幅が狭いので2列にし、数が奇数のときは最後の1枚を横いっぱいにする */
+  .readmore .rm-grid{grid-template-columns:1fr 1fr}
+  .readmore .rm-card:last-child:nth-child(odd){grid-column:1/-1}
+  @media (max-width:720px){ .readmore{padding:4px 14px 28px} .rm-steps,.readmore .rm-grid{grid-template-columns:1fr} .readmore .rm-card:last-child:nth-child(odd){grid-column:auto} }
+</style>
+<link rel="stylesheet" href="/assets/mana/mana.min.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4578393433821297" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brandrow">
+      <div class="brand"><a href="/index.en.html" class="brandhome" aria-label="Home" style="display:inline-block;margin:0 12px 0 0;vertical-align:middle"><img class="brandlogo" src="/assets/logo/arena.png" alt="MTG Arena" width="97" height="34" style="height:34px;width:auto;display:block;margin-top:-5px" onerror="this.parentNode.remove()"></a><a href="./index.en.html" data-i18n="site.name" style="color:inherit;text-decoration:none">リミテッド・ワークベンチ</a></div>
+      <select id="langSelect" class="langsel" data-i18n-label="lang.label"><option value="ja">日本語</option><option value="en">English</option></select>
+    </div>
+    <nav>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.start">はじめに</span><span class="ngs" data-i18n="navsub.start">MTGの基本と、このサイトの使い方</span>
+        <a href="./start/index.en.html" data-start-link data-i18n="nav.start">MTGとは</a>
+        <a href="./start/limited.en.html" data-limited-link data-i18n="nav.limited">リミテッドとは</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.build">仮想パックで練習する</span><span class="ngs" data-i18n="navsub.build">6パック開封・8人ドラフト</span>
+        <a href="./sealed.en.html" data-i18n="nav.sealed">シールド練習</a>
+        <a href="./draft.en.html" data-i18n="nav.draft">ドラフト練習（CPU戦）</a>
+        <a href="./draftroom.en.html" data-i18n="nav.room">ドラフト練習（対人戦）</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.assist">デッキ構築補助</span><span class="ngs" data-i18n="navsub.assist">アリーナの本番中に、デッキ案とピックのおすすめを出す・PC専用</span>
+        <a href="./sealed-assist.en.html"><span data-i18n="nav.sassist">シールドのデッキ構築補助</span><b class="pcb" data-i18n="nav.pc">PC</b></a>
+        <a href="./assistant.en.html"><span data-i18n="nav.assist">ドラフトのデッキ構築補助</span><b class="pcb" data-i18n="nav.pc">PC</b></a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.data">データを見る</span><span class="ngs" data-i18n="navsub.data">セットごとの強さ・速さを確認</span>
+        <a href="./reports.en.html" class="on" data-i18n="nav.reports">環境レポート</a></div>
+      <div class="ng"><span class="ngl" data-i18n="navgrp.play">対戦する</span><span class="ngs" data-i18n="navsub.play">友達との対戦・大会の進行</span>
+        <a href="./table.en.html" data-i18n="nav.table">対戦卓</a>
+        <a href="./swiss.en.html" data-i18n="nav.swiss">スイスドロー</a></div>
+    <div class="ng"><span class="ngl" data-i18n="navgrp.shop">買う</span><span class="ngs" data-i18n="navsub.shop">日本で買えるMTG用品</span>
+        <a href="./goods/index.en.html" data-goods-link data-i18n="nav.goods">日本のサプライ</a></div>
+    </nav>
+    <div class="head-top">
+      <div>
+        <h1 data-i18n="reports.h1">環境レポート</h1>
+        <p data-i18n="reports.lead">そのセットのリミテッド環境を、実戦データから読み解きます。</p>
+      </div>
+      <div class="controls">
+        <select id="setSelect" data-i18n-label="sel.set"><option value="">…</option></select>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="modebar">
+    <div class="tabs" id="modeTabs" role="tablist">
+      <button type="button" class="tab on" role="tab" aria-selected="true"  data-mode="draft"  data-i18n="mode.draft">ドラフト</button>
+      <button type="button" class="tab"    role="tab" aria-selected="false" data-mode="sealed" data-i18n="mode.sealed">シールド</button>
+    </div>
+  </div>
+
+  <div id="status" class="status" data-i18n="reports.ready">セットと形式を選んでください。</div>
+  <p class="hint" style="margin:-6px 0 12px"><a id="staticLink" href="./sets/index.en.html" data-i18n="reports.staticLink">このセットの固定ページ（共有・検索用）</a></p>
+  <p class="built" id="built"></p>
+  <div id="longvideo" class="longvideo" hidden></div>
+  <div id="video" class="video" hidden></div>
+  <div id="body" hidden></div>
+</main>
+
+<details class="readmore"><summary data-i18n="read.summary">説明</summary><div data-i18n-html="read.reports"><section><h2>環境レポートの読み方</h2><p>環境レポートは、「このセットでは何を選べば勝ちやすいか」を、実戦の勝率で上から順に確かめられるように並べています。初めてのセットでは、上から順に読むのがおすすめです。</p><div class="rm-grid"><div class="rm-card"><h3>環境の速さ</h3><p>デッキの平均マナ総量ごとに勝率を比べています。軽いデッキほど勝っているなら、先に攻める作りが強い「速い環境」です。重めのデッキが勝っているなら、強いカードを引き合う「遅い環境」です。ピックで2マナのクリーチャーをどれだけ大事にするかの目安になります。</p></div><div class="rm-card"><h3>色の強さ</h3><p>単色と2色の組み合わせを、勝率の高い順に階層（ティア）で並べています。「ねらい目」は、勝率は全体の平均以上なのに、遊ぶ人が少ない組み合わせです。ドラフトでは他の人と取り合いになりにくく、良いカードが遅い順番まで流れてきやすいため、狙う価値があります。</p></div><div class="rm-card"><h3>マナ総量ごとの勝率</h3><p>各カードの勝率を、マナ総量ごとにまとめています。どの重さのカードが勝ちにつながりやすいかが分かります。</p></div><div class="rm-card"><h3>全勝デッキのサンプル</h3><p>実際に全勝したデッキを、クリーチャー・スペル・土地に分け、マナ総量の順に並べています。レアの少ないデッキを先に出しているので、コモンとアンコモン中心でも勝てる組み方の参考になります。</p></div><div class="rm-card"><h3>カード点数ランキング（レアリティ別）</h3><p>GIH勝率（そのカードが手札か戦場にあった試合の勝率）の高い順です。ピックで迷ったときは、この順位が拠りどころになります。</p></div></div><div class="rm-note"><h3>数字を見るときの注意</h3><p>集計しているデータは、腕前の高いプレイヤーが多く記録しています。そのため、ほとんどのカードの勝率が50%を超えます。強さは「50%より上か」ではなく、「そのセットの平均より上か」で見てください。また、試合数の少ない組み合わせやカードは、数字が振れやすくなります。ドラフトとシールドでは強いカードが変わることがあるので、遊ぶ形式のタブを選んでから見てください。</p><p>データは毎週月曜日に更新します。データがまだ固まっていないセットは、勝率の表の代わりに「下見」と「速報メモ」を出し、データが出たら自動で切り替わります。</p></div></section></div></details>
+
+<div id="tapdim" aria-hidden="true"></div>
+<div id="preview" aria-hidden="true"></div>
+
+<div id="goodsStrip"></div>
+
+<footer>
+  <span data-i18n-html="foot.short">データの出典・権利表示、および当サイトの内容を引用する際のお願いは<a href="./privacy.en.html">プライバシーポリシー</a>にまとめています。<br><a href="./faq.en.html">よくある質問</a>・<a href="./contact.en.html">お問い合わせ</a>・<a href="./about.en.html">運営者情報</a></span>
+</footer>
+
+<script>
+const SCRY = "https://api.scryfall.com";
+const COLORS = [
+  {key:"W", var:"--w"}, {key:"U", var:"--u"}, {key:"B", var:"--b"},
+  {key:"R", var:"--r"}, {key:"G", var:"--g"}
+];
+const RARITIES = ["mythic", "rare", "uncommon", "common"];
+const MIN_GAMES = 500;
+
+let index = [], speedIndex = null, report = null, jaMap = {}, nameMap = {};
+/* レアリティごとに何枚まで出すか。0 はすべて。選んだ値はこのブラウザに残す */
+let topN = 10;
+try{ const v = parseInt(localStorage.getItem("sw.reports.topn"), 10); if(v === 10 || v === 30 || v === 0) topN = v; }catch(e){}
+const fullCache = {};        // セット×形式ごとの全カード（上位30・すべてのときだけ読む）
+let mode = "draft";         // 表示中の形式（ドラフト／シールド）
+let ctierGroup = "mr";      // カードのティア表で見ているレアリティ（mr＝神話レア・レア／u＝アンコモン／c＝コモン）
+let ctierColors = [];        // ティア表の色の絞り込み（選んだ色だけで使えるカード。空ならすべて）。M＝多色だけ、C＝無色だけ
+let cardColor = "all", cardType = "all", cardSort = "gih";   // カード表の絞り込み（色・種類・並べ方）
+const repCache = {};         // セット×形式ごとの記事。タブの切り替えを即時にする
+let mapsFor = null;          // 日本語名・画像の取得済みセット（言語つき）
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const esc = s => (s || "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const pct = v => v == null ? "—" : (v * 100).toFixed(1) + "%";
+
+function setStatus(msg, isErr, busy){
+  const el = $("status");
+  el.hidden = false;      // 速報版の表示で隠すことがあるので、ふつうの表示では戻す
+  el.textContent = msg;
+  el.className = "status" + (isErr ? " err" : "") + (busy ? " busy" : "");
+}
+
+/* ---------- 一覧の読み込み ---------- */
+async function loadIndex(){
+  try{
+    const res = await fetch("./data/articles/index.json", {cache:"no-cache"});
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const j = await res.json();
+    index = j.articles || [];
+    speedIndex = j.speed || null;
+    // 下見だけのセット（勝率データ待ち）も選べるようにする
+    try{
+      const pr = await fetch("./data/profiles/index.json", {cache:"no-cache"});
+      if(pr.ok){ const pj = await pr.json(); profileOnly = (pj.profiles || []).map(x => x.set).filter(c => !index.some(a => a.set === c)); profileRel = Object.fromEntries((pj.profiles || []).map(x => [x.set, x.released_at || ""])); withData = (pj.profiles || []).filter(x => x.provisional).map(x => x.set); }
+    }catch(e){}
+    renderSetOptions();
+    const want = new URLSearchParams(location.search).get("set");
+    if(want && [...$("setSelect").options].some(o => o.value === want.toUpperCase())) $("setSelect").value = want.toUpperCase();
+    const wantMode = new URLSearchParams(location.search).get("mode");
+    if(wantMode === "draft" || wantMode === "sealed") mode = wantMode;
+    updateModeTabs();
+    syncStaticLink();
+    if(index.length) load();
+  }catch(e){
+    setStatus(t("reports.none"), true);
+  }
+}
+
+let profileOnly = [], profileRel = {}, withData = [];
+function renderSetOptions(){
+  const sel = $("setSelect"), keep = sel.value;
+
+  // 発売日の新しい順（他のページと同じ並び）。発売日が無いものは後ろに回す。
+  const rel = {};
+  index.forEach(a => { if(a.released_at && !rel[a.set]) rel[a.set] = a.released_at; });
+  profileOnly.forEach(c => { if(profileRel[c]) rel[c] = profileRel[c]; });
+  const sets = [...new Set([...index.map(a => a.set), ...profileOnly])]
+    .sort((x, y) => (rel[y] || "").localeCompare(rel[x] || "") || x.localeCompare(y));
+
+  sel.innerHTML = "";
+  sets.forEach(code => {
+    const o = document.createElement("option");
+    o.value = code;
+    o.textContent = (I18N.setLabel ? I18N.setLabel(code, code) : (I18N.setName ? I18N.setName(code, code) : code));
+    sel.appendChild(o);
+  });
+  if(keep && sets.includes(keep)) sel.value = keep;
+}
+
+/* 選んだセットで用意のある形式だけを押せるようにする */
+function updateModeTabs(){
+  const code = $("setSelect").value;
+  const modes = index.filter(a => a.set === code).map(a => a.mode);
+  let first = null;
+  document.querySelectorAll("#modeTabs .tab").forEach(b => {
+    b.disabled = modes.length > 0 && !modes.includes(b.dataset.mode);
+    if(!b.disabled && first === null) first = b.dataset.mode;
+  });
+  if(first && modes.length && !modes.includes(mode)) mode = first;   // 確定版の無いセット（暫定版・下見）は、選んだ形式のまま
+  syncModeTabs();
+}
+
+/* タブの見た目を今の形式に合わせる */
+function syncModeTabs(){
+  document.querySelectorAll("#modeTabs .tab").forEach(b => {
+    const on = b.dataset.mode === mode;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-selected", String(on));
+  });
+}
+
+/* ---------- 日本語カード名・画像 ---------- */
+async function loadCardMaps(code){
+  jaMap = {}; nameMap = {};
+  if(!I18N.isJa()){
+    // 英語表示でも画像は出したいので、英語版だけ取る
+    try{
+      let url = SCRY + "/cards/search?q=" + encodeURIComponent("set:" + code) + "&unique=prints";
+      while(url){
+        const res = await fetch(url);
+        if(!res.ok) break;
+        const d = await res.json();
+        d.data.forEach(c => namesOf(c).forEach(n => {
+          if(!nameMap[n]) nameMap[n] = cardEntry(c);
+        }));
+        url = d.has_more ? d.next_page : null;
+        if(url) await sleep(120);
+      }
+    }catch(e){ nameMap = {}; }
+    return;
+  }
+
+  try{
+    const keyOf = {};
+    let url = SCRY + "/cards/search?q=" + encodeURIComponent("set:" + code) + "&unique=prints";
+    while(url){
+      const res = await fetch(url);
+      if(!res.ok) break;
+      const d = await res.json();
+      d.data.forEach(c => {
+        const k = c.set + "/" + c.collector_number;
+        namesOf(c).forEach(n => {
+          if(!nameMap[n]) nameMap[n] = cardEntry(c);
+          if(!keyOf[n]) keyOf[n] = k;
+        });
+      });
+      url = d.has_more ? d.next_page : null;
+      if(url) await sleep(120);
+    }
+
+    const byKey = {};
+    url = SCRY + "/cards/search?q=" + encodeURIComponent("set:" + code + " lang:ja")
+        + "&unique=prints&include_multilingual=true";
+    while(url){
+      const res = await fetch(url);
+      if(!res.ok) break;
+      const d = await res.json();
+      d.data.forEach(c => {
+        if(c.lang !== "ja") return;
+        const k = c.set + "/" + c.collector_number;
+        if(byKey[k]) return;
+        const faces = Array.isArray(c.card_faces) ? c.card_faces.map(f => f.printed_name).filter(Boolean) : [];
+        byKey[k] = { name: noRuby(c.printed_name || faces.join(" // ")), front: noRuby(faces[0] || c.printed_name || ""), imgs: imgsOf(c) };
+      });
+      url = d.has_more ? d.next_page : null;
+      if(url) await sleep(120);
+    }
+
+    Object.entries(keyOf).forEach(([n, k]) => { if(byKey[k]) jaMap[n] = byKey[k]; });
+  }catch(e){ jaMap = {}; }
+}
+
+/* セットの外から入っているカード（特別枠・ボーナスシート）は、セットの検索では出てこない。
+   集計に出てくる名前のうち足りないものだけ、名前で引き直す（英語版の画像）。日本語表示のときは、同じカードの日本語版も探す */
+async function fillMissing(names){
+  const miss = [...new Set(names)].filter(n => n && !nameMap[n]);
+  if(!miss.length) return;
+  const found = [];
+  for(let i = 0; i < miss.length; i += 75){
+    try{
+      const res = await fetch(SCRY + "/cards/collection", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifiers: miss.slice(i, i + 75).map(n => ({ name: n.split(" // ")[0] })) }) });
+      if(!res.ok) continue;
+      const d = await res.json();
+      (d.data || []).forEach(c => { found.push(c); namesOf(c).forEach(n => { if(!nameMap[n]) nameMap[n] = cardEntry(c); }); });
+    }catch(e){}
+    await sleep(120);
+  }
+  if(!I18N.isJa() || !found.length) return;
+  // 日本語版：同じカード（oracle_id）の日本語の印刷を、まとめて検索する
+  const byOracle = {};
+  found.forEach(c => { if(c.oracle_id) byOracle[c.oracle_id] = c; });
+  const ids = Object.keys(byOracle);
+  for(let i = 0; i < ids.length; i += 15){
+    try{
+      let url = SCRY + "/cards/search?q=" + encodeURIComponent("lang:ja (" + ids.slice(i, i + 15).map(x => "oracleid:" + x).join(" or ") + ")") + "&unique=prints&include_multilingual=true&order=released";
+      while(url){
+        const res = await fetch(url);
+        if(!res.ok) break;
+        const d = await res.json();
+        d.data.forEach(c => {
+          const en = byOracle[c.oracle_id]; if(!en || c.lang !== "ja") return;
+          const faces = Array.isArray(c.card_faces) ? c.card_faces.map(f => f.printed_name).filter(Boolean) : [];
+          const v = { name: noRuby(c.printed_name || faces.join(" // ")), front: noRuby(faces[0] || c.printed_name || ""), imgs: imgsOf(c) };
+          if(!v.name) return;
+          namesOf(en).forEach(n => { if(!jaMap[n]) jaMap[n] = v; });
+        });
+        url = d.has_more ? d.next_page : null;
+        if(url) await sleep(120);
+      }
+    }catch(e){}
+    await sleep(120);
+  }
+}
+/* 記事に出てくるカード名（ティア表・上位カード・全カード一覧） */
+function reportNames(r, full){
+  const out = [];
+  Object.values((r.tiers && r.tiers.groups) || {}).forEach(g => Object.values(g).forEach(list => list.forEach(c => out.push(c.name))));
+  Object.values(r.top || {}).forEach(list => (list || []).forEach(c => out.push(c.name)));
+  (full || []).forEach(c => out.push(c.name));
+  return out;
+}
+
+function namesOf(c){
+  const out = [c.name];
+  if(c.name.includes(" // ")) out.push(c.name.split(" // ")[0].trim());
+  if(Array.isArray(c.card_faces)) c.card_faces.forEach(f => { if(f.name) out.push(f.name); });
+  return [...new Set(out.filter(Boolean))];
+}
+
+/* 名前 → 画像・クリーチャーかどうか・マナ総量（全勝デッキの並べ分けに使う） */
+function cardEntry(c){
+  const tl = String(c.type_line || (c.card_faces && c.card_faces[0] && c.card_faces[0].type_line) || "").split("//")[0];
+  return { imgs: imgsOf(c), creature: /Creature/.test(tl), cmc: Math.floor(c.cmc ?? 0), rarity: c.rarity || "" };
+}
+
+/* 日本語名に付いているふりがな（例：「量（りょう）子（し）の謎（なぞ）」）を外す。Scryfall の日本語版の名前に入っているセットがある */
+function noRuby(s){ return String(s || "").replace(/([\u4E00-\u9FFF々〆ヵヶ])[（(][\u3041-\u3096ー]+[）)]/g, "$1"); }
+
+function imgsOf(c){
+  if(c.image_uris?.normal) return [c.image_uris.normal];
+  if(Array.isArray(c.card_faces)) return c.card_faces.map(f => f.image_uris?.normal).filter(Boolean);
+  return [];
+}
+
+function displayName(name){
+  const j = I18N.isJa() && jaMap[name];
+  if(!j) return name;
+  return (j.front && !name.includes(" // ")) ? j.front : (j.name || name);
+}
+
+/* クリーチャーかどうか（全勝デッキの並べ分けに使う）。分からなければ null */
+function isCreature(name){ return nameMap[name] ? nameMap[name].creature : null; }
+
+/* カードの絵（Scryfall の「絵だけの画像」）。カード表の名前の横に小さく出す。無いときは同じ幅の空きを置いて、名前の位置をそろえる */
+function artI(name){
+  const u = imageUrls(name)[0];
+  return u ? `<img class="art" src="${esc(u.replace("/normal/", "/art_crop/"))}" alt="" loading="lazy" width="40" height="30">` : `<span class="art"></span>`;
+}
+
+function imageUrls(name){
+  const j = I18N.isJa() && jaMap[name];
+  if(j && j.imgs && j.imgs.length) return j.imgs;
+  return (nameMap[name] && nameMap[name].imgs) || [];
+}
+
+/* ---------- 本体の読み込み ---------- */
+async function load(){
+  const code = $("setSelect").value;
+  if(!code || !mode) return;
+  const key = code + "_" + mode;
+
+  // 一度読んだ組み合わせは覚えておき、タブの切り替えで待たせない
+  if(repCache[key] && mapsFor === code + ":" + I18N.lang){
+    report = repCache[key];
+    await fillMissing(reportNames(report, fullCache[key]));    // 形式を切り替えたとき、もう一方にしか無いカードの分
+    render();
+    return;
+  }
+
+  $("body").hidden = true; if($("video")) $("video").hidden = true;
+  setStatus(t("reports.loading"), false, true);
+
+  try{
+    let r = repCache[key];
+    if(!r){
+      let res = await fetch(`./data/articles/${key}.json`, {cache:"no-cache"});
+      // 確定版がまだ無いセットは、暫定版（17Lands の毎日の集計から。発売12日目から）を見る。それも無ければ下見
+      if(!res.ok) res = await fetch(`./data/provisional/${key}.json`, {cache:"no-cache"});
+      if(!res.ok){ if(!(await showProfile(code))){ setStatus(t("reports.none"), true); } return; }
+      r = await res.json();
+      repCache[key] = r;
+    }
+    report = r;
+    if(mapsFor !== code + ":" + I18N.lang){
+      await loadCardMaps(code);
+      mapsFor = code + ":" + I18N.lang;
+    }
+    if(topN !== 10 || filtering()){ try{ await loadFull(); }catch(e){} }   // 上位30・すべて・絞り込み中は、全カードを読んでから描く
+    await fillMissing(reportNames(report, fullCache[key]));                  // セットの外から入っているカードの名前と画像
+    render();
+  }catch(e){
+    setStatus(t("reports.none"), true);
+  }
+}
+
+/* 上位30・すべてを出すときは、全カードの勝率ファイルを読む（トップ10は記事の中に入っている） */
+async function loadFull(){
+  const key = $("setSelect").value + "_" + mode;
+  if(fullCache[key]) return fullCache[key];
+  const res = await fetch(`./data/ratings/${key}.json`, {cache:"no-cache"});
+  if(!res.ok) throw new Error("no data");
+  const d = await res.json();
+  // 記事のトップ10と同じ条件でそろえる（土地を除き、試合数が少ないものは外す）
+  const list = (d.cards || []).filter(c => !c.land && c.gih != null && c.games >= MIN_GAMES)
+                              .sort((a, b) => b.gih - a.gih);
+  fullCache[key] = list;
+  return list;
+}
+/* そのレアリティで出すカードの一覧 */
+const filtering = () => cardColor !== "all" || cardType !== "all" || cardSort !== "gih";
+const colorKey = c => (c.color || "").length === 1 ? c.color : ((c.color || "").length > 1 ? "M" : "C");
+function cardsOf(rarity){
+  if(topN === 10 && !filtering()) return report.top?.[rarity] || [];
+  const key = $("setSelect").value + "_" + mode;
+  const all = (fullCache[key] || []).filter(c => c.rarity === rarity
+    && (cardColor === "all" || colorKey(c) === cardColor)
+    && (cardType === "all" || isCreature(c.name) == null || isCreature(c.name) === (cardType === "creature")));
+  if(cardSort === "iwd") all.sort((a, b) => (b.iwd ?? -1) - (a.iwd ?? -1));
+  else if(cardSort === "games") all.sort((a, b) => (b.games || 0) - (a.games || 0));
+  return topN === 0 ? all : all.slice(0, topN);
+}
+
+/* ---------- 描画 ---------- */
+/* ゲームの長さ（平均ターン数）を直近セットと比べて1文にする。「速い／遅い環境」は言わない（環境の速さは verdict が決める） */
+function paceLine(){
+  if(!speedIndex || !report) return "";
+  const grp = speedIndex[report.mode];
+  if(!grp || grp.average == null) return "";
+  const mine = (grp.sets || []).find(x => x.set === report.set)?.avg_turns ?? report.avg_turns;
+  if(mine == null) return "";
+  const diff = mine - grp.average;
+  const key = Math.abs(diff) < 0.15 ? "same" : (diff < 0 ? "fast" : "slow");
+  return ` ${t("reports.pace." + key, {n: mine.toFixed(1), c: grp.count || (grp.sets || []).length})}`;
+}
+
+/* マナシンボル（mana-font：SIL OFL / MIT。assets/mana/ に同梱）。W U B R G は各色、M は多色、C は無色・土地 */
+function manaI(k){
+  k = String(k || "C").toUpperCase();
+  const cls = k === "M" ? "ms-multicolor mfi-m" : "ms-" + k.toLowerCase();
+  return `<i class="ms ms-cost ${cls} mfi" aria-hidden="true"></i>`;
+}
+function barRow(label, wr, games, cls, iconHtml){
+  const w = wr == null ? 0 : Math.max(2, ((wr - 0.45) / 0.20) * 100);   // 45%〜65%を横幅に割り当てる
+  return `<div class="bar">
+    <span class="lbl">${iconHtml || ""}${esc(label)}</span>
+    <span class="track"><i class="${cls || ""}" style="width:${Math.min(100, w)}%"></i></span>
+    <span class="val">${pct(wr)}</span>
+    <span class="n">${games != null ? games.toLocaleString() : ""}</span>
+  </div>`;
+}
+
+/* Tier表の分け方（長尺動画と同じ）：最上位と平均+2pt以上がS、平均+0.5pt以上がA、平均-1pt以上がB、それ未満がC */
+function tierOf(rows, avg){
+  const tiers = { S: [], A: [], B: [], C: [] };
+  if(!rows.length) return tiers;
+  const top = Math.max(...rows.map(r => r.wr));
+  for(const p of rows) (p.wr >= top - 0.005 || p.wr >= avg + 0.02 ? tiers.S : p.wr >= avg + 0.005 ? tiers.A : p.wr >= avg - 0.01 ? tiers.B : tiers.C).push(p);
+  return tiers;
+}
+function tierBoard(rows, avg, chipFn){
+  const tiers = tierOf(rows, avg);
+  return `<div class="tiers">${Object.entries(tiers).map(([k, list]) => `<div class="trow"><div class="tlab ${k}">${k}</div><div class="tcells">${list.sort((a, b) => b.wr - a.wr).map(chipFn).join("")}</div></div>`).join("")}</div>
+    <p class="tavg">${esc(t("reports.tier.avg", {p: pct(avg)}))}</p>`;
+}
+/* 2色の組み合わせ（試合数の少ないものは除く）と、ねらい目（長尺動画と同じ決め方）。全勝デッキの欄でも使う */
+function pairRows(d){
+  const rows = (d.archetypes || []).filter(a => /^[WUBRG]{2}$/.test(a.colors));
+  const tot = rows.reduce((n, p) => n + p.games, 0) || 1;
+  const f = rows.filter(p => p.games >= Math.max(1500, tot * 0.03));
+  return (f.length >= 3 ? f : rows).slice().sort((a, b) => b.wr - a.wr);
+}
+function sleeperPairs(d){
+  const pairs = pairRows(d), avg = d.overall_win_rate;
+  if(pairs.length < 4) return [];
+  const tot = pairs.reduce((n, p) => n + p.games, 0) || 1;
+  const solid = pairs.filter(p => p.games >= Math.max(2000, tot * 0.04));
+  const best = pairs[0], worst = (solid.length ? solid : pairs).slice().sort((a, b) => a.wr - b.wr)[0];
+  const avgShare = 1 / pairs.length;
+  return pairs.filter(p => p !== best && p !== worst && p.wr >= avg - 0.005 && p.games / tot <= avgShare * 0.85 && p.games >= 1500).slice(0, 2).map(p => p.colors);
+}
+function wrClass(wr, avg){
+  if(wr == null || avg == null) return "";
+  if(wr >= avg + 0.015) return "hot";
+  if(wr <= avg - 0.015) return "cold";
+  return "";
+}
+
+/* 勝率データが無いセットでも、下見（カード枚数の分析）があればそれを本文に出す。
+   固定ページ sets/<SET>.profile(.en).html の本文（<article class="mode">）を読み込んで差し込む。
+   勝率データが出て記事ができれば、ふつうの表示に自動で切り替わる */
+const profileCache = {};
+async function showProfile(code){
+  try{
+    const href = `./sets/${code}.profile${I18N.lang === "en" ? ".en" : ""}.html`;
+    let html = profileCache[href];
+    if(html == null){
+      const r = await fetch(href, {cache:"no-cache"});
+      if(!r.ok) return false;
+      const doc = new DOMParser().parseFromString(await r.text(), "text/html");
+      const art = doc.querySelector("article.mode");
+      if(!art) return false;
+      html = art.innerHTML;
+      profileCache[href] = html;
+    }
+    const box = $("body");
+    box.innerHTML = `<div class="profile">${html}</div>`;
+    // 以前に作られた下見ページ（色が丸のもの）も、表示のときにマナシンボルへ置き換える
+    box.querySelectorAll(".profile .dot").forEach(d => {
+      const bg = d.getAttribute("style") || "";
+      const m = bg.match(/var\(--([wubrg])\)/i);
+      const k = m ? m[1].toUpperCase() : /linear-gradient/.test(bg) ? "M" : "C";
+      d.outerHTML = manaI(k);
+    });
+    // 下見に先行版のショート（発売直後の速報）が入っていれば、再生ボタンを働かせる（差し込んだ HTML の script は動かないため）
+    box.querySelectorAll(".video .yt button").forEach(btn => {
+      btn.addEventListener("click", function(){
+        const b = this.parentNode, f = document.createElement("iframe");
+        f.src = "https://www.youtube-nocookie.com/embed/" + b.dataset.id + "?autoplay=1&playsinline=1";
+        f.allow = "autoplay; encrypted-media; picture-in-picture"; f.allowFullscreen = true; f.title = this.getAttribute("aria-label");
+        b.innerHTML = ""; b.appendChild(f);
+      });
+    });
+    box.querySelectorAll("script").forEach(sc => sc.remove());
+    // 固定ページ冒頭の「勝率データは〇月〇日ごろから」は、上の案内文に合わせて1つにまとめる
+    let when = "";
+    const first = box.querySelector(".profile > .verdict");
+    if(first){ when = first.textContent.trim(); first.remove(); }
+    box.hidden = false;
+    // 色のタブ
+    box.querySelectorAll(".ctab").forEach(b => {
+      b.onclick = () => {
+        box.querySelectorAll(".ctab").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-selected", String(x === b)); });
+        box.querySelectorAll(".grp").forEach(g => { g.hidden = g.dataset.grp !== b.dataset.grp; });
+      };
+    });
+    // カード名にカーソルを合わせたら画像を出す（固定ページが data-img に入れている）
+    box.querySelectorAll("tr[data-img]").forEach(tr => {
+      const url = tr.dataset.img;
+      if(TOUCH){ tr.onclick = () => tapPreview([url], ""); return; }
+      tr.onmouseenter = ev => { const pv = $("preview"); pv.innerHTML = ""; const img = document.createElement("img"); img.src = url; img.alt = ""; pv.appendChild(img); pv.style.display = "block"; movePreview(ev.clientX, ev.clientY); };
+      tr.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
+      tr.onmouseleave = hidePreview;
+    });
+    $("built").textContent = "";
+    if($("video")) $("video").hidden = true;
+    // 速報版（速報メモがある）のときは、固定ページの案内文だけを出す（「それまでは下見を…」は速報版には合わない）
+    const hasEarly = !!box.querySelector(".early-note");
+    if(hasEarly){ $("status").textContent = ""; $("status").hidden = true; }   // 速報版は、案内文が速報メモの中にあるので、上の帯は出さない
+    else { $("status").hidden = false; setStatus((when ? when + " " : "") + t("reports.profileNow"), false); }
+    $("status").classList.add("preview");
+    return true;
+  }catch(e){ return false; }
+}
+/* 環境まとめ動画（YouTube ショート）。data/videos.json に public のものがあれば、集計の下に出す。押すまで YouTube は読み込まない */
+let videos = null;
+async function loadVideos(){
+  if(videos) return videos;
+  try{ const r = await fetch("./data/videos.json", {cache:"no-cache"}); videos = r.ok ? await r.json() : {}; }catch(e){ videos = {}; }
+  return videos;
+}
+/* 長尺の環境まとめ動画（日本語・英語）。data/long.json に載っているセットでは、ショートの代わりにこちらを出す。目次を押すとその時刻から再生 */
+let longVideos = null;
+async function renderLong(code){
+  const box = $("longvideo"); if(!box) return false;
+  if(!longVideos){ try{ const r = await fetch("./data/long.json", {cache:"no-cache"}); longVideos = r.ok ? await r.json() : {}; }catch(e){ longVideos = {}; } }
+  const v = longVideos[code] && longVideos[code][I18N.lang];
+  if(!v || !v.id){ box.hidden = true; box.innerHTML = ""; return false; }
+  const id = String(v.id), ts = n => Math.floor(n / 60) + ":" + String(Math.floor(n % 60)).padStart(2, "0");
+  const poster = `./assets/video/${esc(code)}-${esc(I18N.lang)}-long.jpg`, yt = `https://i.ytimg.com/vi/${esc(id)}/hqdefault.jpg`;
+  const chap = (v.chapters || []).map(c => `<li><a href="https://youtu.be/${esc(id)}?t=${Math.floor(c.at)}" data-t="${Math.floor(c.at)}" target="_blank" rel="noopener"><time>${ts(c.at)}</time><span>${esc(c.title)}</span></a></li>`).join("");
+  box.innerHTML = `<h3>${esc(t("reports.long.h"))}</h3><p class="lead">${esc(t("reports.long.lead"))}</p>
+    <div class="lv"><div class="yt"><img src="${poster}" onerror="this.onerror=null;this.src='${yt}'" alt="${esc(v.title || t("reports.long.h"))}" loading="lazy" width="640" height="360">
+    <button type="button" aria-label="${esc(t("reports.video.play"))}"><span></span></button></div>${chap ? `<ul class="chap">${chap}</ul>` : ""}</div>`;
+  const yb = box.querySelector(".yt");
+  const play = start => {
+    const f = document.createElement("iframe");
+    f.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1` + (start ? `&start=${start}` : "");
+    f.allow = "autoplay; encrypted-media; picture-in-picture"; f.allowFullscreen = true; f.title = v.title || "";
+    yb.innerHTML = ""; yb.appendChild(f);
+  };
+  yb.querySelector("button").addEventListener("click", () => play(0));
+  box.querySelectorAll(".chap a").forEach(a => a.addEventListener("click", e => { e.preventDefault(); play(+a.dataset.t); yb.scrollIntoView({block:"nearest", behavior:"smooth"}); }));
+  box.hidden = false;
+  return true;
+}
+async function renderVideo(code, mode){
+  const box = $("video"); if(!box) return;
+  if(await renderLong(code)){ box.hidden = true; box.innerHTML = ""; return; }
+  const all = await loadVideos();
+  let v = all && all[code] && all[code][I18N.lang];
+  if(v && v.id) v = { draft: v };          // 昔の形（言語の直下に id）はドラフト
+  v = v && v[mode || "draft"];
+  if(!v || !v.id || v.public === false){ box.hidden = true; box.innerHTML = ""; return; }
+  const id = String(v.id);
+  // 自前のサムネイル（assets/video/<SET>-<言語>[-sealed].jpg）があればそれを。無ければ YouTube の自動サムネイル
+  const yt = `https://i.ytimg.com/vi/${esc(id)}/hqdefault.jpg`;
+  const poster = `./assets/video/${esc(code)}-${esc(I18N.lang)}${(mode || "draft") === "draft" ? "" : "-" + esc(mode)}.jpg`;
+  box.innerHTML = `<div class="yt"><img src="${poster}" onerror="this.onerror=null;this.src='${yt}'" alt="${esc(v.title || t("reports.video.h"))}" loading="lazy" width="240" height="427">
+    <button type="button" aria-label="${esc(t("reports.video.play"))}"><span></span></button></div>
+    <div class="vtext"><h3>${esc(t("reports.video.h"))}</h3><p>${esc(t("reports.video.lead"))}</p>
+    <p><a href="https://www.youtube.com/shorts/${esc(id)}" target="_blank" rel="noopener">${esc(t("reports.video.open"))}</a></p></div>`;
+  box.querySelector("button").addEventListener("click", function(){
+    const b = this.parentNode, f = document.createElement("iframe");
+    f.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1`;
+    f.allow = "autoplay; encrypted-media; picture-in-picture"; f.allowFullscreen = true; f.title = this.getAttribute("aria-label");
+    b.innerHTML = ""; b.appendChild(f);
+  });
+  box.hidden = false;
+}
+
+window.__report = () => report;     // trophies.js から今のレポートを見るため
+function render(){
+  const d = report, avg = d.overall_win_rate;
+  renderVideo(d.set, d.mode);
+  const ev = t("mode." + d.mode);
+
+  setStatus(t("reports.summary", {
+    set: d.set, ev,
+    g: (d.total_games || 0).toLocaleString(),
+    wr: (avg * 100).toFixed(1)
+  }));
+  const srcList = (d.events || []).map(e => t("ev." + e.event) + " " + e.games.toLocaleString()).join("、");
+  $("built").textContent = t("reports.built", { d: new Date(d.data_generated_at).toLocaleDateString("ja-JP") })
+    + (srcList ? "　" + t("reports.sources", { list: srcList }) : "");
+
+  const out = [];
+
+  // 環境の速さ：まとめの一文と、デッキの平均マナ総量ごとの勝率（試合ごとのデータから。17Lands の毎日の集計で作ったときは無いので、出さない）
+  if(d.speed && d.speed.length){
+    const rows = d.speed.filter(s => s.wr != null);
+    const best = rows.slice().sort((a, b) => b.wr - a.wr)[0];
+    const bandLabel = (s, i) => i === 0 ? t("reports.speed.under", {n: s.max}) : s.max == null ? t("reports.speed.over", {n: rows[i - 1].max}) : t("reports.speed.range", {a: rows[i - 1].max, b: s.max});
+    if(best){
+      out.push(`<section>
+        <h2>${t("reports.speed.h")}</h2>
+        <div class="verdict">${d.verdict && d.verdict.key ? `<b>${esc(t("verdict." + d.verdict.key))}</b><span class="gap">` : ""}${t("reports.speed.best", {
+            label: t("reports.speedn." + best.key), p: (best.wr * 100).toFixed(1)
+          })}${paceLine()}${d.verdict && d.verdict.key ? `</span>` : ""}</div>
+        <p class="lead" style="margin-top:14px">${t("reports.speed.lead")}</p>
+        <div class="bars">${rows.map((s, i) => barRow(bandLabel(s, i), s.wr, s.games, s === best ? "hot" : "")).join("")}</div>
+        ${d.notes?.speed ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.speed[I18N.lang] || "")}</p></div>` : ""}
+      </section>`);
+    }
+  }
+
+  // 色の強さ（Tier表）
+  if(d.colors && d.colors.length){
+    out.push(`<section>
+      <h2>${t("reports.colors.h")}</h2>
+      <p class="lead">${t("reports.tier.colors.lead")}</p>
+      ${tierBoard(d.colors, avg, c => `<span class="tchip" title="${esc(t("reports.tier.games", {n: (c.games || 0).toLocaleString()}))}">${manaI(c.color)}${esc(t("color." + c.color))}<b>${pct(c.wr)}</b></span>`)}
+    </section>`);
+  }
+
+  // 色の組み合わせ（2色はTier表。単色・3色以上は参考として折りたたみ）
+  if(d.archetypes && d.archetypes.length){
+    const pairs = pairRows(d), sl = sleeperPairs(d);
+    const others = d.archetypes.filter(a => !/^[WUBRG]{2}$/.test(a.colors));
+    const pairName = c => [...c].map(k => t("color." + k)).join(I18N.isJa() ? "／" : " / ");
+    out.push(`<section>
+      <h2>${t("reports.arche.h")}</h2>
+      <p class="lead">${t("reports.tier.arche.lead")}</p>
+      ${tierBoard(pairs, avg, a => `<button type="button" class="tchip pick${sl.includes(a.colors) ? " sleeper" : ""}" data-pair="${esc(a.colors)}" title="${esc(t("reports.tier.games", {n: (a.games || 0).toLocaleString()}))}">${[...a.colors].map(manaI).join("")}${esc(pairName(a.colors))}<b>${pct(a.wr)}</b>${sl.includes(a.colors) ? `<span class="slp">${esc(t("reports.tier.sleeper"))}</span>` : ""}</button>`)}
+      <div class="trophy" id="trophySec" hidden></div>
+      ${others.length ? `<details class="others"><summary>${esc(t("reports.tier.others"))}</summary><div class="bars">${others.map(a =>
+        barRow(pairName(a.colors), a.wr, a.games, wrClass(a.wr, avg), [...a.colors].map(manaI).join(""))).join("")}</div></details>` : ""}
+      ${d.notes?.archetypes ? `<div class="notes" style="margin-top:14px"><p>${esc(d.notes.archetypes[I18N.lang] || "")}</p></div>` : ""}
+    </section>`);
+  }
+
+  // マナ総量
+  if(d.curve && d.curve.length){
+    out.push(`<section>
+      <h2>${t("reports.curve.h")}</h2>
+      <p class="lead">${t("reports.curve.lead")}</p>
+      <div class="bars">${d.curve.map(c =>
+        barRow(c.cmc + (I18N.isJa() ? "マナ" : " MV"), c.wr, c.games, wrClass(c.wr, avg))).join("")}</div>
+    </section>`);
+  }
+
+  // カードのティア表（神話レア・レア／アンコモン／コモン）。S〜D は全カード共通のものさし
+  if(d.tiers && d.tiers.groups){
+    const g = d.tiers.groups[ctierGroup] ? ctierGroup : "mr";
+    // 色の絞り込み：選んだ色だけで使えるカード（多色は、その色がすべて選ばれているとき。無色はいつも出す）
+    // 白〜緑だけ：その色だけで使えるカード（無色も含む）。
+    // 多色：多色のカードだけ（色も選ぶと、その色をすべて含む多色。例：青＋多色＝青の入った多色）。無色：無色のカードだけ
+    const cols = ctierColors.filter(k => "WUBRG".includes(k)), wantM = ctierColors.includes("M"), wantC = ctierColors.includes("C");
+    const fits = c => { const cc = c.color || "";
+      if(!wantM && !wantC) return !cols.length || [...cc].every(k => cols.includes(k));
+      return (wantM && cc.length > 1 && cols.every(k => cc.includes(k))) || (wantC && !cc.length); };
+    const count = k => ["S", "A", "B", "C", "D"].reduce((n, x) => n + (d.tiers.groups[k][x] || []).filter(fits).length, 0);
+    const tabs = ["mr", "u", "c"].map(k => `<button type="button" data-ctier="${k}" aria-pressed="${k === g}"><span><span class="rd ${k}"></span>${esc(t("reports.ctier." + k))}</span><span class="n">${esc(t("reports.ctier.count", {n: count(k)}))}</span></button>`).join("");
+    const colorChips = `<button type="button" class="chip" data-tcolor="" aria-pressed="${!ctierColors.length}">${esc(t("reports.filter.all"))}</button>` +
+      ["W", "U", "B", "R", "G", "M", "C"].map(k => `<button type="button" class="chip" data-tcolor="${k}" aria-pressed="${ctierColors.includes(k)}" title="${esc(k === "M" ? t("reports.filter.multi") : k === "C" ? t("reports.filter.colorless") : t("color." + k))}">${manaI(k)}</button>`).join("");
+    const rows = ["S", "A", "B", "C", "D"].map(k => {
+      const list = (d.tiers.groups[g][k] || []).filter(fits);
+      return `<div class="trow"><div class="tlab ${k}">${k}</div><div class="tcells">${list.length ? list.map(c =>
+        `<span class="tchip" data-card="${esc(c.name)}" title="${esc(t("reports.ctier.tip", {p: pct(c.gih)}))}"><span class="tpic">${artI(c.name)}${manaI(colorKey(c))}</span>${esc(displayName(c.name))}<b>${pct(c.gih)}</b></span>`).join("") : `<span class="tempty">—</span>`}</div></div>`;
+    }).join("");
+    out.push(`<section class="ctier">
+      <h2>${t("reports.ctier.h")}</h2>
+      <p class="lead">${t("reports.ctier.lead", {n: (d.tiers.min_games || MIN_GAMES).toLocaleString()})}</p>
+      <div class="ctabs" role="tablist">${tabs}</div>
+      <div class="ccolors"><span class="lbl">${esc(t("reports.ctier.colors"))}</span>${colorChips}</div>
+      <div class="tiers">${rows}</div>
+      <p class="tavg">${esc(t("reports.ctier.avg", {p: pct(d.tiers.mean)}))}<br>${esc(t("reports.ctier.note"))}</p>
+    </section>`);
+  }
+
+  // 全勝デッキのサンプルは、色の組み合わせのTier表のすぐ下（#trophySec）に、選んだ組み合わせの分を出す（2026年10月。trophies.js が中身を入れる）
+
+  // レアリティ別のカード
+  const hasCards = RARITIES.some(r => (d.top?.[r] || []).length);
+  if(hasCards){
+    const groups = RARITIES.map(r => {
+      const list = cardsOf(r);
+      if(!list.length) return "";
+      return `<div class="rar-group">
+        <h3>${t("rarity." + r)}</h3>
+        <table><thead><tr>
+          <th>${t("reports.col.card")}</th><th>${t("reports.col.cmc")}</th>
+          <th><span data-tip="${esc(t("wr.gih.tip"))}" tabindex="0">${t("ratings.col.gih")}</span></th><th><span data-tip="${esc(t("iwd.tip"))}" tabindex="0">IWD</span></th><th>${t("reports.col.games")}</th>
+        </tr></thead><tbody>
+        ${list.map(c => {
+          const col = (c.color || "").length === 1 ? c.color : ((c.color || "").length > 1 ? "M" : "C");
+          const def = COLORS.find(x => x.key === col);
+          return `<tr data-card="${esc(c.name)}">
+            <td><span class="cname"><span class="pic">${artI(c.name)}${manaI(col)}</span>
+              <span class="nm">${esc(displayName(c.name))}</span></span></td>
+            <td>${c.cmc ?? "—"}</td>
+            <td class="wr ${wrClass(c.gih, avg)}" data-tip="${esc(t("tip.gih", {p: (c.gih * 100).toFixed(1), n: (c.games || 0).toLocaleString()}) + "\n" + t("wr.gih.tip"))}">${pct(c.gih)}</td>
+            <td>${c.iwd == null ? "—" : (c.iwd >= 0 ? "+" : "") + (c.iwd * 100).toFixed(1)}</td>
+            <td class="thin">${(c.games || 0).toLocaleString()}</td>
+          </tr>`;
+        }).join("")}
+        </tbody></table>
+      </div>`;
+    }).join("");
+
+    const chip = (n, key) =>
+      `<button type="button" class="chip" data-n="${n}" aria-pressed="${topN === n}">${t(key)}</button>`;
+    const colorChip = k => `<button type="button" class="chip" data-ccolor="${k}" aria-pressed="${cardColor === k}" title="${esc(k === "all" ? t("reports.filter.all") : k === "M" ? t("reports.filter.multi") : k === "C" ? t("reports.filter.colorless") : t("color." + k))}">${k === "all" ? esc(t("reports.filter.all")) : manaI(k)}</button>`;
+    const sel = (id, cur, opts) => `<select id="${id}">${opts.map(([v, k]) => `<option value="${v}"${v === cur ? " selected" : ""}>${esc(t(k))}</option>`).join("")}</select>`;
+    out.push(`<section>
+      <h2>${t("reports.cards.h")}</h2>
+      <p class="lead">${t("reports.cards.lead", {n: MIN_GAMES.toLocaleString()})}</p>
+      <div class="chips"><span class="lbl">${t("reports.show")}</span>
+        ${chip(10, "reports.show10")}${chip(30, "reports.show30")}${chip(0, "reports.showAll")}</div>
+      <div class="cfilter">
+        <div class="chips"><span class="lbl">${t("reports.filter.color")}</span>${["all", "W", "U", "B", "R", "G", "M", "C"].map(colorChip).join("")}</div>
+        ${sel("cardType", cardType, [["all", "reports.filter.typeAll"], ["creature", "reports.filter.creature"], ["other", "reports.filter.noncreature"]])}
+        ${sel("cardSort", cardSort, [["gih", "reports.sort.gih"], ["iwd", "reports.sort.iwd"], ["games", "reports.sort.games"]])}
+      </div>
+      ${groups}
+      ${d.notes?.cards ? `<div class="notes"><p>${esc(d.notes.cards[I18N.lang] || "")}</p></div>` : ""}
+    </section>`);
+  }
+
+  // 全体の考察
+  if(d.notes?.summary){
+    out.push(`<section>
+      <h2>${t("reports.notes.h")}</h2>
+      <div class="notes"><p>${esc(d.notes.summary[I18N.lang] || "")}</p></div>
+    </section>`);
+  }
+
+  $("body").innerHTML = out.join("");
+  $("body").hidden = false;
+  if(window.Trophies) Trophies.show(d.set, d.mode, $("trophySec"));
+
+  // 表示件数の切り替え
+  $("body").querySelectorAll(".chips [data-n]").forEach(b => {
+    b.onclick = async () => {
+      const n = parseInt(b.dataset.n, 10);
+      if(n === topN) return;
+      if(n !== 10){
+        b.textContent = "…";
+        try{ await loadFull(); }
+        catch(e){ setStatus(t("reports.none"), true); render(); return; }
+      }
+      topN = n;
+      try{ localStorage.setItem("sw.reports.topn", String(n)); }catch(e){}
+      render();
+    };
+  });
+
+  // カードのティア表：レアリティの切り替え
+  $("body").querySelectorAll("[data-ctier]").forEach(b => b.onclick = () => { ctierGroup = b.dataset.ctier; render(); });
+  $("body").querySelectorAll("[data-tcolor]").forEach(b => b.onclick = () => {
+    const k = b.dataset.tcolor;
+    ctierColors = !k ? [] : ctierColors.includes(k) ? ctierColors.filter(x => x !== k) : [...ctierColors, k].sort((x, y) => "WUBRGMC".indexOf(x) - "WUBRGMC".indexOf(y));
+    render();
+  });
+  // カード表の絞り込み（色・種類・並べ方）。上位10のままでも、絞り込むときは全カードから選ぶ
+  const refilter = async () => {
+    if(filtering() && !fullCache[$("setSelect").value + "_" + mode]){
+      try{ await loadFull(); }catch(e){ setStatus(t("reports.none"), true); return; }
+    }
+    render();
+  };
+  $("body").querySelectorAll("[data-ccolor]").forEach(b => b.onclick = () => { cardColor = b.dataset.ccolor; refilter(); });
+  if($("cardType")) $("cardType").onchange = e => { cardType = e.target.value; refilter(); };
+  if($("cardSort")) $("cardSort").onchange = e => { cardSort = e.target.value; refilter(); };
+
+  // カード名にカーソルを合わせたら画像を出す
+  $("body").querySelectorAll("tr[data-card], .tchip[data-card]").forEach(tr => {
+    const name = tr.dataset.card;
+    if(TOUCH){
+      const open = () => { const u = imageUrls(name); if(u.length) tapPreview(u, displayName(name)); };
+      tr.onclick = open;          // タップで開く
+      longPress(tr, open);        // 長押しでも開く
+      return;
+    }
+    tr.onmouseenter = ev => showPreview(name, ev.clientX, ev.clientY);
+    tr.onmousemove  = ev => movePreview(ev.clientX, ev.clientY);
+    tr.onmouseleave = hidePreview;
+  });
+}
+
+/* ---------- 画像プレビュー ---------- */
+/* スマホ（カーソルが無い端末）：行をタップで画像を画面中央に出し、もう一度どこかをタップで閉じる */
+const TOUCH = window.matchMedia && window.matchMedia("(hover: none)").matches;
+function tapPreview(urls, alt){
+  const box = $("preview"), dim = $("tapdim");
+  if(box.classList.contains("tap")){ closeTap(); return; }
+  box.innerHTML = "";
+  urls.forEach(u => { const img = document.createElement("img"); img.src = u; img.alt = alt || ""; box.appendChild(img); });
+  box.classList.add("tap"); box.style.display = "block"; box.style.left = ""; box.style.top = "";
+  dim.classList.add("on");
+}
+/* 長押し（約0.45秒）で fn を呼ぶ。長押しのあとに続くタップ（click）は打ち消す。指が動いたら（スクロール）取りやめる */
+function longPress(el, fn){
+  let timer = null, fired = false;
+  el.addEventListener("touchstart", () => { fired = false; clearTimeout(timer); timer = setTimeout(() => { fired = true; fn(); }, 450); }, { passive: true });
+  el.addEventListener("touchmove", () => clearTimeout(timer), { passive: true });
+  el.addEventListener("touchcancel", () => clearTimeout(timer), { passive: true });
+  el.addEventListener("touchend", ev => { clearTimeout(timer); if(fired){ ev.preventDefault(); fired = false; } });
+  el.addEventListener("contextmenu", ev => ev.preventDefault());
+}
+function closeTap(){
+  const box = $("preview"), dim = $("tapdim");
+  box.classList.remove("tap"); box.style.display = "none"; box.innerHTML = "";
+  dim.classList.remove("on");
+}
+document.addEventListener("click", ev => { if($("preview").classList.contains("tap") && !ev.target.closest("tr[data-card], .tchip[data-card], tr[data-img], .tcard[data-img]")) closeTap(); });
+$("tapdim").addEventListener("click", closeTap);
+
+function showPreview(name, x, y){
+  const urls = imageUrls(name);
+  if(!urls.length) return;
+  const box = $("preview");
+  box.innerHTML = "";
+  urls.forEach(u => {
+    const img = document.createElement("img");
+    img.src = u; img.alt = displayName(name); img.loading = "lazy";
+    box.appendChild(img);
+  });
+  box.style.display = "block";
+  movePreview(x, y);
+}
+
+function movePreview(x, y){
+  const box = $("preview");
+  if(box.style.display !== "block") return;
+  const w = 252, h = box.offsetHeight || 350;
+  let left = x + 18, top = y - h / 2;
+  if(left + w > window.innerWidth - 8) left = x - w - 18;
+  if(left < 8) left = 8;
+  top = Math.min(Math.max(8, top), window.innerHeight - h - 8);
+  box.style.left = left + "px";
+  box.style.top = top + "px";
+}
+
+function hidePreview(){
+  const box = $("preview");
+  box.style.display = "none";
+  box.innerHTML = "";
+}
+
+/* ---------- イベント ---------- */
+/* 選んだセットと形式をURLに残す（再読み込みしても、最新セットに戻らない。URLを共有もできる） */
+function rememberChoice(){
+  try{
+    const u = new URL(location.href);
+    u.searchParams.set("set", $("setSelect").value);
+    u.searchParams.set("mode", mode);
+    history.replaceState(null, "", u.pathname + u.search + u.hash);
+  }catch(e){}
+}
+$("setSelect").onchange = () => { updateModeTabs(); rememberChoice(); load(); };
+function syncStaticLink(){
+  const code = $("setSelect").value;
+  const suffix = I18N.lang === "en" ? ".en" : "";
+  // 下見だけのセットは下見ページへ。勝率データ（17Lands の毎日の集計を含む）があるセットは、セット別ページへ
+  $("staticLink").href = !code ? `./sets/index${suffix}.html` : (profileOnly.includes(code) && !withData.includes(code) ? `./sets/${code}.profile${suffix}.html` : `./sets/${code}${suffix}.html`);
+}
+$("setSelect").addEventListener("change", syncStaticLink);
+document.querySelectorAll("#modeTabs .tab").forEach(b => {
+  b.onclick = () => {
+    if(b.disabled || b.dataset.mode === mode) return;
+    mode = b.dataset.mode;
+    syncModeTabs();
+    rememberChoice();
+    load();
+  };
+});
+$("langSelect").value = I18N.lang;
+$("langSelect").onchange = e => I18N.set(e.target.value);
+I18N.onChange(() => {
+  hidePreview(); renderSetOptions(); updateModeTabs(); syncStaticLink();
+  load();   // 記事も下見も、表示中の言語で読み直す
+});
+window.addEventListener("scroll", hidePreview, {passive:true});
+
+loadIndex();
+</script>
+<script src="./goods-widget.js?v=6" defer></script>
+</body>
+</html>

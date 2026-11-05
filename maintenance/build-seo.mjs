@@ -5,12 +5,14 @@
  *   node maintenance/build-seo.mjs
  *
  * ・リポジトリ直下の .html を自動で拾うので、ページを足せば勝手に載る
- * ・日本語版と英語版を hreflang で相互にひもづける（同じURLの2言語なので x-default も付ける）
+ * ・日本語版と英語版を hreflang で相互にひもづける。サイトの直下のページは、日英で URL を分けたもの（i18n.js の EN_PAGES。
+ *   英語版は <名前>.en.html。build-en-pages.mjs が作る）は別々に、それ以外は同じ URL の2言語として載せる
  * ・更新日は data/ratings/index.json の生成日時を使う
  */
 
 import { readdir, readFile, writeFile, stat } from "node:fs/promises";
 import path from "node:path";
+import { enPages } from "./en-pages.mjs";
 
 const SITE = process.env.SITE_URL || "https://sealed-workbench.com";
 const ROOT = ".";
@@ -47,14 +49,24 @@ async function main(){
   // 404 と動作確認用のページは検索結果に載せないので、サイトマップからも外す
   const SKIP = new Set(["404.html", "table-test.html", "draftroom-test.html", "ratings.html"]);
   const files = (await readdir(ROOT))
-    .filter(f => f.endsWith(".html") && !SKIP.has(f))
+    .filter(f => f.endsWith(".html") && !f.endsWith(".en.html") && !SKIP.has(f))   // 英語版は日本語版と組にして載せる
     .sort((a, b) => (PRIORITY[b] || "0.5").localeCompare(PRIORITY[a] || "0.5"));
 
   if(!files.length) throw new Error("HTMLファイルが見つかりませんでした");
 
   const day = await lastUpdated();
 
-  const entries = files.map(f => {
+  const split = new Set(enPages());
+  const entries = files.flatMap(f => {
+    const name = f.replace(/\.html$/, "");
+    if(split.has(name)){
+      // 日英で URL を分けたページ：日本語版と英語版を、それぞれ1件ずつ（互いを指し合う）
+      const ja = urlOf(f), en = `${SITE}/${name}.en.html`;
+      const alt = [`    <xhtml:link rel="alternate" hreflang="ja" href="${ja}"/>`, `    <xhtml:link rel="alternate" hreflang="en" href="${en}"/>`,
+                   `    <xhtml:link rel="alternate" hreflang="x-default" href="${ja}"/>`].join("\n");
+      return [ja, en].map(loc => ["  <url>", `    <loc>${loc}</loc>`, `    <lastmod>${day}</lastmod>`, "    <changefreq>monthly</changefreq>",
+                                   `    <priority>${PRIORITY[f] || "0.5"}</priority>`, alt, "  </url>"].join("\n"));
+    }
     const loc = urlOf(f);
     // 同一URLで日英を切り替えるので、両言語とも同じURLを指す
     const alt = ["ja", "en"].map(l =>

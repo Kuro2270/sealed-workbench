@@ -1,9 +1,21 @@
 <!DOCTYPE html>
-<html lang="ja" data-title="page.draft.title" data-desc="desc.draft">
+<html lang="ja" data-page-lang="ja" data-title="page.draft.title" data-desc="desc.draft">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Draft Workbench — MTG Arena draft practice vs 7 CPUs</title>
+<title>ドラフト練習（CPU戦）｜MTGアリーナのドラフトをCPU 7人と練習</title>
+<!-- seo:start（maintenance/build-en-pages.mjs が書く。手で直さない。文言は i18n.js） -->
+<meta name="description" content="マジック：ザ・ギャザリング アリーナのドラフトを、CPU 7人と8人卓で練習できる無料ツール。CPUは実戦の勝率データをもとにピックします。3パック42手を終えたらデッキを組み、アリーナにインポートできます。">
+<link rel="canonical" href="https://sealed-workbench.com/draft">
+<link rel="alternate" hreflang="ja" href="https://sealed-workbench.com/draft">
+<link rel="alternate" hreflang="en" href="https://sealed-workbench.com/draft.en">
+<link rel="alternate" hreflang="x-default" href="https://sealed-workbench.com/draft">
+<meta property="og:title" content="ドラフト練習（CPU戦）｜MTGアリーナのドラフトをCPU 7人と練習">
+<meta property="og:description" content="マジック：ザ・ギャザリング アリーナのドラフトを、CPU 7人と8人卓で練習できる無料ツール。CPUは実戦の勝率データをもとにピックします。3パック42手を終えたらデッキを組み、アリーナにインポートできます。">
+<meta property="og:url" content="https://sealed-workbench.com/draft">
+<meta property="og:image" content="https://sealed-workbench.com/ogp-ja.png">
+<meta property="og:locale" content="ja_JP">
+<!-- seo:end -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
@@ -11,7 +23,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MTG Arena Limited Workbench">
 <meta name="twitter:card" content="summary">
-<script src="./i18n.js?v=19"></script>
+<script src="./i18n.js?v=20"></script>
 <script src="./cardzoom.js?v=2"></script>
 <script src="./color-tally.js?v=1"></script>
 <script src="./analytics.js"></script>
@@ -976,7 +988,7 @@ $("copyBtn").onclick = async () => {
 
 if(!FROM_ROOM) loadSets();
 PoolSave.mountHistory(SAVE_KEY, $("histBox"), snap => { archiveCurrent(); applySnap(snap, "save.switched"); });
-if(!restoreCurrent() && FROM_ROOM && !PoolSave.history(SAVE_KEY).length) location.replace("./draftroom.html");   // 組むプールが無ければ部屋の画面へ
+if(!restoreCurrent() && FROM_ROOM && !PoolSave.history(SAVE_KEY).length) location.replace(I18N.href("./draftroom.html"));   // 組むプールが無ければ部屋の画面へ
 </script>
 <script src="./goods-widget.js?v=6" defer></script>
 <script src="./deck-dock.js?v=1" defer></script>

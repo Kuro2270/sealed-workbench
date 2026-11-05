@@ -14,6 +14,7 @@
  */
 
 import { mkdir, writeFile } from "node:fs/promises";
+import { enLinks } from "./en-pages.mjs";
 import { readFileSync } from "node:fs";
 import { shell, L, esc, SITE, pretty } from "./build-set-pages.mjs";
 import { READ, guideCss, guideSections } from "./start-guides.mjs";
@@ -751,7 +752,7 @@ ${dt.rows.map(x => `<tr><th>${x[0]}</th><td>${x[1]}</td><td>${x[2]}</td></tr>`).
 await mkdir("start", { recursive: true });
 for(const [kind, base] of KINDS){
   for(const lang of ["ja", "en"]){
-    await writeFile(`start/${base}${lang === "en" ? ".en" : ""}.html`, page(lang, kind), "utf8");
+    await writeFile(`start/${base}${lang === "en" ? ".en" : ""}.html`, lang === "en" ? enLinks(page(lang, kind), "start") : page(lang, kind), "utf8");   // 英語のページのリンクは英語版へ
   }
 }
 console.log("入門ページを作りました: start/index(.en).html（MTGとは）, start/limited(.en).html（リミテッドとは）, start/sealed(.en).html（シールドの組み方）, start/draft(.en).html（ドラフトの基本）");
