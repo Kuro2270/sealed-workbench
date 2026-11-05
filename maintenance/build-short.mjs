@@ -84,6 +84,7 @@ const UI = JA ? {
   outroA: "チャンネル登録を", outroB: "お願いします", subscribed: "✓ 登録済み", ctaA: "チャンネル登録と", ctaB: "高評価もぜひ！", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん",
   earlyBadge: "速報", earlyHookC: "リミテッド速報", earlyHookD3: "勝てる色と勝率が高いカードを解説",
   cardCh: { bombs: "レア・神話レア", uncommon: "アンコモン", common: "コモン" }, cardH: { bombs: "勝率トップ3", other: "勝率トップ3" },
+  bye: "楽しいリミテッドライフを！",
   bombLevel: "ボム級", vsAvgOf: (label, g) => `${label}の平均より +${g}pt`, anyCopies: "何枚でもOK",
   verdict: { pick: "迷わずピック", move: "色を合わせる価値あり", take: "色が合えば優先" }, rareLabel: "レア・神話レア",
   trendBadge: "修正版", trendHookC: "ドラフト環境の変化", trendHookD2: "勝率が上がったカード", trendHookD3: "勝てる色と勝率が上がったカードを解説",
@@ -104,6 +105,7 @@ const UI = JA ? {
   outroA: "Please subscribe", outroB: "", subscribed: "✓ Subscribed", ctaA: "Like &", ctaB: "subscribe!", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS",
   earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1", earlyHookD3: "Winning pairs & top cards by win rate",
   cardCh: { bombs: "RARES & MYTHICS", uncommon: "UNCOMMONS", common: "COMMONS" }, cardH: { bombs: "Top 3 by win rate", other: "Top 3 by win rate" },
+  bye: "Have fun in Limited!",
   bombLevel: "Bomb-level", vsAvgOf: (label, g) => `+${g}pt vs average ${label}`, anyCopies: "Any number OK",
   verdict: { pick: "Easy first pick", move: "Worth moving in", take: "Take it in colour" }, rareLabel: "rare & mythic",
   trendBadge: "UPDATE", trendHookC: "DRAFT · WHAT CHANGED", trendHookD2: "Cards rising in win rate", trendHookD3: "Winning pairs & cards rising in win rate",
@@ -369,6 +371,7 @@ function buildScript(d, nameJa, names, avgs = {}, legend = null){
 
   // 締め：登録のお願いは、離脱されないよう一言だけ・短く（2026年10月。以前の「序盤のデータなので順位は動きます」の断り書きと、
   //   長めの登録のお願いで、FRA の速報ショートの終盤に離脱が集中した）。登録する理由は一言だけ
+  if(EARLY) scenes.push(byeScene());   // 速報の締めは、登録のお願いではなく一言だけ（2026年11月）
   if(!EARLY) scenes.push({ kind: "outro", art: true,   // 速報は締めのお願いをしない（途中の ctaScene で言う）。旧版のショートだけ締めで言う
     // 登録する理由を一言だけ添える（速報は「詳しい解説」、通常版は「次のセット」）
     // 2026年11月：締めの4秒で見るのをやめる人が多かったので、セリフは一言だけにし、登録ボタンを押す動き（popLayer）で2秒ほどに収める
@@ -485,6 +488,10 @@ function popSvg(inner, w, h){
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w * SCALE}" height="${h * SCALE}" viewBox="0 0 ${w} ${h}" font-family="${FONT}"><g>${inner}</g></svg>`;
 }
 /* 途中に挟む「登録と高評価のお願い」の場面（速報・修正版）。セリフは一言、登録ボタンを押す動き（popLayer）つきで3秒弱 */
+/* 締めの一言（速報・修正版）。登録のお願いは途中で言っているので、ここは見てくれた人への一言だけ・2秒ほど（2026年11月） */
+function byeScene(){
+  return { kind: "bye", art: true, say: UI.bye, tail: 0.3, minDur: 1.8 };   // 「MTGアリーナで」は言わず、画面のロゴで見せる（2秒ほどに収めるため）
+}
 /* lead … 前置き（例：「レアリティ別のカード評価を見る前に、」）。いきなりお願いすると唐突なので、次の話の前の一息として言う */
 function ctaScene(lead = ""){
   return { kind: "cta", art: true, lead, say: lead + (JA ? "チャンネル登録と高評価もぜひ！" : "like and subscribe!"), tail: 0.2, minDur: 1.9 };
@@ -690,8 +697,8 @@ function trendFocusSvg(sc){
     if(px + p.w > R) break;
     s += p.svg; px += p.w + 14;
   }
-  // 比べた平均（「コモンの平均 56.8% → 56.4%」）。札の右に、小さく
-  if(c.avgLine && px < R - 120) s += T(px + 6, dy + 30 + Math.round((JA ? 38 : 32) * 1.1), c.avgLine, { size: fitSize(c.avgLine, R - px - 6, 32), fill: MUTED });
+  // 比べた平均（「最近のコモンの平均 56.4%」）。札の右に
+  if(c.avgLine && px < R - 120) s += T(px + 6, dy + 30 + Math.round((JA ? 38 : 32) * 1.1), c.avgLine, { size: fitSize(c.avgLine, R - px - 6, 36), fill: "#C9D7E6" });
   return s;
 }
 /* 残りの2枚の位置（sceneSvg と highlightsOf で同じにする） */
@@ -738,7 +745,7 @@ function shortName(n){
   const m = String(n).replace(/^Magic:\s*The Gathering\s*[:|｜-]?\s*/i, "").split(/\s*[｜|]\s*/);
   return (m[m.length - 1] || "").trim() || String(n);
 }
-const HEADER = { logo: null, title: "" };
+const HEADER = { logo: null, title: "", arena: null };   // arena：MTGアリーナのロゴ（締めの一言の場面で使う）
 function header(){
   const band = HAS_BG ? `<rect x="40" y="30" width="${W - 80}" height="146" rx="24" fill="${DEEP}" opacity="0.6"/>` : "";
   if(HEADER.logo){
@@ -1097,6 +1104,13 @@ function sceneSvg(sc){
         TS(W / 2, 640, UI.ctaA, { size: JA ? 104 : 120 }) +
         TS(W / 2, 780, UI.ctaB, { size: JA ? 104 : 120, fill: "#FFD23F" }) + thumb, null, { header: false });
     }
+    case "bye": {
+      // MTGアリーナのロゴ（無ければ文字）と、締めの一言
+      const size = Math.min(JA ? 96 : 110, Math.floor(980 / Math.max(units(UI.bye), 1)));
+      return frame((HEADER.arena ? `<image href="${HEADER.arena}" x="${W / 2 - 330}" y="470" width="660" height="232" preserveAspectRatio="xMidYMid meet"/>`
+                                 : TS(W / 2, 640, UI.arena, { size: 96 })) +
+                   TS(W / 2, 860, UI.bye, { size, fill: "#FFD23F" }), null, { header: false });
+    }
     case "outro": {
       // 締めは「チャンネル登録をお願いします」だけ。クレジットや表記は概要欄に置く
       // 登録ボタン・指・ベルは動く層（popLayer）で重ねる
@@ -1316,7 +1330,7 @@ async function main(){
   const prof = await readJson(`data/profiles/${SET}.json`, null);
   const legend = prof && Array.isArray(prof.cards) ? new Map(prof.cards.map(c => [c.name, /Legendary/.test(c.type || "")])) : null;
   console.error(`レア度ごとの平均: ${["common", "uncommon", "rare"].map(r => `${r} ${avgs[r] ? pt(avgs[r]) + "%" : "なし"}`).join(" / ")}`);
-  const scenes = TREND ? splitLongScenes(trendScript(d, { JA, nameJa, names, pairName, cta: ctaScene(JA ? "レアリティ別のカード評価を見る前に、" : "Before the cards by rarity, ") })) : splitLongScenes(buildScript(d, nameJa, names, avgs, legend));
+  const scenes = TREND ? splitLongScenes(trendScript(d, { JA, nameJa, names, pairName, cta: ctaScene(JA ? "レアリティ別のカード評価を見る前に、" : "Before the cards by rarity, "), bye: byeScene() })) : splitLongScenes(buildScript(d, nameJa, names, avgs, legend));
 
   // セット名のロゴ画像（置いてあれば使う）
   {
@@ -1328,7 +1342,7 @@ async function main(){
     HEADER.logo = hook && hook.logo || null;
     HEADER.title = nameJa;
     const ab = await readFile("short/logo/arena.png").catch(() => null);
-    if(ab && hook){ hook.arenaLogo = "data:image/png;base64," + ab.toString("base64"); console.error("アリーナのロゴ: short/logo/arena.png"); }
+    if(ab && hook){ hook.arenaLogo = HEADER.arena = "data:image/png;base64," + ab.toString("base64"); console.error("アリーナのロゴ: short/logo/arena.png"); }
   }
 
   // BGM（short/bgm/*.mp3 を置いておくと、薄く流す。short/bgm/credits.json に { "ファイル名": "表記" } があれば締めにクレジットを出す）

@@ -9,7 +9,7 @@
  * 章立て
  *   冒頭（サムネイルと同じ見た目。セリフは短く「何の動画か」だけ）
  *   → 色の組み合わせ編（2色デッキの勝率の変化 → 狙い目（勝率が高いのに使う人が少ない組み合わせ。あるときだけ））
- *   → 登録と高評価のお願い（ctx.cta。一言だけ）→ コモン編 → アンコモン編 → レア編（それぞれ、上がった3枚だけ）で終わる
+ *   → 登録と高評価のお願い（ctx.cta。一言だけ）→ コモン編 → アンコモン編 → レア編（それぞれ、上がった3枚だけ）→ 締めの一言（ctx.bye）
  *   2026年11月：FRA の修正版で、いちばん役に立つ色の組み合わせを最後に置いていたのを最初にした。
  *   また、下がったカード（とくにコモン）の場面で見るのをやめる人が多かったので、下がったカードは言わず、上がったカードだけにして短くした。
  *   締めの「登録のお願い」で見るのをやめる人も多かったので、お願いは途中（色の組み合わせのあと）に一度だけにし、締めは無くした
@@ -36,7 +36,7 @@ function pickTarget(pairs){
   return t ? { pair: t, rank: pairs.indexOf(t) + 1, avgShare } : null;
 }
 
-export function trendScript(d, { JA, nameJa, names, pairName, cta }){
+export function trendScript(d, { JA, nameJa, names, pairName, cta, bye }){
   const L = JA ? "ja" : "en";
   const label = c => JA ? ((names.names || {})[c.name] || c.name) : c.name;
   const withLabel = list => (list || []).slice(0, 3).map(c => ({ ...c, label: label(c), img: JA ? (names.images || {})[c.name] : null }));
@@ -140,8 +140,8 @@ export function trendScript(d, { JA, nameJa, names, pairName, cta }){
     const TAG = JA ? { strongMore: "さらに評価アップ", reversal: "評価が逆転", fromAvg: "平均並み→平均以上", climbing: "じわじわ上昇中" }
                    : { strongMore: "Even stronger", reversal: "Turnaround", fromAvg: "Average → above", climbing: "Slowly rising" };
     const tags = [...(key ? [TAG[key]] : []), ...(top ? [JA ? `今の${rn}1位` : `#1 ${rn} now`] : [])];
-    // 画面にも、比べた平均（発売直後 → 最近）を出す
-    const avgLine = JA ? `${rn}の平均 ${pct(aF)}% → ${pct(aL)}%` : `Avg ${rn} ${pct(aF)}% → ${pct(aL)}%`;
+    // 画面にも、比べた平均を出す（最近の平均だけ。推移は出さない）
+    const avgLine = JA ? `最近の${rn}の平均 ${pct(aL)}%` : `Recent avg ${rn} ${pct(aL)}%`;
     return { key, top, say, tags, avgLine };
   };
   let firstCh = true;
@@ -168,5 +168,7 @@ export function trendScript(d, { JA, nameJa, names, pairName, cta }){
     if(rest.length) scenes.push({ ...base, part: "rest", say: tail.trim(), tail: 0.8, minDur: 3 });
   }
 
+  // 締めの一言（build-short.mjs の byeScene。「楽しいリミテッドライフを！」）
+  if(bye) scenes.push(bye);
   return scenes;
 }
