@@ -1,0 +1,57 @@
+name: サイト｜英語版のページを作る（push時）
+
+# サイトの直下の、日英で URL を分けているページ（i18n.js の EN_PAGES）の英語版（<名前>.en.html）を作り直して commit する。役割はこれだけ。
+#   ・日本語版（<名前>.html）や i18n.js（題・説明の文言）を GitHub に上げたときに動く。日本語版を直したら、英語版も同じ中身になる
+#   ・あわせて、日本語版の検索結果に出る部分（題・説明・正規の URL・言語の対応。<!-- seo --> の印の間）を書き直す
+#   ・サイトマップ（sitemap.xml）は作らない（「データ｜2 勝率データ集計」が作る）
+#   ・すぐ作り直したいときは、このページの「Run workflow」を押す（入力は不要）
+# 英語版のファイルは手で直さない（次に日本語版を上げたときに上書きされる）。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "*.html"
+      - "!*.en.html"
+      - "i18n.js"
+      - "maintenance/build-en-pages.mjs"
+      - "maintenance/en-pages.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-en-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 英語版のページを作る
+        run: node maintenance/build-en-pages.mjs
+
+      - name: 変わっていればコミットする
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- *.html               # サイトの直下の .html だけ（日本語版の印の中と、英語版）
+          if git diff --staged --quiet; then
+            echo "変更はありません。"; exit 0
+          fi
+          git status --short | head -40
+          git commit -m "英語版のページを作り直す"
+          ok=0
+          for i in 1 2 3; do
+            if git pull --rebase --autostash origin main && git push origin main; then ok=1; break; fi
+            echo "再試行 $i"; sleep 5
+          done
+          if [ "$ok" != 1 ]; then echo "::error::GitHub に反映（push）できませんでした。もう一度実行してください。"; exit 1; fi

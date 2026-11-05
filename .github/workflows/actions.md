@@ -79,6 +79,7 @@ SNS｜データ更新の告知（Bluesky・英語）／SNS｜X の文案を作�
 
 | 名前 | 動く条件 |
 |---|---|
+| サイト｜英語版のページを作る | サイトの直下の `.html`（英語版の `.en.html` は除く）・`i18n.js` を上げたとき。日本語版から英語版（`<名前>.en.html`）を作り、日本語版の検索結果に出る部分（題・説明）も書き直す。英語版は手で直さない |
 | サイト｜セット別ページを作り直す | `data/long.json`・`data/videos.json`・`maintenance/build-set-pages.mjs` を上げたとき |
 | サイト｜セット別ページの共有画像を作り直す | `maintenance/build-set-ogp.mjs`・`short/bg/` の絵を上げたとき |
 | サイト｜ロゴを軽くする | `short/logo/` の画像か `maintenance/build-logos.mjs` を上げたとき |
