@@ -83,7 +83,7 @@ const UI = JA ? {
   wrRank: (v, r) => `勝率 ${v}%（${r}位）`, wr: v => `勝率 ${v}%`, usedOnly: (g, p) => `使われた試合は ${g}。全体の${p}%だけ`, vsAvg2: (sign, n) => `2色それぞれの平均より ${sign}${n}pt`,
   outroA: "チャンネル登録を", outroB: "お願いします", subscribed: "✓ 登録済み", ctaA: "チャンネル登録と", ctaB: "高評価もぜひ！", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん",
   earlyBadge: "速報", earlyHookC: "リミテッド速報", earlyHookD3: "勝てる色と勝率が高いカードを解説",
-  cardCh: { bombs: "ボム", uncommon: "アンコモン", common: "コモン" }, cardH: { bombs: "レア・神話レアの勝率トップ3", other: "勝率トップ3" },
+  cardCh: { bombs: "レア・神話レア", uncommon: "アンコモン", common: "コモン" }, cardH: { bombs: "勝率トップ3", other: "勝率トップ3" },
   bombLevel: "ボム級", vsAvgOf: (label, g) => `${label}の平均より +${g}pt`, anyCopies: "何枚でもOK",
   verdict: { pick: "迷わずピック", move: "色を合わせる価値あり", take: "色が合えば優先" }, rareLabel: "レア・神話レア",
   trendBadge: "修正版", trendHookC: "ドラフト環境の変化", trendHookD2: "勝率が上がったカード", trendHookD3: "勝てる色と勝率が上がったカードを解説",
@@ -103,7 +103,7 @@ const UI = JA ? {
   wrRank: (v, r) => `${v}% win rate (#${r})`, wr: v => `${v}% win rate`, usedOnly: (g, p) => `Only ${g} games — ${p}% of all decks`, vsAvg2: (sign, n) => `${sign}${n}pt vs each colour's average`,
   outroA: "Please subscribe", outroB: "", subscribed: "✓ Subscribed", ctaA: "Like &", ctaB: "subscribe!", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS",
   earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1", earlyHookD3: "Winning pairs & top cards by win rate",
-  cardCh: { bombs: "BOMBS", uncommon: "UNCOMMONS", common: "COMMONS" }, cardH: { bombs: "Top 3 rares & mythics by win rate", other: "Top 3 by win rate" },
+  cardCh: { bombs: "RARES & MYTHICS", uncommon: "UNCOMMONS", common: "COMMONS" }, cardH: { bombs: "Top 3 by win rate", other: "Top 3 by win rate" },
   bombLevel: "Bomb-level", vsAvgOf: (label, g) => `+${g}pt vs average ${label}`, anyCopies: "Any number OK",
   verdict: { pick: "Easy first pick", move: "Worth moving in", take: "Take it in colour" }, rareLabel: "rare & mythic",
   trendBadge: "UPDATE", trendHookC: "DRAFT · WHAT CHANGED", trendHookD2: "Cards rising in win rate", trendHookD3: "Winning pairs & cards rising in win rate",
@@ -328,14 +328,14 @@ function buildScript(d, nameJa, names, avgs = {}, legend = null){
   // 途中で一度だけ、登録と高評価のお願い（速報）。色の組み合わせのあと、カードの話の前に挟む。締めのお願いはやめた
   //   （2026年11月：締めの数秒で見るのをやめる人が多く、登録のお願いの無いタルコフの動画でも登録が付いていたため）
   if(EARLY) scenes.push(ctaScene(JA ? "カード評価を見る前に、" : "Before the cards, "));
-  // ボム（レア・神話レア）はトップ3だけ。1位を大きく映す場面と、2・3位の2枚の場面に分ける（2026年11月：3枚並びはスマホで読めず、4〜6位は割愛）
+  // レア・神話レアはトップ3だけ（2026年11月から、画面・セリフとも「ボム」ではなくレアリティの名前で呼ぶ）。1位を大きく映す場面と、2・3位の2枚の場面に分ける（2026年11月：3枚並びはスマホで読めず、4〜6位は割愛）
   if(bombs.length){
     const three = bombs.slice(0, 3).map((c, i) => ({ ...c, rank: i + 1 })), c0 = three[0], rest = three.slice(1);
     const base = { kind: "cardPick", metric: "wr", cards: three, label: "bombs", rare: true, chapter: UI.cardCh.bombs, heading: UI.cardH.bombs };
     c0.verdict = cardVerdict(c0, rareAvg, { rarity: "rare", legend, rareAvg }); c0.avgLabel = UI.rareLabel;
     scenes.push({ ...base, part: "focus", tail: rest.length ? 0.3 : 0.8, minDur: 4,
-      say: (JA ? `${EARLY ? "さて、" : ""}ボムのトップ3。引けた試合の勝率の1位は${c0.label}、${pt(c0.gih)}パーセント。`
-               : `${EARLY ? "Now, the" : "The"} top three bombs. Number one in win rate when drawn: ${c0.name}, at ${pt(c0.gih)} percent.`)
+      say: (JA ? `${EARLY ? "さて、" : ""}レア・神話レアのトップ3。引けた試合の勝率の1位は${c0.label}、${pt(c0.gih)}パーセント。`
+               : `${EARLY ? "Now, the" : "The"} top three rares and mythics. Number one in win rate when drawn: ${c0.name}, at ${pt(c0.gih)} percent.`)
            + verdictSay(c0.verdict, UI.rareLabel) + outsideNote([c0], 1) });
     if(rest.length) scenes.push({ ...base, part: "rest", tail: 0.8, minDur: 3,
       say: (JA ? `${rest.map(c => c.label).join("と")}も迷わずピックです。` : `${rest.map(c => c.name).join(" and ")} ${rest.length > 1 ? "are" : "is a"} first-pick${rest.length > 1 ? "s" : ""} too.`) + outsideNote(rest, 2) });
@@ -670,7 +670,7 @@ function trendFocusSvg(sc){
   // 余白：カードの下端 → 名前 84px、名前 → 差 108px、差 → 字幕の枠 56px 以上。カードはその範囲で最大 752px（幅 540px）
   const GAP_NAME = 84, GAP_DELTA = 108, GAP_CAP = 56;
   const c = sc.cards[0], col = c.delta >= 0 ? UP : DOWN, L = 80, R = ZX - 16, y = 292;
-  const PILLS = sc.metric === "wr" && c.verdict ? 150 : 0;   // 勝率の版で、どう扱うかの札を出すときは、その1行ぶんカードを小さくする
+  const PILLS = sc.metric === "wr" && c.verdict ? 150 : (c.tags || []).length ? 84 : 0;   // 修正版は、上がり方の札（tags）を出すときに1行ぶん   // 勝率の版で、どう扱うかの札を出すときは、その1行ぶんカードを小さくする
   const h = Math.min(752, captionTop(sc.layoutSay || sc.say, BOMB_CAP_BOTTOM) - GAP_CAP - GAP_DELTA - GAP_NAME - PILLS - y), w = Math.round(h * 672 / 936), x = Math.round((W - w) / 2);
   let s = trendHead(sc) + cardImg(c, x, y, w, h);
   if(sc.metric === "wr") return s + wrFocusInfo(c, L, R, y + h + GAP_NAME, y + h + GAP_NAME + GAP_DELTA);
@@ -683,6 +683,13 @@ function trendFocusSvg(sc){
   const a1 = `${UI.trendFirst} ${pt(c.first.gih)}%`, a2 = `${UI.trendLast} ${pt(c.last.gih)}%`, ax = L + dw + 30;
   const as = fitSize(units(a1) > units(a2) ? a1 : a2, R - ax, 40);
   s += T(ax, dy - as - 8, a1, { size: as, fill: MUTED }) + T(ax, dy + 4, a2, { size: as, weight: 900, fill: GOLD });
+  // どういう上がり方か（さらに評価アップ・評価が逆転など。short-trend.mjs の noteOf）の札
+  let px = L;
+  for(const [i, t] of (c.tags || []).entries()){
+    const p = pill(px, dy + 30, t, i === 0 ? GOLD : UP, i === 0 ? DEEP : "#FFFFFF", JA ? 38 : 32);
+    if(px + p.w > R) break;
+    s += p.svg; px += p.w + 14;
+  }
   return s;
 }
 /* 残りの2枚の位置（sceneSvg と highlightsOf で同じにする） */

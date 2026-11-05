@@ -106,6 +106,41 @@ export function trendScript(d, { JA, nameJa, names, pairName, cta }){
   const chapterJa = { common: "コモン編", uncommon: "アンコモン編", rare: "レア編" };
   const chapterEn = { common: "COMMONS", uncommon: "UNCOMMONS", rare: "RARES" };
   const intro = { common: JA ? "続いてコモン編。" : "Next, commons. ", uncommon: JA ? "次はアンコモン編。" : "Then uncommons. ", rare: JA ? "そしてレア編。" : "And rares. " };
+  // 1枚目に添える一言（2026年11月）：発売直後と最近のそれぞれで、同じレアリティの平均（比べたカード全体。試合数で重みづけ。レアは神話レアを含む）と比べて、
+  //   どういう上がり方をしたかを言う。画面にも同じ内容の札を出す（tags）
+  //   ・climbing   … 最近も平均より下（まだ平均には届かないが、上げてきている）
+  //   ・reversal   … 発売直後は平均より 0.5pt 以上下 → 最近は平均より 0.5pt 以上上（逆転）
+  //   ・strongMore … 発売直後から平均より 1pt 以上上（もともと強かったのが、さらに上がった）
+  //   ・fromAvg    … 発売直後は平均並み → 最近は平均より 1pt 以上上
+  //   最近の勝率がそのレアリティで1位なら、「今では〇〇で一番勝てるカード」と言う
+  const grp = r => r === "mythic" ? "rare" : r;
+  const avgW = (r, k) => { const l = (d.cards || []).filter(c => grp(c.rarity) === r && c[k]); const g = l.reduce((n, c) => n + c[k].games, 0); return g ? l.reduce((n, c) => n + c[k].gih * c[k].games, 0) / g : null; };
+  const noteOf = (c, r) => {
+    const aF = avgW(r, "first"), aL = avgW(r, "last");
+    if(aF == null || aL == null) return null;
+    const f = c.first.gih - aF, l = c.last.gih - aL;
+    const best = (d.cards || []).filter(x => grp(x.rarity) === r).sort((a, b) => b.last.gih - a.last.gih)[0];
+    const key = l < 0 ? "climbing" : f < -0.005 && l >= 0.005 ? "reversal" : f >= 0.01 ? "strongMore" : l >= 0.01 ? "fromAvg" : null;
+    const top = !!best && best.name === c.name && key !== "climbing";
+    if(!key && !top) return null;
+    const rn = RN[L][r];
+    const say = JA ? ({
+        strongMore: top ? `発売直後から平均以上でしたが、環境が成熟して、今では${rn}で一番勝てるカードになりました。` : "発売直後から平均以上でしたが、環境が成熟して、さらに評価を上げました。",
+        reversal: top ? `発売直後は平均以下でしたが、今では${rn}で一番勝てるカードに。評価が大逆転しました。` : "発売直後は平均以下でしたが、今では平均を超える一枚に。評価が逆転しました。",
+        fromAvg: top ? `発売直後は平均並みでしたが、今では${rn}で一番勝てるカードです。` : "発売直後は平均並みでしたが、今でははっきり平均以上です。",
+        climbing: "まだ平均には届きませんが、評価を上げてきています。"
+      }[key] || `今では${rn}で一番勝てるカードです。`)
+      : (" " + ({
+        strongMore: top ? `Already above average at launch, it's now the top ${rn} by win rate.` : "Already above average at launch, it climbed even higher as the format matured.",
+        reversal: top ? `Below average at launch, it's now the top ${rn}: a big turnaround.` : "Below average at launch, it's now above average: a real turnaround.",
+        fromAvg: top ? `About average at launch, it's now the top ${rn}.` : "About average at launch, it's now clearly above average.",
+        climbing: "Still below average, but climbing."
+      }[key] || `It's now the top ${rn} by win rate.`));
+    const TAG = JA ? { strongMore: "さらに評価アップ", reversal: "評価が逆転", fromAvg: "平均並み→平均以上", climbing: "追い上げ中" }
+                   : { strongMore: "Even stronger", reversal: "Turnaround", fromAvg: "Average → above", climbing: "Catching up" };
+    const tags = [...(key ? [TAG[key]] : []), ...(top ? [JA ? `今の${rn}1位` : `#1 ${rn} now`] : [])];
+    return { key, top, say, tags };
+  };
   let firstCh = true;
   for(const r of ["common", "uncommon", "rare"]){
     const up = chapterUp(r);
@@ -116,11 +151,12 @@ export function trendScript(d, { JA, nameJa, names, pairName, cta }){
     const c0 = up[0], rest = up.slice(1).map(c => c.label);
     // 何が上がったのか（引けた試合の勝率）を、文の前半で先に言う（2026年11月：「一番上がったのは〜」だけでは、何が上がったのか分からなかったため）。
     // どのレアリティかは直前の「〇〇編」で言っているので、ここでは繰り返さない
-    const lead = r === "rare" && c0.underrated
-        ? (JA ? `引けた試合の勝率が一番上がったのは、発売直後は目立たなかった${c0.label}。${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントです。`
-              : `The biggest rise in win rate when drawn is ${c0.label}, overlooked at launch: from ${pct(c0.first.gih)} percent to ${pct(c0.last.gih)} percent recently.`)
-        : (JA ? `引けた試合の勝率が一番上がったのは${c0.label}。発売直後の${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントです。`
-              : `The biggest rise in win rate when drawn is ${c0.label}: from ${pct(c0.first.gih)} percent at launch to ${pct(c0.last.gih)} percent recently.`);
+    // 発売直後に目立たなかったかどうかは、下の一言（noteOf）で言う（2026年11月から。以前はレアだけ「発売直後は目立たなかった〜」と言っていた）
+    const note = noteOf(c0, r);
+    if(note) c0.tags = note.tags;
+    const lead = (JA ? `引けた試合の勝率が一番上がったのは${c0.label}。発売直後の${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントです。`
+                     : `The biggest rise in win rate when drawn is ${c0.label}: from ${pct(c0.first.gih)} percent at launch to ${pct(c0.last.gih)} percent recently.`)
+               + (note ? note.say : "");
     const tail = !rest.length ? "" : (JA ? `${and(rest)}も上がっています。` : ` ${and(rest)} are up too.`);
     // 2026年11月：1枚目を大きく映す場面と、残りの2枚の場面に分けた（3枚並びはスマホで読めなかったため）。cards は両方とも同じ並び
     const base = { kind: "trendCards", dir: "up", cards: up, label: `trend-${r}-up`, rare: r === "rare",
