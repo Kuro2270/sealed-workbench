@@ -81,9 +81,9 @@ const UI = JA ? {
   subscribe: "▶ チャンネル登録",
   surpriseH: "意外な事実", nobody: "誰も組んでいない", strongerTogether: "組むと強くなる", weakerTogether: "組むと弱くなる",
   wrRank: (v, r) => `勝率 ${v}%（${r}位）`, wr: v => `勝率 ${v}%`, usedOnly: (g, p) => `使われた試合は ${g}。全体の${p}%だけ`, vsAvg2: (sign, n) => `2色それぞれの平均より ${sign}${n}pt`,
-  outroA: "チャンネル登録を", outroB: "お願いします", subscribed: "✓ 登録済み", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん",
+  outroA: "チャンネル登録を", outroB: "お願いします", subscribed: "✓ 登録済み", ctaA: "チャンネル登録と", ctaB: "高評価もぜひ！", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん",
   earlyBadge: "速報", earlyHookC: "リミテッド速報",
-  trendBadge: "修正版", trendHookC: "ドラフト環境の変化", trendHookD2: "評価が変わったカード",
+  trendBadge: "修正版", trendHookC: "ドラフト環境の変化", trendHookD2: "評価が上がったカード", trendHookD3: "勝てる色と上がったカードを解説",
   trendUpH: "発売直後から上がったカード", trendDownH: "発売直後から下がったカード", trendPairsH: "2色の組み合わせ（発売直後 → 最近）",
   trendFirst: "発売直後", trendLast: "最近", trendRise: "一番伸びた", trendFall: "一番落ちた", trendTop: "今の1位", trendTopKeep: "ずっと1位"
 } : {
@@ -98,9 +98,9 @@ const UI = JA ? {
   subscribe: "▶ Subscribe",
   surpriseH: "One surprise", nobody: "Nobody plays it", strongerTogether: "Better together", weakerTogether: "Worse together",
   wrRank: (v, r) => `${v}% win rate (#${r})`, wr: v => `${v}% win rate`, usedOnly: (g, p) => `Only ${g} games — ${p}% of all decks`, vsAvg2: (sign, n) => `${sign}${n}pt vs each colour's average`,
-  outroA: "Please subscribe", outroB: "", subscribed: "✓ Subscribed", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS",
+  outroA: "Please subscribe", outroB: "", subscribed: "✓ Subscribed", ctaA: "Like &", ctaB: "subscribe!", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS",
   earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1",
-  trendBadge: "UPDATE", trendHookC: "DRAFT · WHAT CHANGED", trendHookD2: "Cards that rose & fell",
+  trendBadge: "UPDATE", trendHookC: "DRAFT · WHAT CHANGED", trendHookD2: "Cards that rose", trendHookD3: "Winning pairs & rising cards",
   trendUpH: "Rising since launch", trendDownH: "Falling since launch", trendPairsH: "Colour pairs (launch → recent)",
   trendFirst: "Launch", trendLast: "Recent", trendRise: "Rose most", trendFall: "Fell most", trendTop: "No. 1 now", trendTopKeep: "No. 1 all along"
 };
@@ -271,7 +271,7 @@ function buildScript(d, nameJa, names, avgs = {}){
 
 
   // 「リミテッドとは」の前置きは入れない（見にくる人は知っているので、ここで離れてしまう。2026年10月の視聴データから）
-  // 速さ → 色の組み合わせのティア表（＋狙い目）→ レア・神話レアのボム → コモン・アンコモン → 断り書き＋登録のお願い
+  // 速さ → 色の組み合わせのティア表（＋狙い目）→（速報：登録と高評価のお願い）→ レア・神話レアのボム → コモン・アンコモン →（旧版だけ：登録のお願い）
   if(colors.length && best){
     const top2 = colors.slice(0, 2).map(c => CN[c.color]).join(JA ? "と" : " and ");
     const sNames = tiers.S.slice(0, 3).map(p => pairName(p.pair));   // 読むのは 3 つまで
@@ -292,6 +292,9 @@ function buildScript(d, nameJa, names, avgs = {}){
                 : `The pick to aim for: ${pairName(target.pair)}. Number ${target.rank} by win rate, yet under-drafted.`) });
     }
   }
+  // 途中で一度だけ、登録と高評価のお願い（速報）。色の組み合わせのあと、カードの話の前に挟む。締めのお願いはやめた
+  //   （2026年11月：締めの数秒で見るのをやめる人が多く、登録のお願いの無いタルコフの動画でも登録が付いていたため）
+  if(EARLY) scenes.push(ctaScene(JA ? "カード評価を見る前に、" : "Before the cards, "));
   if(bombs.length){
     const pages = [bombs.slice(0, 3), bombs.slice(3, 6)].filter(pg => pg.length);
     pages.forEach((pg, i) => {
@@ -301,7 +304,7 @@ function buildScript(d, nameJa, names, avgs = {}){
       scenes.push({ kind: "bombs", page: i, from, to, cards: pg, label: `bombs${i + 1}`, tail: 0.8, minDur: 6,   // 3 枚を見る時間として、短くても 6 秒は置く
         // 1〜5 位は順位と数字を読む。6〜10 位は数字を読み上げず、「これも中心に据えていい」と言う（棒読みにしない）
         // 「引けた試合の勝率」は画面の札に出ているので、セリフでは「勝率」とだけ言う（2026年10月：ショートが1分を超えたため短く）
-        say: (i === 0 ? (JA ? `ボムのトップ6です。1位は${three[0].label}、勝率${pt(three[0].gih)}パーセント。${three.slice(1).map(c => c.label).join("、")}も迷わずピックです。`
+        say: (i === 0 ? (JA ? `${EARLY ? "さて、" : ""}ボムのトップ6です。1位は${three[0].label}、勝率${pt(three[0].gih)}パーセント。${three.slice(1).map(c => c.label).join("、")}も迷わずピックです。`
                            : `Top six bombs. Number one: ${three[0].name}, at ${pt(three[0].gih)} percent. ${three.slice(1).map(c => c.name).join(" and ")} are first-picks too.`)
                      : (JA ? `${from}位から${to}位も、引いたらデッキの中心にできるボムです。`
                            : `Numbers ${from} to ${to} are bombs too. Build around them.`)) + outsideNote(pg, from) });
@@ -364,7 +367,7 @@ function buildScript(d, nameJa, names, avgs = {}){
 
   // 締め：登録のお願いは、離脱されないよう一言だけ・短く（2026年10月。以前の「序盤のデータなので順位は動きます」の断り書きと、
   //   長めの登録のお願いで、FRA の速報ショートの終盤に離脱が集中した）。登録する理由は一言だけ
-  scenes.push({ kind: "outro", art: true,
+  if(!EARLY) scenes.push({ kind: "outro", art: true,   // 速報は締めのお願いをしない（途中の ctaScene で言う）。旧版のショートだけ締めで言う
     // 登録する理由を一言だけ添える（速報は「詳しい解説」、通常版は「次のセット」）
     // 2026年11月：締めの4秒で見るのをやめる人が多かったので、セリフは一言だけにし、登録ボタンを押す動き（popLayer）で2秒ほどに収める
     say: JA ? `チャンネル登録もぜひ！` : `Subscribe!`,
@@ -479,13 +482,21 @@ function subscribeButton(){
 function popSvg(inner, w, h){
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w * SCALE}" height="${h * SCALE}" viewBox="0 0 ${w} ${h}" font-family="${FONT}"><g>${inner}</g></svg>`;
 }
+/* 途中に挟む「登録と高評価のお願い」の場面（速報・修正版）。セリフは一言、登録ボタンを押す動き（popLayer）つきで3秒弱 */
+/* lead … 前置き（例：「レアリティ別のカード評価を見る前に、」）。いきなりお願いすると唐突なので、次の話の前の一息として言う */
+function ctaScene(lead = ""){
+  return { kind: "cta", art: true, lead, say: lead + (JA ? "チャンネル登録と高評価もぜひ！" : "like and subscribe!"), tail: 0.2, minDur: 1.9 };
+}
 /* 場面に重ねる「動く層」の並び。{ svg, w, h, x, y, enable? }。x・y は ffmpeg の式（t は場面の頭からの秒。式の中のカンマは \, と書く）、
    enable は出しておく時間（ffmpeg の式。省くとずっと）
    締め（outro）：登録ボタンが下から浮き上がる → 指が来て押す → 「登録済み」に変わり、ベルが揺れる（2秒ほど。2026年11月：
    締めの4秒で見るのをやめる人が多かったので、セリフを短くし、押すところを見せて短い時間で伝える） */
-const PRESS = 0.7;   // 指がボタンを押す秒
+const PRESS = 0.7;   // 動きが始まってから、指がボタンを押すまでの秒
 function popLayer(sc){
-  if(sc.kind !== "outro") return null;
+  if(sc.kind !== "outro" && sc.kind !== "cta") return null;
+  // 前置き（「〜を見る前に」）があるときは、「チャンネル登録」と言い始めるころに動きを始める（文字数の割合で見積もる）
+  const D = sc.lead && sc.dur ? Math.max(0, sc.dur * sc.lead.length / sc.say.length - 0.15) : 0;
+  const t = `(t-${D.toFixed(2)})`;                                                    // 動きの時計（ffmpeg の式の t を D 秒ずらす）
   const bx = W / 2 - 320, by = 900;
   const done = `<rect x="0" y="0" width="640" height="130" rx="65" fill="#3A4450" stroke="#FFFFFF" stroke-width="6"/>` +
                T(320, 86, UI.subscribed, { size: 58, weight: 900, anchor: "middle", fill: "#FFFFFF" });
@@ -493,12 +504,13 @@ function popLayer(sc){
   const bell = `<path d="M50 10 C30 10 20 26 20 46 L20 70 L10 84 L90 84 L80 70 L80 46 C80 26 70 10 50 10 Z" fill="#FFD23F" stroke="#06101C" stroke-width="6" stroke-linejoin="round"/>` +
                `<circle cx="50" cy="94" r="10" fill="#FFD23F" stroke="#06101C" stroke-width="6"/>`;
   const hx0 = bx + 760, hy0 = by + 520, hx1 = bx + 430, hy1 = by + 60;            // 指は右下から来て、ボタンの右寄りを押す
-  const move = `min(1\\,max(0\\,(t-0.25)/${(PRESS - 0.25).toFixed(2)}))`;
+  const move = `min(1\\,max(0\\,(${t}-0.25)/${(PRESS - 0.25).toFixed(2)}))`;
+  const P = PRESS, Q = PRESS + 0.12, B = PRESS + 0.15;
   return [
-    { svg: popSvg(subscribeButton(), 640, 130), w: 640, h: 130, x: `${bx}`, y: `${by}+60*max(0\\,1-t*4)+8*between(t\\,${PRESS}\\,${PRESS + 0.12})`, enable: `lt(t,${PRESS + 0.12})` },
-    { svg: popSvg(done, 640, 130), w: 640, h: 130, x: `${bx}`, y: `${by}`, enable: `gte(t,${PRESS + 0.12})` },
-    { svg: popSvg(bell, 100, 110), w: 100, h: 110, x: `${bx + 660}`, y: `${by + 10}-10*abs(sin(14*(t-${PRESS + 0.15})))*max(0\\,1-(t-${PRESS + 0.15})*1.6)`, enable: `gte(t,${PRESS + 0.15})` },
-    { svg: popSvg(hand, 110, 175), w: 110, h: 175, x: `${hx0}+(${hx1 - hx0})*${move}`, y: `${hy0}+(${hy1 - hy0})*${move}+10*between(t\\,${PRESS}\\,${PRESS + 0.12})`, enable: `between(t,0.2,${PRESS + 0.55})` }
+    { svg: popSvg(subscribeButton(), 640, 130), w: 640, h: 130, x: `${bx}`, y: `${by}+60*max(0\\,1-${t}*4)+8*between(${t}\\,${P}\\,${Q})`, enable: `gte(${t},0)*lt(${t},${Q})` },
+    { svg: popSvg(done, 640, 130), w: 640, h: 130, x: `${bx}`, y: `${by}`, enable: `gte(${t},${Q})` },
+    { svg: popSvg(bell, 100, 110), w: 100, h: 110, x: `${bx + 660}`, y: `${by + 10}-10*abs(sin(14*(${t}-${B})))*max(0\\,1-(${t}-${B})*1.6)`, enable: `gte(${t},${B})` },
+    { svg: popSvg(hand, 110, 175), w: 110, h: 175, x: `${hx0}+(${hx1 - hx0})*${move}`, y: `${hy0}+(${hy1 - hy0})*${move}+10*between(${t}\\,${P}\\,${Q})`, enable: `between(${t},0.2,${P + 0.55})` }
   ];
 }
 
@@ -604,13 +616,66 @@ function pairSymbols(pair, x, y, size){
 }
 /* 修正版の章の札（「コモン編」など）と、その右の見出し。章が一目で分かるように大きく */
 function chapterHead(chapter, heading, color = GOLD){
-  const cs = JA ? 46 : 38, cw = Math.round(units(chapter) * cs) + 44;
+  const cs = JA ? 46 : 38, cw = Math.round([...String(chapter)].reduce((n, ch) => n + (/[A-Z]/.test(ch) ? 0.74 : units(ch)), 0) * cs) + 44;   // 英語の大文字（COMMONS など）は幅が広いので多めに見る
   const hs = Math.min(JA ? 34 : 28, Math.floor((ZX - 110 - cw) / Math.max(units(heading), 1)));
   return `<rect x="70" y="186" width="${cw}" height="66" rx="16" fill="${color}"/>` +
     T(70 + cw / 2, 186 + 33 + Math.round(cs * 0.36), chapter, { size: cs, weight: 900, anchor: "middle", fill: "#06101C" }) +
     T(70 + cw + 18, 186 + 33 + Math.round(hs * 0.36), heading, { size: hs, weight: 900, fill: PAPER });
 }
 const CH_Y0 = 272;   // 章の札があるときの、カードの並びの上端
+
+/* 修正版のレアリティ別の場面（2026年11月から）。3枚並びでは、スマホでカードの絵も文字も読めなかったので、2つの場面に分けた
+   ・focus：いちばん上がった1枚を大きく。下に名前と「▲ +1.3pt」、発売直後 → 最近 の勝率
+   ・rest ：残りの2枚を左右に並べる（それぞれの下に名前と差）
+   右下のキャラクター（x ${"$"}{ZX} より右、y 1030 より下）にかからないよう、文字は ZX より左に収める */
+function cardImg(c, x, y, w, h){
+  const cc = COLOR[(c.color || "")[0]] || MUTED;
+  return `<rect x="${x + 6}" y="${y + 10}" width="${w}" height="${h}" rx="${Math.round(w * 0.045)}" fill="#000" opacity="0.45"/>` +
+    (c.imgPath ? `<image href="${c.imgPath}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice"/>`
+               : `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="16" fill="${cc}" opacity="0.85"/>`);
+}
+function trendHead(sc){
+  return chapterHead(sc.chapter, sc.heading || (sc.dir === "up" ? UI.trendUpH : UI.trendDownH), sc.rare ? "#E0B13A" : GOLD);
+}
+const deltaText = c => `${c.delta >= 0 ? "▲ +" : "▼ −"}${(Math.abs(c.delta) * 100).toFixed(1)}pt`;
+function trendFocusSvg(sc){
+  // 余白：カードの下端 → 名前 84px、名前 → 差 108px、差 → 字幕の枠 56px 以上。カードはその範囲で最大 752px（幅 540px）
+  const GAP_NAME = 84, GAP_DELTA = 108, GAP_CAP = 56;
+  const c = sc.cards[0], col = c.delta >= 0 ? UP : DOWN, L = 80, R = ZX - 16, y = 292;
+  const h = Math.min(752, captionTop(sc.layoutSay || sc.say, BOMB_CAP_BOTTOM) - GAP_CAP - GAP_DELTA - GAP_NAME - y), w = Math.round(h * 672 / 936), x = Math.round((W - w) / 2);
+  let s = trendHead(sc) + cardImg(c, x, y, w, h);
+  // 名前（1行。長ければ小さく）
+  const ny = y + h + GAP_NAME;
+  s += T(L, ny, c.label, { size: fitSize(c.label, R - L, JA ? 58 : 50), weight: 900 });
+  // 差（大きく）と、その右に 発売直後 / 最近 の2行
+  const dt = deltaText(c), dz = 84, dw = Math.round(units(dt) * dz), dy = ny + GAP_DELTA;
+  s += T(L, dy, dt, { size: dz, weight: 900, fill: col });
+  const a1 = `${UI.trendFirst} ${pt(c.first.gih)}%`, a2 = `${UI.trendLast} ${pt(c.last.gih)}%`, ax = L + dw + 30;
+  const as = fitSize(units(a1) > units(a2) ? a1 : a2, R - ax, 40);
+  s += T(ax, dy - as - 8, a1, { size: as, fill: MUTED }) + T(ax, dy + 4, a2, { size: as, weight: 900, fill: GOLD });
+  return s;
+}
+/* 残りの2枚の位置（sceneSvg と highlightsOf で同じにする） */
+function restCols(sc){
+  const n = sc.cards.length - 1, cw = 400, gap = 40, ch = Math.round(cw * 936 / 672), y = 300;
+  return sc.cards.slice(1).map((c, i) => ({ c, x: n === 1 ? Math.round((W - cw) / 2) : 80 + i * (cw + gap), y, w: cw, h: ch }));
+}
+function trendRestSvg(sc){
+  let s = trendHead(sc);
+  for(const { c, x, y, w, h } of restCols(sc)){
+    s += cardImg(c, x, y, w, h);
+    // 名前は、1行で 36px 以上に収まれば1行、収まらなければ2行に折る
+    const one = fitSize(c.label, w, JA ? 44 : 38);
+    const lines = one >= 36 ? [c.label] : wrapName(c.label, JA ? 9 : 18).slice(0, 2);
+    const size = lines.length === 1 ? one : Math.min(...lines.map(l => fitSize(l, w, JA ? 44 : 38)));
+    lines.forEach((l, j) => { s += T(x, y + h + 58 + j * (size + 6), l, { size, weight: 900 }); });
+    const dy = y + h + 58 + (lines.length - 1) * (size + 6) + 84;
+    s += T(x, dy, deltaText(c), { size: 66, weight: 900, fill: c.delta >= 0 ? UP : DOWN });
+    const a = `${pt(c.first.gih)}% → ${pt(c.last.gih)}%`;
+    s += T(x, dy + 52, a, { size: fitSize(a, w, 34), weight: 700, fill: MUTED });
+  }
+  return s;
+}
 /* 修正版の組み合わせの場面の行（sceneSvg と highlightsOf で同じ位置にするため） */
 const PAIR_Y0 = 318;
 const pairRow = sc => Math.min(96, Math.floor((captionTop(sc.layoutSay || sc.say) - 24 - PAIR_Y0) / sc.pairs.length));
@@ -650,19 +715,34 @@ function frame(inner, say, opts = {}){
    セットのロゴ（short/logo/<SET>.png）があればそれを主役に、無ければセット名の文字。 */
 function thumbSvg(hook, alt = false){ return frame(thumbInner(hook, alt), null, { header: false }); }
 /* サムネイルの中身。修正版では、動画の冒頭の場面にも同じものを使う（サムネイルと冒頭で情報をそろえる。char: false でキャラクターを描かない） */
-/* 修正版の冒頭：アリーナとセットのロゴを上に、赤い帯「ドラフト環境の変化」を大きく、真ん中より少し下に */
+/* 修正版の冒頭：アリーナとセットのロゴを上に、赤い帯「ドラフト環境の変化」、その下に「〇万試合を分析」と何を解説するか（セリフと同じ中身）。
+   2026年11月：ロゴと帯だけでは画面がさっぱりしすぎていたので、情報を足し、アリーナのロゴを大きくした */
 function trendHookInner(hook){
-  let s = `<defs><linearGradient id="gh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050B14" stop-opacity="0"/><stop offset="0.1" stop-color="#050B14" stop-opacity="0.78"/><stop offset="0.9" stop-color="#050B14" stop-opacity="0.78"/><stop offset="1" stop-color="#050B14" stop-opacity="0"/></linearGradient></defs>` +
-          `<rect x="0" y="260" width="${W}" height="1060" fill="url(#gh)"/>`;
-  s += hook.arenaLogo ? `<image href="${hook.arenaLogo}" x="${W / 2 - 220}" y="360" width="440" height="150" preserveAspectRatio="xMidYMid meet"/>`
-                      : T(W / 2, 460, UI.arena, { size: 64, weight: 900, anchor: "middle", fill: "#FFFFFF" });
-  if(hook.logo) s += `<image href="${hook.logo}" x="110" y="530" width="860" height="300" preserveAspectRatio="xMidYMid meet"/>`;
-  else{ const sz = Math.min(130, Math.floor(940 / (Math.max([...String(hook.title)].length, 4) * (JA ? 1 : 0.6)))); s += TS(W / 2, 720, hook.title, { size: sz, fill: "#FFFFFF" }); }
+  let s = `<defs><linearGradient id="gh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050B14" stop-opacity="0"/><stop offset="0.08" stop-color="#050B14" stop-opacity="0.8"/><stop offset="0.92" stop-color="#050B14" stop-opacity="0.8"/><stop offset="1" stop-color="#050B14" stop-opacity="0"/></linearGradient></defs>` +
+          `<rect x="0" y="250" width="${W}" height="1150" fill="url(#gh)"/>`;
+  s += hook.arenaLogo ? `<image href="${hook.arenaLogo}" x="${W / 2 - 330}" y="300" width="660" height="232" preserveAspectRatio="xMidYMid meet"/>`
+                      : T(W / 2, 450, UI.arena, { size: 96, weight: 900, anchor: "middle", fill: "#FFFFFF" });
+  if(hook.logo) s += `<image href="${hook.logo}" x="110" y="550" width="860" height="280" preserveAspectRatio="xMidYMid meet"/>`;
+  else{ const sz = Math.min(130, Math.floor(940 / (Math.max([...String(hook.title)].length, 4) * (JA ? 1 : 0.6)))); s += TS(W / 2, 730, hook.title, { size: sz, fill: "#FFFFFF" }); }
   const ribbon = (hook.thumb && hook.thumb.ribbon) || UI.trendHookC;
-  const rs = Math.min(JA ? 104 : 80, Math.floor(940 / ([...ribbon].length * (JA ? 1 : 0.62)))), rw = Math.round([...ribbon].length * rs * (JA ? 1 : 0.62) + 90), rh = Math.round(rs * 1.7);
-  const ry = 1000;
+  const rs = Math.min(JA ? 100 : 78, Math.floor(940 / ([...ribbon].length * (JA ? 1 : 0.62)))), rw = Math.round([...ribbon].length * rs * (JA ? 1 : 0.62) + 90), rh = Math.round(rs * 1.7);
+  const ry = 880;
   s += `<rect x="${(W - rw) / 2}" y="${ry}" width="${rw}" height="${rh}" rx="24" fill="#D9412B" stroke="#FFFFFF" stroke-width="7"/>` +
        T(W / 2, ry + Math.round(rh / 2 + rs * 0.36), ribbon, { size: rs, weight: 900, anchor: "middle", fill: "#FFFFFF" });
+  // 「〇万試合を分析」（金色・大きく）と、何を解説するか（白）
+  let y = ry + rh + 40;
+  if(hook.gamesLabel){
+    const g = UI.hookD1(hook.gamesLabel), gs = Math.min(120, Math.floor(960 / Math.max(units(g), 1)));
+    y += gs; s += TS(W / 2, y, g, { size: gs, fill: "#FFD23F" }); y += 28;
+  }
+  const d2 = UI.trendHookD3, ds = Math.min(66, Math.floor(980 / Math.max(units(d2), 1)));
+  y += ds; s += TS(W / 2, y, d2, { size: ds, fill: "#FFFFFF" });
+  // 下：このあと出る、上がったカード（サムネイルと同じ3枚を少し扇形に）。左下のキャラクターにはかけない
+  const cards = (hook.thumbCards || []).filter(Boolean).slice(0, 3), CW = 280, CH = Math.round(CW * 936 / 672);
+  cards.forEach((src, i) => {
+    const x = 400 + i * 150, cy = 1440 + (i === 1 ? -14 : 16), rot = [-10, 0, 10][i];
+    s += `<g transform="rotate(${rot} ${x + CW / 2} ${cy + CH / 2})"><rect x="${x + 6}" y="${cy + 10}" width="${CW}" height="${CH}" rx="14" fill="#000" opacity="0.45"/><image href="${src}" x="${x}" y="${cy}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"/></g>`;
+  });
   return s;
 }
 function thumbInner(hook, alt = false, { char = true } = {}){
@@ -876,6 +956,9 @@ function sceneSvg(sc){
       return frame(s, sc.say);
     }
     case "trendCards": {
+      // 1枚・2枚の場面は、ボムの場面と同じく字幕の枠を下げる（カードの下の名前・数字に余白をとるため。章の中で枠の高さはそろえる）
+      if(sc.part === "focus") return frame(trendFocusSvg(sc), sc.say, { capBottom: BOMB_CAP_BOTTOM });
+      if(sc.part === "rest") return frame(trendRestSvg(sc), sc.say, { capBottom: BOMB_CAP_BOTTOM });
       // 修正版：発売直後から上がった（下がった）カード 3 枚。左にカード、右に名前と「発売直後 → 最近」の勝率、大きく差
       const capTop = captionTop(sc.layoutSay || sc.say), Y0 = sc.chapter ? CH_Y0 : 236, up = sc.dir === "up", col = up ? UP : DOWN;
       const ROW = Math.min(420, Math.floor((capTop - 16 - Y0) / 3)), k = ROW / 358;
@@ -952,6 +1035,15 @@ function sceneSvg(sc){
         T(W / 2, 940, sc.sub, { size: 50, anchor: "middle", fill: BLUE, weight: 700 }) +
         T(W / 2, 1010, sc.note, { size: JA ? 34 : 30, anchor: "middle", fill: MUTED }), sc.say);
     }
+    case "cta": {
+      // 途中の登録と高評価のお願い。大きな文字だけ（登録ボタン・指・ベルは popLayer、高評価の手は下に描く）
+      const thumb = `<g transform="translate(${W / 2 - 95},1085)"><path d="M0 70 L0 170 L40 170 L40 70 Z M52 170 L150 170 C166 170 176 160 178 146 L190 92 C194 74 182 60 164 60 L120 60 L128 22 C132 4 118 -6 106 2 L52 70 Z" fill="#FFFFFF" stroke="#06101C" stroke-width="7" stroke-linejoin="round"/></g>`;
+      const lead = String(sc.lead || "").replace(/[、,]\s*$/, "");
+      return frame(
+        (lead ? TS(W / 2, 470, lead, { size: JA ? 56 : 60, fill: "#C9D7E6" }) : "") +   // 前置きは小さく
+        TS(W / 2, 640, UI.ctaA, { size: JA ? 104 : 120 }) +
+        TS(W / 2, 780, UI.ctaB, { size: JA ? 104 : 120, fill: "#FFD23F" }) + thumb, null, { header: false });
+    }
     case "outro": {
       // 締めは「チャンネル登録をお願いします」だけ。クレジットや表記は概要欄に置く
       // 登録ボタン・指・ベルは動く層（popLayer）で重ねる
@@ -989,6 +1081,12 @@ function highlightsOf(sc){
     // 2 画面目は、特別枠のカードの話をするときだけ、そのカードを光らせる
     return sc.page === 0 ? sc.cards.slice(0, 3).map((c, i) => ({ label: JA ? c.label : c.name, boxes: [row(i)] }))
                          : sc.cards.map((c, i) => c.outside ? { label: JA ? c.label : c.name, boxes: [row(i)] } : null).filter(Boolean);
+  }
+  if(sc.kind === "trendCards" && sc.part === "focus") return [];   // 1枚だけなので光らせない
+  if(sc.kind === "trendCards" && sc.part === "rest"){
+    // 名前を言っているカードを、そのあいだだけ光らせる（下の名前・差まで囲む）
+    const cols = restCols(sc);
+    return cols.length > 1 ? cols.filter(k => String(sc.say).includes(k.c.label)).map(k => ({ label: k.c.label, boxes: [{ x: k.x - 14, y: k.y - 14, w: k.w + 28, h: k.h + 230 }] })) : [];
   }
   if(sc.kind === "trendCards"){
     // 名前を言っているカードを、そのあいだだけ光らせる（言った順に移る。字幕を分けた場面では、その字幕で言うカードだけ）
@@ -1162,7 +1260,7 @@ async function main(){
   const rep = EARLY || TREND ? null : await loadReport(SET, MODE);
   const avgs = d.rarity_avg || (rep ? rarityAverages(rep.ratings.cards, MODE === "sealed" ? 300 : 1500) : {});
   console.error(`レア度ごとの平均: ${["common", "uncommon", "rare"].map(r => `${r} ${avgs[r] ? pt(avgs[r]) + "%" : "なし"}`).join(" / ")}`);
-  const scenes = TREND ? splitLongScenes(trendScript(d, { JA, nameJa, names, pairName })) : buildScript(d, nameJa, names, avgs);
+  const scenes = TREND ? splitLongScenes(trendScript(d, { JA, nameJa, names, pairName, cta: ctaScene(JA ? "レアリティ別のカード評価を見る前に、" : "Before the cards by rarity, ") })) : buildScript(d, nameJa, names, avgs);
 
   // セット名のロゴ画像（置いてあれば使う）
   {
@@ -1227,6 +1325,7 @@ async function main(){
   // カード画像（取れなければ名前の札のまま）。英語は Scryfall から英語版を引く
   for(const sc of scenes) if(sc.kind === "top" || sc.kind === "bombs" || sc.kind === "trendCards"){
     for(const [i, c] of sc.cards.entries()){
+      if(c.imgPath) continue;   // 修正版は1章を2つの場面に分けていて、カードは同じものなので2度取らない
       if(!JA && !c.img){
         try{
           const r = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(String(c.name).split(" // ")[0])}&set=${SET.toLowerCase()}`, { headers: { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)", Accept: "application/json" } });
@@ -1236,7 +1335,9 @@ async function main(){
       }
       if(!c.img) continue;
       try{
-        const r = await fetch(c.img, { headers: { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)" } });
+        // 修正版は1枚を大きく映すので、大きい画像（large、672×936）を使う
+        const url = sc.kind === "trendCards" ? String(c.img).replace("/normal/", "/large/") : c.img;
+        const r = await fetch(url, { headers: { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)" } });
         if(!r.ok) continue;
         const buf = Buffer.from(await r.arrayBuffer());
         await writeFile(`${OUT}/${TAG}/card-${sc.label}-${i}.jpg`, buf);
