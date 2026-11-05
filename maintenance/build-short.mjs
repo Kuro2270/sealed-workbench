@@ -82,7 +82,10 @@ const UI = JA ? {
   surpriseH: "意外な事実", nobody: "誰も組んでいない", strongerTogether: "組むと強くなる", weakerTogether: "組むと弱くなる",
   wrRank: (v, r) => `勝率 ${v}%（${r}位）`, wr: v => `勝率 ${v}%`, usedOnly: (g, p) => `使われた試合は ${g}。全体の${p}%だけ`, vsAvg2: (sign, n) => `2色それぞれの平均より ${sign}${n}pt`,
   outroA: "チャンネル登録を", outroB: "お願いします", subscribed: "✓ 登録済み", ctaA: "チャンネル登録と", ctaB: "高評価もぜひ！", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん",
-  earlyBadge: "速報", earlyHookC: "リミテッド速報",
+  earlyBadge: "速報", earlyHookC: "リミテッド速報", earlyHookD3: "勝てる色と勝率が高いカードを解説",
+  cardCh: { bombs: "ボム", uncommon: "アンコモン", common: "コモン" }, cardH: { bombs: "レア・神話レアの勝率トップ3", other: "勝率トップ3" },
+  bombLevel: "ボム級", vsAvgOf: (label, g) => `${label}の平均より +${g}pt`, anyCopies: "何枚でもOK",
+  verdict: { pick: "迷わずピック", move: "色を合わせる価値あり", take: "色が合えば優先" }, rareLabel: "レア・神話レア",
   trendBadge: "修正版", trendHookC: "ドラフト環境の変化", trendHookD2: "勝率が上がったカード", trendHookD3: "勝てる色と勝率が上がったカードを解説",
   trendUpH: "発売直後から上がったカード", trendDownH: "発売直後から下がったカード", trendPairsH: "2色の組み合わせ（発売直後 → 最近）",
   trendFirst: "発売直後", trendLast: "最近", trendRise: "一番伸びた", trendFall: "一番落ちた", trendTop: "今の1位", trendTopKeep: "ずっと1位"
@@ -99,7 +102,10 @@ const UI = JA ? {
   surpriseH: "One surprise", nobody: "Nobody plays it", strongerTogether: "Better together", weakerTogether: "Worse together",
   wrRank: (v, r) => `${v}% win rate (#${r})`, wr: v => `${v}% win rate`, usedOnly: (g, p) => `Only ${g} games — ${p}% of all decks`, vsAvg2: (sign, n) => `${sign}${n}pt vs each colour's average`,
   outroA: "Please subscribe", outroB: "", subscribed: "✓ Subscribed", ctaA: "Like &", ctaB: "subscribe!", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS",
-  earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1",
+  earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1", earlyHookD3: "Winning pairs & top cards by win rate",
+  cardCh: { bombs: "BOMBS", uncommon: "UNCOMMONS", common: "COMMONS" }, cardH: { bombs: "Top 3 rares & mythics by win rate", other: "Top 3 by win rate" },
+  bombLevel: "Bomb-level", vsAvgOf: (label, g) => `+${g}pt vs average ${label}`, anyCopies: "Any number OK",
+  verdict: { pick: "Easy first pick", move: "Worth moving in", take: "Take it in colour" }, rareLabel: "rare & mythic",
   trendBadge: "UPDATE", trendHookC: "DRAFT · WHAT CHANGED", trendHookD2: "Cards rising in win rate", trendHookD3: "Winning pairs & cards rising in win rate",
   trendUpH: "Rising since launch", trendDownH: "Falling since launch", trendPairsH: "Colour pairs (launch → recent)",
   trendFirst: "Launch", trendLast: "Recent", trendRise: "Rose most", trendFall: "Fell most", trendTop: "No. 1 now", trendTopKeep: "No. 1 all along"
@@ -173,8 +179,29 @@ const pairName = p => [...p].map(c => CN[c] || c).join(JA ? "" : "-");
 
 /* ------------------------------------------------------------ 台本 */
 
-const LEAD_GAP = 0.03;   // 1位が同じレア度の平均より 3pt 以上高ければ、その差を言う（ボム級が無いとき）
-function buildScript(d, nameJa, names, avgs = {}){
+/* 各レアリティの1位の「どれくらい強いか」（2026年11月）。同じレアリティの平均との差で言い方を決める
+   ・PICK_GAP 以上 … 迷わずピック　・MOVE_GAP 以上 … 色を合わせにいく価値あり　・それ未満 … 色が合えば優先
+   コモン・アンコモンで伝説でないカードは「色が合うなら何枚でも」と添える（伝説は場に1枚しか置けないので言わない）。
+   伝説かどうかは data/profiles/<SET>.json（下見ページのデータ）のタイプ行。分からないカードには添えない */
+const PICK_GAP = 0.05, MOVE_GAP = 0.03;
+function cardVerdict(c, avg, { rarity, legend, rareAvg }){
+  if(avg == null) return null;
+  const gap = c.gih - avg;
+  const key = gap >= PICK_GAP ? "pick" : gap >= MOVE_GAP ? "move" : "take";
+  const bomb = rarity !== "rare" && isBombLevel(c.gih, rareAvg);
+  const any = rarity !== "rare" && legend && legend.get(c.name) === false;
+  return { gap: (gap * 100).toFixed(1), key, bomb, any };
+}
+function verdictSay(v, label){
+  if(!v) return "";
+  if(JA){
+    const tail = { pick: "迷わずピックの一枚です！", move: "色を合わせにいく価値ありです！", take: "色が合えば優先したい一枚です。" }[v.key];
+    return `${label}の平均を${v.gap}ポイント${v.bomb ? "上回るボム級で" : "上回り"}、${tail}` + (v.any ? "色が合うなら何枚でもOK。" : "");
+  }
+  const tail = { pick: " An easy first pick!", move: " Worth moving into its colour!", take: " Take it early in its colour." }[v.key];
+  return ` That's ${v.gap} points above the average ${label}${v.bomb ? " — bomb-level" : ""}.` + tail + (v.any ? " Play as many as you get." : "");
+}
+function buildScript(d, nameJa, names, avgs = {}, legend = null){
   const rareAvg = avgs.rare || null;
   const pace = (d.speed || []).filter(s => s.wr != null && s.games);
   const fast = pace[0], slow = pace[pace.length - 1];
@@ -237,12 +264,15 @@ function buildScript(d, nameJa, names, avgs = {}){
     // 最初の一言で「誰のための、何の動画か」を短く言う（2026年10月：「マジック：ザ・ギャザリングの〜」から始めると長く、冒頭がもたつくため短くした）
     // 何試合のデータかも、セリフで言う（数字の裏付けが伝わるように）
     // 速報は、サムネイルで言い切った答え（最強の組み合わせと勝率）を、冒頭のセリフでもそのまま言う（2026年10月：動画に入ると情報が減って見えるため）
-    say: EARLY && best
-      ? (JA ? `MTGアリーナ、${nameJa}のリミテッド環境を知りたい方に。${games}試合のデータでは、${pairName(best.pair)}が最強。勝率${pt(best.wr)}パーセントです。`
-            : `${nameJa} Limited on MTG Arena, from ${gamesEn} games: ${pairName(best.pair)} is the best pair, at ${pt(best.wr)} percent.`)
+    // 2026年11月：速報も修正版と同じく、冒頭は「何の動画か」だけにした（いきなり答えを言うと、初めて見る人が置いていかれるため）。
+    //   答え（最強の組み合わせと勝率）は、色の組み合わせの場面で言う
+    say: EARLY
+      ? (JA ? `MTGアリーナ、${nameJa}のリミテッド速報。${games}試合を分析して、勝てる色の組み合わせと、引けた試合の勝率が高いカードを解説します。`
+            : `${nameJa} Limited on MTG Arena, an early look. We analyzed ${gamesEn} games: the colour pairs that win, and the cards with the best win rate when drawn.`)
       : JA ? `MTGアリーナ、${nameJa}の${EARLY ? "リミテッド" : d.mode === "sealed" ? "シールド" : "ドラフト"}環境を知りたい方に。${games}試合のデータを1分でまとめました。`
             : `Want to know ${/^the /i.test(nameJa) ? nameJa : "the " + nameJa} ${EARLY ? "Limited" : d.mode === "sealed" ? "Sealed" : "Draft"} format on MTG Arena? ${gamesEn} games of data in one minute.`,
     title: nameJa, games, isSealed: d.mode === "sealed", early: EARLY,
+    ...(EARLY ? { gamesLabel: games, ribbon: UI.earlyHookC, d3: UI.earlyHookD3 } : {}),   // 速報の冒頭の画面（trendHookInner）
     // YouTube 用サムネイルの見出し（thumbSvg）。最強の組み合わせを言い切る形。狙い目は差し替え用（thumbnail-alt.jpg）に
     thumb: best ? { l1: JA ? `${pairName(best.pair)}が` : pairName(best.pair), l2: JA ? "最強！" : "is the best!",
                     sub: JA ? `${games}試合で勝率${pt(best.wr)}%` : `${pt(best.wr)}% win rate over ${d.total_games >= 10000 ? Math.round(d.total_games / 10000) * 10 + "K" : manSay(d.total_games)} games` } : null,
@@ -276,8 +306,11 @@ function buildScript(d, nameJa, names, avgs = {}){
     const top2 = colors.slice(0, 2).map(c => CN[c.color]).join(JA ? "と" : " and ");
     const sNames = tiers.S.slice(0, 3).map(p => pairName(p.pair));   // 読むのは 3 つまで
     // 「ティア表です」は画面の見出しで分かるので言わない（2026年10月：ショートが1分を超えたため短く）
-    let say = JA ? `色の組み合わせは、Sティアが${sNames.join("と")}` : `Colour pairs: S tier is ${sNames.join(" and ")}`;
-    say += worst && worst !== best ? (JA ? `、最弱は${pairName(worst.pair)}です。` : `, and the weakest is ${pairName(worst.pair)}.`) : (JA ? `です。` : `.`);
+    // 最強の組み合わせと勝率は、ここで言う（2026年11月から。速報の冒頭では言わなくなったため。サムネイルの答えもここで回収する）
+    const others = sNames.filter(n => n !== pairName(best.pair));
+    let say = JA ? `色の組み合わせは、${pairName(best.pair)}が最強で、勝率${pt(best.wr)}パーセント。${others.length ? `Sティアはほかに${others.join("と")}。` : ""}`
+                 : `Colour pairs: ${pairName(best.pair)} is the best, at ${pt(best.wr)} percent.${others.length ? ` Also S tier: ${others.join(" and ")}.` : ""}`;
+    say += worst && worst !== best ? (JA ? `最弱は${pairName(worst.pair)}です。` : ` The weakest is ${pairName(worst.pair)}.`) : "";
     const worstShown = worst && worst !== best ? worst : null;
     scenes.push({ kind: "tier", say, colors, tiers, best, worst: worstShown, tail: 0.6 });
     // 狙い目（ドラフトだけ）：同じティア表の上で、その組み合わせを光らせて言う（場面は続きなので、画面は切り替えない）
@@ -295,69 +328,38 @@ function buildScript(d, nameJa, names, avgs = {}){
   // 途中で一度だけ、登録と高評価のお願い（速報）。色の組み合わせのあと、カードの話の前に挟む。締めのお願いはやめた
   //   （2026年11月：締めの数秒で見るのをやめる人が多く、登録のお願いの無いタルコフの動画でも登録が付いていたため）
   if(EARLY) scenes.push(ctaScene(JA ? "カード評価を見る前に、" : "Before the cards, "));
+  // ボム（レア・神話レア）はトップ3だけ。1位を大きく映す場面と、2・3位の2枚の場面に分ける（2026年11月：3枚並びはスマホで読めず、4〜6位は割愛）
   if(bombs.length){
-    const pages = [bombs.slice(0, 3), bombs.slice(3, 6)].filter(pg => pg.length);
-    pages.forEach((pg, i) => {
-      const from = i * 3 + 1, to = i * 3 + pg.length;
-      // 各画面、上から 3 枚は名前と勝率を読む（残りは画面に任せる）
-      const three = pg.slice(0, 3);
-      scenes.push({ kind: "bombs", page: i, from, to, cards: pg, label: `bombs${i + 1}`, tail: 0.8, minDur: 6,   // 3 枚を見る時間として、短くても 6 秒は置く
-        // 1〜5 位は順位と数字を読む。6〜10 位は数字を読み上げず、「これも中心に据えていい」と言う（棒読みにしない）
-        // 「引けた試合の勝率」は画面の札に出ているので、セリフでは「勝率」とだけ言う（2026年10月：ショートが1分を超えたため短く）
-        say: (i === 0 ? (JA ? `${EARLY ? "さて、" : ""}ボムのトップ6です。1位は${three[0].label}、勝率${pt(three[0].gih)}パーセント。${three.slice(1).map(c => c.label).join("、")}も迷わずピックです。`
-                           : `Top six bombs. Number one: ${three[0].name}, at ${pt(three[0].gih)} percent. ${three.slice(1).map(c => c.name).join(" and ")} are first-picks too.`)
-                     : (JA ? `${from}位から${to}位も、引いたらデッキの中心にできるボムです。`
-                           : `Numbers ${from} to ${to} are bombs too. Build around them.`)) + outsideNote(pg, from) });
-    });
+    const three = bombs.slice(0, 3).map((c, i) => ({ ...c, rank: i + 1 })), c0 = three[0], rest = three.slice(1);
+    const base = { kind: "cardPick", metric: "wr", cards: three, label: "bombs", rare: true, chapter: UI.cardCh.bombs, heading: UI.cardH.bombs };
+    c0.verdict = cardVerdict(c0, rareAvg, { rarity: "rare", legend, rareAvg }); c0.avgLabel = UI.rareLabel;
+    scenes.push({ ...base, part: "focus", tail: rest.length ? 0.3 : 0.8, minDur: 4,
+      say: (JA ? `${EARLY ? "さて、" : ""}ボムのトップ3。引けた試合の勝率の1位は${c0.label}、${pt(c0.gih)}パーセント。`
+               : `${EARLY ? "Now, the" : "The"} top three bombs. Number one in win rate when drawn: ${c0.name}, at ${pt(c0.gih)} percent.`)
+           + verdictSay(c0.verdict, UI.rareLabel) + outsideNote([c0], 1) });
+    if(rest.length) scenes.push({ ...base, part: "rest", tail: 0.8, minDur: 3,
+      say: (JA ? `${rest.map(c => c.label).join("と")}も迷わずピックです。` : `${rest.map(c => c.name).join(" and ")} ${rest.length > 1 ? "are" : "is a"} first-pick${rest.length > 1 ? "s" : ""} too.`) + outsideNote(rest, 2) });
   }
 
-  // カード名は読まず画面に任せる。読むと忙しいので、どの色が強いかだけ言う
-  let prevTop = null;   // 前の枠の結果（1 枠目かどうかの判定に使う）
-  let prevTopSaid = false;   // 前の枠で「ピック必須」の一言を言ったか（2 回目は言い方を変える）
-  const topScene = (cards, label, opt = {}) => {
-    if(!cards.length) return;
-    const brief = !!prevTop;   // 2 枠目は「トップ3はこちら」だけ（動画の長さを抑える）
-    const same = cards[0].color && cards.filter(c => c.color === cards[0].color).length >= 2;
-    const col = same ? cards[0].color : null;
-    let lead;
-    if(!prevTop){
-      lead = JA ? (same ? `${CN[col]}が強いです。` : "色はばらけています。")
-                : (same ? `${CN[col]} is strong here.` : "The colours are spread out.");
-    }else if(JA){
-      lead = !same ? (prevTop.col ? `${label}は色がばらけています。` : `${label}も色がばらけています。`)
-           : (prevTop.col === col ? `${label}も${CN[col]}が強いです。` : `${label}では${CN[col]}が強いです。`);
-    }else{
-      lead = !same ? (prevTop.col ? `${label[0].toUpperCase() + label.slice(1)}s are spread out.` : `${label[0].toUpperCase() + label.slice(1)}s are spread out too.`)
-           : (prevTop.col === col ? `${CN[col]} is strong here too.` : `${CN[col]} leads here.`);
-    }
-    prevTop = { col };
-    // ボム級（card-level.mjs）：レア全体の平均勝率を大きく上回るものは、一言で取り立てる（勝率順なので、当てはまるのは上から何枚か）
-    const bombs = cards.filter(c => isBombLevel(c.gih, rareAvg));
-    bombs.forEach(c => { c.bomb = true; });
-    const NUMJ = ["", "", "2", "3"], NUME = ["", "", "two", "three"];
-    const bombHl = !bombs.length ? null : bombs.length === 1
-      ? { label: JA ? `1位の${bombs[0].label}` : `No. 1, ${bombs[0].name}`, idx: [0] }
-      : { label: JA ? `上位${NUMJ[bombs.length]}枚` : `The top ${NUME[bombs.length]}`, idx: bombs.map((c, i) => i) };
-    // 最後に「色が合うならピック必須」と一言（勝率の数字だけだと、どうすればいいかが残らないため）
-    // 締めの一言は、アンコモンとコモンで言い方を変える（同じ言葉のくり返しを避ける）
-    const must = JA ? (prevTopSaid ? `見かけたら確保です！` : `色が合うならピック必須です！`) : (prevTopSaid ? `Grab ${bombs.length > 1 ? "them" : "it"} when you see ${bombs.length > 1 ? "them" : "it"}!` : `If you're in the colour, take ${bombs.length > 1 ? "them" : "it"}!`);
-    let bombSay = !bombHl ? "" : JA ? `${bombHl.label}は、${bombs.length === 2 ? "どちらも" : bombs.length > 2 ? "どれも" : ""}レアの平均を超えるボム級。${must}`
-                                    : ` ${bombHl.label}${bombs.length > 1 ? (bombs.length === 2 ? " both beat" : " all beat") : ", beats"} the average rare. ${must}`;
-    // ボム級が無ければ、1位が同じレア度の平均より何ポイント高いかを言う（差が LEAD_GAP 以上のときだけ。抑揚をつけるため）
-    let gapHl = null;
-    const own = avgs[opt.rarity];
-    if(!bombHl && own && cards[0].gih - own >= LEAD_GAP){
-      const gap = ((cards[0].gih - own) * 100).toFixed(1);
-      gapHl = { label: JA ? `1位の${cards[0].label}` : `No. 1, ${cards[0].name}`, idx: [0] };
-      const must1 = JA ? (prevTopSaid ? `見かけたら確保です！` : `色が合うならピック必須です！`) : (prevTopSaid ? `Grab it when you see it!` : `If you're in the colour, take it!`);
-      bombSay = JA ? `${gapHl.label}は、${label}の平均より${gap}ポイントも高い勝率。${must1}`
-                   : ` ${gapHl.label}, wins ${gap} points more than the average ${label}. ${must1}`;
-    }
-    // 取り立てる一言（ボム級・平均との差）があるときは、色の話（「色はばらけています」など）は言わない（2026年10月：ショートが1分を超えたため）
-    const sayLead = !brief && !bombSay;
-    if(bombSay) prevTopSaid = true;
-    scenes.push({ kind: "top", label, say: (JA ? `${label}のトップ3です。${sayLead ? lead : ""}` : `Top three ${label}s. ${sayLead ? lead : ""}`.trim()) + bombSay + outsideNote(cards), cards, tail: opt.tail || 1.0, bombHl: bombHl || gapHl,
-      strong: sayLead && same ? col : null });   // 「〇が強いです」と言った色（読み上げに合わせて、その色のカードを光らせる）
+  // アンコモン・コモンのトップ3も、1位を大きく映す場面と、2・3位の2枚の場面に分ける（2026年11月）。
+  //   1位は、同じレアリティの平均より何ポイント高いか・どう扱うカードか（cardVerdict）まで言う。2・3位は名前だけ（ボム級なら一言）
+  const topScene = (list, label, opt = {}) => {
+    if(!list.length) return;
+    const cards = list.map((c, i) => ({ ...c, rank: i + 1 })), c0 = cards[0], rest = cards.slice(1);
+    cards.forEach(c => { if(isBombLevel(c.gih, rareAvg)) c.bomb = true; });
+    c0.verdict = cardVerdict(c0, avgs[opt.rarity], { rarity: opt.rarity, legend, rareAvg }); c0.avgLabel = label;
+    const base = { kind: "cardPick", metric: "wr", cards, label: `top-${opt.rarity}`, chapter: UI.cardCh[opt.rarity], heading: UI.cardH.other };
+    scenes.push({ ...base, part: "focus", tail: rest.length ? 0.3 : (opt.tail || 1.0), minDur: 4,
+      say: (JA ? `${label}のトップ3。引けた試合の勝率の1位は${c0.label}、${pt(c0.gih)}パーセント${c0.verdict ? "。" : "です。"}`
+               : `Top three ${label}s. Number one in win rate when drawn: ${c0.name}, at ${pt(c0.gih)} percent.`) + verdictSay(c0.verdict, label) + outsideNote([c0], 1) });
+    if(!rest.length) return;
+    const rb = rest.filter(c => c.bomb);
+    scenes.push({ ...base, part: "rest", tail: opt.tail || 1.0, minDur: 3,
+      say: (JA ? (rb.length === rest.length
+                 ? `${rest.map(c => `${c.rank}位の${c.label}`).join("、")}も、レアの平均を超えるボム級です。`
+                 : `2位は${rest[0].label}${rest[1] ? `、3位は${rest[1].label}` : ""}です。${rb.length ? `${rb.map(c => c.label).join("と")}もボム級です。` : ""}`)
+               : (rb.length === rest.length ? `${rest.map(c => c.name).join(" and ")} are bomb-level too.`
+                 : `Then ${rest.map(c => c.name).join(" and ")}.${rb.length ? ` ${rb.map(c => c.name).join(" and ")} ${rb.length > 1 ? "are" : "is"} bomb-level too.` : ""}`)) + outsideNote(rest, 2) });
   };
   // ボム（レア・神話レア）→ アンコモン → コモンの順（レアリティの高い順。2026年10月に入れ替え）
   topScene(uncommons, UI.uncommon, { rarity: "uncommon" });
@@ -638,12 +640,40 @@ function trendHead(sc){
   return chapterHead(sc.chapter, sc.heading || (sc.dir === "up" ? UI.trendUpH : UI.trendDownH), sc.rare ? "#E0B13A" : GOLD);
 }
 const deltaText = c => `${c.delta >= 0 ? "▲ +" : "▼ −"}${(Math.abs(c.delta) * 100).toFixed(1)}pt`;
+/* 勝率（速報・旧版の「トップ3」）の版：数字は引けた試合の勝率。順位を名前の前に、ボム級・平均との差を数字の右に */
+function rankName(c){ return `${UI.rank(c.rank)} ${c.label}`; }
+function pill(x, y, text, bg, fg, size){
+  const w = Math.round(units(text) * size) + 36, h = Math.round(size * 1.55);
+  return { w, svg: `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h / 2}" fill="${bg}"/>` + T(x + w / 2, y + Math.round(h / 2 + size * 0.36), text, { size, weight: 900, anchor: "middle", fill: fg }) };
+}
+function wrFocusInfo(c, L, R, ny, dy){
+  let s = T(L, ny, UI.rank(c.rank), { size: JA ? 50 : 44, weight: 900, fill: GOLD });
+  const rx = L + Math.round(units(UI.rank(c.rank)) * (JA ? 50 : 44)) + 18;
+  s += T(rx, ny, c.label, { size: fitSize(c.label, R - rx, JA ? 58 : 50), weight: 900 });
+  const wr = `${pt(c.gih)}%`, dz = 84, ax = L + Math.round(units(wr) * dz) + 30;
+  s += T(L, dy, wr, { size: dz, weight: 900, fill: GOLD });
+  const v = c.verdict;
+  s += T(ax, dy - 10, UI.gihL, { size: fitSize(UI.gihL, R - ax, 40), fill: MUTED });
+  if(!v) return s;
+  // 同じレアリティの平均との差（1行）と、どう扱うカードか（迷わずピック／色を合わせる価値あり／色が合えば優先）・ボム級・何枚でもOK の札
+  const note = UI.vsAvgOf(c.avgLabel, v.gap);
+  s += T(L, dy + 64, note, { size: fitSize(note, R - L, JA ? 44 : 38), weight: 900, fill: UP });
+  let px = L; const py = dy + 92, ps = JA ? 38 : 32;
+  for(const [t, bg, fg] of [[UI.verdict[v.key], GOLD, DEEP], ...(v.bomb ? [[UI.bombLevel, DOWN, "#FFFFFF"]] : []), ...(v.any ? [[UI.anyCopies, UP, "#FFFFFF"]] : [])]){
+    const p = pill(px, py, t, bg, fg, ps);
+    if(px + p.w > R) break;
+    s += p.svg; px += p.w + 14;
+  }
+  return s;
+}
 function trendFocusSvg(sc){
   // 余白：カードの下端 → 名前 84px、名前 → 差 108px、差 → 字幕の枠 56px 以上。カードはその範囲で最大 752px（幅 540px）
   const GAP_NAME = 84, GAP_DELTA = 108, GAP_CAP = 56;
   const c = sc.cards[0], col = c.delta >= 0 ? UP : DOWN, L = 80, R = ZX - 16, y = 292;
-  const h = Math.min(752, captionTop(sc.layoutSay || sc.say, BOMB_CAP_BOTTOM) - GAP_CAP - GAP_DELTA - GAP_NAME - y), w = Math.round(h * 672 / 936), x = Math.round((W - w) / 2);
+  const PILLS = sc.metric === "wr" && c.verdict ? 150 : 0;   // 勝率の版で、どう扱うかの札を出すときは、その1行ぶんカードを小さくする
+  const h = Math.min(752, captionTop(sc.layoutSay || sc.say, BOMB_CAP_BOTTOM) - GAP_CAP - GAP_DELTA - GAP_NAME - PILLS - y), w = Math.round(h * 672 / 936), x = Math.round((W - w) / 2);
   let s = trendHead(sc) + cardImg(c, x, y, w, h);
+  if(sc.metric === "wr") return s + wrFocusInfo(c, L, R, y + h + GAP_NAME, y + h + GAP_NAME + GAP_DELTA);
   // 名前（1行。長ければ小さく）
   const ny = y + h + GAP_NAME;
   s += T(L, ny, c.label, { size: fitSize(c.label, R - L, JA ? 58 : 50), weight: 900 });
@@ -662,14 +692,26 @@ function restCols(sc){
 }
 function trendRestSvg(sc){
   let s = trendHead(sc);
-  for(const { c, x, y, w, h } of restCols(sc)){
+  // 名前は、1行で 36px 以上に収まれば1行、収まらなければ2行に折る（勝率の版は順位を前に付ける）。
+  // 数字の高さは、2枚のうち名前の行が多いほうに合わせてそろえる（左右で数字の高さがずれないように）
+  const cols = restCols(sc).map(k => {
+    const nm = sc.metric === "wr" ? rankName(k.c) : k.c.label;
+    const one = fitSize(nm, k.w, JA ? 44 : 38);
+    const lines = one >= 36 ? [nm] : wrapName(nm, JA ? 9 : 18).slice(0, 2);
+    const size = lines.length === 1 ? one : Math.min(...lines.map(l => fitSize(l, k.w, JA ? 44 : 38)));
+    return { ...k, lines, size };
+  });
+  const nameH = Math.max(...cols.map(k => (k.lines.length - 1) * (k.size + 6)));
+  for(const { c, x, y, w, h, lines, size } of cols){
     s += cardImg(c, x, y, w, h);
-    // 名前は、1行で 36px 以上に収まれば1行、収まらなければ2行に折る
-    const one = fitSize(c.label, w, JA ? 44 : 38);
-    const lines = one >= 36 ? [c.label] : wrapName(c.label, JA ? 9 : 18).slice(0, 2);
-    const size = lines.length === 1 ? one : Math.min(...lines.map(l => fitSize(l, w, JA ? 44 : 38)));
     lines.forEach((l, j) => { s += T(x, y + h + 58 + j * (size + 6), l, { size, weight: 900 }); });
-    const dy = y + h + 58 + (lines.length - 1) * (size + 6) + 84;
+    const dy = y + h + 58 + nameH + 84;
+    if(sc.metric === "wr"){
+      s += T(x, dy, `${pt(c.gih)}%`, { size: 66, weight: 900, fill: GOLD });
+      s += T(x, dy + 52, UI.gihL, { size: fitSize(UI.gihL, w, 30), weight: 700, fill: MUTED });
+      if(c.bomb) s += pill(x, dy + 76, UI.bombLevel, DOWN, "#FFFFFF", JA ? 32 : 28).svg;
+      continue;
+    }
     s += T(x, dy, deltaText(c), { size: 66, weight: 900, fill: c.delta >= 0 ? UP : DOWN });
     const a = `${pt(c.first.gih)}% → ${pt(c.last.gih)}%`;
     s += T(x, dy + 52, a, { size: fitSize(a, w, 34), weight: 700, fill: MUTED });
@@ -724,7 +766,7 @@ function trendHookInner(hook){
                       : T(W / 2, 450, UI.arena, { size: 96, weight: 900, anchor: "middle", fill: "#FFFFFF" });
   if(hook.logo) s += `<image href="${hook.logo}" x="110" y="550" width="860" height="280" preserveAspectRatio="xMidYMid meet"/>`;
   else{ const sz = Math.min(130, Math.floor(940 / (Math.max([...String(hook.title)].length, 4) * (JA ? 1 : 0.6)))); s += TS(W / 2, 730, hook.title, { size: sz, fill: "#FFFFFF" }); }
-  const ribbon = (hook.thumb && hook.thumb.ribbon) || UI.trendHookC;
+  const ribbon = hook.ribbon || (hook.thumb && hook.thumb.ribbon) || UI.trendHookC;
   const rs = Math.min(JA ? 100 : 78, Math.floor(940 / ([...ribbon].length * (JA ? 1 : 0.62)))), rw = Math.round([...ribbon].length * rs * (JA ? 1 : 0.62) + 90), rh = Math.round(rs * 1.7);
   const ry = 880;
   s += `<rect x="${(W - rw) / 2}" y="${ry}" width="${rw}" height="${rh}" rx="24" fill="#D9412B" stroke="#FFFFFF" stroke-width="7"/>` +
@@ -735,7 +777,7 @@ function trendHookInner(hook){
     const g = UI.hookD1(hook.gamesLabel), gs = Math.min(120, Math.floor(960 / Math.max(units(g), 1)));
     y += gs; s += TS(W / 2, y, g, { size: gs, fill: "#FFD23F" }); y += 28;
   }
-  const d2 = UI.trendHookD3, ds = Math.min(66, Math.floor(980 / Math.max(units(d2), 1)));
+  const d2 = hook.d3 || UI.trendHookD3, ds = Math.min(66, Math.floor(980 / Math.max(units(d2), 1)));
   y += ds; s += TS(W / 2, y, d2, { size: ds, fill: "#FFFFFF" });
   // 下：このあと出る、上がったカード（サムネイルと同じ3枚を少し扇形に）。左下のキャラクターにはかけない
   const cards = (hook.thumbCards || []).filter(Boolean).slice(0, 3), CW = 280, CH = Math.round(CW * 936 / 672);
@@ -768,7 +810,8 @@ function thumbInner(hook, alt = false, { char = true } = {}){
   else{ const sz = Math.min(120, Math.floor(940 / (Math.max([...String(hook.title)].length, 4) * (JA ? 1 : 0.6)))); inner += TS(W / 2, y + sz, hook.title, { size: sz, fill: "#FFFFFF" }); y += sz + 50; }
   // 何の動画かの帯（赤）：「1分でわかる ドラフト環境」など
   const ribbon = hook.trend ? ((hook.thumb && hook.thumb.ribbon) || (JA ? `1分でわかる ${UI.trendHookC}` : UI.trendHookC))
-               : hook.early ? (JA ? `1分でわかる ${UI.earlyHookC}` : UI.earlyHookC) : (JA ? `1分でわかる ${UI.hookC(hook.isSealed)}` : `${UI.hookC(hook.isSealed)} IN 1 MINUTE`);
+               : hook.early ? UI.earlyHookC :   // 速報は1分を超えるので「1分でわかる」は付けない（2026年11月）
+                 (JA ? `1分でわかる ${UI.hookC(hook.isSealed)}` : `${UI.hookC(hook.isSealed)} IN 1 MINUTE`);
   const rs = Math.min(hook.thumb && hook.thumb.bigRibbon ? 96 : 64, Math.floor(900 / ([...ribbon].length * (JA ? 1 : 0.62)))), rw = Math.round([...ribbon].length * rs * (JA ? 1 : 0.62) + 80);
   inner += `<rect x="${(W - rw) / 2}" y="${y}" width="${rw}" height="${Math.round(rs * 1.6)}" rx="20" fill="#D9412B" stroke="#FFFFFF" stroke-width="6"/>` +
     T(W / 2, y + Math.round(rs * 0.8 + rs * 0.36), ribbon, { size: rs, weight: 900, anchor: "middle", fill: "#FFFFFF" });
@@ -807,8 +850,8 @@ function sceneSvg(sc){
       if(sc.trend) return frame(trendHookInner(sc) +
         `<g transform="rotate(-8 140 120)"><rect x="20" y="84" width="240" height="74" rx="37" fill="#E53935" stroke="#FFFFFF" stroke-width="5"/>` +
         T(140, 136, UI.trendBadge, { size: JA ? 48 : 32, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>`, null, { header: false });
-      // 速報：サムネイルと同じ中身（2026年10月：サムネイルで見た情報が、動画に入ると消えて地味になるため）
-      if(sc.early && sc.thumb) return frame(thumbInner(sc, false, { char: false }) +
+      // 速報：修正版と同じ形（ロゴ・帯・「〇万試合を分析」・何を解説するか・カード）。2026年11月：答えまで出すと、初めて見る人が置いていかれるため
+      if(sc.early) return frame(trendHookInner(sc) +
         `<g transform="rotate(-8 140 120)"><rect x="20" y="84" width="240" height="74" rx="37" fill="#E53935" stroke="#FFFFFF" stroke-width="5"/>` +
         T(140, 136, sc.trend ? UI.trendBadge : UI.earlyBadge, { size: JA ? 48 : 32, weight: 900, anchor: "middle", fill: "#FFFFFF" }) + `</g>`, null, { header: false });
       // 一目で「何の動画か」が分かるように：大きな縁取り文字を、上下の暗い帯の上に置く。絵は真ん中に見せる
@@ -955,6 +998,7 @@ function sceneSvg(sc){
       });
       return frame(s, sc.say);
     }
+    case "cardPick":
     case "trendCards": {
       // 1枚・2枚の場面は、ボムの場面と同じく字幕の枠を下げる（カードの下の名前・数字に余白をとるため。章の中で枠の高さはそろえる）
       if(sc.part === "focus") return frame(trendFocusSvg(sc), sc.say, { capBottom: BOMB_CAP_BOTTOM });
@@ -1082,11 +1126,11 @@ function highlightsOf(sc){
     return sc.page === 0 ? sc.cards.slice(0, 3).map((c, i) => ({ label: JA ? c.label : c.name, boxes: [row(i)] }))
                          : sc.cards.map((c, i) => c.outside ? { label: JA ? c.label : c.name, boxes: [row(i)] } : null).filter(Boolean);
   }
-  if(sc.kind === "trendCards" && sc.part === "focus") return [];   // 1枚だけなので光らせない
-  if(sc.kind === "trendCards" && sc.part === "rest"){
+  if((sc.kind === "trendCards" || sc.kind === "cardPick") && sc.part === "focus") return [];   // 1枚だけなので光らせない
+  if((sc.kind === "trendCards" || sc.kind === "cardPick") && sc.part === "rest"){
     // 名前を言っているカードを、そのあいだだけ光らせる（下の名前・差まで囲む）
     const cols = restCols(sc);
-    return cols.length > 1 ? cols.filter(k => String(sc.say).includes(k.c.label)).map(k => ({ label: k.c.label, boxes: [{ x: k.x - 14, y: k.y - 14, w: k.w + 28, h: k.h + 230 }] })) : [];
+    return cols.length > 1 ? cols.filter(k => String(sc.say).includes(k.c.label)).map(k => ({ label: k.c.label, boxes: [{ x: k.x - 14, y: k.y - 14, w: k.w + 28, h: k.h + 320 }] })) : [];
   }
   if(sc.kind === "trendCards"){
     // 名前を言っているカードを、そのあいだだけ光らせる（言った順に移る。字幕を分けた場面では、その字幕で言うカードだけ）
@@ -1259,8 +1303,11 @@ async function main(){
   // ドラフト・シールドは勝率一覧から出す
   const rep = EARLY || TREND ? null : await loadReport(SET, MODE);
   const avgs = d.rarity_avg || (rep ? rarityAverages(rep.ratings.cards, MODE === "sealed" ? 300 : 1500) : {});
+  // 伝説のカード（「色が合うなら何枚でも」と言わないため）。下見ページのデータ（data/profiles/<SET>.json）のタイプ行から。無ければ null（何枚でも、は言わない）
+  const prof = await readJson(`data/profiles/${SET}.json`, null);
+  const legend = prof && Array.isArray(prof.cards) ? new Map(prof.cards.map(c => [c.name, /Legendary/.test(c.type || "")])) : null;
   console.error(`レア度ごとの平均: ${["common", "uncommon", "rare"].map(r => `${r} ${avgs[r] ? pt(avgs[r]) + "%" : "なし"}`).join(" / ")}`);
-  const scenes = TREND ? splitLongScenes(trendScript(d, { JA, nameJa, names, pairName, cta: ctaScene(JA ? "レアリティ別のカード評価を見る前に、" : "Before the cards by rarity, ") })) : buildScript(d, nameJa, names, avgs);
+  const scenes = TREND ? splitLongScenes(trendScript(d, { JA, nameJa, names, pairName, cta: ctaScene(JA ? "レアリティ別のカード評価を見る前に、" : "Before the cards by rarity, ") })) : splitLongScenes(buildScript(d, nameJa, names, avgs, legend));
 
   // セット名のロゴ画像（置いてあれば使う）
   {
@@ -1323,7 +1370,7 @@ async function main(){
   }
 
   // カード画像（取れなければ名前の札のまま）。英語は Scryfall から英語版を引く
-  for(const sc of scenes) if(sc.kind === "top" || sc.kind === "bombs" || sc.kind === "trendCards"){
+  for(const sc of scenes) if(sc.kind === "top" || sc.kind === "bombs" || sc.kind === "trendCards" || sc.kind === "cardPick"){
     for(const [i, c] of sc.cards.entries()){
       if(c.imgPath) continue;   // 修正版は1章を2つの場面に分けていて、カードは同じものなので2度取らない
       if(!JA && !c.img){
@@ -1336,7 +1383,7 @@ async function main(){
       if(!c.img) continue;
       try{
         // 修正版は1枚を大きく映すので、大きい画像（large、672×936）を使う
-        const url = sc.kind === "trendCards" ? String(c.img).replace("/normal/", "/large/") : c.img;
+        const url = sc.kind === "trendCards" || sc.kind === "cardPick" ? String(c.img).replace("/normal/", "/large/") : c.img;
         const r = await fetch(url, { headers: { "User-Agent": "sealed-workbench/1.0 (https://sealed-workbench.com)" } });
         if(!r.ok) continue;
         const buf = Buffer.from(await r.arrayBuffer());
@@ -1351,7 +1398,7 @@ async function main(){
     // 修正版は、サムネイルの答えのカード（いちばん上がったカード）の章から取り、そのカードを真ん中に、同じ章の上がったカードを左右に
     const hk = scenes[0];
     const src = TREND ? scenes.find(sc => sc.kind === "trendCards" && sc.dir === "up" && sc.cards[0].name === hk.topName)
-                      : scenes.find(sc => sc.kind === "bombs");
+                      : scenes.find(sc => sc.kind === "cardPick" && sc.label === "bombs");
     const imgs = src ? src.cards.slice(0, 3).map(c => c.imgPath) : [];
     hk.thumbCards = TREND ? [imgs[1], imgs[0], imgs[2]].filter(Boolean) : imgs;
   }
@@ -1379,7 +1426,7 @@ async function main(){
   const makeThumbnail = async () => {
     const hook = scenes[0];
     if(!hook.thumbCards){   // 修正版・速報は、冒頭の場面を描く前に決めてある（冒頭とサムネイルで同じカードにする）
-      const bombs = scenes.find(sc => sc.kind === "bombs" || (sc.kind === "trendCards" && sc.dir === "up"));
+      const bombs = scenes.find(sc => (sc.kind === "cardPick" && sc.label === "bombs") || (sc.kind === "trendCards" && sc.dir === "up"));
       hook.thumbCards = bombs ? bombs.cards.slice(0, 3).map(c => c.imgPath) : [];
     }
     const cf = process.env.SHORT_THUMB_CHAR === "0" ? null : (JA ? ["short/zunda-hoodie/thumb.png", "short/zunda-hoodie/open_open.png", "short/zunda/open_open.png"] : ["short/metan/open_open.png"]).find(f => existsSync(f));
