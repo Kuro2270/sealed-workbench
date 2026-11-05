@@ -16,7 +16,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { enLinks } from "./en-pages.mjs";
 import { readFileSync } from "node:fs";
-import { shell, L, esc, SITE, pretty } from "./build-set-pages.mjs";
+import { shell, L, esc, SITE, pretty, uploadDate } from "./build-set-pages.mjs";
 import { READ, guideCss, guideSections } from "./start-guides.mjs";
 
 const SYM = k => `<img class="ms" src="https://svgs.scryfall.io/card-symbols/${k}.svg" alt="${k}" width="22" height="22" loading="lazy">`;
@@ -48,7 +48,7 @@ function videoSection(lang){
   const ts = n => `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, "0")}`;
   const chap = (v.chapters || []).map(([at, title]) => `<li><a href="https://youtu.be/${esc(id)}?t=${at}" data-t="${at}" target="_blank" rel="noopener"><time>${ts(at)}</time><span>${esc(title)}</span></a></li>`).join("");
   const ld = { "@context": "https://schema.org", "@type": "VideoObject", name: v.title, description: t.lead, thumbnailUrl: [`https://i.ytimg.com/vi/${id}/hqdefault.jpg`],
-    uploadDate: v.uploadedAt || undefined, contentUrl: `https://www.youtube.com/watch?v=${id}`, embedUrl: `https://www.youtube-nocookie.com/embed/${id}`, inLanguage: lang };
+    uploadDate: uploadDate(v.uploadedAt), contentUrl: `https://www.youtube.com/watch?v=${id}`, embedUrl: `https://www.youtube-nocookie.com/embed/${id}`, inLanguage: lang };
   return `<section class="blk longvideo" id="video"><h2>${t.h}</h2><p class="lead">${t.lead}</p>
 <div class="lv"><div class="yt" data-id="${esc(id)}"><img src="https://i.ytimg.com/vi/${esc(id)}/hqdefault.jpg" alt="${esc(v.title)}" loading="lazy" width="640" height="360"><button type="button" aria-label="${t.play}"><span></span></button></div>${chap ? `<ul class="chap">${chap}</ul>` : ""}</div>
 <script type="application/ld+json">${JSON.stringify(ld)}</script>

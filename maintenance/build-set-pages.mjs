@@ -749,7 +749,7 @@ function longSection(lang, code, setDisplay, long){
   const ts = n => `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, "0")}`;
   const chap = (v.chapters || []).map(c => `<li><a href="https://youtu.be/${esc(id)}?t=${Math.floor(c.at)}" data-t="${Math.floor(c.at)}" target="_blank" rel="noopener"><time>${ts(c.at)}</time><span>${esc(c.title)}</span></a></li>`).join("");
   const ld = { "@context": "https://schema.org", "@type": "VideoObject", name: title, description: T.longLead, thumbnailUrl: [thumb],
-    uploadDate: v.uploadedAt || "", duration: v.duration || undefined, contentUrl: `https://www.youtube.com/watch?v=${id}`, embedUrl: `https://www.youtube-nocookie.com/embed/${id}`, inLanguage: lang };
+    uploadDate: uploadDate(v.uploadedAt), duration: v.duration || undefined, contentUrl: `https://www.youtube.com/watch?v=${id}`, embedUrl: `https://www.youtube-nocookie.com/embed/${id}`, inLanguage: lang };
   return `<section class="longvideo"><h2>${esc(T.longH)}</h2><p class="lead">${esc(T.longLead)}</p>
   <div class="lv"><div class="yt" data-id="${esc(id)}">
     <img src="${thumbSrc}" alt="${esc(title)}" loading="lazy" width="640" height="360">
@@ -782,7 +782,7 @@ function videoSection(lang, code, mode, setDisplay, videos){
     name: v.title || `${setDisplay} ${T.mode[mode]} — ${vH}`,
     description: vLead,
     thumbnailUrl: [thumb],
-    uploadDate: v.uploadedAt || "",
+    uploadDate: uploadDate(v.uploadedAt),
     duration: v.duration || "PT1M",
     contentUrl: watch,
     embedUrl: `https://www.youtube-nocookie.com/embed/${id}`,
@@ -885,7 +885,16 @@ async function main(){
   console.error(`セット別ページを生成: ${rows.length}セット × 2言語`);
 }
 
-export { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE, pretty, videoSection, modeSection, fillMissingJa, namesInArticle, artCrop };
+/* 動画の構造化データ（VideoObject）の uploadDate。記録は日付だけ（2026-10-18）なので、日本時間の0時として時差を付ける。
+   時差が無いと、サーチコンソールに「日時プロパティ uploadDate にタイムゾーンがありません」と出る（2026年11月） */
+function uploadDate(v){
+  const s = String(v || "");
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return `${s}T00:00:00+09:00`;
+  if(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(s)) return `${s}+09:00`;   // 時刻だけあって時差が無いもの
+  return s || undefined;                                                                // 時差つき（…Z・…+09:00）はそのまま
+}
+
+export { shell, L, esc, readJson, setNamesJa, fetchJaNames, SCRY_HEADERS, SITE, pretty, videoSection, modeSection, fillMissingJa, namesInArticle, artCrop, uploadDate };
 // 直接実行したときだけ動かす（build-set-profile.mjs から shell を借りるため）
 import { pathToFileURL } from "node:url";
 if(process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href){
