@@ -81,7 +81,7 @@ const UI = JA ? {
   subscribe: "▶ チャンネル登録",
   surpriseH: "意外な事実", nobody: "誰も組んでいない", strongerTogether: "組むと強くなる", weakerTogether: "組むと弱くなる",
   wrRank: (v, r) => `勝率 ${v}%（${r}位）`, wr: v => `勝率 ${v}%`, usedOnly: (g, p) => `使われた試合は ${g}。全体の${p}%だけ`, vsAvg2: (sign, n) => `2色それぞれの平均より ${sign}${n}pt`,
-  outroA: "チャンネル登録を", outroB: "お願いします", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん",
+  outroA: "チャンネル登録を", outroB: "お願いします", subscribed: "✓ 登録済み", data: "データ: 17Lands 公開データ（CC BY 4.0）", voice: "音声: VOICEVOX:ずんだもん",
   earlyBadge: "速報", earlyHookC: "リミテッド速報",
   trendBadge: "修正版", trendHookC: "ドラフト環境の変化", trendHookD2: "評価が変わったカード",
   trendUpH: "発売直後から上がったカード", trendDownH: "発売直後から下がったカード", trendPairsH: "2色の組み合わせ（発売直後 → 最近）",
@@ -98,7 +98,7 @@ const UI = JA ? {
   subscribe: "▶ Subscribe",
   surpriseH: "One surprise", nobody: "Nobody plays it", strongerTogether: "Better together", weakerTogether: "Worse together",
   wrRank: (v, r) => `${v}% win rate (#${r})`, wr: v => `${v}% win rate`, usedOnly: (g, p) => `Only ${g} games — ${p}% of all decks`, vsAvg2: (sign, n) => `${sign}${n}pt vs each colour's average`,
-  outroA: "Please subscribe", outroB: "", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS",
+  outroA: "Please subscribe", outroB: "", subscribed: "✓ Subscribed", data: "Data: 17Lands Public Data (CC BY 4.0)", voice: "Voice: Kokoro TTS",
   earlyBadge: "EARLY LOOK", earlyHookC: "LIMITED · WEEK 1",
   trendBadge: "UPDATE", trendHookC: "DRAFT · WHAT CHANGED", trendHookD2: "Cards that rose & fell",
   trendUpH: "Rising since launch", trendDownH: "Falling since launch", trendPairsH: "Colour pairs (launch → recent)",
@@ -366,9 +366,9 @@ function buildScript(d, nameJa, names, avgs = {}){
   //   長めの登録のお願いで、FRA の速報ショートの終盤に離脱が集中した）。登録する理由は一言だけ
   scenes.push({ kind: "outro", art: true,
     // 登録する理由を一言だけ添える（速報は「詳しい解説」、通常版は「次のセット」）
-    say: EARLY ? (JA ? `詳しい解説も出すので、チャンネル登録お願いします！` : `The full review is coming, so subscribe!`)
-               : (JA ? `次のセットも出すので、チャンネル登録お願いします！` : `Next set's coming, so subscribe!`),
-    site: SITE, tail: 0.4 });
+    // 2026年11月：締めの4秒で見るのをやめる人が多かったので、セリフは一言だけにし、登録ボタンを押す動き（popLayer）で2秒ほどに収める
+    say: JA ? `登録お願いします！` : `Subscribe!`,
+    site: SITE, tail: 0.2, minDur: 1.9 });
   return scenes;
 }
 
@@ -479,9 +479,27 @@ function subscribeButton(){
 function popSvg(inner, w, h){
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w * SCALE}" height="${h * SCALE}" viewBox="0 0 ${w} ${h}" font-family="${FONT}"><g>${inner}</g></svg>`;
 }
-/* 場面に重ねる「動く層」。セリフのあいだに現れて、ぽんと跳ねる */
+/* 場面に重ねる「動く層」の並び。{ svg, w, h, x, y, enable? }。x・y は ffmpeg の式（t は場面の頭からの秒。式の中のカンマは \, と書く）、
+   enable は出しておく時間（ffmpeg の式。省くとずっと）
+   締め（outro）：登録ボタンが下から浮き上がる → 指が来て押す → 「登録済み」に変わり、ベルが揺れる（2秒ほど。2026年11月：
+   締めの4秒で見るのをやめる人が多かったので、セリフを短くし、押すところを見せて短い時間で伝える） */
+const PRESS = 0.7;   // 指がボタンを押す秒
 function popLayer(sc){
-  return null;
+  if(sc.kind !== "outro") return null;
+  const bx = W / 2 - 320, by = 900;
+  const done = `<rect x="0" y="0" width="640" height="130" rx="65" fill="#3A4450" stroke="#FFFFFF" stroke-width="6"/>` +
+               T(320, 86, UI.subscribed, { size: 58, weight: 900, anchor: "middle", fill: "#FFFFFF" });
+  const hand = `<path d="M30 6 C36 6 40 10 40 16 L40 52 L46 48 C52 44 60 46 62 52 L66 62 C70 60 78 62 80 68 L82 74 C86 72 94 74 96 82 L104 124 C108 142 98 160 80 164 L58 168 C42 170 28 162 20 148 L4 110 C0 102 6 94 14 96 L22 98 L20 16 C20 10 24 6 30 6 Z" fill="#FFFFFF" stroke="#06101C" stroke-width="7" stroke-linejoin="round"/>`;
+  const bell = `<path d="M50 10 C30 10 20 26 20 46 L20 70 L10 84 L90 84 L80 70 L80 46 C80 26 70 10 50 10 Z" fill="#FFD23F" stroke="#06101C" stroke-width="6" stroke-linejoin="round"/>` +
+               `<circle cx="50" cy="94" r="10" fill="#FFD23F" stroke="#06101C" stroke-width="6"/>`;
+  const hx0 = bx + 760, hy0 = by + 520, hx1 = bx + 430, hy1 = by + 60;            // 指は右下から来て、ボタンの右寄りを押す
+  const move = `min(1\\,max(0\\,(t-0.25)/${(PRESS - 0.25).toFixed(2)}))`;
+  return [
+    { svg: popSvg(subscribeButton(), 640, 130), w: 640, h: 130, x: `${bx}`, y: `${by}+60*max(0\\,1-t*4)+8*between(t\\,${PRESS}\\,${PRESS + 0.12})`, enable: `lt(t,${PRESS + 0.12})` },
+    { svg: popSvg(done, 640, 130), w: 640, h: 130, x: `${bx}`, y: `${by}`, enable: `gte(t,${PRESS + 0.12})` },
+    { svg: popSvg(bell, 100, 110), w: 100, h: 110, x: `${bx + 660}`, y: `${by + 10}-10*abs(sin(14*(t-${PRESS + 0.15})))*max(0\\,1-(t-${PRESS + 0.15})*1.6)`, enable: `gte(t,${PRESS + 0.15})` },
+    { svg: popSvg(hand, 110, 175), w: 110, h: 175, x: `${hx0}+(${hx1 - hx0})*${move}`, y: `${hy0}+(${hy1 - hy0})*${move}+10*between(t\\,${PRESS}\\,${PRESS + 0.12})`, enable: `between(t,0.2,${PRESS + 0.55})` }
+  ];
 }
 
 /* 字幕の枠の上端（場面の図をその上に収めるため） */
@@ -936,11 +954,10 @@ function sceneSvg(sc){
     }
     case "outro": {
       // 締めは「チャンネル登録をお願いします」だけ。クレジットや表記は概要欄に置く
+      // 登録ボタン・指・ベルは動く層（popLayer）で重ねる
       return frame(
         TS(W / 2, 640, UI.outroA, { size: 112 }) +
-        (UI.outroB ? TS(W / 2, 780, UI.outroB, { size: 112 }) : "") +
-        `<rect x="${W / 2 - 340}" y="900" width="680" height="140" rx="70" fill="#E53935" stroke="#FFFFFF" stroke-width="6"/>` +
-        T(W / 2, 992, UI.subscribe, { size: 64, weight: 900, anchor: "middle", fill: "#FFFFFF" }), null, { header: false });
+        (UI.outroB ? TS(W / 2, 780, UI.outroB, { size: 112 }) : ""), null, { header: false });
     }
   }
   return frame("", sc.say);
@@ -1397,14 +1414,16 @@ async function main(){
       const fi = args.indexOf("-filter_complex");
       args[fi + 1] = args[fi + 1].replace(/format=yuv420p\[v\];/, `null[hv0];${chain}[hv${hl.length}]format=yuv420p[v];`);
     }
-    const pop = popLayer(sc);
-    if(pop){   // 動く層（登録ボタンなど）：いちばん最後の入力として足し、下から浮き上がって、ゆっくり跳ねる
-      await sharp(Buffer.from(pop.svg), { density: 72 }).png().toFile(base + ".pop.png");
-      const idx = args.filter(a => a === "-i").length;
-      args.splice(args.indexOf("-filter_complex"), 0, "-loop", "1", "-framerate", "30", "-i", base + ".pop.png");
+    const pops = popLayer(sc);
+    if(pops && pops.length){   // 動く層（登録ボタン・指など）：1枚ずつ最後の入力として足し、式の位置に、決めた時間だけ重ねる
+      let idx = args.filter(a => a === "-i").length, chain = "";
+      for(const [k, pop] of pops.entries()){
+        await sharp(Buffer.from(pop.svg), { density: 72 }).png().toFile(`${base}.pop${k}.png`);
+        args.splice(args.indexOf("-filter_complex"), 0, "-loop", "1", "-framerate", "30", "-i", `${base}.pop${k}.png`);
+        chain += `[${idx + k}:v]scale=${pop.w}:${pop.h},format=rgba[pp${k}];[pv${k}][pp${k}]overlay=x='${pop.x}':y='${pop.y}'${pop.enable ? `:enable='${pop.enable}'` : ""}:shortest=1[pv${k + 1}];`;
+      }
       const fi = args.indexOf("-filter_complex");   // 入力を足したあとの位置
-      const bounce = `${pop.y}+60*max(0\\,1-t*4)-12*abs(sin(2.6*t))*min(1\\,t*4)`;   // 0.25 秒で浮き上がり、その後は上下に小さく跳ねる（式の中のカンマは \, と書く）
-      args[fi + 1] = args[fi + 1].replace(/format=yuv420p\[v\];/, `null[v0];[${idx}:v]scale=${pop.w}:${pop.h},format=rgba,fade=t=in:d=0.25:alpha=1[pp];[v0][pp]overlay=x=${pop.x}:y='${bounce}':shortest=1,format=yuv420p[v];`);
+      args[fi + 1] = args[fi + 1].replace(/format=yuv420p\[v\];/, `null[pv0];${chain}[pv${pops.length}]format=yuv420p[v];`);
     }
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...args,
       "-map", "[v]", "-map", "[a]", "-t", String(len), "-c:v", "libx264", "-preset", "fast", "-crf", "20", "-c:a", "aac", "-b:a", "160k",

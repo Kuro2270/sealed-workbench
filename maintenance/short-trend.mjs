@@ -8,12 +8,13 @@
  *
  * 章立て
  *   冒頭（サムネイルと同じ見た目。セリフは短く「何の動画か」だけ）
- *   → コモン編 → アンコモン編 → レア編（それぞれ、上がった3枚・下がった3枚）
- *   → 色の組み合わせ編（2色デッキの勝率の変化 → 狙い目（勝率が高いのに使う人が少ない組み合わせ。あるときだけ））→ 締め
+ *   → 色の組み合わせ編（2色デッキの勝率の変化 → 狙い目（勝率が高いのに使う人が少ない組み合わせ。あるときだけ））
+ *   → コモン編 → アンコモン編 → レア編（それぞれ、上がった3枚だけ）→ 締め
+ *   2026年11月：FRA の修正版で、いちばん役に立つ色の組み合わせを最後に置いていたのを最初にした。
+ *   また、下がったカード（とくにコモン）の場面で見るのをやめる人が多かったので、下がったカードは言わず、上がったカードだけにして短くした
  * カードの勝率は、どれも「引けた試合の勝率」（17Lands の GIH WR）。何の数字かが分かるよう、章の頭でセリフでも言う。
  * 「上がった」「下がった」の読み（あがった・さがった）は short/yomi.json で直す。
  */
-const pt1 = v => (Math.abs(v) * 100).toFixed(1).replace(/\.0$/, "");
 const pct = v => (v * 100).toFixed(1);
 /* 「発売から〇日」は言わない。データは集計した日までのもので、ショートは見る日によって日数がずれるため（2026年10月）。
    「発売直後」と「最近（発売からしばらくたった今）」の比べとして言う。比べた期間の日付は、YouTube の説明欄に書く */
@@ -43,7 +44,7 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
   const byR = d.by_rarity || {};
   // 章ごとの3枚は、揺れを考えた確かさ（z）で選んだうえで、差の大きい順に並べる（画面の上から「一番」になるように）
   const byDelta = (list, dir) => (list || []).slice().sort((a, b) => dir * (b.delta - a.delta));
-  const chapterUp = r => withLabel(byDelta((byR[r] || {}).risers, 1)), chapterDown = r => withLabel(byDelta((byR[r] || {}).fallers, -1));
+  const chapterUp = r => withLabel(byDelta((byR[r] || {}).risers, 1));   // 下がったカードは動画では言わない（2026年11月）
   // サムネイルの答え：コモンとアンコモンの章の1枚目のうち、差の大きいほう（動画のその章の1枚目と同じカードになる）
   const top = ["common", "uncommon"].map(r => chapterUp(r)[0]).filter(Boolean).sort((a, b) => b.delta - a.delta)[0] || withLabel(d.risers)[0] || null;
   const R0 = top && RN[L][top.rarity] ? top.rarity : "uncommon";
@@ -58,39 +59,8 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
   } : null;
   // topName：サムネイルに並べるカードを、このカードの章から取るため（このカードを真ん中に）
   scenes.push({ kind: "hook", art: true, trend: true, thumb, title: nameJa, topName: top ? top.name : null,
-    say: JA ? `MTGアリーナ、${nameJa}のドラフト。発売からしばらくたって、評価が大きく変わったカードをまとめました。`
-            : `${nameJa} Draft on MTG Arena: a while after launch, these are the cards whose results changed the most.` });
-
-  // コモン編・アンコモン編・レア編（それぞれ、上がった3枚 → 下がった3枚。無い側は飛ばす）
-  const chapterJa = { common: "コモン編", uncommon: "アンコモン編", rare: "レア編" };
-  const chapterEn = { common: "COMMONS", uncommon: "UNCOMMONS", rare: "RARES" };
-  const intro = { common: JA ? "まずはコモン編。" : "First, commons.", uncommon: JA ? "続いてアンコモン編。" : "Next, uncommons.", rare: JA ? "そしてレア編。" : "Then rares." };
-  for(const r of ["common", "uncommon", "rare"]){
-    const up = chapterUp(r), down = chapterDown(r);
-    if(!up.length && !down.length) continue;
-    const rn = RN[L][r], rns = rn + "s", ch = JA ? chapterJa[r] : chapterEn[r];
-    let opened = false;
-    const open = () => { const t = opened ? "" : intro[r] + (JA ? "" : " "); opened = true; return t; };
-    if(up.length){
-      const c0 = up[0], rest = up.slice(1).map(c => c.label);
-      const lead = r === "rare" && c0.underrated
-          ? (JA ? `発売直後は目立たなかった${c0.label}が、引けた試合の勝率${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントに上がりました。`
-                : `${c0.label}, overlooked at launch, went from ${pct(c0.first.gih)} percent at launch to ${pct(c0.last.gih)} percent recently in win rate when drawn.`)
-          : (JA ? `${rn}の中で一番上がったのは${c0.label}で、引けた試合の勝率は、発売直後の${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントです。`
-                : `The biggest riser among ${rns} is ${c0.label}: win rate when drawn went from ${pct(c0.first.gih)} percent at launch to ${pct(c0.last.gih)} percent recently.`);
-      const tail = !rest.length ? "" : (JA ? `${and(rest)}も上がっています。` : ` ${and(rest)} are up too.`);
-      scenes.push({ kind: "trendCards", dir: "up", cards: up, label: `trend-${r}-up`, tail: 0.8, minDur: 6, rare: r === "rare",
-        chapter: ch, heading: JA ? "引けた試合の勝率が上がった" : "Win rate when drawn: rising",
-        say: open() + lead + tail });
-    }
-    if(down.length){
-      const c0 = down[0], rest = down.slice(1).map(c => c.label);
-      scenes.push({ kind: "trendCards", dir: "down", cards: down, label: `trend-${r}-down`, tail: 0.8, minDur: 6, rare: r === "rare",
-        chapter: ch, heading: JA ? "引けた試合の勝率が下がった" : "Win rate when drawn: falling",
-        say: open() + (JA ? `逆に${rn}の中で一番下がったのは${c0.label}。引けた試合の勝率が${pt1(c0.delta)}ポイント下がりました。${rest.length ? and(rest) + "も下がっています。" : ""}`
-                          : `The biggest faller among ${rns}: ${c0.label}, down ${pt1(c0.delta)} points in win rate when drawn.${rest.length ? ` ${and(rest)} dropped too.` : ""}`) });
-    }
-  }
+    say: JA ? `MTGアリーナ、${nameJa}のドラフト。発売からしばらくたって、勝てる色の組み合わせと、評価が上がったカードをまとめました。`
+            : `${nameJa} Draft on MTG Arena, a while after launch: the colour pairs that win, and the cards that rose the most.` });
 
   // 色の組み合わせ編：いちばん伸びた・いちばん落ちた・1位（発売直後から変わらないか、入れ替わったか）→ 狙い目（あるときだけ）
   const pairs = (d.pairs || []).slice();
@@ -107,8 +77,8 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
     const chapter = JA ? "色の組み合わせ編" : "COLOUR PAIRS", heading = JA ? "2色デッキの勝率の変化" : "Deck win rate, launch → recent";
     // ここの勝率は、カードではなく2色デッキの勝率。取り違えないよう「デッキの勝率」と言う
     scenes.push({ kind: "trendPairs", pairs, rise, fall, top: topP, keepTop, chapter, heading, tail: 0.8, minDur: 6,
-      say: JA ? `色の組み合わせ編。2色デッキの勝率では、${R}が一番伸びて、${F}が一番落ちました。${topLine}`
-              : `Colour pairs. By deck win rate, ${R} rose the most and ${F} fell the most. ${topLine}` });
+      say: JA ? `まずは色の組み合わせ編。2色デッキの勝率では、${R}が一番伸びて、${F}が一番落ちました。${topLine}`
+              : `First, colour pairs. By deck win rate, ${R} rose the most and ${F} fell the most. ${topLine}` });
     const t = pickTarget(pairs);
     if(t){
       const P = pairName(t.pair.colors), sh = Math.round(t.pair.last.share * 100), av = Math.round(t.avgShare * 100);
@@ -120,7 +90,27 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
     }
   }
 
-  scenes.push({ kind: "outro", art: true,
-    say: JA ? `次のセットも出すので、チャンネル登録お願いします！` : `Next set's coming, so subscribe!`, tail: 0.4 });
+  // コモン編・アンコモン編・レア編（それぞれ、上がった3枚だけ。上がったカードが無い章は飛ばす）
+  const chapterJa = { common: "コモン編", uncommon: "アンコモン編", rare: "レア編" };
+  const chapterEn = { common: "COMMONS", uncommon: "UNCOMMONS", rare: "RARES" };
+  const intro = { common: JA ? "続いてコモン編。" : "Next, commons. ", uncommon: JA ? "次はアンコモン編。" : "Then uncommons. ", rare: JA ? "そしてレア編。" : "And rares. " };
+  for(const r of ["common", "uncommon", "rare"]){
+    const up = chapterUp(r);
+    if(!up.length) continue;
+    const rn = RN[L][r], rns = rn + "s", ch = JA ? chapterJa[r] : chapterEn[r];
+    const c0 = up[0], rest = up.slice(1).map(c => c.label);
+    const lead = r === "rare" && c0.underrated
+        ? (JA ? `発売直後は目立たなかった${c0.label}が、引けた試合の勝率${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントに上がりました。`
+              : `${c0.label}, overlooked at launch, went from ${pct(c0.first.gih)} percent at launch to ${pct(c0.last.gih)} percent recently in win rate when drawn.`)
+        : (JA ? `${rn}の中で一番上がったのは${c0.label}で、引けた試合の勝率は、発売直後の${pct(c0.first.gih)}パーセントから、最近は${pct(c0.last.gih)}パーセントです。`
+              : `The biggest riser among ${rns} is ${c0.label}: win rate when drawn went from ${pct(c0.first.gih)} percent at launch to ${pct(c0.last.gih)} percent recently.`);
+    const tail = !rest.length ? "" : (JA ? `${and(rest)}も上がっています。` : ` ${and(rest)} are up too.`);
+    scenes.push({ kind: "trendCards", dir: "up", cards: up, label: `trend-${r}-up`, tail: 0.8, minDur: 6, rare: r === "rare",
+      chapter: ch, heading: JA ? "引けた試合の勝率が上がった" : "Win rate when drawn: rising",
+      say: intro[r] + lead + tail });
+  }
+
+  // 締めは一言だけ。登録ボタンを押す動き（build-short.mjs の popLayer）で2秒ほどに収める（2026年11月）
+  scenes.push({ kind: "outro", art: true, say: JA ? `登録お願いします！` : `Subscribe!`, tail: 0.2, minDur: 1.9 });
   return scenes;
 }
