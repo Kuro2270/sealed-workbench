@@ -367,7 +367,7 @@ function buildScript(d, nameJa, names, avgs = {}){
   scenes.push({ kind: "outro", art: true,
     // 登録する理由を一言だけ添える（速報は「詳しい解説」、通常版は「次のセット」）
     // 2026年11月：締めの4秒で見るのをやめる人が多かったので、セリフは一言だけにし、登録ボタンを押す動き（popLayer）で2秒ほどに収める
-    say: JA ? `登録お願いします！` : `Subscribe!`,
+    say: JA ? `チャンネル登録もぜひ！` : `Subscribe!`,
     site: SITE, tail: 0.2, minDur: 1.9 });
   return scenes;
 }

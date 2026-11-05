@@ -111,6 +111,6 @@ export function trendScript(d, { JA, nameJa, names, pairName }){
   }
 
   // 締めは一言だけ。登録ボタンを押す動き（build-short.mjs の popLayer）で2秒ほどに収める（2026年11月）
-  scenes.push({ kind: "outro", art: true, say: JA ? `登録お願いします！` : `Subscribe!`, tail: 0.2, minDur: 1.9 });
+  scenes.push({ kind: "outro", art: true, say: JA ? `チャンネル登録もぜひ！` : `Subscribe!`, tail: 0.2, minDur: 1.9 });
   return scenes;
 }
